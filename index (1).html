@@ -1,0 +1,2461 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121513" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Шпаргалка">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6b55'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='white' text-anchor='middle'%3E%E2%80%B9/%E2%80%BA%3C/text%3E%3C/svg%3E">
+<title>Android-шпаргалка</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: sticky top bar with three modes; library = sections rail | note list | reader, collapsing to one pane on phones */
+:root{
+  --bg:#f3f4ef; --surface:#fbfbf8; --raised:#ffffff; --ink:#1c201d; --muted:#5f6862; --faint:#8b938d;
+  --line:#dcdfd7; --line-strong:#c4c9bf;
+  --accent:#2f6b55; --accent-ink:#ffffff; --accent-soft:#e1ece5;
+  --kt:#6b4fd8; --kt-soft:#ece8fb;
+  --again:#b5442f; --again-soft:#f6e3de; --hard:#a8700f; --hard-soft:#f6ecd8; --good:#2f6b55; --good-soft:#dfece4;
+  --code-bg:#eef0ea; --mark:#f3e39a;
+  --hl-kw:#7a3fb8; --hl-str:#2f6b3a; --hl-num:#a8560f; --hl-com:#8b938d; --hl-type:#1f5f8b; --hl-attr:#9a3f5c;
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121513; --surface:#171b18; --raised:#1d221f; --ink:#e4e8e3; --muted:#a1aaa3; --faint:#78817a;
+  --line:#2a302c; --line-strong:#3a423d;
+  --accent:#7cc4a3; --accent-ink:#0f1a14; --accent-soft:#1f3229;
+  --kt:#a993ff; --kt-soft:#2a2442;
+  --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
+  --code-bg:#1b201d; --mark:#5b4f17;
+  --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121513; --surface:#171b18; --raised:#1d221f; --ink:#e4e8e3; --muted:#a1aaa3; --faint:#78817a;
+  --line:#2a302c; --line-strong:#3a423d;
+  --accent:#7cc4a3; --accent-ink:#0f1a14; --accent-soft:#1f3229;
+  --kt:#a993ff; --kt-soft:#2a2442;
+  --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
+  --code-bg:#1b201d; --mark:#5b4f17;
+  --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
+  color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+.app{display:flex;flex-direction:column;height:100%}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;padding-block:10px;padding-inline:16px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand b{color:var(--accent);font-weight:600}
+.modes{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.modes button{border:0;background:none;padding:6px 14px;border-radius:999px;color:var(--muted);font-weight:500;display:flex;gap:6px;align-items:center}
+.modes button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.badge{font:500 11px/1 var(--f-mono);background:var(--kt);color:#fff;border-radius:999px;padding:3px 6px}
+.badge[hidden]{display:none}
+.search{flex:1;min-width:200px;max-width:520px;margin-left:auto;position:relative}
+.search input{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--raised);border-radius:999px;padding:8px 36px 8px 14px}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:11px var(--f-mono);color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.status{font-size:12px;color:var(--faint)}
+
+/* library */
+.lib{flex:1;min-height:0;display:grid;grid-template-columns:var(--rail-w,230px) minmax(280px,360px) minmax(0,1fr);position:relative}
+.rail-resizer{position:absolute;top:0;bottom:0;left:calc(var(--rail-w,230px) - 4px);width:8px;cursor:col-resize;z-index:5;touch-action:none}
+.rail-resizer::after{content:'';position:absolute;top:0;bottom:0;left:3px;width:2px;background:transparent;transition:background .15s}
+.rail-resizer:hover::after,.rail-resizer.dragging::after{background:var(--accent)}
+body.resizing-rail{cursor:col-resize;user-select:none}
+.lib.wide-edit .rail-resizer{display:none}
+.rail{border-right:1px solid var(--line);overflow:auto;padding-block:14px;padding-inline:10px;display:flex;flex-direction:column;gap:2px}
+.rail h4{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:10px 8px 6px}
+.sec{display:flex;align-items:center;gap:8px;border:0;background:none;text-align:left;padding:7px 10px;border-radius:8px;color:var(--ink)}
+.sec:hover{background:var(--surface)}
+.sec[aria-current="true"]{background:var(--accent-soft);color:var(--ink);font-weight:500}
+.sec .n{margin-left:auto;font:12px var(--f-mono);color:var(--faint);font-variant-numeric:tabular-nums}
+.sec .due{width:6px;height:6px;border-radius:50%;background:var(--kt);flex:none}
+.sec .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail .ghost{margin-top:8px}
+.ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
+.ghost:hover{color:var(--ink);border-color:var(--muted)}
+.inline-form{display:flex;gap:6px;padding:4px 2px}
+.inline-form input{flex:1;min-width:0;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px}
+
+.list{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
+.list-head{display:flex;align-items:center;gap:8px;padding-block:12px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.list-head h2{font:600 14px/1.3 var(--f-body);margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-head .count{font:12px var(--f-mono);color:var(--faint)}
+.list-head #read-all{margin-left:auto}
+.list-head .btn{white-space:nowrap;flex:none}
+.icon-btn{display:inline-flex;align-items:center;gap:6px}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
+.icon-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.list-head .icon-btn span{display:none}
+.list-head .icon-btn{padding:6px 9px}
+.list-head{gap:6px}
+.art-toc{margin:4px 0 26px;border:1px solid var(--line);border-radius:10px;background:var(--raised)}
+.art-toc summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px}
+.art-toc ol{margin:0;padding:4px 14px 12px 36px;columns:2 260px;column-gap:28px;font-size:14px}
+.art-toc li{break-inside:avoid;margin:3px 0}
+.art-toc a{color:var(--ink);text-decoration:none}
+.art-toc a:hover{color:var(--accent);text-decoration:underline}
+.art-note{padding-top:22px;margin-top:26px;border-top:2px solid var(--line);scroll-margin-top:12px}
+.art-note:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.art-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.art-head h2{font:600 clamp(18px,2vw,21px)/1.3 var(--f-display);margin:0;flex:1;min-width:0;text-wrap:balance}
+.art-head h2 .num{color:var(--faint);font-weight:500;margin-right:6px;font-variant-numeric:tabular-nums}
+.art-acts{display:flex;gap:4px;flex:none;opacity:.55;transition:opacity .12s}
+.art-note:hover .art-acts,.art-acts:focus-within{opacity:1}
+.art-acts button{border:1px solid var(--line);background:var(--raised);border-radius:6px;padding:3px 9px;font-size:12.5px;color:var(--muted)}
+.art-acts button:hover{color:var(--ink);border-color:var(--muted)}
+.art-end{margin-top:40px;padding-top:16px;border-top:2px solid var(--line);color:var(--faint);font-size:14px;text-align:center}
+@media (hover:none){.art-acts{opacity:1}}
+.chips-row{display:none;gap:6px;overflow-x:auto;padding-block:10px;padding-inline:16px;border-bottom:1px solid var(--line);scrollbar-width:none}
+.chip{border:1px solid var(--line);background:var(--raised);border-radius:999px;padding:4px 11px;white-space:nowrap;color:var(--muted);font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tagbar{display:flex;gap:6px;flex-wrap:wrap;padding-block:8px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.tagbar[hidden]{display:none}
+.items{overflow:auto;flex:1;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+.rail{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
+.item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding-block:11px;padding-inline:16px;color:var(--ink)}
+.item:hover{background:var(--surface)}
+.item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
+.item .t{font-weight:500;line-height:1.35;display:block}
+.item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.item .snip{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
+.row-item{position:relative;border-bottom:1px solid var(--line)}
+.row-item .item{border-bottom:0;padding-right:46px}
+.more{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:18px;line-height:1;display:grid;place-items:center;opacity:0;transition:opacity .12s}
+.row-item:hover .more,.more:focus-visible,.more[aria-expanded="true"]{opacity:1}
+.more:hover,.more[aria-expanded="true"]{background:var(--line);color:var(--ink)}
+@media (hover:none){.more{opacity:1}}
+.row-item.can-drag .item{padding-left:26px}
+.grip{position:absolute;left:4px;top:10px;width:18px;height:28px;display:grid;place-items:center;color:var(--faint);cursor:grab;touch-action:none;opacity:0;border-radius:4px;transition:opacity .12s}
+.grip svg{width:8px;height:14px;fill:currentColor}
+.row-item:hover .grip{opacity:1}
+.grip:hover{background:var(--line);color:var(--ink)}
+@media (hover:none){.grip{opacity:.7}}
+.row-item.dragging{opacity:.45}
+.is-dragging,.is-dragging *{cursor:grabbing!important;user-select:none}
+.row-item.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
+.row-item.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+.goto{position:absolute;right:8px;bottom:8px;border:1px solid var(--line);background:var(--raised);color:var(--accent);border-radius:6px;font-size:12px;padding:2px 8px}
+.goto:hover{border-color:var(--accent)}
+.row-item:has(.goto) .item{padding-bottom:30px}
+@keyframes flash{from{background:var(--accent-soft)}to{background:transparent}}
+.row-item.flash{animation:flash 1.6s ease-out}
+.sec-link{border:0;background:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--accent);cursor:pointer}
+.sec-link:hover{text-decoration:underline}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 14px}
+.card .tagrow{margin:12px 0 0}
+.tchip{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--raised);border-radius:999px;font:12.5px/1 var(--f-mono);color:var(--accent);overflow:hidden}
+.tchip-t{border:0;background:none;color:inherit;font:inherit;padding:5px 4px 5px 10px}
+button.tchip-t{cursor:pointer}
+button.tchip-t:hover{text-decoration:underline}
+.tchip-x{border:0;background:none;color:var(--faint);font:14px/1 var(--f-body);padding:4px 9px 4px 4px;cursor:pointer}
+.tchip-x:hover{color:var(--again)}
+.tag-add{border:1px dashed var(--line-strong);background:none;border-radius:999px;font:12.5px/1 var(--f-body);color:var(--muted);padding:6px 11px;cursor:pointer}
+.tag-add:hover{color:var(--ink);border-color:var(--muted)}
+.tag-input-wrap{position:relative;display:inline-block}
+.tag-input{border:1px solid var(--accent);background:var(--bg);color:var(--ink);border-radius:999px;font:13px var(--f-mono);padding:5px 11px;width:170px;max-width:60vw;outline:none}
+.tag-sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:25;min-width:200px;max-width:80vw;background:var(--raised);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px;display:flex;flex-direction:column}
+.tag-sugg[hidden]{display:none}
+.sugg{border:0;background:none;text-align:left;padding:7px 10px;border-radius:6px;font:13px var(--f-mono);color:var(--ink);display:flex;gap:8px;justify-content:space-between;cursor:pointer}
+.sugg span{color:var(--faint)}
+.sugg b{color:var(--accent);font-weight:600}
+.sugg.on,.sugg:hover{background:var(--accent-soft)}
+.mtags{display:flex;flex-direction:column;max-height:46vh;overflow:auto;padding:0 2px}
+.mchk{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;font:13.5px var(--f-mono);cursor:pointer}
+.mchk:hover{background:var(--surface)}
+.mchk input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.mchk span{flex:1}
+.mchk small{color:var(--faint);font-size:11.5px}
+.mcount{margin-left:auto;font:11px var(--f-mono);color:var(--faint)}
+#mtag-form input{margin:6px 8px 4px}
+.chip-manage{color:var(--muted);border-style:dashed}
+.bulkbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px;background:var(--accent-soft);border-bottom:1px solid var(--line)}
+.bulkbar .btn{padding:4px 10px;font-size:13px}
+.bulkbar .bcount{font-size:13px;margin-right:auto;color:var(--ink)}
+.selbox{position:absolute;left:10px;top:13px;width:18px;height:18px;border:1.5px solid var(--line-strong);border-radius:5px;display:grid;place-items:center;font:12px/1 var(--f-body);color:var(--accent-ink);background:var(--raised);pointer-events:none}
+.row-item.selecting .item{padding-left:38px}
+.row-item.selected .selbox{background:var(--accent);border-color:var(--accent)}
+.row-item.selected{background:var(--accent-soft)}
+.tag-rename{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.tag-rename input{flex:1;min-width:140px;border:1px solid var(--accent);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 9px;font:13px var(--f-mono)}
+#tags-panel .nm .tag{font-size:13.5px}
+.rename-form{display:flex;flex-direction:column;gap:8px;padding-block:10px;padding-inline:16px;background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
+.rename-form input{border:1px solid var(--accent);background:var(--bg);border-radius:8px;padding:7px 10px;width:100%;box-sizing:border-box;font-weight:500}
+.rename-form .bar{gap:6px}
+.menu{position:fixed;z-index:30;max-height:calc(100vh - 16px);overflow:auto;min-width:210px;max-width:calc(100vw - 32px);background:var(--raised);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px;display:flex;flex-direction:column}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:6px;color:var(--ink);font-size:14px}
+.menu button:hover,.menu button:focus-visible{background:var(--surface)}
+.menu .ico{width:16px;text-align:center;color:var(--faint);font-family:var(--f-mono)}
+.menu .danger,.menu .danger .ico{color:var(--again)}
+.menu .sep{height:1px;background:var(--line);margin:4px 2px}
+.menu .ask{padding:8px 10px 4px;font-size:13px;color:var(--again);line-height:1.4}
+.menu .ask-row{display:flex;gap:6px;padding:4px 6px 6px}
+.menu .ask-row button{justify-content:center;border:1px solid var(--line-strong)}
+.menu-form{display:flex;flex-direction:column;gap:4px;min-width:240px}
+.menu-form input{margin:2px 8px 4px;border:1px solid var(--accent);background:var(--bg);border-radius:8px;padding:7px 9px;font:inherit;color:var(--ink)}
+.menu .ask-row .yes-ok{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.menu button:disabled{opacity:.4;cursor:default}
+.chip-add{font-weight:600;min-width:34px}
+#chips .chip{-webkit-touch-callout:none;user-select:none}
+.menu .ask-row .yes{background:var(--again);border-color:var(--again);color:var(--raised)}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+.pill{font:500 11px/1.6 var(--f-mono);border-radius:5px;padding:0 6px;background:var(--surface);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.new{color:var(--faint)}
+.pill.learn{background:var(--hard-soft);border-color:transparent;color:var(--hard)}
+.pill.know{background:var(--good-soft);border-color:transparent;color:var(--good)}
+.pill.due{background:var(--kt-soft);border-color:transparent;color:var(--kt)}
+.pill.ref{border-style:dashed}
+.pill.empty{color:var(--again);border-color:transparent;background:var(--again-soft)}
+.tag{font:12px var(--f-mono);color:var(--accent)}
+button.tag{border:0;background:none;padding:0}
+.empty-state{padding:32px 20px;color:var(--muted);text-align:center}
+
+.reader{overflow:auto;min-width:0;background:var(--surface)}
+.doc{max-width:760px;margin:0 auto;padding-block:28px 80px;padding-inline:clamp(16px,4vw,40px)}
+.doc .eyebrow{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.doc h1{font:600 clamp(20px,2.4vw,26px)/1.25 var(--f-display);letter-spacing:-.005em;margin:10px 0 12px;text-wrap:balance}
+.doc .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
+.doc .actions{margin-left:auto;display:flex;gap:6px}
+.mbar{display:none}
+@keyframes slideNext{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes slidePrev{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes bump{0%,100%{transform:none}30%{transform:translateX(-8px)}60%{transform:translateX(6px)}}
+.doc.slide-in-next{animation:slideNext .22s ease-out}
+.doc.slide-in-prev{animation:slidePrev .22s ease-out}
+.doc.bump{animation:bump .3s ease-out}
+.back{display:none;border:0;background:none;color:var(--accent);padding:0;margin-bottom:12px;font-weight:500}
+
+.btn{border:1px solid var(--line-strong);background:var(--raised);border-radius:8px;padding:6px 12px;font-weight:500;font-size:14px;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.danger{color:var(--again)}
+.btn.big{padding:11px 20px;font-size:15px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* markdown */
+.md{font-size:15.5px;line-height:1.65;overflow-wrap:anywhere}
+.md>*:first-child{margin-top:0}
+.md p{margin:0 0 .8em}
+.md h1,.md h2,.md h3,.md h4{font:600 16px/1.35 var(--f-body);margin:1.5em 0 .5em;padding-top:.6em;border-top:1px solid var(--line)}
+.md ul,.md ol{padding-left:1.4em;margin:0 0 .9em}
+.md li{margin:.15em 0}
+.md li>p{margin:0 0 .3em}
+.md strong{font-weight:600}
+.md code{font:.88em var(--f-mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+.md pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 1em;line-height:1.5}
+.md pre code{background:none;padding:0;font-size:13px;white-space:pre}
+.md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
+.md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
+.md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
+.md td,.md th{border:1px solid var(--line);padding:5px 9px}
+.md hr{border:0;border-top:1px solid var(--line);margin:1.5em 0}
+.hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--hl-kw)}
+.hljs-string,.hljs-regexp{color:var(--hl-str)}
+.hljs-number{color:var(--hl-num)}
+.hljs-comment{color:var(--hl-com);font-style:italic}
+.hljs-title,.hljs-type,.hljs-class .hljs-title,.hljs-title.class_{color:var(--hl-type)}
+.hljs-attr,.hljs-attribute,.hljs-meta,.hljs-name,.hljs-tag{color:var(--hl-attr)}
+
+/* editor */
+.editor{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label,.lbl{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--faint)}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box}
+.field textarea{font:13.5px/1.55 var(--f-mono);min-height:360px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.check input{margin-top:4px}
+.tabs{display:flex;gap:4px}
+.tabs button{border:0;background:none;padding:4px 10px;border-radius:6px;color:var(--muted);font-size:13px}
+.tabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
+.preview{border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--raised);min-height:200px;min-width:0;overflow-wrap:anywhere}
+.md-toolbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:5px 6px;background:var(--raised);border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.tb-group{display:flex;gap:2px;align-items:center}
+.tb-group+.tb-group{padding-left:10px;border-left:1px solid var(--line)}
+.tb-end{margin-left:auto}
+.tb{width:32px;height:30px;border:0;border-radius:6px;background:none;color:var(--muted);display:grid;place-items:center;font:15px/1 var(--f-body);padding:0}
+.tb:hover{background:var(--surface);color:var(--ink)}
+.tb:active{background:var(--accent-soft)}
+.tb b{font-weight:700}.tb i{font-family:Georgia,serif;font-style:italic;font-size:16px}.tb s{text-decoration-thickness:1.5px}
+.tb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.lib.wide-edit{grid-template-columns:minmax(0,1fr)}
+.lib.wide-edit .rail,.lib.wide-edit .list{display:none}
+.lib.wide-edit .doc{max-width:1600px}
+.lib.wide-edit .back{display:inline-block}
+.ed-panes{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.ed-panes.split{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));align-items:start}
+.ed-panes.split .preview{position:sticky;top:48px;max-height:calc(100vh - 140px);overflow:auto}
+.field textarea#ed-body{overflow:hidden}
+.md ul:has(> li > input[type=checkbox]){list-style:none;padding-left:.3em}
+.md li > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
+.md del{color:var(--muted)}
+.preview.visual{cursor:text;min-height:360px;outline:none;transition:border-color .12s,box-shadow .12s}
+.preview.visual:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.preview.visual:empty::before{content:attr(data-empty);color:var(--faint)}
+.preview.visual a{cursor:text}
+.ed-panes:not(.split) .preview.visual{position:static;max-height:none}
+.link-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.link-bar label{font-size:13px;color:var(--muted)}
+.link-bar input{flex:1;min-width:180px;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 9px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar .spacer{flex:1}
+.hint{font-size:12.5px;color:var(--faint)}
+.confirm{display:flex;gap:8px;align-items:center;background:var(--again-soft);color:var(--again);padding:8px 10px;border-radius:8px;flex-wrap:wrap}
+
+/* training + progress */
+.page{flex:1;min-height:0;overflow:auto}
+.wrap{max-width:900px;margin:0 auto;padding-block:28px 80px;padding-inline:16px;display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:20px}
+.panel h3{font:600 17px/1.3 var(--f-display);margin:0 0 4px}
+.panel .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.today{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center}
+.bignum{font:600 54px/1 var(--f-display);color:var(--kt);font-variant-numeric:tabular-nums}
+.today .split{color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
+.today .split b{color:var(--ink);font-weight:600}
+.opts{display:flex;flex-direction:column;gap:14px}
+.opt-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:none;padding:6px 12px;color:var(--muted);font-size:14px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.session{max-width:760px;margin:0 auto;padding-block:20px 80px;padding-inline:16px;display:flex;flex-direction:column;gap:14px}
+.sbar{display:flex;align-items:center;gap:12px}
+.track{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.sbar .count{font:13px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.card{background:var(--raised);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,32px)}
+.card .q{font:600 clamp(19px,2.6vw,24px)/1.3 var(--f-display);margin:10px 0 0;text-wrap:balance}
+.card .ans{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line-strong)}
+.reveal{width:100%;margin-top:24px}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.grade{border:1px solid transparent;border-radius:12px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
+.grade small{font:12px var(--f-mono);font-weight:400;opacity:.85}
+.grade{position:relative}
+.grade kbd{position:absolute;top:6px;left:8px;font:10px/1 var(--f-mono);border:1px solid currentColor;border-radius:4px;padding:2px 4px;opacity:.45}
+.grade-hint{text-align:center;margin:0}
+@media (hover:none){.grade kbd,.grade-hint .keys,.key-hint{display:none}}
+.g1{background:var(--again-soft);color:var(--again)}
+.g2{background:var(--hard-soft);color:var(--hard)}
+.g3{background:var(--good-soft);color:var(--good)}
+.grade:hover{border-color:currentColor}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.stat{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.stat b{font:600 28px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.missed{display:flex;flex-direction:column;gap:4px;margin:6px 0 16px;padding:0;list-style:none}
+.missed button{border:0;background:none;color:var(--accent);text-align:left;padding:2px 0}
+
+.prog-row{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr) 180px;gap:14px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
+.prog-row:last-child{border-bottom:0}
+.prog-row .nm{font-weight:500;min-width:0}
+.stack{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.stack i{display:block;height:100%}
+.s-new{background:var(--line-strong)} .s-learn{background:var(--hard)} .s-know{background:var(--accent)} .s-solid{background:var(--kt)}
+.prog-row .nums{font:12px var(--f-mono);color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.totals div{padding:12px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.totals b{display:block;font:600 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.totals span{font-size:12.5px;color:var(--muted)}
+.notice{padding:12px 14px;border-radius:10px;background:var(--hard-soft);color:var(--hard);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.help-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;gap:7px;border:1px solid var(--line-strong);background:var(--raised);color:var(--muted);border-radius:999px;padding:6px 13px 6px 7px;font:500 13px var(--f-body);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.help-fab span{width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 12px/1 var(--f-display)}
+.help-fab:hover{color:var(--ink);border-color:var(--muted)}
+.help-overlay{position:fixed;inset:0;z-index:40;background:rgba(10,14,12,.45);display:flex;justify-content:center;align-items:flex-start;padding-block:calc(24px + env(safe-area-inset-top,0px)) 24px;padding-inline:16px;overflow:auto}
+.help-sheet{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:16px;width:100%;max-width:760px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+.help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px 10px}
+.help-head h2{margin:0;font:600 20px/1.2 var(--f-display)}
+.help-toc{display:flex;gap:6px;flex-wrap:wrap;padding:0 22px 12px;border-bottom:1px solid var(--line)}
+.help-toc a{font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.help-toc a:hover{color:var(--ink);border-color:var(--muted)}
+.help-body{overflow:auto;padding:6px 22px 24px;font-size:14.5px;line-height:1.6}
+.help-body h3{font:600 15px/1.3 var(--f-display);margin:20px 0 6px;color:var(--accent)}
+.help-body ul{margin:0;padding-left:1.2em}
+.help-body li{margin:.3em 0}
+.help-body ul ul{margin-top:.2em}
+.help-body code{font:.88em var(--f-mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+.help-body .pill{vertical-align:1px}
+.keys-table{border-collapse:collapse;width:100%}
+.keys-table td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.keys-table td:first-child{white-space:nowrap;width:1%}
+.help-body kbd,.keys-table kbd{font:12px var(--f-mono);border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--surface)}
+body.in-session .help-fab{display:none}
+@media (max-width:760px){.help-fab{padding:7px}.help-fab{font-size:0;gap:0}.help-fab span{font-size:12px}}
+
+.toast.has-act{pointer-events:auto;display:flex;gap:12px;align-items:center}
+.toast-act{border:0;background:none;color:inherit;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:0;cursor:pointer}
+.drop-card{margin-left:auto;border:1px solid var(--line);background:none;border-radius:6px;padding:3px 9px;font:500 12px/1.4 var(--f-body);letter-spacing:0;text-transform:none;color:var(--muted);cursor:pointer}
+.drop-card:hover{color:var(--again);border-color:var(--again)}
+.excluded{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.excluded li{display:flex;gap:10px;align-items:center;padding-block:7px;border-bottom:1px solid var(--line)}
+.excluded li:last-child{border-bottom:0}
+.excluded .nm{flex:1;min-width:0}
+.excluded .nm small{display:block;color:var(--faint);font-size:12px}
+details.panel summary{cursor:pointer;font:600 17px/1.3 var(--f-display)}
+details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
+
+@media (max-width:1100px){
+  .lib{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
+  .rail{display:none}
+  .rail-resizer{display:none}
+  .chips-row{display:flex}
+}
+@media (max-width:760px){
+  .top{gap:10px}
+  .search{order:3;flex-basis:100%;max-width:none;margin-left:0}
+  .search kbd{display:none}
+  .modes{margin-left:auto}
+  .modes button{padding:6px 10px}
+  .lib{grid-template-columns:minmax(0,1fr)}
+  .lib.reading .list{display:none}
+  .lib:not(.reading) .reader{display:none}
+  .list{border-right:0}
+  .back{display:inline-block}
+  .mbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:4;margin:-28px calc(-1 * clamp(16px,4vw,40px)) 14px;padding:10px clamp(16px,4vw,40px);background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .mbar .back{margin:0;padding:6px 0;font-size:15px}
+  .mnav{margin-left:auto;display:flex;align-items:center;gap:4px}
+  .mnav button{width:38px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);font-size:20px;line-height:1}
+  .mnav button:disabled{opacity:.35}
+  .mpos{font:12px var(--f-mono);color:var(--faint);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+  .today{grid-template-columns:auto 1fr}
+  .today .btn{grid-column:1/-1}
+  .grid2{grid-template-columns:1fr}
+  .totals{grid-template-columns:repeat(2,1fr)}
+  .prog-row{grid-template-columns:1fr auto}
+  .prog-row .stack{grid-column:1/-1;grid-row:2}
+  .brand span.long{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand" aria-label="Android-шпаргалка">‹/›<span><b>Android</b><span class="long">-шпаргалка</span></span></div>
+    <nav class="modes" aria-label="Режим">
+      <button id="m-lib" data-mode="lib" aria-pressed="true">Заметки</button>
+      <button id="m-train" data-mode="train" aria-pressed="false">Тренировка <span class="badge" id="due-badge" hidden>0</span></button>
+      <button id="m-prog" data-mode="prog" aria-pressed="false">Прогресс</button>
+    </nav>
+    <div class="search" id="search-box">
+      <input id="q" type="search" placeholder="Поиск по заметкам: HashMap, launchMode, StateFlow…" autocomplete="off" aria-label="Поиск по заметкам">
+      <kbd>/</kbd>
+    </div>
+  </header>
+
+  <main class="lib" id="lib">
+    <aside class="rail" id="rail" aria-label="Разделы"></aside>
+    <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
+    <section class="list" aria-label="Список заметок">
+      <div class="chips-row" id="chips"></div>
+      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
+      <div class="tagbar" id="tagbar" hidden></div>
+      <div class="bulkbar" id="bulkbar" hidden></div>
+      <div class="items" id="items"><div class="empty-state">Загружаю заметки…</div></div>
+    </section>
+    <article class="reader" id="reader"><div class="doc"><div class="empty-state" id="reader-empty">Выбери заметку слева или найди её через поиск.</div></div></article>
+  </main>
+
+  <main class="page" id="train" hidden></main>
+  <main class="page" id="prog" hidden></main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<button class="help-fab" id="help-btn" type="button" aria-haspopup="dialog" title="Как всё устроено (клавиша ?)"><span aria-hidden="true">?</span> Справка</button>
+<div class="help-overlay" id="help" hidden>
+  <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-head"><h2 id="help-title">Как всё устроено</h2><button class="btn" id="help-close" type="button">Закрыть</button></div>
+    <nav class="help-toc" aria-label="Разделы справки">
+      <a href="#h-notes">Заметки</a><a href="#h-search">Поиск и теги</a><a href="#h-edit">Редактор</a><a href="#h-train">Тренировка</a><a href="#h-prog">Прогресс</a><a href="#h-keys">Клавиши</a>
+    </nav>
+    <div class="help-body">
+      <section id="h-notes"><h3>Заметки и разделы</h3>
+        <ul>
+          <li>Каждая заметка — это вопрос (заголовок) и ответ (текст). В тренировке заголовок становится вопросом, текст — ответом.</li>
+          <li>Слева разделы, в середине список, справа открытая заметка. На телефоне разделы — это строка чипов над списком.</li>
+          <li><b>Разделы.</b> На компьютере: «+ Раздел» внизу списка разделов, двойной клик — переименовать, правый клик — меню раздела. На телефоне: «+» в конце строки разделов, а меню раздела открывается долгим нажатием на раздел. Обычное нажатие при открытом меню закрывает его.</li>
+          <li><b>Ширина панели разделов</b> на компьютере меняется перетаскиванием её правой границы мышкой; двойной клик по границе возвращает исходную ширину. Ширина запоминается.</li>
+          <li>В меню раздела: переименовать, поднять или опустить в списке, удалить (только пустой раздел).</li>
+          <li><b>«⋮»</b> у заметки в списке (или правый клик): переименовать, редактировать, теги, переместить выше/ниже, перенести в другой раздел, убрать из тренировки, удалить.</li>
+          <li><b>Порядок</b> внутри раздела меняется перетаскиванием за значок <b>⠿</b> слева от заметки. Во «Всех заметках», в поиске и при фильтре по тегу порядок не меняется.</li>
+          <li>Название раздела над открытой заметкой — ссылка: открывает раздел и прокручивает список к этой заметке.</li>
+          <li><b>«Подряд»</b> над списком показывает все заметки текущего списка одной статьёй с содержанием: раздел, результаты поиска или фильтр по тегу. Клик по заметке в списке прокручивает статью к ней, а список подсвечивает то, что сейчас читаешь. У каждой заметки в статье есть «Открыть» и «Править». Повторное нажатие «Подряд» или «закрыть статью ✕» возвращает обычный режим.</li>
+          <li>На телефоне заметки можно листать свайпом влево и вправо или стрелками ‹ › в верхней полоске.</li>
+        </ul></section>
+      <section id="h-search"><h3>Поиск и теги</h3>
+        <ul>
+          <li>Поиск ищет сразу по заголовкам, тексту и тегам, без учёта регистра и разницы «е/ё». Несколько слов — значит, должны найтись все. Можно писать часть слова: <code>корут</code> найдёт «корутины».</li>
+          <li>Выше в результатах те, где слово есть в заголовке, потом в тегах, потом в тексте.</li>
+          <li><b>Enter</b> в поиске открывает первый результат, <b>Esc</b> очищает поиск.</li>
+          <li>Кнопка <b>«в разделе →»</b> у результата открывает заметку в её разделе среди соседних.</li>
+          <li><b>Теги</b> ставятся прямо в открытой заметке: <b>«+ тег»</b> под заголовком, начни печатать — появятся подсказки из уже существующих тегов. Enter, пробел или запятая добавляют тег, <b>×</b> убирает, Backspace в пустом поле убирает последний. Ещё теги можно ставить через «⋮ → Теги…» в списке, прямо на карточке во время тренировки и в редакторе.</li>
+          <li><b>«Выбрать»</b> над списком включает выбор нескольких заметок (Shift+клик выделяет диапазон). Для выбранных: поставить или снять теги, перенести в раздел, убрать или вернуть в тренировку, удалить.</li>
+          <li><b>«⚙ теги»</b> в строке тегов (или «Прогресс» → «Теги»): переименовать тег сразу во всех заметках, слить дубли (переименуй в существующий тег) или удалить тег отовсюду.</li>
+          <li>Если теги есть, над списком появляется строка тегов: клик по тегу фильтрует список, повторный клик снимает фильтр. Тег в открытой заметке тоже кликабелен.</li>
+          <li>Поиск находит и по тегам: <code>senior</code> или <code>#senior</code>.</li>
+          <li>По тегам можно запускать отдельную тренировку (см. ниже).</li>
+        </ul></section>
+      <section id="h-edit"><h3>Редактор</h3>
+        <ul>
+          <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
+          <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
+          <li><b>Картинка</b> вставляет шаблон <code>![](img/имя.png)</code> — останется вписать имя файла (в визуальном режиме появится поле для имени). Сам файл нужно положить в папку <code>img</code> рядом с сайтом.</li>
+          <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
+          <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
+          <li>Галочка <b>«Не тренировать»</b> оставляет заметку в шпаргалке, но убирает из тренировки.</li>
+        </ul></section>
+      <section id="h-train"><h3>Тренировка</h3>
+        <ul>
+          <li><b>Повторение на сегодня</b> — карточки, у которых подошёл срок, плюс порция новых (по умолчанию 10 в день, меняется в «Прогрессе»). Число на вкладке «Тренировка» — сколько ждёт сегодня.</li>
+          <li>Сначала вспоминаешь ответ сам, потом «Показать ответ» и честная оценка:
+            <ul>
+              <li><b>Знаю</b> — интервал растёт: через 2 дня → 5 дней → ~12 дней → ~месяц → дальше примерно в 2,5 раза. Если в этот день уже был «Не знаю» по этой карточке — завтра.</li>
+              <li><b>Плаваю</b> — новая карточка вернётся завтра; при интервале до недели он повторяется тот же; длинный интервал сокращается вдвое, но не меньше недели (например, 43 дня → 22). Рост следующих интервалов немного замедляется.</li>
+              <li><b>Не знаю</b> — прогресс сбрасывается: карточка повторится в конце этой же сессии и завтра.</li>
+            </ul></li>
+          <li>Подпись под кнопкой оценки — когда карточка снова попадёт в повторение. Для новой карточки: «Знаю» — через 2 дня, «Плаваю» и «Не знаю» — завтра.</li>
+          <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
+          <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
+          <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
+          <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, в «Прогрессе» → «Вне тренировки», в самой заметке или через «⋮».</li>
+          <li>В итоге сессии есть кнопка «Прогнать ещё раз то, что не знал».</li>
+          <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам заново (завтра → 5 дней → ~12 дней…), а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
+          <li>Заметки без текста ответа в тренировку не попадают.</li>
+        </ul></section>
+      <section id="h-prog"><h3>Прогресс</h3>
+        <ul>
+          <li>Полоса по каждому разделу: <b>новые</b> (ещё не видел), <b>изучаются</b> (интервал меньше недели), <b>знаю</b> (от недели), <b>уверенно</b> (от трёх недель). Процент — доля «знаю» и «уверенно».</li>
+          <li>Там же список карточек вне тренировки и настройка числа новых карточек в день.</li>
+          <li>Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span>.</li>
+          <li>Заметки общие для всех твоих устройств, а прогресс тренировок хранится лично за тобой.</li>
+        </ul></section>
+      <section id="h-keys"><h3>Горячие клавиши</h3>
+        <table class="keys-table"><tbody>
+          <tr><td><kbd>/</kbd></td><td>перейти в поиск</td></tr>
+          <tr><td><kbd>?</kbd></td><td>открыть эту справку</td></tr>
+          <tr><td><kbd>Пробел</kbd></td><td>показать ответ в тренировке</td></tr>
+          <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>не знаю / плаваю / знаю</td></tr>
+          <tr><td><kbd>MOD</kbd>+<kbd>B</kbd> / <kbd>I</kbd> / <kbd>E</kbd> / <kbd>K</kbd></td><td>жирный / курсив / код / ссылка</td></tr>
+          <tr><td><kbd>MOD</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> / <kbd>C</kbd></td><td>зачёркнутый / блок кода</td></tr>
+          <tr><td><kbd>MOD</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd> / <kbd>7</kbd></td><td>маркированный / нумерованный список</td></tr>
+          <tr><td><kbd>MOD</kbd>+<kbd>Enter</kbd></td><td>сохранить заметку</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>закрыть меню, справку, очистить поиск</td></tr>
+        </tbody></table></section>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="firebase-shim.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('aw.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('aw.' + k, JSON.stringify(v)); } catch {} }
+};
+
+/* ---------- state ---------- */
+const S = {
+  db: null, uid: null, canWrite: true,
+  sections: new Map(), notes: new Map(), srs: new Map(), settings: { newPerDay: 10 },
+  loaded: { sections: false, notes: false },
+  mode: 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
+  editing: null, // {id|null, draft}
+  train: null,   // active session
+  trainOpts: (o => (o.limit === 50 ? Object.assign(o, { limit: 25 }) : o))(store.get('trainOpts', { sections: [], tags: [], order: 'shuffle', limit: 15 })),
+};
+
+/* ---------- dates & SRS ---------- */
+const dstr = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = () => dstr(new Date());
+const addDays = (s, n) => { const [y, m, d] = s.split('-').map(Number); return dstr(new Date(y, m - 1, d + n)); };
+const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number); return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 864e5); };
+
+const trainable = n => n && !n.ref && (n.body || '').trim().length > 0;
+const isDue = id => { const s = S.srs.get(id); return s && s.due && s.due <= today(); };
+
+function schedule(prev, g, free) {
+  const t = today();
+  const s = Object.assign({ reps: 0, ivl: 0, ease: 2.3, lapses: 0 }, prev || {});
+  const n = Object.assign({}, s, { last: t, lastGrade: g, seen: (s.seen || 0) + 1 });
+  if (!n.introduced) n.introduced = t;
+  const notDue = free && prev && prev.due && prev.due > t;
+  if (g === 1) {
+    n.lapses = s.lapses + (s.reps > 0 ? 1 : 0); n.reps = 0; n.ivl = 1;
+    n.ease = Math.max(1.3, +(s.ease - 0.2).toFixed(2)); n.failedOn = t;
+  } else if (g === 2) {
+    // «плаваю»: new card -> tomorrow; short interval (up to a week) -> same interval again; long one -> halved, but not below a week
+    n.ivl = s.reps === 0 ? 1 : s.ivl <= 7 ? Math.max(1, s.ivl) : Math.max(7, Math.round(s.ivl / 2));
+    n.ease = Math.max(1.3, +(s.ease - 0.15).toFixed(2)); n.reps = s.reps + 1;
+  } else {
+    if (notDue) return Object.assign({}, s, { last: t, lastGrade: 3, seen: (s.seen || 0) + 1 });
+    if (s.failedOn === t) n.ivl = 1;
+    else if (s.reps === 0) n.ivl = 2;
+    else if (s.reps === 1) n.ivl = 5;
+    else n.ivl = Math.max(s.ivl + 1, Math.round(s.ivl * s.ease));
+    n.ease = Math.min(3, +(s.ease + 0.05).toFixed(2)); n.reps = s.reps + 1;
+  }
+  n.due = addDays(t, n.ivl);
+  return n;
+}
+const ivlText = ivl => ivl <= 0 ? 'сегодня' : ivl === 1 ? 'завтра' : `через ${ivl} ${plural(ivl, 'день', 'дня', 'дней')}`;
+function plural(n, a, b, c) { n = Math.abs(n) % 100; const n1 = n % 10; if (n > 10 && n < 20) return c; if (n1 > 1 && n1 < 5) return b; if (n1 === 1) return a; return c; }
+function stage(id) {
+  const n = S.notes.get(id); const s = S.srs.get(id);
+  if (!trainable(n)) return null;
+  if (!s || !s.introduced) return 'new';
+  if (s.ivl >= 21) return 'solid';
+  if (s.ivl >= 7) return 'know';
+  return 'learn';
+}
+function srsPill(id) {
+  const n = S.notes.get(id);
+  if (n && n.ref) return '<span class="pill ref" title="Не попадает в тренировку">вне тренировки</span>';
+  if (n && !(n.body || '').trim()) return '<span class="pill empty">без ответа</span>';
+  const s = S.srs.get(id); const st = stage(id);
+  if (st === 'new') return '<span class="pill new">новая</span>';
+  if (isDue(id)) return '<span class="pill due">повторить</span>';
+  const left = daysBetween(today(), s.due);
+  const cls = st === 'learn' ? 'learn' : 'know';
+  return `<span class="pill ${cls}" title="Следующий повтор: ${s.due}">↻ ${left} дн</span>`;
+}
+function introducedToday() { let c = 0; const t = today(); for (const s of S.srs.values()) if (s.introduced === t) c++; return c; }
+function reviewQueue() {
+  const t = today(); const due = [], fresh = [];
+  for (const n of sortedNotes()) {
+    if (!trainable(n)) continue;
+    const s = S.srs.get(n.id);
+    if (s && s.introduced) { if (s.due && s.due <= t) due.push(n.id); }
+    else fresh.push(n.id);
+  }
+  const room = Math.max(0, (S.settings.newPerDay ?? 10) - introducedToday());
+  return { due, fresh: fresh.slice(0, room), freshTotal: fresh.length };
+}
+
+/* ---------- notes helpers ---------- */
+const secOrder = id => (S.sections.get(id)?.order ?? 999);
+function sortedNotes() {
+  return [...S.notes.values()].sort((a, b) => secOrder(a.section) - secOrder(b.section) || (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title, 'ru'));
+}
+const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
+const plainCache = new Map();
+function plain(n) {
+  const key = n.id + '|' + (n.updated || '') + '|' + (n.body || '').length;
+  const hit = plainCache.get(n.id);
+  if (hit && hit.key === key) return hit.text;
+  const text = (n.body || '').replace(/```[a-z]*\n?/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
+  plainCache.set(n.id, { key, text });
+  return text;
+}
+function searchNotes(q) {
+  const terms = norm(q).split(/\s+/).map(t => t.replace(/^#+/, '')).filter(Boolean);
+  if (!terms.length) return null;
+  const out = [];
+  for (const n of S.notes.values()) {
+    const t = norm(n.title), g = norm((n.tags || []).join(' ')), b = norm(plain(n));
+    let score = 0, ok = true;
+    for (const term of terms) {
+      const inT = t.includes(term), inG = g.includes(term), inB = b.includes(term);
+      if (!inT && !inG && !inB) { ok = false; break; }
+      score += (inT ? 6 : 0) + (inG ? 3 : 0) + (inB ? 1 : 0) + (t.startsWith(term) ? 2 : 0);
+    }
+    if (ok) out.push({ n, score });
+  }
+  out.sort((a, b) => b.score - a.score || secOrder(a.n.section) - secOrder(b.n.section));
+  return { terms, list: out.map(x => x.n) };
+}
+function hl(text, terms) {
+  let h = esc(text);
+  if (!terms || !terms.length) return h;
+  const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]')).join('|') + ')', 'gi');
+  return h.replace(re, '<mark>$1</mark>');
+}
+function snippet(n, terms) {
+  const p = plain(n); const np = norm(p);
+  let i = -1; for (const t of terms) { i = np.indexOf(t); if (i >= 0) break; }
+  if (i < 0) return '';
+  const a = Math.max(0, i - 50), b = Math.min(p.length, i + 110);
+  return (a > 0 ? '…' : '') + hl(p.slice(a, b), terms) + (b < p.length ? '…' : '');
+}
+function allTags() { const m = new Map(); for (const n of S.notes.values()) for (const t of n.tags || []) m.set(t, (m.get(t) || 0) + 1); return [...m.entries()].sort((a, b) => b[1] - a[1]); }
+
+/* ---------- markdown ---------- */
+const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
+let mdReady = false;
+function renderMd(src) {
+  if (!window.marked) return '<pre>' + esc(src) + '</pre>';
+  if (!mdReady) {
+    mdReady = true;
+    // raw HTML in notes is shown as text, so <activity> or List<String> never disappear
+    try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return esc(raw); } } }); } catch {}
+  }
+  const html = marked.parse(src || '', { gfm: true, breaks: false });
+  return window.DOMPurify ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] }) : html;
+}
+function enhance(root, terms) {
+  root.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+  root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.alt = img.alt || 'Иллюстрация из заметки'; });
+  if (window.hljs) root.querySelectorAll('pre code').forEach(c => {
+    try {
+      const m = (c.className.match(/language-(\w+)/) || [])[1];
+      const r = m && hljs.getLanguage(m) ? hljs.highlight(c.textContent, { language: m }) : hljs.highlightAuto(c.textContent, HL_LANGS);
+      c.innerHTML = r.value;
+    } catch {}
+  });
+  if (terms && terms.length) markTerms(root, terms);
+}
+function markTerms(root, terms) {
+  const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]')).join('|') + ')', 'gi');
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('pre,mark') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  let first = null;
+  for (const node of nodes) {
+    if (!re.test(node.nodeValue)) continue; re.lastIndex = 0;
+    const span = document.createElement('span'); span.innerHTML = esc(node.nodeValue).replace(re, '<mark>$1</mark>');
+    node.replaceWith(span); first = first || span.querySelector('mark');
+  }
+  return first;
+}
+
+/* ---------- UI: modes ---------- */
+function sessionClass() { document.body.classList.toggle('in-session', S.mode === 'train' && !!S.train && !S.train.done); }
+function setMode(m) {
+  S.mode = m;
+  for (const b of document.querySelectorAll('.modes button')) b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+  $('#lib').hidden = m !== 'lib'; $('#train').hidden = m !== 'train'; $('#prog').hidden = m !== 'prog';
+  $('#search-box').style.visibility = m === 'lib' ? 'visible' : 'hidden';
+  if (m === 'train') renderTrain(); if (m === 'prog') renderProg(); if (m === 'lib') renderLib();
+  sessionClass();
+}
+document.querySelectorAll('.modes button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+let toastT;
+function toast(msg, action) {
+  const t = $('#toast');
+  t.innerHTML = esc(msg) + (action ? ` <button class="toast-act" type="button">${esc(action.label)}</button>` : '');
+  t.classList.toggle('has-act', !!action); t.classList.add('on');
+  if (action) t.querySelector('.toast-act').onclick = () => { t.classList.remove('on', 'has-act'); action.fn(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on', 'has-act'), action ? 6000 : 2200);
+}
+async function setRef(id, val, undoable) {
+  const n = S.notes.get(id); if (!n || !!n.ref === val) return;
+  n.ref = val; rerender();
+  const ok = await write(() => S.db.collection('notes').doc(id).update({ ref: val, updated: new Date().toISOString() }), null);
+  if (!ok) return;
+  if (undoable) toast(val ? 'Убрано из тренировки' : 'Возвращено в тренировку', { label: val ? 'Вернуть' : 'Убрать снова', fn: () => setRef(id, !val, false) });
+  else toast(val ? 'Убрано из тренировки' : 'Возвращено в тренировку');
+}
+
+/* ---------- library ---------- */
+function sectionCounts() {
+  const c = new Map(), d = new Map();
+  for (const n of S.notes.values()) { c.set(n.section, (c.get(n.section) || 0) + 1); if (trainable(n) && isDue(n.id)) d.set(n.section, (d.get(n.section) || 0) + 1); }
+  return { c, d };
+}
+function sectionsSorted() { return [...S.sections.values()].sort((a, b) => a.order - b.order); }
+let addingSection = false, renamingSection = null;
+function renderRail() {
+  const { c, d } = sectionCounts();
+  const rows = [`<button class="sec" data-sec="all" aria-current="${S.section === 'all'}"><span class="name">Все заметки</span><span class="n">${S.notes.size}</span></button>`, '<h4>Разделы</h4>'];
+  for (const s of sectionsSorted()) {
+    if (renamingSection === s.id) {
+      rows.push(`<form class="inline-form" data-rename="${esc(s.id)}"><input id="rename-sec" value="${esc(s.title)}" aria-label="Название раздела"><button class="btn">OK</button></form>`);
+      continue;
+    }
+    rows.push(`<button class="sec" data-sec="${esc(s.id)}" aria-current="${S.section === s.id}" title="Двойной клик — переименовать">${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span><span class="n">${c.get(s.id) || 0}</span></button>`);
+  }
+  rows.push(addingSection
+    ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="Название раздела" aria-label="Название нового раздела"><button class="btn">OK</button></form>`
+    : `<button class="ghost" id="add-sec" ${S.canWrite ? '' : 'hidden'}>+ Раздел</button>`);
+  $('#rail').innerHTML = rows.join('');
+  const chips = [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`]
+    .concat(sectionsSorted().map(s => `<button class="chip" data-sec="${esc(s.id)}" aria-pressed="${S.section === s.id}">${esc(s.title)}</button>`))
+    .concat(S.canWrite ? [`<button class="chip chip-add" id="chip-add" aria-label="Новый раздел" title="Новый раздел">+</button>`] : []);
+  $('#chips').innerHTML = chips.join('');
+  if (addingSection) $('#new-sec-name')?.focus();
+  if (renamingSection) { const i = $('#rename-sec'); i?.focus(); i?.select(); }
+}
+$('#rail').addEventListener('click', e => {
+  const b = e.target.closest('[data-sec]'); if (b) { selectSection(b.dataset.sec); return; }
+  if (e.target.closest('#add-sec')) { addingSection = true; renderRail(); }
+});
+/* ---------- resizable sections rail ---------- */
+(() => {
+  const lib = $('#lib'), h = $('#rail-resizer'); if (!h) return;
+  const MIN = 160, MAX = 480, DEF = 230;
+  const clamp = w => Math.round(Math.min(MAX, Math.max(MIN, w)));
+  const apply = w => lib.style.setProperty('--rail-w', clamp(w) + 'px');
+  apply(store.get('railW', DEF));
+  let x0 = 0, w0 = 0;
+  h.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault(); h.setPointerCapture(e.pointerId);
+    x0 = e.clientX; w0 = $('#rail').getBoundingClientRect().width;
+    h.classList.add('dragging'); document.body.classList.add('resizing-rail');
+  });
+  h.addEventListener('pointermove', e => { if (h.hasPointerCapture(e.pointerId)) apply(w0 + e.clientX - x0); });
+  const end = e => {
+    if (!h.classList.contains('dragging')) return;
+    h.classList.remove('dragging'); document.body.classList.remove('resizing-rail');
+    try { h.releasePointerCapture(e.pointerId); } catch {}
+    store.set('railW', clamp($('#rail').getBoundingClientRect().width));
+  };
+  h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+  h.addEventListener('dblclick', () => { apply(DEF); store.set('railW', DEF); });
+  h.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const w = clamp($('#rail').getBoundingClientRect().width + (e.key === 'ArrowRight' ? 16 : -16));
+    apply(w); store.set('railW', w);
+  });
+})();
+$('#rail').addEventListener('dblclick', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { renamingSection = b.dataset.sec; renderRail(); } });
+$('#rail').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (e.target.id === 'add-sec-form') {
+    const name = $('#new-sec-name').value.trim(); addingSection = false;
+    if (name) {
+      const id = 's' + Date.now().toString(36);
+      const order = Math.max(0, ...[...S.sections.values()].map(s => s.order)) + 1;
+      await write(() => S.db.collection('sections').doc(id).set({ title: name, order }), 'Раздел добавлен');
+      S.section = id; store.set('section', id);
+    }
+    renderRail(); return;
+  }
+  const id = e.target.dataset.rename;
+  if (id) {
+    const name = $('#rename-sec').value.trim(); renamingSection = null;
+    const s = S.sections.get(id);
+    if (name && s && name !== s.title) await write(() => S.db.collection('sections').doc(id).set({ title: name, order: s.order }), 'Раздел переименован');
+    renderRail(); renderList();
+  }
+});
+let lpTimer = null, lpFired = false, lpStart = null, menuWasOpen = false;
+function secMenuFrom(el) { const id = el.dataset.sec; if (!id || id === 'all' || !S.canWrite) return false; openSecMenu(id, el); return true; }
+$('#chips').addEventListener('click', e => {
+  if (lpFired) { lpFired = false; e.preventDefault(); return; }
+  if (menuWasOpen) { menuWasOpen = false; closeMenu(); return; } // a tap while the menu is open only closes it
+  if (e.target.closest('#chip-add')) { openSecMenu(null, e.target.closest('#chip-add'), 'new'); return; }
+  const b = e.target.closest('[data-sec]'); if (!b) return;
+  selectSection(b.dataset.sec);
+});
+$('#chips').addEventListener('pointerdown', e => {
+  menuWasOpen = !!S.menu;
+  const b = e.target.closest('[data-sec]'); if (!b || b.dataset.sec === 'all') return;
+  lpFired = false; lpStart = { x: e.clientX, y: e.clientY };
+  clearTimeout(lpTimer); lpTimer = setTimeout(() => { lpFired = secMenuFrom(b); }, 500);
+});
+$('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.clientX - lpStart.x, e.clientY - lpStart.y) > 10) clearTimeout(lpTimer); });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
+$('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && b.dataset.sec !== 'all') { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
+$('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
+function selectSection(id) { S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
+
+function currentList() {
+  const r = searchNotes(S.q);
+  if (r) return { list: r.list, terms: r.terms, title: `Поиск: «${S.q.trim()}»` };
+  let list = sortedNotes();
+  if (S.section !== 'all') list = list.filter(n => n.section === S.section);
+  if (S.tag) list = list.filter(n => (n.tags || []).includes(S.tag));
+  return { list, terms: null, title: S.section === 'all' ? 'Все заметки' : (S.sections.get(S.section)?.title || 'Раздел') };
+}
+function renderList() {
+  if (!S.loaded.notes) return;
+  const { list, terms, title } = currentList();
+  $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
+  $('#list-count').textContent = list.length;
+  const tags = allTags();
+  const tb = $('#tagbar');
+  tb.hidden = !tags.length || !!terms;
+  tb.innerHTML = tags.slice(0, 30).map(([t, c]) => `<button class="chip" data-tag="${esc(t)}" aria-pressed="${S.tag === t}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')
+    + (S.canWrite ? `<button class="chip chip-manage" id="tags-manage" title="Переименовать или удалить теги">⚙ теги</button>` : '');
+  if (!list.length) {
+    renderBulkBar([]);
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Прогресс» → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
+    return;
+  }
+  const showSec = S.section === 'all' || terms;
+  const reorder = canReorder();
+  const hadFocus = document.activeElement?.id === 'rename-input';
+  $('#items').innerHTML = list.map(n => S.renaming?.id === n.id ? `
+    <form class="row-item rename-form" data-id="${esc(n.id)}">
+      <label class="lbl" for="rename-input">Новое название</label>
+      <input id="rename-input" value="${esc(S.renaming.draft)}" autocomplete="off">
+      <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" data-rename-cancel>Отмена</button><span class="hint">Enter / Esc</span></div>
+    </form>` : `
+    <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}">
+      ${S.select ? `<span class="selbox" aria-hidden="true">${S.select.has(n.id) ? '✓' : ''}</span>` : ''}
+      ${reorder ? `<span class="grip" data-grip="${esc(n.id)}" title="Перетащи, чтобы поменять порядок" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span>` : ''}
+      <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''}>
+        <span class="t">${hl(n.title, terms)}</span>
+        ${terms ? `<span class="snip">${snippet(n, terms)}</span>` : ''}
+        <span class="meta">${srsPill(n.id)}${showSec ? `<span class="pill">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${(n.tags || []).map(t => `<span class="tag">#${esc(t)}</span>`).join(' ')}</span>
+      </button>
+      ${S.canWrite && !S.select ? `<button class="more" data-more="${esc(n.id)}" aria-label="Действия с карточкой" aria-haspopup="menu" aria-expanded="${S.menu?.id === n.id}">⋮</button>` : ''}
+      ${(terms || S.tag) && !S.select ? `<button class="goto" data-goto="${esc(n.id)}" title="Открыть раздел и прокрутить список к этой заметке">в разделе →</button>` : ''}
+    </div>`).join('');
+  renderBulkBar(list);
+  if (S.flash) { const el = document.querySelector(`.row-item[data-id="${CSS.escape(S.flash)}"]`); if (el) { scrollWithin($('#items'), el); el.classList.add('flash'); } S.flash = null; }
+  if (S.renaming) {
+    const inp = $('#rename-input');
+    if (inp && (S.renaming.fresh || hadFocus)) { inp.focus(); if (S.renaming.fresh) { inp.select(); S.renaming.fresh = false; } else inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
+}
+
+/* ---------- navigation & ordering ---------- */
+function scrollWithin(box, el) {
+  const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+  box.scrollTop += (r.top - b.top) - (b.height - r.height) / 2;
+}
+function canReorder() { return S.canWrite && !S.select && S.section !== 'all' && !S.q.trim() && !S.tag; }
+function gotoInSection(id) {
+  const n = S.notes.get(id); if (!n) return;
+  S.article = false;
+  S.q = ''; $('#q').value = ''; S.tag = null;
+  S.section = n.section; store.set('section', n.section);
+  S.noteId = id; store.set('note', id); S.editing = null;
+  S.flash = id;
+  if (window.matchMedia('(max-width:760px)').matches) $('#lib').classList.remove('reading');
+  renderRail(); renderList(); renderReader(true);
+}
+function sectionList(sec) { return sortedNotes().filter(n => n.section === sec); }
+async function setOrder(id, order) {
+  const n = S.notes.get(id); if (!n) return;
+  n.order = order; renderList();
+  await write(() => S.db.collection('notes').doc(id).update({ order }), null);
+}
+function orderBetween(prev, next) {
+  if (prev == null && next == null) return 1;
+  if (prev == null) return next - 1;
+  if (next == null) return prev + 1;
+  return (prev + next) / 2;
+}
+async function placeAt(id, index) {
+  const n = S.notes.get(id); if (!n) return;
+  const list = sectionList(n.section).filter(x => x.id !== id);
+  index = Math.max(0, Math.min(list.length, index));
+  const prev = list[index - 1]?.order, next = list[index]?.order;
+  if (list[index - 1]?.id === undefined && list[index]?.id === undefined) return;
+  const cur = sectionList(n.section).findIndex(x => x.id === id);
+  if (cur === index) return;
+  S.flash = id;
+  await setOrder(id, orderBetween(prev, next));
+}
+function moveBy(id, delta) {
+  const n = S.notes.get(id); if (!n) return;
+  const cur = sectionList(n.section).findIndex(x => x.id === id);
+  placeAt(id, cur + delta);
+}
+async function moveToSection(id, sec) {
+  const n = S.notes.get(id); if (!n || n.section === sec) return;
+  const order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0)) + 1;
+  n.section = sec; n.order = order; renderRail(); renderList();
+  const ok = await write(() => S.db.collection('notes').doc(id).update({ section: sec, order, updated: new Date().toISOString() }), `Перенесено в «${S.sections.get(sec)?.title || ''}»`);
+  if (ok && S.noteId === id && !S.editing) renderReader();
+}
+
+/* drag to reorder (mouse and touch) */
+let drag = null;
+$('#items').addEventListener('pointerdown', e => {
+  const g = e.target.closest('[data-grip]'); if (!g || !canReorder() || e.button > 0) return;
+  e.preventDefault();
+  const row = g.closest('.row-item');
+  drag = { id: g.dataset.grip, row, pointer: e.pointerId, index: null, scrollT: null };
+  row.classList.add('dragging'); document.body.classList.add('is-dragging');
+  g.setPointerCapture(e.pointerId);
+  closeMenu();
+});
+function dragTarget(y) {
+  const rows = [...document.querySelectorAll('#items .row-item')].filter(r => r !== drag.row);
+  let idx = rows.length;
+  for (let i = 0; i < rows.length; i++) { const r = rows[i].getBoundingClientRect(); if (y < r.top + r.height / 2) { idx = i; break; } }
+  rows.forEach(r => r.classList.remove('drop-before', 'drop-after'));
+  if (rows.length) { if (idx < rows.length) rows[idx].classList.add('drop-before'); else rows[rows.length - 1].classList.add('drop-after'); }
+  return idx;
+}
+$('#items').addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.pointer) return;
+  drag.index = dragTarget(e.clientY);
+  const box = $('#items').getBoundingClientRect(); const edge = 48;
+  const speed = e.clientY < box.top + edge ? -12 : e.clientY > box.bottom - edge ? 12 : 0;
+  clearInterval(drag.scrollT);
+  if (speed) { const y = e.clientY; drag.scrollT = setInterval(() => { $('#items').scrollTop += speed; drag.index = dragTarget(y); }, 16); }
+});
+function endDrag(commit) {
+  if (!drag) return;
+  clearInterval(drag.scrollT);
+  document.querySelectorAll('#items .row-item').forEach(r => r.classList.remove('drop-before', 'drop-after', 'dragging'));
+  document.body.classList.remove('is-dragging');
+  const d = drag; drag = null;
+  if (commit && d.index != null) placeAt(d.id, d.index);
+}
+$('#items').addEventListener('pointerup', e => { if (drag && e.pointerId === drag.pointer) endDrag(true); });
+$('#items').addEventListener('pointercancel', () => endDrag(false));
+document.addEventListener('keydown', e => { if (drag && e.key === 'Escape') endDrag(false); });
+
+
+
+/* ---------- backup: export / import (standalone build only) ---------- */
+function dataPanelHtml() {
+  const D = S.dataPanel || {};
+  return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
+    <summary>Данные <span>· резервная копия и перенос</span></summary>
+    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла. Если какие-то заметки из файла уже есть на сайте и отличаются, перед импортом появится выбор: заменить их версией из файла или оставить как на сайте.</p>
+    <div class="bar">
+      <button class="btn" id="data-export">Скачать резервную копию</button>
+      <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
+      <input type="file" id="data-file" accept=".json,application/json" hidden>
+      ${window.NOTES_SIGN_OUT ? `<span class="spacer"></span><span class="hint">${esc(window.NOTES_USER_EMAIL || '')}</span><button class="btn" id="data-signout">Выйти</button>` : ''}
+    </div>
+    ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
+    ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
+  </details>`;
+}
+function importDiff(d) {
+  const sameNote = (a, b) => a.title === b.title && (a.body || '') === (b.body || '') && a.section === b.section
+    && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001');
+  const notes = [], same = [];
+  let fresh = 0;
+  for (const n of d.notes) {
+    const cur = S.notes.get(n.id);
+    if (!cur) fresh++;
+    else if (sameNote(cur, n)) same.push(n.id);
+    else notes.push({ id: n.id, file: n, site: cur });
+  }
+  const secs = d.sections.filter(sc => { const c = S.sections.get(sc.id); return c && c.title !== sc.title; });
+  const srs = Object.entries(d.srs || {}).filter(([id, v]) => { const c = S.srs.get(id); return c && JSON.stringify(c) !== JSON.stringify(v); }).map(([id]) => id);
+  return { notes, same, fresh, secs, srs, newSecs: d.sections.filter(sc => !S.sections.has(sc.id)).length };
+}
+function importConfirmHtml(d, X) {
+  const nSrs = Object.keys(d.srs || {}).length;
+  const head = `В файле: ${d.sections.length} разделов, ${d.notes.length} заметок${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}.`;
+  const conflicts = X.notes.length + X.secs.length + X.srs.length;
+  const box = 'margin-top:12px;background:var(--accent-soft);color:var(--ink);display:block';
+  if (!conflicts) {
+    return `<div class="confirm" style="${box}"><p style="margin:0 0 10px">${head} Новых заметок: ${X.fresh}${X.same.length ? `, уже совпадают с сайтом: ${X.same.length}` : ''}. Ничего на сайте не перезапишется.</p>
+      <div class="bar"><button class="btn primary" id="data-import-go" data-mode="replace">Импортировать</button><button class="btn" id="data-import-cancel">Отмена</button></div></div>`;
+  }
+  const secTitle = id => S.sections.get(id)?.title || d.sections.find(s => s.id === id)?.title || id;
+  const rows = X.notes.map(c => {
+    const what = [];
+    if (c.site.title !== c.file.title) what.push('название');
+    if ((c.site.body || '') !== (c.file.body || '')) what.push('текст');
+    if (c.site.section !== c.file.section) what.push('раздел');
+    if ((c.site.tags || []).join() !== (c.file.tags || []).join()) what.push('теги');
+    if (!!c.site.ref !== !!c.file.ref) what.push('тренировка');
+    const rename = c.site.title !== c.file.title ? ` <span class="hint">→ в файле «${esc(c.file.title)}»</span>` : '';
+    return `<li><b>${esc(c.site.title)}</b>${rename} <span class="hint">· ${esc(secTitle(c.site.section))} · отличается: ${what.join(', ')}</span></li>`;
+  }).join('');
+  const extra = [];
+  if (X.secs.length) extra.push(`названия разделов: ${X.secs.length} (${X.secs.map(sc => `«${esc(S.sections.get(sc.id).title)}» → «${esc(sc.title)}»`).join(', ')})`);
+  if (X.srs.length) extra.push(`прогресс тренировки по ${X.srs.length} карточкам`);
+  return `<div class="confirm" style="${box};border:1px solid var(--again)">
+    <p style="margin:0 0 6px"><b>⚠ Часть данных из файла уже есть на сайте, и она отличается.</b></p>
+    <p style="margin:0 0 8px">${head} Новых заметок: ${X.fresh}${X.newSecs ? `, новых разделов: ${X.newSecs}` : ''}${X.same.length ? `, совпадают с сайтом: ${X.same.length}` : ''}.
+      ${X.notes.length ? `Отличаются заметки: ${X.notes.length}.` : ''}${extra.length ? ` Ещё отличаются ${extra.join('; ')}.` : ''}</p>
+    ${X.notes.length ? `<details style="margin:0 0 10px"><summary style="cursor:pointer;font:inherit;font-weight:500;padding:0">Показать заметки с конфликтом (${X.notes.length})</summary><ul style="margin:8px 0 0;padding-left:18px;max-height:240px;overflow:auto;line-height:1.5">${rows}</ul></details>` : ''}
+    <p style="margin:0 0 10px" class="hint">Новые заметки добавятся в любом случае. Выбор касается только того, что уже есть на сайте.</p>
+    <div class="bar" style="flex-wrap:wrap">
+      <button class="btn primary" id="data-import-go" data-mode="replace">Заменить версией из файла</button>
+      <button class="btn" id="data-import-keep" data-mode="keep">Оставить как на сайте</button>
+      <button class="btn" id="data-import-cancel">Отмена</button>
+    </div></div>`;
+}
+function wireDataPanel() {
+  const p = $('#data-panel'); if (!p) return;
+  p.ontoggle = () => { S.dataOpen = p.open; };
+  $('#data-export').onclick = () => {
+    const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
+    const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
+      sections: [...S.sections.values()], notes: [...S.notes.values()], srs, settings: S.settings };
+    const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `android-notes-${today()}.json`;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
+  $('#data-file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
+      e.target.value = '';
+      S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
+    } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии шпаргалки.' }; renderProg(); }
+  };
+  $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
+  const runImport = async mode => {
+    const d = S.dataPanel.pending; const X = S.dataPanel.diff;
+    const keep = mode === 'keep';
+    const same = new Set(X.same);
+    // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
+    const secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
+    const notes = d.notes.filter(n => !S.notes.has(n.id) || (!keep && !same.has(n.id)));
+    const srs = Object.entries(d.srs || {}).filter(([id, v]) => !S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v)));
+    const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
+    S.dataPanel = { status: 'Импортирую…' }; renderProg();
+    const strip = o => { const c = { ...o }; delete c.id; return c; };
+    let done = 0; const total = secs.length + notes.length + srs.length;
+    const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: `Импортирую… ${done} из ${total}` }; renderProg(); } };
+    try {
+      for (const sc of secs) { await S.db.collection('sections').doc(sc.id).set(strip(sc)); tick(); }
+      for (const n of notes) { await S.db.collection('notes').doc(n.id).set(strip(n)); tick(); }
+      if (S.uid) {
+        for (const [id, v] of srs) { await srsCol().doc(id).set(v); tick(); }
+        if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
+      }
+      const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
+      const replaced = notes.length - added;
+      const parts = [`добавлено заметок: ${added}`];
+      if (replaced) parts.push(`заменено: ${replaced}`);
+      if (keep && X.notes.length) parts.push(`оставлено как на сайте: ${X.notes.length}`);
+      if (secs.length) parts.push(`разделов записано: ${secs.length}`);
+      if (srs.length) parts.push(`прогресс по ${srs.length} карточкам`);
+      S.dataPanel = { status: 'Готово: ' + parts.join(', ') + '.' };
+    } catch (err) { S.dataPanel = { status: 'Импорт прервался: ' + (err?.message || err) + '. Можно выбрать файл и запустить ещё раз.' }; }
+    renderProg();
+  };
+  $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
+  $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
+  $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
+}
+
+/* ---------- reset progress: «снова учить» ---------- */
+function hasProgress(id) { const s = S.srs.get(id); return !!(s && s.introduced); }
+async function relearn(ids) {
+  ids = ids.filter(id => trainable(S.notes.get(id)));
+  if (!ids.length) return;
+  const t = today(); const before = new Map();
+  for (const id of ids) {
+    const prev = S.srs.get(id); before.set(id, prev ? { ...prev } : null);
+    const p = Object.assign({ reps: 0, ivl: 0, ease: 2.3, lapses: 0 }, prev || {});
+    const next = Object.assign({}, p, { reps: 0, ivl: 0, due: t, lastGrade: 1, failedOn: t, last: t,
+      lapses: (p.lapses || 0) + (prev && prev.introduced ? 1 : 0), ease: Math.max(1.3, +((p.ease || 2.3) - 0.2).toFixed(2)), introduced: p.introduced || t });
+    S.srs.set(id, next);
+  }
+  rerender(); updateBadge();
+  if (S.db && S.uid) for (const id of ids) { try { await srsCol().doc(id).set(S.srs.get(id)); } catch { toast('Не сохранилось: нет связи с хранилищем'); return; } }
+  const msg = ids.length > 1 ? `Снова в повторении: ${ids.length}` : 'Карточка снова в повторении, сегодня';
+  toast(msg, { label: 'Отменить', fn: async () => {
+    for (const [id, prev] of before) {
+      if (prev) S.srs.set(id, prev); else S.srs.delete(id);
+      if (S.db && S.uid) { try { prev ? await srsCol().doc(id).set(prev) : await srsCol().doc(id).delete(); } catch {} }
+    }
+    rerender(); updateBadge(); toast('Отменено');
+  } });
+}
+
+/* ---------- tags: inline editing, bulk, management ---------- */
+function normTag(t) {
+  t = String(t || '').trim().replace(/^#+/, '').replace(/[\s,]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!t) return '';
+  const ex = allTags().find(([x]) => x.toLowerCase() === t.toLowerCase());
+  return ex ? ex[0] : t;
+}
+async function updateTags(id, tags) {
+  const n = S.notes.get(id); if (!n) return true;
+  const uniq = [...new Set(tags.filter(Boolean))];
+  if (JSON.stringify(uniq) === JSON.stringify(n.tags || [])) return true;
+  n.tags = uniq;
+  return write(() => S.db.collection('notes').doc(id).update({ tags: uniq, updated: new Date().toISOString() }), null);
+}
+async function setTagForMany(ids, tag, on) {
+  tag = on ? normTag(tag) : tag; if (!tag) return;
+  for (const id of ids) {
+    const n = S.notes.get(id); if (!n) continue;
+    const cur = n.tags || [];
+    if (on && !cur.includes(tag)) await updateTags(id, cur.concat(tag));
+    if (!on && cur.includes(tag)) await updateTags(id, cur.filter(x => x !== tag));
+  }
+  refreshTagViews();
+}
+function refreshTagViews() {
+  renderList();
+  document.querySelectorAll('.tagrow').forEach(r => { r.outerHTML = tagRowHtml(r.dataset.tagrow, r.dataset.ctx); });
+  restoreTagEdit();
+  if (S.mode === 'prog') renderProg();
+}
+function tagRowHtml(id, ctx) {
+  const n = S.notes.get(id); if (!n) return '';
+  const editing = S.tagEdit && S.tagEdit.id === id && S.tagEdit.ctx === ctx;
+  const chip = t => `<span class="tchip">${ctx === 'reader' ? `<button class="tchip-t" data-tag-filter="${esc(t)}" title="Показать все заметки с этим тегом">#${esc(t)}</button>` : `<span class="tchip-t">#${esc(t)}</span>`}${S.canWrite ? `<button class="tchip-x" data-tag-remove="${esc(t)}" aria-label="Убрать тег ${esc(t)}" title="Убрать тег">×</button>` : ''}</span>`;
+  return `<div class="tagrow" data-tagrow="${esc(id)}" data-ctx="${ctx}">${(n.tags || []).map(chip).join('')}${S.canWrite ? (editing
+    ? `<span class="tag-input-wrap"><input class="tag-input" data-tag-input value="${esc(S.tagEdit.value || '')}" placeholder="новый тег, Enter" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Добавить тег"><span class="tag-sugg" role="listbox"></span></span>`
+    : `<button class="tag-add" data-tag-open>+ тег</button>`) : ''}</div>`;
+}
+function tagSuggestions(id, value) {
+  const n = S.notes.get(id); const have = new Set(n?.tags || []);
+  const v = norm(value.replace(/^#+/, '').trim());
+  let list = allTags().filter(([t]) => !have.has(t));
+  if (v) list = list.filter(([t]) => norm(t).includes(v)).sort((a, b) => (norm(b[0]).startsWith(v) - norm(a[0]).startsWith(v)) || b[1] - a[1]);
+  const out = list.slice(0, 8).map(([t, c]) => ({ t, c }));
+  const nt = normTag(value);
+  if (nt && !allTags().some(([t]) => t === nt) && !have.has(nt)) out.push({ t: nt, create: true });
+  return out;
+}
+function renderSugg(inp) {
+  const row = inp.closest('.tagrow'); const box = row.querySelector('.tag-sugg');
+  const sug = tagSuggestions(row.dataset.tagrow, inp.value);
+  S.tagEdit.sugg = sug; if (S.tagEdit.active == null || S.tagEdit.active >= sug.length) S.tagEdit.active = inp.value.trim() ? 0 : -1;
+  box.innerHTML = sug.map((x, i) => `<button type="button" class="sugg${i === S.tagEdit.active ? ' on' : ''}" data-sugg="${esc(x.t)}" role="option">${x.create ? `Создать <b>#${esc(x.t)}</b>` : `#${esc(x.t)} <span>${x.c}</span>`}</button>`).join('');
+  box.hidden = !sug.length;
+}
+function restoreTagEdit() {
+  const E = S.tagEdit; if (!E) return;
+  const inp = document.querySelector(`.tagrow[data-tagrow="${CSS.escape(E.id)}"][data-ctx="${E.ctx}"] [data-tag-input]`);
+  if (!inp) return;
+  if (document.activeElement !== inp) { inp.focus({ preventScroll: true }); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  renderSugg(inp);
+}
+async function removeTagWithUndo(id, tag, row) {
+  const n = S.notes.get(id); if (!n) return;
+  const idx = (n.tags || []).indexOf(tag); if (idx < 0) return;
+  const p = updateTags(id, n.tags.filter(x => x !== tag));
+  renderList(); if (row?.isConnected) rerenderTagRow(row);
+  toast(`Тег #${tag} убран`, { label: 'Вернуть', fn: () => restoreTag(id, tag, idx) });
+  await p;
+}
+async function restoreTag(id, tag, idx) {
+  const n = S.notes.get(id); if (!n) return;
+  const tags = (n.tags || []).filter(x => x !== tag); tags.splice(Math.min(idx, tags.length), 0, tag);
+  const p = updateTags(id, tags); refreshTagViews(); toast(`Тег #${tag} возвращён`); await p;
+}
+function rerenderTagRow(row) { const id = row.dataset.tagrow, ctx = row.dataset.ctx; row.outerHTML = tagRowHtml(id, ctx); restoreTagEdit(); }
+async function commitTag(row, value) {
+  const id = row.dataset.tagrow; const t = normTag(value); if (!t) return;
+  const n = S.notes.get(id); if (!n) return;
+  S.tagEdit.value = ''; S.tagEdit.active = -1;
+  if (!(n.tags || []).includes(t)) { const p = updateTags(id, (n.tags || []).concat(t)); renderList(); rerenderTagRow(row); await p; }
+  else rerenderTagRow(row);
+}
+document.addEventListener('click', async e => {
+  const open = e.target.closest('[data-tag-open]');
+  if (open) { const row = open.closest('.tagrow'); S.tagEdit = { id: row.dataset.tagrow, ctx: row.dataset.ctx, value: '', active: -1 }; rerenderTagRow(row); return; }
+  const rm = e.target.closest('[data-tag-remove]');
+  if (rm) { const row = rm.closest('.tagrow'); await removeTagWithUndo(row.dataset.tagrow, rm.dataset.tagRemove, row); return; }
+  const sg = e.target.closest('[data-sugg]');
+  if (sg) { const row = sg.closest('.tagrow'); await commitTag(row, sg.dataset.sugg); return; }
+  const tf = e.target.closest('[data-tag-filter]');
+  if (tf) { S.tag = tf.dataset.tagFilter; S.q = ''; $('#q').value = ''; S.article = false; renderList(); $('#lib').classList.remove('reading'); return; }
+});
+document.addEventListener('mousedown', e => { if (e.target.closest('.tag-sugg')) e.preventDefault(); });
+document.addEventListener('input', e => { const inp = e.target.closest('[data-tag-input]'); if (!inp || !S.tagEdit) return; S.tagEdit.value = inp.value; S.tagEdit.active = null; renderSugg(inp); });
+document.addEventListener('keydown', async e => {
+  const inp = e.target.closest?.('[data-tag-input]'); if (!inp || !S.tagEdit) return;
+  e.stopPropagation();
+  const row = inp.closest('.tagrow'); const E = S.tagEdit; const sug = E.sugg || [];
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); E.active = sug.length ? ((E.active ?? -1) + (e.key === 'ArrowDown' ? 1 : -1) + sug.length) % sug.length : -1; renderSugg(inp); return; }
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const pick = E.active >= 0 && sug[E.active] ? sug[E.active].t : inp.value;
+    if (pick.trim()) await commitTag(row, pick); else if (e.key === 'Enter') { S.tagEdit = null; rerenderTagRow(row); }
+    return;
+  }
+  if (e.key === 'Escape') { e.preventDefault(); S.tagEdit = null; rerenderTagRow(row); return; }
+  if (e.key === 'Backspace' && !inp.value) { const n = S.notes.get(row.dataset.tagrow); const last = (n.tags || []).slice(-1)[0]; if (last) { e.preventDefault(); await removeTagWithUndo(n.id, last, row); } }
+}, true);
+document.addEventListener('focusout', e => {
+  const inp = e.target.closest?.('[data-tag-input]'); if (!inp || !S.tagEdit) return;
+  setTimeout(async () => {
+    if (!S.tagEdit || document.activeElement?.matches?.('[data-tag-input]')) return;
+    const row = document.querySelector(`.tagrow[data-tagrow="${CSS.escape(S.tagEdit.id)}"][data-ctx="${S.tagEdit.ctx}"]`);
+    const v = S.tagEdit.value; S.tagEdit = null;
+    if (row) { if (v.trim()) await commitTag(row, v); else rerenderTagRow(row); }
+  }, 120);
+});
+
+/* checklist used by the note menu and by bulk tagging */
+function renderTagChecklist(ids, heading, withBack) {
+  const notes = ids.map(id => S.notes.get(id)).filter(Boolean);
+  const tags = allTags();
+  menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">${esc(heading)}</div>
+    ${tags.length ? `<div class="mtags">${tags.map(([t, c]) => {
+      const k = notes.filter(n => (n.tags || []).includes(t)).length;
+      return `<label class="mchk"><input type="checkbox" data-mtag="${esc(t)}" ${k === notes.length && k ? 'checked' : ''} ${k && k < notes.length ? 'data-mixed="1"' : ''}><span>#${esc(t)}</span><small>${c}</small></label>`;
+    }).join('')}</div>` : '<div class="ask" style="color:var(--faint)">Тегов пока нет. Создай первый:</div>'}
+    <form class="menu-form" id="mtag-form"><input id="mtag-new" placeholder="новый тег" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="ask-row"><button class="yes-ok" type="submit">Добавить</button>${withBack ? `<button type="button" data-act="${S.menu?.kind === 'bulk' ? 'bulk-back' : 'tags-back'}">Назад</button>` : ''}</div></form>`;
+  menuEl.querySelectorAll('[data-mixed]').forEach(cb => { cb.indeterminate = true; });
+}
+
+/* select several notes */
+function toggleSelect(id, range) {
+  if (!S.select) return;
+  if (range && S.selAnchor) {
+    const l = currentList().list.map(n => n.id); const a = l.indexOf(S.selAnchor), b = l.indexOf(id);
+    if (a >= 0 && b >= 0) { for (let i = Math.min(a, b); i <= Math.max(a, b); i++) S.select.add(l[i]); renderList(); return; }
+  }
+  if (S.select.has(id)) S.select.delete(id); else S.select.add(id);
+  S.selAnchor = id; renderList();
+}
+function setSelectMode(on) {
+  S.select = on ? new Set() : null; S.selAnchor = null;
+  $('#select-btn').setAttribute('aria-pressed', String(!!on));
+  closeMenu(); renderList();
+}
+$('#select-btn').addEventListener('click', () => setSelectMode(!S.select));
+document.addEventListener('keydown', e => { if (S.select && e.key === 'Escape' && !S.menu && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) setSelectMode(false); });
+function renderBulkBar(list) {
+  const bar = $('#bulkbar'); if (!bar) return;
+  if (!S.select) { bar.hidden = true; bar.innerHTML = ''; return; }
+  const n = S.select.size; const allSel = list.length && list.every(x => S.select.has(x.id));
+  bar.hidden = false;
+  bar.innerHTML = `<span class="bcount">${n ? `Выбрано: <b>${n}</b>` : 'Отметь заметки'}</span>
+    <button class="btn" data-bulk="all">${allSel ? 'Снять все' : 'Все'}</button>
+    <button class="btn" data-bulk="tags" ${n ? '' : 'disabled'}># Теги</button>
+    <button class="btn" data-bulk="move" ${n ? '' : 'disabled'}>⇄ Раздел</button>
+    <button class="btn" data-bulk="train" ${n ? '' : 'disabled'}>Тренировка</button>
+    <button class="btn danger" data-bulk="del" ${n ? '' : 'disabled'}>Удалить</button>
+    <button class="btn primary" data-bulk="done">Готово</button>`;
+}
+$('#bulkbar').addEventListener('click', e => {
+  const b = e.target.closest('[data-bulk]'); if (!b || b.disabled) return;
+  const k = b.dataset.bulk;
+  if (k === 'done') { setSelectMode(false); return; }
+  if (k === 'all') { const l = currentList().list; const all = l.every(x => S.select.has(x.id)); if (all) l.forEach(x => S.select.delete(x.id)); else l.forEach(x => S.select.add(x.id)); renderList(); return; }
+  S.menu = { kind: 'bulk', mode: k, anchor: b }; renderMenu();
+});
+function renderBulkMenu() {
+  const M = S.menu; const ids = [...S.select]; const n = ids.length;
+  if (M.mode === 'tags') renderTagChecklist(ids, `Теги для ${n} ${plural(n, 'заметки', 'заметок', 'заметок')}`, false);
+  else if (M.mode === 'move') menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Перенести ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} в раздел</div>${sectionsSorted().map(s => `<button data-act="bulk-move" data-sec="${esc(s.id)}" role="menuitem"><span class="ico"></span>${esc(s.title)}</button>`).join('')}`;
+  else if (M.mode === 'train') menuEl.innerHTML = `${S.uid ? '<button data-act="bulk-relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>' : ''}<button data-act="bulk-ref-on" role="menuitem"><span class="ico">⊘</span>Убрать из тренировки</button><button data-act="bulk-ref-off" role="menuitem"><span class="ico">↺</span>Вернуть в тренировку</button>`;
+  else if (M.mode === 'del') menuEl.innerHTML = `<div class="ask">Удалить ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} насовсем?</div><div class="ask-row"><button class="yes" data-act="bulk-del-yes">Удалить</button><button data-act="bulk-cancel">Отмена</button></div>`;
+  placeMenu(M.anchor?.isConnected ? M.anchor : document.querySelector(`#bulkbar [data-bulk="${M.mode}"]`) || $('#bulkbar'));
+  const inp = $('#mtag-new'); if (!inp) menuEl.querySelector('button:not([disabled]), input')?.focus();
+}
+async function bulkMenuAct(act, b) {
+  const ids = [...S.select];
+  if (act === 'bulk-cancel' || act === 'bulk-back') { closeMenu(); return; }
+  if (act === 'bulk-move') {
+    closeMenu(); const sec = b.dataset.sec; let order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0));
+    let okAll = true;
+    for (const id of ids) { const n = S.notes.get(id); if (!n || n.section === sec) continue; order += 1; n.section = sec; n.order = order; const o = order; okAll = (await write(() => S.db.collection('notes').doc(id).update({ section: sec, order: o, updated: new Date().toISOString() }), null)) && okAll; }
+    toast(okAll ? `Перенесено в «${S.sections.get(sec)?.title || ''}»: ${ids.length}` : 'Часть заметок не перенеслась'); renderRail(); renderList(); return;
+  }
+  if (act === 'bulk-relearn') { closeMenu(); relearn(ids); return; }
+  if (act === 'bulk-ref-on' || act === 'bulk-ref-off') {
+    closeMenu(); const val = act === 'bulk-ref-on';
+    for (const id of ids) { const n = S.notes.get(id); if (!n || !!n.ref === val) continue; n.ref = val; await write(() => S.db.collection('notes').doc(id).update({ ref: val, updated: new Date().toISOString() }), null); }
+    toast(val ? `Убрано из тренировки: ${ids.length}` : `Возвращено в тренировку: ${ids.length}`); rerender(); return;
+  }
+  if (act === 'bulk-del-yes') {
+    closeMenu();
+    for (const id of ids) { await write(() => S.db.collection('notes').doc(id).delete(), null); S.notes.delete(id); S.select.delete(id); }
+    if (ids.includes(S.noteId)) { S.noteId = null; renderReader(); }
+    toast(`Удалено: ${ids.length}`); renderRail(); renderList(); return;
+  }
+}
+
+/* manage tags (in «Прогресс») */
+function tagsPanelHtml() {
+  const tags = allTags(); const M = S.tagMgr || {};
+  return `<details class="panel" id="tags-panel" ${S.tagsOpen ? 'open' : ''}>
+    <summary>Теги <span>· ${tags.length}</span></summary>
+    <p class="sub" style="margin-top:8px">Переименование меняет тег во всех заметках сразу. Если переименовать в уже существующий тег, они сольются в один.</p>
+    ${tags.length ? `<ul class="excluded">${tags.map(([t, c]) => M.rename === t
+      ? `<li><form class="tag-rename" data-tag-rename="${esc(t)}"><input id="tag-rename-input" value="${esc(t)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Новое имя тега"><button class="btn primary">Сохранить</button><button class="btn" type="button" data-tm-cancel>Отмена</button></form></li>`
+      : M.del === t
+      ? `<li><span class="nm">Убрать <b>#${esc(t)}</b> из ${c} ${plural(c, 'заметки', 'заметок', 'заметок')}?</span><button class="btn danger" data-tm-del-yes="${esc(t)}">Удалить тег</button><button class="btn" data-tm-cancel>Отмена</button></li>`
+      : `<li><span class="nm"><button class="tag" data-tm-filter="${esc(t)}">#${esc(t)}</button><small>${c} ${plural(c, 'заметка', 'заметки', 'заметок')}</small></span>${S.canWrite ? `<button class="btn" data-tm-rename="${esc(t)}">Переименовать</button><button class="btn danger" data-tm-del="${esc(t)}">Удалить</button>` : ''}</li>`).join('')}</ul>`
+      : '<div class="empty-state">Тегов пока нет. Добавь первый в любой заметке кнопкой «+ тег».</div>'}
+  </details>`;
+}
+function wireTagsPanel(root) {
+  const p = $('#tags-panel'); if (!p) return;
+  p.ontoggle = () => { S.tagsOpen = p.open; };
+  const inp = $('#tag-rename-input'); if (inp) { inp.focus(); inp.select(); }
+  p.onclick = async e => {
+    const r = e.target.closest('[data-tm-rename]'); if (r) { S.tagMgr = { rename: r.dataset.tmRename }; renderProg(); return; }
+    const d = e.target.closest('[data-tm-del]'); if (d) { S.tagMgr = { del: d.dataset.tmDel }; renderProg(); return; }
+    if (e.target.closest('[data-tm-cancel]')) { S.tagMgr = null; renderProg(); return; }
+    const f = e.target.closest('[data-tm-filter]'); if (f) { S.tag = f.dataset.tmFilter; S.q = ''; $('#q').value = ''; S.section = 'all'; setMode('lib'); return; }
+    const y = e.target.closest('[data-tm-del-yes]');
+    if (y) { const t = y.dataset.tmDelYes; S.tagMgr = null; const ids = [...S.notes.values()].filter(n => (n.tags || []).includes(t)).map(n => n.id); await setTagForMany(ids, t, false); if (S.tag === t) S.tag = null; toast(`Тег #${t} удалён`); renderProg(); }
+  };
+  p.onsubmit = async e => {
+    e.preventDefault(); const f = e.target.closest('[data-tag-rename]'); if (!f) return;
+    const from = f.dataset.tagRename; let to = String($('#tag-rename-input').value || '').trim().replace(/^#+/, '').replace(/[\s,]+/g, '_');
+    S.tagMgr = null;
+    if (!to || to === from) { renderProg(); return; }
+    const ex = allTags().find(([x]) => x.toLowerCase() === to.toLowerCase() && x !== from); if (ex) to = ex[0];
+    for (const n of [...S.notes.values()].filter(n => (n.tags || []).includes(from))) await updateTags(n.id, n.tags.map(x => x === from ? to : x));
+    if (S.tag === from) S.tag = to;
+    toast(`#${from} → #${to}`); refreshTagViews();
+  };
+  p.onkeydown = e => { if (e.key === 'Escape' && S.tagMgr) { S.tagMgr = null; renderProg(); } };
+}
+
+/* ---------- card context menu ---------- */
+const menuEl = document.createElement('div');
+menuEl.className = 'menu'; menuEl.id = 'card-menu'; menuEl.setAttribute('role', 'menu'); menuEl.hidden = true;
+document.body.appendChild(menuEl);
+function openMenu(id, anchor) {
+  S.menu = { id, confirm: false, anchor };
+  renderMenu();
+  document.querySelectorAll('.more').forEach(b => b.setAttribute('aria-expanded', String(b.dataset.more === id)));
+}
+function openSecMenu(id, anchor, mode) {
+  S.menu = { kind: 'sec', id, anchor, mode: mode || 'main' };
+  renderMenu();
+}
+function closeMenu(refocus) {
+  if (!S.menu) return;
+  const id = S.menu.id; S.menu = null; menuEl.hidden = true;
+  document.querySelectorAll('.more').forEach(b => b.setAttribute('aria-expanded', 'false'));
+  if (refocus) document.querySelector(`.more[data-more="${CSS.escape(id)}"]`)?.focus();
+}
+function placeMenu(anchorEl) {
+  menuEl.hidden = false;
+  const a = anchorEl.getBoundingClientRect();
+  const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
+  let left = Math.min(a.left, window.innerWidth - w - 8); left = Math.max(8, left);
+  let top = a.bottom + 4; if (top + h > window.innerHeight - 8) top = Math.max(8, a.top - h - 4);
+  menuEl.style.left = left + 'px'; menuEl.style.top = top + 'px';
+}
+function renderSecMenu() {
+  const M = S.menu; const sec = M.id ? S.sections.get(M.id) : null;
+  if (M.id && !sec) { closeMenu(); return; }
+  const count = sec ? [...S.notes.values()].filter(n => n.section === sec.id).length : 0;
+  const list = sectionsSorted(); const idx = sec ? list.findIndex(x => x.id === sec.id) : -1;
+  if (M.mode === 'rename' || M.mode === 'new') {
+    menuEl.innerHTML = `<form class="menu-form" id="sec-form"><label class="ask" style="color:var(--muted)" for="sec-name">${M.mode === 'new' ? 'Новый раздел' : 'Название раздела'}</label>
+      <input id="sec-name" value="${esc(sec && M.mode === 'rename' ? sec.title : '')}" placeholder="Например: Compose" autocomplete="off">
+      <div class="ask-row"><button class="yes-ok" type="submit">${M.mode === 'new' ? 'Создать' : 'Сохранить'}</button><button type="button" data-act="sec-cancel">Отмена</button></div></form>`;
+  } else if (M.mode === 'confirmDel') {
+    menuEl.innerHTML = count
+      ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали.</div><div class="ask-row"><button data-act="sec-back">Понятно</button></div>`
+      : `<div class="ask">Удалить пустой раздел «${esc(sec.title)}»?</div><div class="ask-row"><button class="yes" data-act="sec-del-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
+  } else {
+    menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">${esc(sec.title)} · ${count}</div>
+      <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
+      <button data-act="sec-up" role="menuitem" ${idx <= 0 ? 'disabled' : ''}><span class="ico">↑</span>Выше в списке разделов</button>
+      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 ? 'disabled' : ''}><span class="ico">↓</span>Ниже в списке разделов</button>
+      <div class="sep" role="separator"></div>
+      <button class="danger" data-act="sec-del" role="menuitem"><span class="ico">✕</span>Удалить раздел</button>`;
+  }
+  const anchor = (M.id && document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`)?.offsetParent ? document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`) : null)
+    || (M.id && document.querySelector(`#rail .sec[data-sec="${CSS.escape(M.id)}"]`)?.offsetParent ? document.querySelector(`#rail .sec[data-sec="${CSS.escape(M.id)}"]`) : null)
+    || (M.anchor?.isConnected ? M.anchor : null) || $('#chip-add') || $('#list-title');
+  placeMenu(anchor);
+  const inp = $('#sec-name'); if (inp) { inp.focus(); inp.select(); } else menuEl.querySelector('button:not([disabled])')?.focus();
+}
+async function swapSections(id, dir) {
+  const list = sectionsSorted(); const i = list.findIndex(x => x.id === id); const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  const a = list[i], b = list[j]; const oa = a.order, ob = b.order === oa ? oa + dir : b.order;
+  a.order = ob; b.order = oa; renderRail();
+  await write(async () => { await S.db.collection('sections').doc(a.id).update({ order: ob }); await S.db.collection('sections').doc(b.id).update({ order: oa }); }, null);
+}
+function renderMenu() {
+  const M = S.menu; if (!M) return;
+  if (M.kind === 'sec') { renderSecMenu(); return; }
+  if (M.kind === 'bulk') { renderBulkMenu(); return; }
+  const n = S.notes.get(M.id); if (!n) { closeMenu(); return; }
+  if (M.tags) { renderTagChecklist([M.id], 'Теги заметки', true); placeMenu(document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor); return; }
+  menuEl.innerHTML = M.confirm
+    ? `<div class="ask">Удалить «${esc(n.title.length > 60 ? n.title.slice(0, 60) + '…' : n.title)}» насовсем?</div>
+       <div class="ask-row"><button class="yes" data-act="delete-yes" role="menuitem">Удалить</button><button data-act="delete-no" role="menuitem">Отмена</button></div>`
+    : M.move
+    ? `<div class="ask" style="color:var(--muted)">Перенести в раздел</div>${sectionsSorted().map(s => `<button data-act="move-to" data-sec="${esc(s.id)}" role="menuitem" ${s.id === n.section ? 'disabled' : ''}><span class="ico">${s.id === n.section ? '✓' : ''}</span>${esc(s.title)}</button>`).join('')}<div class="sep" role="separator"></div><button data-act="move-back" role="menuitem"><span class="ico">←</span>Назад</button>`
+    : `${(S.q || S.section !== n.section || S.tag) ? `<button data-act="goto" role="menuitem"><span class="ico">↳</span>Показать в разделе</button><div class="sep" role="separator"></div>` : ''}
+       <button data-act="rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
+       <button data-act="edit" role="menuitem"><span class="ico">¶</span>Редактировать</button>
+       <div class="sep" role="separator"></div>
+       ${canReorder() ? `<button data-act="up" role="menuitem"><span class="ico">↑</span>Переместить выше</button><button data-act="down" role="menuitem"><span class="ico">↓</span>Переместить ниже</button>` : ''}
+       <button data-act="tags" role="menuitem"><span class="ico">#</span>Теги…${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
+       <button data-act="move" role="menuitem"><span class="ico">⇄</span>Перенести в раздел…</button>
+       ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
+       ${(n.body || '').trim() ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
+       <div class="sep" role="separator"></div>
+       <button class="danger" data-act="delete" role="menuitem"><span class="ico">✕</span>Удалить</button>`;
+  menuEl.hidden = false;
+  const a = (document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor).getBoundingClientRect();
+  const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
+  let left = Math.min(a.right - w, window.innerWidth - w - 8); left = Math.max(8, left);
+  let top = a.bottom + 4; if (top + h > window.innerHeight - 8) top = Math.max(8, a.top - h - 4);
+  menuEl.style.left = left + 'px'; menuEl.style.top = top + 'px';
+  menuEl.querySelector('button')?.focus();
+}
+menuEl.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (e.target.id === 'mtag-form') {
+    const t = normTag($('#mtag-new').value); if (!t) return;
+    const ids = S.menu?.kind === 'bulk' ? [...S.select] : [S.menu.id];
+    await setTagForMany(ids, t, true); $('#mtag-new').value = ''; renderMenu(); $('#mtag-new')?.focus(); return;
+  }
+  const M = S.menu; if (!M || M.kind !== 'sec') return;
+  const name = ($('#sec-name')?.value || '').trim(); if (!name) return;
+  closeMenu();
+  if (M.mode === 'new') {
+    const id = 's' + Date.now().toString(36);
+    const order = Math.max(0, ...[...S.sections.values()].map(s => s.order)) + 1;
+    S.sections.set(id, { id, title: name, order });
+    const ok = await write(() => S.db.collection('sections').doc(id).set({ title: name, order }), 'Раздел добавлен');
+    if (ok) selectSection(id); else { S.sections.delete(id); renderRail(); }
+  } else {
+    const sec = S.sections.get(M.id); if (!sec || sec.title === name) return;
+    sec.title = name; renderRail(); renderList();
+    await write(() => S.db.collection('sections').doc(sec.id).update({ title: name }), 'Раздел переименован');
+  }
+});
+menuEl.addEventListener('change', e => {
+  const cb = e.target.closest('[data-mtag]'); if (!cb || !S.menu) return;
+  const ids = S.menu.kind === 'bulk' ? [...S.select] : [S.menu.id];
+  const tag = cb.dataset.mtag;
+  if (!cb.checked) {
+    const had = ids.filter(id => (S.notes.get(id)?.tags || []).includes(tag)).map(id => [id, S.notes.get(id).tags.indexOf(tag)]);
+    setTagForMany(ids, tag, false).then(() => {
+      renderMenu();
+      if (had.length) toast(`Тег #${tag} убран${had.length > 1 ? ` у ${had.length}` : ''}`, { label: 'Вернуть', fn: async () => { for (const [id, i] of had) { const n = S.notes.get(id); if (!n) continue; const t = (n.tags || []).filter(x => x !== tag); t.splice(Math.min(i, t.length), 0, tag); await updateTags(id, t); } refreshTagViews(); if (S.menu) renderMenu(); toast(`Тег #${tag} возвращён`); } });
+    });
+  } else setTagForMany(ids, tag, true).then(() => renderMenu());
+});
+menuEl.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b || !S.menu) return;
+  const id = S.menu.id; const act = b.dataset.act;
+  if (S.menu.kind === 'bulk') { bulkMenuAct(act, b); return; }
+  if (S.menu.kind === 'sec') {
+    if (act === 'sec-rename') { S.menu.mode = 'rename'; renderMenu(); }
+    else if (act === 'sec-cancel') closeMenu();
+    else if (act === 'sec-del') { S.menu.mode = 'confirmDel'; renderMenu(); }
+    else if (act === 'sec-back') { S.menu.mode = 'main'; renderMenu(); }
+    else if (act === 'sec-up' || act === 'sec-down') { closeMenu(); swapSections(id, act === 'sec-up' ? -1 : 1); }
+    else if (act === 'sec-del-yes') {
+      closeMenu();
+      const ok = await write(() => S.db.collection('sections').doc(id).delete(), 'Раздел удалён');
+      if (ok) { S.sections.delete(id); if (S.section === id) selectSection('all'); else renderRail(); }
+    }
+    return;
+  }
+  if (act === 'relearn') { closeMenu(); relearn([id]); return; }
+  if (act === 'tags') { S.menu.tags = true; renderMenu(); return; }
+  if (act === 'tags-back') { S.menu.tags = false; renderMenu(); return; }
+  if (act === 'goto') { closeMenu(); gotoInSection(id); return; }
+  if (act === 'up' || act === 'down') { closeMenu(); moveBy(id, act === 'up' ? -1 : 1); return; }
+  if (act === 'ref') { closeMenu(); const n = S.notes.get(id); setRef(id, !n.ref, true); return; }
+  if (act === 'move') { S.menu.move = true; renderMenu(); return; }
+  if (act === 'move-back') { S.menu.move = false; renderMenu(); return; }
+  if (act === 'move-to') { closeMenu(); moveToSection(id, b.dataset.sec); return; }
+  if (act === 'rename') { closeMenu(); S.renaming = { id, draft: S.notes.get(id)?.title || '', fresh: true }; renderList(); }
+  else if (act === 'edit') { closeMenu(); S.noteId = id; store.set('note', id); $('#lib').classList.add('reading'); startEdit(id); renderList(); }
+  else if (act === 'delete') { S.menu.confirm = true; renderMenu(); }
+  else if (act === 'delete-no') { S.menu.confirm = false; renderMenu(); }
+  else if (act === 'delete-yes') {
+    closeMenu();
+    const ok = await write(() => S.db.collection('notes').doc(id).delete(), 'Заметка удалена');
+    if (ok && S.noteId === id) { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); renderReader(); }
+  }
+});
+menuEl.addEventListener('keydown', e => {
+  if (e.target.matches('input[type=text], input:not([type])')) { if (e.key === 'Escape') { e.preventDefault(); closeMenu(); } return; }
+  const items = [...menuEl.querySelectorAll('button')]; const i = items.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length]?.focus(); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length]?.focus(); }
+  if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); closeMenu(true); }
+});
+// a tap outside an open menu only closes the menu: the element under the finger must not react
+let swallowClick = false, swallowT = null;
+window.addEventListener('pointerdown', e => {
+  if (!S.menu || menuEl.contains(e.target)) return;
+  closeMenu();
+  swallowClick = true; clearTimeout(swallowT); swallowT = setTimeout(() => { swallowClick = false; }, 800);
+}, true);
+window.addEventListener('click', e => {
+  if (!swallowClick) return;
+  swallowClick = false; clearTimeout(swallowT);
+  e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+}, true);
+window.addEventListener('contextmenu', e => { if (swallowClick) { e.preventDefault(); e.stopPropagation(); } }, true);
+window.addEventListener('resize', () => { if (menuEl.querySelector('form')) { if (S.menu) renderMenuPositionOnly(); return; } closeMenu(); });
+function renderMenuPositionOnly() { const M = S.menu; const a = (M.id && document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`)) || M.anchor; if (a?.isConnected) placeMenu(a); }
+$('#items').addEventListener('scroll', () => closeMenu(), { passive: true });
+
+async function saveRename() {
+  const R = S.renaming; if (!R) return;
+  const title = R.draft.trim(); const n = S.notes.get(R.id);
+  S.renaming = null;
+  if (!title || !n || title === n.title) { renderList(); return; }
+  const ok = await write(() => S.db.collection('notes').doc(R.id).update({ title, updated: new Date().toISOString() }), 'Переименовано');
+  renderList(); if (ok && S.noteId === R.id && !S.editing) renderReader();
+}
+$('#items').addEventListener('click', e => {
+  const m = e.target.closest('[data-more]');
+  if (m) { e.stopPropagation(); if (S.menu?.id === m.dataset.more) closeMenu(); else openMenu(m.dataset.more, m); return; }
+  const g = e.target.closest('[data-goto]'); if (g) { gotoInSection(g.dataset.goto); return; }
+  if (e.target.closest('[data-rename-cancel]')) { S.renaming = null; renderList(); return; }
+  const b = e.target.closest('.item'); if (!b) return;
+  if (S.select) { toggleSelect(b.dataset.id, e.shiftKey); return; }
+  openNote(b.dataset.id);
+});
+$('#items').addEventListener('input', e => { if (e.target.id === 'rename-input' && S.renaming) S.renaming.draft = e.target.value; });
+$('#items').addEventListener('submit', e => { e.preventDefault(); saveRename(); });
+$('#items').addEventListener('keydown', e => { if (e.target.id === 'rename-input' && e.key === 'Escape') { S.renaming = null; renderList(); } });
+$('#items').addEventListener('contextmenu', e => { const r = e.target.closest('.row-item:not(form)'); if (r && S.canWrite) { e.preventDefault(); openMenu(r.dataset.id, r.querySelector('.more') || r); } });
+$('#tagbar').addEventListener('click', e => { if (e.target.closest('#tags-manage')) { S.tagsOpen = true; setMode('prog'); requestAnimationFrame(() => { const p = $('#tags-panel'); if (p) $('#prog').scrollTop = p.offsetTop - 16; }); return; } });
+$('#tagbar').addEventListener('click', e => { const b = e.target.closest('[data-tag]'); if (b) { S.tag = S.tag === b.dataset.tag ? null : b.dataset.tag; renderList(); if (S.article) renderReader(true); } });
+
+let qT;
+$('#q').addEventListener('input', e => { clearTimeout(qT); qT = setTimeout(() => { S.q = e.target.value; renderList(); if (S.article) renderReader(true); }, S.article ? 250 : 90); });
+$('#q').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { const first = $('#items .item'); if (first) openNote(first.dataset.id); }
+  if (e.key === 'Escape') { e.target.value = ''; S.q = ''; renderList(); e.target.blur(); }
+});
+
+/* ---------- read the whole list as one article ---------- */
+$('#read-all').addEventListener('click', () => {
+  if (S.article) { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); renderReader(true); return; }
+  S.article = true; S.editing = null; S.artJumpToCurrent = true; $('#read-all').setAttribute('aria-pressed', 'true');
+  $('#lib').classList.add('reading');
+  renderReader(true);
+});
+function markListCurrent(id) {
+  document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
+}
+function scrollArticleTo(el) {
+  const box = $('#reader'); const bar = box.querySelector('.mbar');
+  const off = bar && getComputedStyle(bar).display !== 'none' ? bar.offsetHeight : 0;
+  box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - off - 8;
+}
+let artObserver = null;
+function renderArticle(box, scrollTop) {
+  const { list, terms, title } = currentList();
+  const prevScroll = $('#reader').scrollTop;
+  const sig = list.map(n => n.id + ':' + (n.updated || '') + ':' + (n.title || '').length + ':' + (n.body || '').length).join('|') + '|' + title + '|' + (S.q || '');
+  if (!scrollTop && box.dataset.artSig === sig) return; // nothing changed, keep the reader as it is
+  box.dataset.artSig = sig;
+  box.innerHTML = `
+    <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><span class="mpos">${list.length} ${plural(list.length, 'заметка', 'заметки', 'заметок')}</span></span></div>
+    <div class="eyebrow"><span>Читать подряд</span><button class="sec-link" id="art-close">закрыть статью ✕</button></div>
+    <h1>${esc(title)}</h1>
+    ${list.length ? `<details class="art-toc" ${list.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>Содержание · ${list.length}</summary><ol>${list.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : '<div class="empty-state">В этом списке пока нет заметок.</div>'}
+    ${list.map((n, i) => `<section class="art-note" id="art-${esc(n.id)}" data-id="${esc(n.id)}">
+      <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(n.title)}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="Открыть заметку отдельно">Открыть</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">Править</button>` : ''}</span></div>
+      <div class="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет.</p>'}</div>
+    </section>`).join('')}
+    ${list.length ? `<div class="art-end">Конец раздела · ${list.length} ${plural(list.length, 'заметка', 'заметки', 'заметок')}</div>` : ''}`;
+  box.querySelectorAll('.art-note .md').forEach(md => enhance(md, null));
+  if (terms && terms.length) box.querySelectorAll('.art-note .md, .art-head h2').forEach(el => markTerms(el, terms));
+  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = S.noteId && document.querySelector(`#items .row-item[data-id="${CSS.escape(S.noteId)}"]`); if (r) scrollWithin($('#items'), r); };
+  $('#art-close').onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); renderReader(true); };
+  box.querySelectorAll('[data-art-jump]').forEach(a => a.onclick = e => { e.preventDefault(); const t = document.getElementById('art-' + a.dataset.artJump); if (t) scrollArticleTo(t); });
+  box.querySelectorAll('[data-art-open]').forEach(b => b.onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); openNote(b.dataset.artOpen); });
+  box.querySelectorAll('[data-art-edit]').forEach(b => b.onclick = () => { S.noteId = b.dataset.artEdit; startEdit(b.dataset.artEdit); });
+  $('#reader').scrollTop = scrollTop ? 0 : prevScroll;
+  if (scrollTop && S.noteId && list.some(n => n.id === S.noteId) && S.artJumpToCurrent) { const t = document.getElementById('art-' + S.noteId); if (t) scrollArticleTo(t); }
+  S.artJumpToCurrent = false;
+  // highlight in the list the note being read
+  artObserver?.disconnect();
+  artObserver = new IntersectionObserver(entries => {
+    const vis = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+    if (!vis) return;
+    const id = vis.target.dataset.id; if (S.noteId === id) return;
+    S.noteId = id; store.set('note', id); markListCurrent(id);
+    const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(id)}"]`);
+    const items = $('#items');
+    if (r && window.matchMedia('(min-width:761px)').matches) { const a = r.getBoundingClientRect(), b = items.getBoundingClientRect(); if (a.top < b.top || a.bottom > b.bottom) scrollWithin(items, r); }
+  }, { root: $('#reader'), rootMargin: '0px 0px -70% 0px' });
+  box.querySelectorAll('.art-note').forEach(el => artObserver.observe(el));
+}
+
+function openNote(id, dir) {
+  if (S.article && !S.editing) {
+    const sec = document.getElementById('art-' + id);
+    if (sec) { $('#lib').classList.add('reading'); S.noteId = id; markListCurrent(id); scrollArticleTo(sec); return; }
+  }
+  S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
+  S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null;
+  $('#lib').classList.add('reading');
+  document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
+  renderReader(true);
+}
+function renderReader(scrollTop) {
+  const box = $('#reader .doc');
+  $('#lib').classList.toggle('wide-edit', !!S.editing && S.editing.tab === 'split');
+  if (S.editing) { renderEditor(box); return; }
+  if (S.article) { renderArticle(box, scrollTop); return; }
+  const n = S.notes.get(S.noteId);
+  if (!n) { box.innerHTML = `<div class="empty-state">${S.loaded.notes ? 'Выбери заметку слева или найди её через поиск.' : 'Загружаю заметки…'}</div>`; return; }
+  const s = S.srs.get(n.id);
+  const terms = S.q ? norm(S.q).split(/\s+/).map(t => t.replace(/^#+/, '')).filter(Boolean) : null;
+  const nbr = (() => { const l = currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
+  const srsLine = n.ref ? '' : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
+  box.innerHTML = `
+    <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><button id="prev-note" aria-label="Предыдущая заметка в списке" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="Следующая заметка в списке" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
+    <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(S.sections.get(n.section)?.title || '')} ↳</button></div>
+    <h1>${esc(n.title)}</h1>
+    ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
+    <div class="row">${srsPill(n.id)}${srsLine}
+      <span class="actions">${n.ref && S.canWrite ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
+    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
+  const first = (() => { const md = $('#md'); enhance(md, null); return terms ? markTerms(md, terms) : null; })();
+  if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
+  if (S.slide) { const dcl = S.slide === 'next' ? 'slide-in-next' : 'slide-in-prev'; S.slide = null; box.classList.remove('slide-in-next', 'slide-in-prev'); void box.offsetWidth; box.classList.add(dcl); }
+  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(n.id)}"]`); if (r) scrollWithin($('#items'), r); };
+  $('#sec-link').onclick = () => gotoInSection(n.id);
+  S.nbr = nbr;
+  $('#prev-note').onclick = () => nbr.prev && openNote(nbr.prev, 'prev');
+  $('#next-note').onclick = () => nbr.next && openNote(nbr.next, 'next');
+  $('#edit') && ($('#edit').onclick = () => startEdit(n.id));
+  $('#unref') && ($('#unref').onclick = () => setRef(n.id, false));
+  $('#relearn') && ($('#relearn').onclick = () => relearn([n.id]));
+  $('#drill') && ($('#drill').onclick = () => startSession([n.id], 'free', 'Одна карточка'));
+  restoreTagEdit();
+}
+
+/* swipe between notes on phones */
+(() => {
+  const reader = $('#reader'); let t0 = null;
+  const phone = () => window.matchMedia('(max-width:760px)').matches;
+  reader.addEventListener('touchstart', e => {
+    if (!phone() || S.editing || S.article || e.touches.length !== 1) { t0 = null; return; }
+    const p = e.touches[0];
+    if (p.clientX < 24 || p.clientX > window.innerWidth - 24) { t0 = null; return; }
+    if (e.target.closest('pre, table, .mbar, img, a, button, input, textarea, [contenteditable]')) { t0 = null; return; }
+    if (getSelection && String(getSelection()).length) { t0 = null; return; }
+    t0 = { x: p.clientX, y: p.clientY, t: Date.now() };
+  }, { passive: true });
+  reader.addEventListener('touchend', e => {
+    if (!t0) return;
+    const p = e.changedTouches[0]; const dx = p.clientX - t0.x, dy = p.clientY - t0.y, dt = Date.now() - t0.t; t0 = null;
+    if (dt > 700 || Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    const nb = S.nbr || {};
+    if (dx < 0 && nb.next) openNote(nb.next, 'next');
+    else if (dx > 0 && nb.prev) openNote(nb.prev, 'prev');
+    else { const d = $('#reader .doc'); d.classList.remove('bump'); void d.offsetWidth; d.classList.add('bump'); }
+  }, { passive: true });
+  reader.addEventListener('touchcancel', () => { t0 = null; }, { passive: true });
+  // drop the animation class once played, so the note does not replay it every time the reader is shown again
+  reader.addEventListener('animationend', e => e.target.classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
+})();
+
+/* ---------- editor ---------- */
+$('#new-note').addEventListener('click', () => {
+  const sec = S.section !== 'all' ? S.section : (sectionsSorted()[0]?.id || '');
+  S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
+  $('#lib').classList.add('reading'); renderReader(true);
+});
+function startEdit(id) {
+  const n = S.notes.get(id);
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
+  renderReader(true);
+}
+function renderEditor(box) {
+  const E = S.editing, d = E.draft;
+  box.dataset.artSig = '';
+  box.innerHTML = `
+    <button class="back" id="back">${E.tab === 'split' ? '← Показать список заметок' : '← К списку'}</button>
+    <div class="eyebrow">${E.id ? 'Редактирование' : 'Новая заметка'}</div>
+    <form class="editor" id="ed" style="margin-top:14px">
+      <div class="field"><label for="ed-title">Вопрос / заголовок</label><input id="ed-title" required value="${esc(d.title)}" placeholder="Например: Чем launch отличается от async?"></div>
+      <div class="grid2">
+        <div class="field"><label for="ed-sec">Раздел</label><select id="ed-sec">${sectionsSorted().map(s => `<option value="${esc(s.id)}" ${s.id === d.section ? 'selected' : ''}>${esc(s.title)}</option>`).join('')}</select></div>
+        <div class="field"><label for="ed-tags">Теги через пробел</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="часто_спрашивают senior" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
+      </div>
+      <label class="check"><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>Не тренировать: заметка остаётся в шпаргалке, но не попадает в тренировку</span></label>
+      <div class="field">
+        <div class="bar"><span class="lbl">Ответ</span><span class="spacer"></span>
+          <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">Рядом</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">Визуально</button></div></div>
+        ${toolbarHtml()}
+        <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">Адрес ссылки</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">Вставить</button><button class="btn" type="button" id="link-cancel">Отмена</button></div>
+        <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
+          ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="Ответ в Markdown" placeholder="Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.">${esc(d.body)}</textarea>` : ''}
+          ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Ответ, визуальный редактор" data-empty="Пиши ответ прямо здесь">${renderMd(d.body)}</div>` : ''}
+        </div>
+        <span class="hint">${E.tab === 'edit' ? '' : 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам. '}${MOD}+B жирный · ${MOD}+I курсив · ${MOD}+E код · ${MOD}+K ссылка · ${MOD}+Enter — сохранить</span>
+      </div>
+      <div class="bar">
+        <button class="btn primary" type="submit">Сохранить</button>
+        <button class="btn" type="button" id="ed-cancel">Отмена</button>
+        <span class="spacer"></span>
+        ${E.id ? (E.confirmDel ? `<span class="confirm">Удалить заметку насовсем? <button class="btn danger" type="button" id="ed-del-yes">Удалить</button><button class="btn" type="button" id="ed-del-no">Нет</button></span>` : `<button class="btn danger" type="button" id="ed-del">Удалить</button>`) : ''}
+      </div>
+    </form>`;
+  const ta = $('#ed-body'), vis = $('#ed-prev');
+  E.pane = ta ? 'md' : 'vis';
+  if (vis) enhance(vis);
+  const grow = () => { if (!ta) return; ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; };
+  let pT, visDirty = false;
+  const renderVis = () => { if (vis) { vis.innerHTML = renderMd(d.body); enhance(vis); } };
+  if (ta) {
+    ta.addEventListener('input', () => {
+      d.body = ta.value; grow();
+      if (vis) { clearTimeout(pT); pT = setTimeout(renderVis, 160); }
+    });
+    ta.addEventListener('keydown', e => mdKeydown(e, ta));
+    ta.addEventListener('focus', () => { E.pane = 'md'; });
+    requestAnimationFrame(grow);
+  }
+  if (vis) {
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
+    const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); if (ta) { ta.value = d.body; grow(); } };
+    vis.addEventListener('input', fromVis);
+    vis.addEventListener('focus', () => { E.pane = 'vis'; });
+    vis.addEventListener('blur', e => {
+      if (e.relatedTarget && e.relatedTarget.closest('#link-bar, .md-toolbar')) return;
+      if (visDirty) { visDirty = false; renderVis(); }
+    });
+    vis.addEventListener('keydown', e => visKeydown(e, vis));
+    vis.addEventListener('paste', e => {
+      e.preventDefault();
+      const t = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
+      document.execCommand('insertText', false, t);
+    });
+    vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
+  }
+  const tb = box.querySelector('.md-toolbar');
+  tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
+  tb.addEventListener('click', e => {
+    const b = e.target.closest('[data-md]'); if (!b) return;
+    if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
+  });
+  const lb = $('#link-bar');
+  const linkOk = () => { const v = $('#link-url').value.trim(); if (lb.dataset.mode === 'img') applyVisImg(vis, v); else applyVisLink(vis, v); lb.hidden = true; };
+  $('#link-ok').onclick = linkOk;
+  $('#link-cancel').onclick = () => { lb.hidden = true; vis?.focus(); restoreSel(); };
+  $('#link-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); linkOk(); return; } if (e.key === 'Escape') { e.preventDefault(); lb.hidden = true; vis?.focus(); restoreSel(); } });
+  if (E.focusBody) { E.focusBody = false; (ta || vis)?.focus(); }
+  const sync = () => {
+    d.title = $('#ed-title').value; d.section = $('#ed-sec').value; d.tags = $('#ed-tags').value.split(/[\s,]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
+    d.ref = $('#ed-ref').checked; if ($('#ed-body')) d.body = $('#ed-body').value;
+  };
+  box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader(); });
+  $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else $('#lib').classList.remove('reading'); };
+  $('#ed-cancel').onclick = () => { S.editing = null; if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else renderReader(); };
+  $('#ed-del') && ($('#ed-del').onclick = () => { sync(); E.confirmDel = true; renderEditor(box); });
+  $('#ed-del-no') && ($('#ed-del-no').onclick = () => { E.confirmDel = false; renderEditor(box); });
+  $('#ed-del-yes') && ($('#ed-del-yes').onclick = async () => {
+    const id = E.id;
+    const ok = await write(() => S.db.collection('notes').doc(id).delete(), 'Заметка удалена');
+    if (ok) { S.editing = null; S.noteId = null; $('#lib').classList.remove('reading'); renderReader(); }
+  });
+  const form = $('#ed');
+  form.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); sync();
+    if (!d.title.trim()) return;
+    const now = new Date().toISOString();
+    const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+    const prev = S.notes.get(id);
+    const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
+    const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
+    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), E.id ? 'Сохранено' : 'Заметка добавлена');
+    if (ok) { S.editing = null; S.noteId = id; store.set('note', id); S.artJumpToCurrent = true; renderList(); renderReader(true); }
+  });
+  if (!E.id) $('#ed-title').focus();
+}
+/* ---------- markdown toolbar ---------- */
+const MOD = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl';
+const ICO = {
+  h: '<svg viewBox="0 0 16 16"><path d="M3 2.5v11M11 2.5v11M3 8h8"/></svg>',
+  ul: '<svg viewBox="0 0 16 16"><circle cx="2.5" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="2.5" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="2.5" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M6 4h8M6 8h8M6 12h8"/></svg>',
+  ol: '<svg viewBox="0 0 16 16"><path d="M6 4h8M6 8h8M6 12h8"/><text x="0.5" y="5.6" font-size="5" fill="currentColor" stroke="none" font-family="sans-serif">1</text><text x="0.5" y="9.6" font-size="5" fill="currentColor" stroke="none" font-family="sans-serif">2</text><text x="0.5" y="13.6" font-size="5" fill="currentColor" stroke="none" font-family="sans-serif">3</text></svg>',
+  task: '<svg viewBox="0 0 16 16"><rect x="1.5" y="3" width="4.5" height="4.5" rx="1"/><path d="M2.6 5.3l1 1 1.6-1.9M8.5 5.2h6M1.5 11h4.5M8.5 11h6"/></svg>',
+  quote: '<svg viewBox="0 0 16 16"><path d="M2.5 2.5v11M6 5h8M6 8h8M6 11h5"/></svg>',
+  code: '<svg viewBox="0 0 16 16"><path d="M5.5 4.5L2 8l3.5 3.5M10.5 4.5L14 8l-3.5 3.5"/></svg>',
+  block: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2" width="13" height="12" rx="2"/><path d="M6 6L4 8l2 2M10 6l2 2-2 2"/></svg>',
+  link: '<svg viewBox="0 0 16 16"><path d="M6.8 9.2a3 3 0 004.2 0l2.2-2.2a3 3 0 00-4.2-4.2L8 3.8M9.2 6.8a3 3 0 00-4.2 0L2.8 9a3 3 0 004.2 4.2L8 12.2"/></svg>',
+  table: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11"/></svg>',
+  img: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>',
+  hr: '<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>',
+  undo: '<svg viewBox="0 0 16 16"><path d="M5 3L2 6l3 3"/><path d="M2.5 6H10a4 4 0 010 8H7"/></svg>',
+  redo: '<svg viewBox="0 0 16 16"><path d="M11 3l3 3-3 3"/><path d="M13.5 6H6a4 4 0 000 8h3"/></svg>',
+};
+function toolbarHtml() {
+  const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
+  return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
+    <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}</div>
+    <div class="tb-group">${b('heading', ICO.h, 'Подзаголовок')}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
+    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
+    <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
+  </div>`;
+}
+function replaceRange(ta, start, end, text, selStart, selEnd) {
+  ta.focus();
+  ta.setSelectionRange(start, end);
+  let ok = false;
+  try { ok = document.execCommand('insertText', false, text); } catch {}
+  if (!ok || ta.value.slice(start, start + text.length) !== text) { ta.setRangeText(text, start, end, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+  ta.setSelectionRange(selStart ?? start + text.length, selEnd ?? selStart ?? start + text.length);
+}
+function wrapInline(ta, mark, placeholder) {
+  let s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+  while (s < e && /\s/.test(v[s])) s++;
+  while (e > s && /\s/.test(v[e - 1])) e--;
+  const sel = v.slice(s, e), L = mark.length;
+  if (v.slice(s - L, s) === mark && v.slice(e, e + L) === mark && !(mark === '*' && (v[s - L - 1] === '*' || v[e + L] === '*'))) {
+    replaceRange(ta, s - L, e + L, sel, s - L, e - L); return;
+  }
+  if (sel.length > 2 * L && sel.startsWith(mark) && sel.endsWith(mark)) {
+    const inner = sel.slice(L, -L); replaceRange(ta, s, e, inner, s, s + inner.length); return;
+  }
+  if (!sel) { const t = mark + placeholder + mark; replaceRange(ta, s, e, t, s + L, s + L + placeholder.length); return; }
+  if (sel.includes('\n') && mark !== '`') {
+    const t = sel.split('\n').map(x => x.trim() ? x.replace(/^(\s*(?:[-*+] |\d+\. |> )?)(.*?)(\s*)$/, `$1${mark}$2${mark}$3`) : x).join('\n');
+    replaceRange(ta, s, e, t, s, s + t.length); return;
+  }
+  replaceRange(ta, s, e, mark + sel + mark, s + L, e + L);
+}
+function lineBounds(ta) {
+  const v = ta.value; let s = ta.selectionStart, e = ta.selectionEnd;
+  if (e > s && v[e - 1] === '\n') e--;
+  const ls = v.lastIndexOf('\n', s - 1) + 1; let le = v.indexOf('\n', e); if (le < 0) le = v.length;
+  return [ls, le];
+}
+const PREFIX_RE = /^(\s*)(#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> )?/;
+function toggleLines(ta, kind) {
+  const [ls, le] = lineBounds(ta); const lines = ta.value.slice(ls, le).split('\n');
+  const has = l => kind === 'heading' ? /^\s*#{1,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*> /.test(l);
+  const nonEmpty = lines.filter(l => l.trim());
+  const all = nonEmpty.length && nonEmpty.every(has);
+  let n = 0;
+  const out = lines.map(l => {
+    if (!l.trim() && lines.length > 1) return l;
+    const m = l.match(PREFIX_RE); const ind = m[1] || ''; const rest = l.slice(m[0].length);
+    if (all) return ind + rest;
+    n++;
+    const p = kind === 'heading' ? '#### ' : kind === 'ul' ? '- ' : kind === 'ol' ? `${n}. ` : kind === 'task' ? '- [ ] ' : '> ';
+    return ind + p + rest;
+  });
+  const t = out.join('\n');
+  const caret = lines.length === 1 ? ls + t.length : null;
+  replaceRange(ta, ls, le, t, caret ?? ls, caret ?? ls + t.length);
+}
+function insertBlock(ta, text, caretOffset, selLen = 0) {
+  const v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
+  const before = v.slice(0, s), after = v.slice(e);
+  const pre = !before || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+  const post = !after || after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+  const t = pre + text + post;
+  const c = s + pre.length + caretOffset;
+  replaceRange(ta, s, e, t, c, c + selLen);
+}
+function mdAction(act, ta) {
+  if (!ta) return;
+  const v = ta.value, s = ta.selectionStart, e = ta.selectionEnd, sel = v.slice(s, e);
+  switch (act) {
+    case 'bold': return wrapInline(ta, '**', 'жирный текст');
+    case 'italic': return wrapInline(ta, '*', 'курсив');
+    case 'strike': return wrapInline(ta, '~~', 'зачёркнутый');
+    case 'code':
+      if (sel.includes('\n')) return mdAction('block', ta);
+      return wrapInline(ta, '`', 'code');
+    case 'heading': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
+    case 'block': {
+      if (!sel) return insertBlock(ta, '```kotlin\n\n```', 10);
+      const t = '```kotlin\n' + sel.replace(/\n$/, '') + '\n```';
+      return insertBlock(ta, t, 10, sel.replace(/\n$/, '').length);
+    }
+    case 'link': {
+      const isUrl = /^(https?:\/\/|www\.)\S+$/.test(sel.trim());
+      if (isUrl) { const t = `[текст ссылки](${sel.trim()})`; return replaceRange(ta, s, e, t, s + 1, s + 13); }
+      const label = sel || 'текст ссылки'; const t = `[${label}](https://)`;
+      return replaceRange(ta, s, e, t, s + label.length + 3, s + label.length + 11);
+    }
+    case 'img': {
+      const name = sel.trim().replace(/^img\//, '') || 'имя.png';
+      const base = name.replace(/\.[a-z0-9]+$/i, '');
+      return insertBlock(ta, `![](img/${name})`, 8, base.length);
+    }
+    case 'table': return insertBlock(ta, '| Колонка 1 | Колонка 2 |\n| --- | --- |\n| значение | значение |', 2, 9);
+    case 'hr': return insertBlock(ta, '---', 3);
+    case 'undo': ta.focus(); try { document.execCommand('undo'); } catch {} return;
+    case 'redo': ta.focus(); try { document.execCommand('redo'); } catch {} return;
+  }
+}
+function mdKeydown(e, ta) {
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && !e.altKey) {
+    const k = e.key.toLowerCase(), code = e.code;
+    const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
+    const act = map[code];
+    if (act) { e.preventDefault(); mdAction(act, ta); return; }
+    if (k === 'enter') return; // save handled by the form
+  }
+  if (e.key === 'Tab' && !mod && !e.altKey) {
+    e.preventDefault();
+    const s = ta.selectionStart, e2 = ta.selectionEnd, v = ta.value;
+    if (s === e2 && !e.shiftKey) return replaceRange(ta, s, s, '    ');
+    const [ls, le] = lineBounds(ta); const lines = v.slice(ls, le).split('\n');
+    const out = lines.map(l => e.shiftKey ? l.replace(/^( {1,4}|\t)/, '') : '    ' + l).join('\n');
+    return replaceRange(ta, ls, le, out, ls, ls + out.length);
+  }
+  if (e.key === 'Enter' && !mod && !e.shiftKey && !e.altKey && ta.selectionStart === ta.selectionEnd) {
+    const v = ta.value, pos = ta.selectionStart;
+    const ls = v.lastIndexOf('\n', pos - 1) + 1; const line = v.slice(ls, pos);
+    const before = v.slice(0, ls); const inCode = ((before.match(/^```/gm) || []).length % 2) === 1;
+    if (inCode) { e.preventDefault(); const ind = line.match(/^\s*/)[0]; return replaceRange(ta, pos, pos, '\n' + ind); }
+    const m = line.match(/^(\s*)([-*+] \[[ xX]\] |[-*+] |(\d+)\. |> )(.*)$/);
+    if (!m) return;
+    e.preventDefault();
+    if (!m[4].trim()) return replaceRange(ta, ls, pos, m[1]);
+    const next = m[3] ? `${+m[3] + 1}. ` : /\[[ xX]\]/.test(m[2]) ? m[2][0] + ' [ ] ' : m[2];
+    replaceRange(ta, pos, pos, '\n' + m[1] + next);
+  }
+}
+
+/* ---------- visual editor: HTML -> Markdown ---------- */
+const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'PRE', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'HR', 'TABLE', 'SECTION', 'ARTICLE', 'FIGURE']);
+function htmlToMd(root) {
+  return mdBlocks(root).join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+function mdBlocks(parent) {
+  const out = []; let buf = [];
+  const flush = () => { const t = mdInline(buf).replace(/^[ \t]+|\s+$/g, '').replace(/^\n+/, ''); if (t.trim()) out.push(t); buf = []; };
+  for (const n of parent.childNodes) {
+    if (n.nodeType === 1 && BLOCK_TAGS.has(n.tagName)) { flush(); const b = mdBlock(n); if (b && b.trim()) out.push(b); }
+    else buf.push(n);
+  }
+  flush();
+  return out;
+}
+function mdBlock(el) {
+  const tag = el.tagName;
+  if (/^H[1-6]$/.test(tag)) { const t = mdInline([...el.childNodes]).replace(/\s+/g, ' ').trim(); return t ? '#'.repeat(+tag[1]) + ' ' + t : ''; }
+  if (tag === 'PRE') {
+    const code = el.querySelector('code');
+    const lang = ((code?.className || '').match(/language-([\w+#-]+)/) || [])[1] || '';
+    const text = (code || el).textContent.replace(/ /g, ' ').replace(/\u200b/g, '').replace(/\n$/, '');
+    return '```' + lang + '\n' + text + '\n```';
+  }
+  if (tag === 'UL' || tag === 'OL') return mdList(el);
+  if (tag === 'BLOCKQUOTE') return mdBlocks(el).join('\n\n').split('\n').map(l => l ? '> ' + l : '>').join('\n');
+  if (tag === 'HR') return '---';
+  if (tag === 'TABLE') return mdTable(el);
+  if (tag === 'LI') return '- ' + mdBlocks(el).join('\n');
+  return mdBlocks(el).join('\n\n');
+}
+function mdList(el) {
+  const ordered = el.tagName === 'OL'; const start = parseInt(el.getAttribute('start'), 10) || 1;
+  const items = [...el.children].filter(c => c.tagName === 'LI');
+  const loose = items.some(li => [...li.children].some(c => c.tagName === 'P'));
+  return items.map((li, i) => {
+    let marker = ordered ? `${start + i}. ` : '- ';
+    const cb = li.querySelector(':scope > input[type=checkbox], :scope > p:first-child > input[type=checkbox]');
+    if (cb) marker += (cb.checked || cb.hasAttribute('checked')) ? '[x] ' : '[ ] ';
+    const body = mdBlocks(li).join(loose ? '\n\n' : '\n');
+    const ind = ' '.repeat(ordered ? marker.length : 2);
+    return marker + body.split('\n').map((l, j) => j === 0 || !l ? l : ind + l).join('\n');
+  }).join(loose ? '\n\n' : '\n');
+}
+function mdTable(el) {
+  const rows = [...el.querySelectorAll('tr')];
+  if (!rows.length) return '';
+  const cells = r => [...r.children].map(c => mdInline([...c.childNodes]).replace(/\s+/g, ' ').trim().replace(/\|/g, '\\|'));
+  const head = cells(rows[0]);
+  const lines = ['| ' + head.join(' | ') + ' |', '| ' + head.map(() => '---').join(' | ') + ' |'];
+  for (const r of rows.slice(1)) lines.push('| ' + cells(r).join(' | ') + ' |');
+  return lines.join('\n');
+}
+function mdWrap(mark, inner) {
+  if (!inner.trim()) return inner;
+  const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0];
+  return lead + mark + inner.trim() + mark + trail;
+}
+function mdInline(nodes) {
+  let s = '';
+  for (const n of nodes) {
+    if (n.nodeType === 3) { s += n.nodeValue.replace(/​/g, '').replace(/ /g, ' ').replace(/[ \t\r\n]+/g, ' ').replace(/<(?=[A-Za-z\/!?])/g, '\\<'); continue; }
+    if (n.nodeType !== 1) continue;
+    const t = n.tagName, kids = () => mdInline([...n.childNodes]);
+    if (t === 'STRONG' || t === 'B') s += mdWrap('**', kids());
+    else if (t === 'EM' || t === 'I') s += mdWrap('*', kids());
+    else if (t === 'DEL' || t === 'S' || t === 'STRIKE') s += mdWrap('~~', kids());
+    else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
+    else if (t === 'A') { const label = kids().trim() || n.getAttribute('href') || ''; s += `[${label}](${n.getAttribute('href') || ''})`; }
+    else if (t === 'IMG') s += `![${n.getAttribute('alt') === 'Иллюстрация из заметки' ? '' : (n.getAttribute('alt') || '')}](${n.getAttribute('src') || ''})`;
+    else if (t === 'BR') s += '  \n';
+    else if (t === 'INPUT') continue;
+    else if (BLOCK_TAGS.has(t)) s += '\n\n' + mdBlock(n) + '\n\n';
+    else s += kids();
+  }
+  return s;
+}
+
+/* ---------- visual editor: formatting actions ---------- */
+let savedRange = null;
+function saveSel() { const sel = getSelection(); savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null; }
+function restoreSel() { if (!savedRange) return; const sel = getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+function closestIn(vis, sel) { const sl = getSelection(); let n = sl.anchorNode; if (n && n.nodeType === 3) n = n.parentElement; const hit = n?.closest(sel); return hit && vis.contains(hit) ? hit : null; }
+function exec(cmd, val) { try { return document.execCommand(cmd, false, val); } catch { return false; } }
+function visAction(act, vis) {
+  vis.focus();
+  const sel = getSelection(); const text = sel.toString();
+  switch (act) {
+    case 'bold': return exec('bold');
+    case 'italic': return exec('italic');
+    case 'strike': return exec('strikeThrough');
+    case 'code': {
+      const c = closestIn(vis, 'code');
+      if (c && !c.closest('pre')) { const r = document.createRange(); r.selectNodeContents(c); sel.removeAllRanges(); sel.addRange(r); return exec('insertText', c.textContent); }
+      return exec('insertHTML', `<code>${esc(text || 'code')}</code>&#8203;`);
+    }
+    case 'heading': return exec('formatBlock', closestIn(vis, 'h1,h2,h3,h4,h5,h6') ? 'p' : 'h4');
+    case 'quote': return exec('formatBlock', closestIn(vis, 'blockquote') ? 'p' : 'blockquote');
+    case 'ul': return exec('insertUnorderedList');
+    case 'ol': return exec('insertOrderedList');
+    case 'task': {
+      if (!closestIn(vis, 'ul')) exec('insertUnorderedList');
+      const li = closestIn(vis, 'li'); if (!li) return;
+      const has = li.querySelector(':scope > input[type=checkbox]');
+      if (has) has.remove(); else { const cb = document.createElement('input'); cb.type = 'checkbox'; cb.disabled = true; li.insertBefore(document.createTextNode(' '), li.firstChild); li.insertBefore(cb, li.firstChild); }
+      vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+    }
+    case 'block': return exec('insertHTML', `<pre><code class="language-kotlin">${esc(text || '// код')}</code></pre><p><br></p>`);
+    case 'link': {
+      const a = closestIn(vis, 'a');
+      if (a) { const r = document.createRange(); r.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(r); exec('unlink'); return; }
+      saveSel();
+      const lb = $('#link-bar'); lb.dataset.mode = 'link'; lb.hidden = false;
+      $('#link-label').textContent = 'Адрес ссылки';
+      const inp = $('#link-url'); inp.placeholder = 'https://'; inp.inputMode = 'url'; inp.value = /^https?:\/\//.test(text.trim()) ? text.trim() : ''; inp.focus();
+      return;
+    }
+    case 'img': {
+      saveSel();
+      const lb = $('#link-bar'); lb.dataset.mode = 'img'; lb.hidden = false;
+      $('#link-label').textContent = 'Файл картинки: img/';
+      const inp = $('#link-url'); inp.placeholder = 'имя.png'; inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
+      return;
+    }
+    case 'table': return exec('insertHTML', '<table><thead><tr><th>Колонка 1</th><th>Колонка 2</th></tr></thead><tbody><tr><td>значение</td><td>значение</td></tr></tbody></table><p><br></p>');
+    case 'hr': return exec('insertHorizontalRule');
+    case 'undo': return exec('undo');
+    case 'redo': return exec('redo');
+  }
+}
+function applyVisImg(vis, name) {
+  if (!vis) return;
+  vis.focus(); restoreSel();
+  name = name.replace(/^\/+/, '').replace(/^img\//, '');
+  if (!name) return;
+  if (!/\.[a-z0-9]{2,5}$/i.test(name)) name += '.png';
+  exec('insertHTML', `<p><img src="img/${esc(name)}" alt=""></p><p><br></p>`);
+}
+function applyVisLink(vis, url) {
+  if (!vis) return;
+  vis.focus(); restoreSel();
+  if (!url) return;
+  if (!/^[a-z]+:\/\//i.test(url) && !url.startsWith('#')) url = 'https://' + url;
+  const sel = getSelection();
+  if (sel.isCollapsed) exec('insertHTML', `<a href="${esc(url)}">${esc(url)}</a>&#8203;`);
+  else exec('createLink', url);
+}
+function visKeydown(e, vis) {
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod || e.altKey) return;
+  const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
+  const act = map[e.code];
+  if (act) { e.preventDefault(); visAction(act, vis); }
+}
+
+async function write(fn, okMsg) {
+  if (!S.db) { toast('Хранилище недоступно, изменения не сохранены'); return false; }
+  try { await fn(); if (okMsg) toast(okMsg); return true; }
+  catch (e) {
+    if (e && e.code === 'invalid_argument') { S.canWrite = false; toast('Нет прав на изменение: открыт режим только для чтения'); renderLib(); }
+    else if (e && e.code === 'quota_exceeded') toast('Хранилище заполнено: удали лишние заметки');
+    else toast('Не получилось сохранить. Попробуй ещё раз.');
+    return false;
+  }
+}
+function renderLib() { renderRail(); renderList(); renderReader(); }
+
+/* ---------- training ---------- */
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function weakness(id) {
+  const s = S.srs.get(id); if (!s || !s.introduced) return 1.5;
+  return (s.lastGrade === 1 ? 3 : s.lastGrade === 2 ? 2 : 0) + (s.lapses || 0) * 0.6 + (2.5 - s.ease) + (s.ivl < 3 ? 0.5 : 0) + (isDue(id) ? 0.8 : 0);
+}
+function freePool(o) {
+  let list = sortedNotes().filter(trainable);
+  if (o.sections.length) list = list.filter(n => o.sections.includes(n.section));
+  if (o.tags.length) list = list.filter(n => (n.tags || []).some(t => o.tags.includes(t)));
+  let ids = list.map(n => n.id);
+  if (o.order === 'shuffle') ids = shuffle(ids);
+  if (o.order === 'weak') ids = ids.map(id => [id, weakness(id) + Math.random() * 0.3]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+  return o.limit ? ids.slice(0, o.limit) : ids;
+}
+function renderTrain() {
+  const root = $('#train');
+  if (S.train) { renderSession(root); return; }
+  if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю заметки…</div></div>'; return; }
+  const rq = reviewQueue(); const total = rq.due.length + rq.fresh.length;
+  const o = S.trainOpts; const pool = freePool(Object.assign({}, o, { order: 'seq' })).length;
+  const tags = allTags();
+  root.innerHTML = `<div class="wrap">
+    <section class="panel">
+      <h3>Повторение на сегодня</h3>
+      <p class="sub">Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше: через 2 дня, 5 дней, ~12 дней, ~месяц.</p>
+      <div class="today">
+        <div class="bignum">${total}</div>
+        <div class="split"><span>к повторению: <b>${rq.due.length}</b></span><span>новых сегодня: <b>${rq.fresh.length}</b> из ${S.settings.newPerDay ?? 10} <span class="hint">(всего не изучено: ${rq.freshTotal})</span></span></div>
+        <button class="btn primary big" id="start-review" ${total ? '' : 'disabled'}>${total ? 'Начать повторение' : 'На сегодня всё'}</button>
+      </div>
+      ${!S.uid ? '<p class="notice" style="margin:14px 0 0">Прогресс сохраняется только для вошедших пользователей: сейчас оценки не запомнятся.</p>' : ''}
+    </section>
+    <section class="panel">
+      <h3>Свободная тренировка</h3>
+      <p class="sub">Прогнать выбранные темы без оглядки на расписание, например перед собесом. Ошибки и «плаваю» тоже попадут в расписание.</p>
+      <div class="opts">
+        <div><div class="lbl" style="margin-bottom:8px">Разделы</div><div class="opt-row" id="o-secs">
+          <button class="chip" data-s="" aria-pressed="${!o.sections.length}">Все</button>
+          ${sectionsSorted().map(s => { const c = sortedNotes().filter(n => n.section === s.id && trainable(n)).length; return c ? `<button class="chip" data-s="${esc(s.id)}" aria-pressed="${o.sections.includes(s.id)}">${esc(s.title)} <span class="tag">${c}</span></button>` : ''; }).join('')}
+        </div></div>
+        ${tags.length ? `<div><div class="lbl" style="margin-bottom:8px">Теги</div><div class="opt-row" id="o-tags">${tags.map(([t, c]) => `<button class="chip" data-t="${esc(t)}" aria-pressed="${o.tags.includes(t)}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')}</div></div>` : ''}
+        <div class="opt-row"><span class="lbl" style="margin-right:6px">Порядок</span><div class="seg" id="o-order">
+          ${[['seq', 'По порядку'], ['shuffle', 'Вразнобой'], ['weak', 'Сначала слабые']].map(([k, l]) => `<button data-o="${k}" aria-pressed="${o.order === k}">${l}</button>`).join('')}</div></div>
+        <div class="opt-row"><span class="lbl" style="margin-right:6px">Сколько</span><div class="seg" id="o-limit">
+          ${[[5, '5'], [10, '10'], [15, '15'], [25, '25'], [0, 'Все']].map(([k, l]) => `<button data-l="${k}" aria-pressed="${o.limit === k}">${l}</button>`).join('')}</div></div>
+        <div><button class="btn primary big" id="start-free" ${pool ? '' : 'disabled'}>Начать · ${o.limit ? Math.min(o.limit, pool) : pool} ${plural(o.limit ? Math.min(o.limit, pool) : pool, 'карточка', 'карточки', 'карточек')}</button></div>
+      </div>
+    </section></div>`;
+  $('#start-review').onclick = () => startSession(shuffle(rq.due).concat(rq.fresh), 'review', 'Повторение');
+  const save = () => { store.set('trainOpts', S.trainOpts); renderTrain(); };
+  root.querySelectorAll('#o-secs [data-s]').forEach(b => b.onclick = () => { const v = b.dataset.s; o.sections = !v ? [] : o.sections.includes(v) ? o.sections.filter(x => x !== v) : o.sections.concat(v); save(); });
+  root.querySelectorAll('#o-tags [data-t]').forEach(b => b.onclick = () => { const v = b.dataset.t; o.tags = o.tags.includes(v) ? o.tags.filter(x => x !== v) : o.tags.concat(v); save(); });
+  root.querySelectorAll('#o-order [data-o]').forEach(b => b.onclick = () => { o.order = b.dataset.o; save(); });
+  root.querySelectorAll('#o-limit [data-l]').forEach(b => b.onclick = () => { o.limit = +b.dataset.l; save(); });
+  $('#start-free').onclick = () => startSession(freePool(o), 'free', 'Свободная тренировка');
+}
+function startSession(ids, kind, label) {
+  if (!ids.length) return;
+  S.train = { queue: ids.slice(), i: 0, kind, label, shown: false, results: new Map(), done: false, total: ids.length };
+  setMode('train');
+}
+function renderSession(root) {
+  const T = S.train;
+  if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
+  sessionClass();
+  const id = T.queue[T.i]; const n = S.notes.get(id);
+  if (!n) { T.i++; renderSession(root); return; }
+  const answered = new Set([...T.results.keys()]).size;
+  const prev = S.srs.get(id); const free = T.kind === 'free';
+  const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? 'срок не меняется' : 'повтор ' + ivlText(r.ivl); };
+  root.innerHTML = `<div class="session">
+    <div class="sbar"><button class="btn" id="s-end">Завершить</button><div class="track"><i style="width:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
+    <div class="card">
+      <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
+      <div class="q">${esc(n.title)}</div>
+      ${S.canWrite ? tagRowHtml(id, 'train') : ''}
+      ${T.shown ? `<div class="ans md" id="ans">${renderMd(n.body)}</div>` : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}
+    </div>
+    ${T.shown ? `<div class="grades">
+      <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
+      <button class="grade g2" data-g="2" title="Клавиша 2"><kbd>2</kbd>Плаваю<small>${pv(2)}</small></button>
+      <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
+    <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
+  </div>`;
+  if (T.shown) enhance($('#ans'));
+  $('#s-end').onclick = () => { T.done = true; renderSession(root); };
+  $('#reveal') && ($('#reveal').onclick = () => { T.shown = true; renderSession(root); });
+  root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => gradeCurrent(+b.dataset.g));
+  $('#drop-card') && ($('#drop-card').onclick = () => dropCurrent());
+  restoreTagEdit();
+  root.scrollTop = 0;
+}
+function dropCurrent() {
+  const T = S.train; const id = T.queue[T.i]; if (!id) return;
+  if (!T.results.has(id)) T.total = Math.max(0, T.total - 1);
+  T.queue = T.queue.filter((x, k) => k < T.i || x !== id);
+  T.removed = (T.removed || []).concat(id);
+  T.shown = false;
+  renderSession($('#train'));
+  setRef(id, true, true);
+}
+async function gradeCurrent(g) {
+  const T = S.train; const id = T.queue[T.i];
+  T.results.set(id, T.results.has(id) ? Math.min(T.results.get(id), g) : g);
+  if (g === 1) T.queue.push(id);
+  const next = schedule(S.srs.get(id), g, T.kind === 'free');
+  S.srs.set(id, next);
+  T.i++; T.shown = false;
+  renderSession($('#train'));
+  updateBadge();
+  if (S.db && S.uid) {
+    try { await srsCol().doc(id).set(next); } catch (e) { toast('Оценка не сохранилась: нет связи с хранилищем'); }
+  }
+}
+function renderSummary(root) {
+  const T = S.train; const c = { 1: 0, 2: 0, 3: 0 };
+  for (const g of T.results.values()) c[g]++;
+  const missed = [...T.results.entries()].filter(([, g]) => g === 1).map(([id]) => id).filter(id => S.notes.has(id));
+  const shaky = [...T.results.entries()].filter(([, g]) => g === 2).map(([id]) => id).filter(id => S.notes.has(id));
+  root.innerHTML = `<div class="wrap"><section class="panel">
+    <h3>${esc(T.label)}: итог</h3>
+    <p class="sub">${T.results.size ? `Пройдено ${T.results.size} ${plural(T.results.size, 'карточка', 'карточки', 'карточек')}.` : 'Сессия завершена без ответов.'}</p>
+    <div class="summary-grid">
+      <div class="stat g1"><b>${c[1]}</b>не знал</div><div class="stat g2"><b>${c[2]}</b>плавал</div><div class="stat g3"><b>${c[3]}</b>знал</div>
+    </div>
+    ${missed.length ? `<div class="lbl">Не знал</div><ul class="missed">${missed.map(id => `<li><button data-open="${esc(id)}">${esc(S.notes.get(id).title)}</button></li>`).join('')}</ul>` : ''}
+    ${(T.removed || []).length ? `<div class="lbl">Убрано из тренировки</div><ul class="excluded">${T.removed.filter(id => S.notes.has(id)).map(id => `<li><span class="nm">${esc(S.notes.get(id).title)}</span>${S.notes.get(id).ref ? `<button class="btn" data-unref="${esc(id)}">Вернуть</button>` : '<span class="hint">возвращена</span>'}</li>`).join('')}</ul>` : ''}
+    ${shaky.length ? `<div class="lbl">Плавал</div><ul class="missed">${shaky.map(id => `<li><button data-open="${esc(id)}">${esc(S.notes.get(id).title)}</button></li>`).join('')}</ul>` : ''}
+    <div class="bar">
+      ${missed.length + shaky.length ? `<button class="btn primary" id="again">Прогнать ещё раз то, что не знал (${missed.length + shaky.length})</button>` : ''}
+      <button class="btn" id="done">Готово</button></div>
+  </section></div>`;
+  $('#again') && ($('#again').onclick = () => startSession(shuffle(missed.concat(shaky)), 'free', 'Работа над ошибками'));
+  $('#done').onclick = () => { S.train = null; sessionClass(); renderTrain(); };
+  root.querySelectorAll('[data-unref]').forEach(b => b.onclick = async () => { await setRef(b.dataset.unref, false); renderSummary(root); });
+  root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.train = null; setMode('lib'); openNote(b.dataset.open); });
+}
+document.addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+  if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  if (S.mode === 'train' && S.train && !S.train.done && !typing) {
+    if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown) { e.preventDefault(); S.train.shown = true; renderSession($('#train')); }
+    else if (S.train.shown && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
+  }
+});
+
+/* ---------- progress ---------- */
+function renderProg() {
+  const root = $('#prog');
+  if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю…</div></div>'; return; }
+  const tot = { new: 0, learn: 0, know: 0, solid: 0 }; let dueAll = 0;
+  const rows = sectionsSorted().map(s => {
+    const c = { new: 0, learn: 0, know: 0, solid: 0 }; let due = 0, all = 0;
+    for (const n of S.notes.values()) if (n.section === s.id) { const st = stage(n.id); if (!st) continue; c[st]++; all++; if (isDue(n.id)) due++; }
+    for (const k in c) tot[k] += c[k]; dueAll += due;
+    if (!all) return '';
+    const w = k => (100 * c[k] / all).toFixed(1) + '%';
+    const pct = Math.round(100 * (c.know + c.solid) / all);
+    return `<div class="prog-row"><div class="nm">${esc(s.title)}</div>
+      <div class="stack" title="новые ${c.new} · изучаются ${c.learn} · знаю ${c.know} · уверенно ${c.solid}"><i class="s-solid" style="width:${w('solid')}"></i><i class="s-know" style="width:${w('know')}"></i><i class="s-learn" style="width:${w('learn')}"></i></div>
+      <div class="nums">${pct}% · ${all} карт.${due ? ` · <span style="color:var(--kt)">${due} к повтору</span>` : ''}</div></div>`;
+  }).join('');
+  const allT = tot.new + tot.learn + tot.know + tot.solid;
+  root.innerHTML = `<div class="wrap">
+    <section class="panel">
+      <h3>Прогресс</h3>
+      <p class="sub">«Знаю» — карточка с интервалом от недели, «уверенно» — от трёх недель. Заметки вне тренировки и вопросы без ответа не считаются.</p>
+      <div class="totals">
+        <div><b>${allT}</b><span>карточек в тренировке</span></div>
+        <div><b>${tot.learn + tot.know + tot.solid}</b><span>уже начато</span></div>
+        <div><b>${tot.know + tot.solid}</b><span>знаю и уверенно</span></div>
+        <div><b style="color:var(--kt)">${dueAll}</b><span>к повторению сегодня</span></div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="legend" style="margin-bottom:10px"><span><i class="s-solid"></i>уверенно</span><span><i class="s-know"></i>знаю</span><span><i class="s-learn"></i>изучаются</span><span><i class="s-new"></i>новые</span></div>
+      ${rows || '<div class="empty-state">Пока нет карточек для тренировки.</div>'}
+    </section>
+    ${tagsPanelHtml()}
+    ${window.NOTES_STANDALONE ? dataPanelHtml() : ''}
+    ${(() => { const ex = sortedNotes().filter(n => n.ref && (n.body || '').trim()); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
+      <summary>Вне тренировки <span>· ${ex.length} ${plural(ex.length, 'карточка', 'карточки', 'карточек')}</span></summary>
+      <p class="sub" style="margin-top:8px">Заметки, которые ты убрал из ротации. Они остаются в шпаргалке, их можно вернуть в любой момент.</p>
+      ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(S.sections.get(n.section)?.title || '')}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">Вернуть</button>` : ''}</li>`).join('')}</ul>` : '<div class="empty-state">Пока ничего не убрано.</div>'}
+    </details>`; })()}
+    <section class="panel">
+      <h3>Настройки</h3>
+      <form class="opt-row" id="set-form" style="margin-top:10px">
+        <label for="npd">Новых карточек в день</label>
+        <input id="npd" type="number" min="0" max="100" value="${S.settings.newPerDay ?? 10}" style="width:80px;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">
+        <button class="btn">Сохранить</button>
+      </form>
+    </section></div>`;
+  $('#ex-panel').ontoggle = e => { S.exOpen = e.target.open; };
+  wireTagsPanel(root);
+  if (window.NOTES_STANDALONE) wireDataPanel();
+  root.querySelectorAll('[data-unref]').forEach(b => b.onclick = () => setRef(b.dataset.unref, false, true));
+  $('#set-form').onsubmit = async e => {
+    e.preventDefault();
+    const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
+    S.settings.newPerDay = v;
+    if (S.db && S.uid) await write(() => S.db.doc(`data/users/${S.uid}/settings`).set({ newPerDay: v }), 'Настройка сохранена');
+    updateBadge();
+  };
+}
+
+function updateBadge() {
+  if (!S.loaded.notes) return;
+  const rq = reviewQueue(); const n = rq.due.length + rq.fresh.length;
+  const b = $('#due-badge'); b.textContent = n; b.hidden = !n;
+}
+
+/* ---------- data wiring ---------- */
+const srsCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('cards');
+let rerenderT;
+function rerender() {
+  clearTimeout(rerenderT);
+  rerenderT = setTimeout(() => {
+    updateBadge();
+    if (S.mode === 'lib') { renderRail(); renderList(); if (!S.editing) renderReader(); }
+    else if (S.mode === 'train' && !S.train) renderTrain();
+    else if (S.mode === 'prog') renderProg();
+  }, 40);
+}
+async function boot() {
+  renderLib();
+  const [db, user] = await Promise.all([window.claude?.use?.('db') ?? null, window.claude?.use?.('user') ?? null]);
+  if (!db) {
+    $('#items').innerHTML = '<div class="empty-state">Не удалось подключиться к хранилищу заметок. Открой страницу в Claude, войдя в аккаунт.</div>';
+    return;
+  }
+  S.db = db;
+  try { S.uid = user ? await user.id() : null; } catch { S.uid = null; }
+  try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
+  if (!S.canWrite) $('#new-note').hidden = true;
+  db.collection('sections').onSnapshot(snap => {
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0 }]; }));
+    S.loaded.sections = true; rerender();
+  }, () => {});
+  db.collection('notes').onSnapshot(snap => {
+    S.notes = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())]));
+    S.loaded.notes = true; rerender();
+  }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
+  if (S.uid) {
+    srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
+    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { if (d.exists) { S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); } }, () => {});
+  }
+}
+
+/* ---------- help ---------- */
+(() => {
+  const ov = $('#help'), btn = $('#help-btn');
+  ov.querySelectorAll('kbd').forEach(k => { if (k.textContent === 'MOD') k.textContent = MOD; });
+  let lastFocus = null;
+  const open = () => { lastFocus = document.activeElement; ov.hidden = false; $('#help-close').focus(); };
+  const close = () => { ov.hidden = true; (lastFocus || btn).focus?.(); };
+  btn.onclick = open; $('#help-close').onclick = close;
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelectorAll('.help-toc a').forEach(a => a.onclick = e => { e.preventDefault(); const t = ov.querySelector(a.getAttribute('href')); const body = ov.querySelector('.help-body'); body.scrollTop += t.getBoundingClientRect().top - body.getBoundingClientRect().top - 4; });
+  document.addEventListener('keydown', e => {
+    if (!ov.hidden && e.key === 'Escape') { e.preventDefault(); close(); return; }
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+    if (e.key === '?' && !typing && ov.hidden) { e.preventDefault(); open(); }
+  });
+})();
+boot();
+})();
+</script>
+
+</body>
+</html>
