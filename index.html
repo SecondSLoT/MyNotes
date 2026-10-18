@@ -509,7 +509,8 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
       <section id="h-edit"><h3>Редактор</h3>
         <ul>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
-          <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
+          <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
+          <li><b>Картинка</b> вставляет шаблон <code>![](img/имя.png)</code> — останется вписать имя файла (в визуальном режиме появится поле для имени). Сам файл нужно положить в папку <code>img</code> рядом с сайтом.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
           <li>Галочка <b>«Не тренировать»</b> оставляет заметку в шпаргалке, но убирает из тренировки.</li>
@@ -1677,7 +1678,7 @@ function renderEditor(box) {
         <div class="bar"><span class="lbl">Ответ</span><span class="spacer"></span>
           <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">Рядом</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">Визуально</button></div></div>
         ${toolbarHtml()}
-        <div class="link-bar" id="link-bar" hidden><label for="link-url">Адрес ссылки</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">Вставить</button><button class="btn" type="button" id="link-cancel">Отмена</button></div>
+        <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">Адрес ссылки</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">Вставить</button><button class="btn" type="button" id="link-cancel">Отмена</button></div>
         <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="Ответ в Markdown" placeholder="Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Ответ, визуальный редактор" data-empty="Пиши ответ прямо здесь">${renderMd(d.body)}</div>` : ''}
@@ -1730,7 +1731,7 @@ function renderEditor(box) {
     if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
   });
   const lb = $('#link-bar');
-  const linkOk = () => { applyVisLink(vis, $('#link-url').value.trim()); lb.hidden = true; };
+  const linkOk = () => { const v = $('#link-url').value.trim(); if (lb.dataset.mode === 'img') applyVisImg(vis, v); else applyVisLink(vis, v); lb.hidden = true; };
   $('#link-ok').onclick = linkOk;
   $('#link-cancel').onclick = () => { lb.hidden = true; vis?.focus(); restoreSel(); };
   $('#link-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); linkOk(); return; } if (e.key === 'Escape') { e.preventDefault(); lb.hidden = true; vis?.focus(); restoreSel(); } });
@@ -1776,6 +1777,7 @@ const ICO = {
   block: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2" width="13" height="12" rx="2"/><path d="M6 6L4 8l2 2M10 6l2 2-2 2"/></svg>',
   link: '<svg viewBox="0 0 16 16"><path d="M6.8 9.2a3 3 0 004.2 0l2.2-2.2a3 3 0 00-4.2-4.2L8 3.8M9.2 6.8a3 3 0 00-4.2 0L2.8 9a3 3 0 004.2 4.2L8 12.2"/></svg>',
   table: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11"/></svg>',
+  img: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>',
   hr: '<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>',
   undo: '<svg viewBox="0 0 16 16"><path d="M5 3L2 6l3 3"/><path d="M2.5 6H10a4 4 0 010 8H7"/></svg>',
   redo: '<svg viewBox="0 0 16 16"><path d="M11 3l3 3-3 3"/><path d="M13.5 6H6a4 4 0 000 8h3"/></svg>',
@@ -1785,7 +1787,7 @@ function toolbarHtml() {
   return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
     <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}</div>
     <div class="tb-group">${b('heading', ICO.h, 'Подзаголовок')}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
-    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
+    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
   </div>`;
 }
@@ -1870,6 +1872,11 @@ function mdAction(act, ta) {
       if (isUrl) { const t = `[текст ссылки](${sel.trim()})`; return replaceRange(ta, s, e, t, s + 1, s + 13); }
       const label = sel || 'текст ссылки'; const t = `[${label}](https://)`;
       return replaceRange(ta, s, e, t, s + label.length + 3, s + label.length + 11);
+    }
+    case 'img': {
+      const name = sel.trim().replace(/^img\//, '') || 'имя.png';
+      const base = name.replace(/\.[a-z0-9]+$/i, '');
+      return insertBlock(ta, `![](img/${name})`, 8, base.length);
     }
     case 'table': return insertBlock(ta, '| Колонка 1 | Колонка 2 |\n| --- | --- |\n| значение | значение |', 2, 9);
     case 'hr': return insertBlock(ta, '---', 3);
@@ -2020,8 +2027,16 @@ function visAction(act, vis) {
       const a = closestIn(vis, 'a');
       if (a) { const r = document.createRange(); r.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(r); exec('unlink'); return; }
       saveSel();
-      const lb = $('#link-bar'); lb.hidden = false;
-      const inp = $('#link-url'); inp.value = /^https?:\/\//.test(text.trim()) ? text.trim() : ''; inp.focus();
+      const lb = $('#link-bar'); lb.dataset.mode = 'link'; lb.hidden = false;
+      $('#link-label').textContent = 'Адрес ссылки';
+      const inp = $('#link-url'); inp.placeholder = 'https://'; inp.inputMode = 'url'; inp.value = /^https?:\/\//.test(text.trim()) ? text.trim() : ''; inp.focus();
+      return;
+    }
+    case 'img': {
+      saveSel();
+      const lb = $('#link-bar'); lb.dataset.mode = 'img'; lb.hidden = false;
+      $('#link-label').textContent = 'Файл картинки: img/';
+      const inp = $('#link-url'); inp.placeholder = 'имя.png'; inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
       return;
     }
     case 'table': return exec('insertHTML', '<table><thead><tr><th>Колонка 1</th><th>Колонка 2</th></tr></thead><tbody><tr><td>значение</td><td>значение</td></tr></tbody></table><p><br></p>');
@@ -2029,6 +2044,14 @@ function visAction(act, vis) {
     case 'undo': return exec('undo');
     case 'redo': return exec('redo');
   }
+}
+function applyVisImg(vis, name) {
+  if (!vis) return;
+  vis.focus(); restoreSel();
+  name = name.replace(/^\/+/, '').replace(/^img\//, '');
+  if (!name) return;
+  if (!/\.[a-z0-9]{2,5}$/i.test(name)) name += '.png';
+  exec('insertHTML', `<p><img src="img/${esc(name)}" alt=""></p><p><br></p>`);
 }
 function applyVisLink(vis, url) {
   if (!vis) return;
