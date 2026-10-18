@@ -991,17 +991,66 @@ function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
     <summary>Данные <span>· резервная копия и перенос</span></summary>
-    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла: заметки с теми же id перезаписываются, остальные не трогаются.</p>
+    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла. Если какие-то заметки из файла уже есть на сайте и отличаются, перед импортом появится выбор: заменить их версией из файла или оставить как на сайте.</p>
     <div class="bar">
       <button class="btn" id="data-export">Скачать резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
       <input type="file" id="data-file" accept=".json,application/json" hidden>
       ${window.NOTES_SIGN_OUT ? `<span class="spacer"></span><span class="hint">${esc(window.NOTES_USER_EMAIL || '')}</span><button class="btn" id="data-signout">Выйти</button>` : ''}
     </div>
-    ${D.pending ? `<div class="confirm" style="margin-top:12px;background:var(--accent-soft);color:var(--ink)">В файле: ${D.pending.sections.length} разделов, ${D.pending.notes.length} заметок, прогресс по ${Object.keys(D.pending.srs || {}).length} карточкам.
-      <button class="btn primary" id="data-import-go">Импортировать</button><button class="btn" id="data-import-cancel">Отмена</button></div>` : ''}
+    ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
     ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
   </details>`;
+}
+function importDiff(d) {
+  const sameNote = (a, b) => a.title === b.title && (a.body || '') === (b.body || '') && a.section === b.section
+    && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001');
+  const notes = [], same = [];
+  let fresh = 0;
+  for (const n of d.notes) {
+    const cur = S.notes.get(n.id);
+    if (!cur) fresh++;
+    else if (sameNote(cur, n)) same.push(n.id);
+    else notes.push({ id: n.id, file: n, site: cur });
+  }
+  const secs = d.sections.filter(sc => { const c = S.sections.get(sc.id); return c && c.title !== sc.title; });
+  const srs = Object.entries(d.srs || {}).filter(([id, v]) => { const c = S.srs.get(id); return c && JSON.stringify(c) !== JSON.stringify(v); }).map(([id]) => id);
+  return { notes, same, fresh, secs, srs, newSecs: d.sections.filter(sc => !S.sections.has(sc.id)).length };
+}
+function importConfirmHtml(d, X) {
+  const nSrs = Object.keys(d.srs || {}).length;
+  const head = `В файле: ${d.sections.length} разделов, ${d.notes.length} заметок${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}.`;
+  const conflicts = X.notes.length + X.secs.length + X.srs.length;
+  const box = 'margin-top:12px;background:var(--accent-soft);color:var(--ink);display:block';
+  if (!conflicts) {
+    return `<div class="confirm" style="${box}"><p style="margin:0 0 10px">${head} Новых заметок: ${X.fresh}${X.same.length ? `, уже совпадают с сайтом: ${X.same.length}` : ''}. Ничего на сайте не перезапишется.</p>
+      <div class="bar"><button class="btn primary" id="data-import-go" data-mode="replace">Импортировать</button><button class="btn" id="data-import-cancel">Отмена</button></div></div>`;
+  }
+  const secTitle = id => S.sections.get(id)?.title || d.sections.find(s => s.id === id)?.title || id;
+  const rows = X.notes.map(c => {
+    const what = [];
+    if (c.site.title !== c.file.title) what.push('название');
+    if ((c.site.body || '') !== (c.file.body || '')) what.push('текст');
+    if (c.site.section !== c.file.section) what.push('раздел');
+    if ((c.site.tags || []).join() !== (c.file.tags || []).join()) what.push('теги');
+    if (!!c.site.ref !== !!c.file.ref) what.push('тренировка');
+    const rename = c.site.title !== c.file.title ? ` <span class="hint">→ в файле «${esc(c.file.title)}»</span>` : '';
+    return `<li><b>${esc(c.site.title)}</b>${rename} <span class="hint">· ${esc(secTitle(c.site.section))} · отличается: ${what.join(', ')}</span></li>`;
+  }).join('');
+  const extra = [];
+  if (X.secs.length) extra.push(`названия разделов: ${X.secs.length} (${X.secs.map(sc => `«${esc(S.sections.get(sc.id).title)}» → «${esc(sc.title)}»`).join(', ')})`);
+  if (X.srs.length) extra.push(`прогресс тренировки по ${X.srs.length} карточкам`);
+  return `<div class="confirm" style="${box};border:1px solid var(--again)">
+    <p style="margin:0 0 6px"><b>⚠ Часть данных из файла уже есть на сайте, и она отличается.</b></p>
+    <p style="margin:0 0 8px">${head} Новых заметок: ${X.fresh}${X.newSecs ? `, новых разделов: ${X.newSecs}` : ''}${X.same.length ? `, совпадают с сайтом: ${X.same.length}` : ''}.
+      ${X.notes.length ? `Отличаются заметки: ${X.notes.length}.` : ''}${extra.length ? ` Ещё отличаются ${extra.join('; ')}.` : ''}</p>
+    ${X.notes.length ? `<details style="margin:0 0 10px"><summary style="cursor:pointer;font:inherit;font-weight:500;padding:0">Показать заметки с конфликтом (${X.notes.length})</summary><ul style="margin:8px 0 0;padding-left:18px;max-height:240px;overflow:auto;line-height:1.5">${rows}</ul></details>` : ''}
+    <p style="margin:0 0 10px" class="hint">Новые заметки добавятся в любом случае. Выбор касается только того, что уже есть на сайте.</p>
+    <div class="bar" style="flex-wrap:wrap">
+      <button class="btn primary" id="data-import-go" data-mode="replace">Заменить версией из файла</button>
+      <button class="btn" id="data-import-keep" data-mode="keep">Оставить как на сайте</button>
+      <button class="btn" id="data-import-cancel">Отмена</button>
+    </div></div>`;
 }
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
@@ -1019,26 +1068,44 @@ function wireDataPanel() {
     try {
       const d = JSON.parse(await f.text());
       if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
-      S.dataPanel = { pending: d }; S.dataOpen = true; renderProg();
+      e.target.value = '';
+      S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
     } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии шпаргалки.' }; renderProg(); }
   };
   $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
-  $('#data-import-go') && ($('#data-import-go').onclick = async () => {
-    const d = S.dataPanel.pending; S.dataPanel = { status: 'Импортирую…' }; renderProg();
+  const runImport = async mode => {
+    const d = S.dataPanel.pending; const X = S.dataPanel.diff;
+    const keep = mode === 'keep';
+    const same = new Set(X.same);
+    // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
+    const secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
+    const notes = d.notes.filter(n => !S.notes.has(n.id) || (!keep && !same.has(n.id)));
+    const srs = Object.entries(d.srs || {}).filter(([id, v]) => !S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v)));
+    const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
+    S.dataPanel = { status: 'Импортирую…' }; renderProg();
     const strip = o => { const c = { ...o }; delete c.id; return c; };
-    let done = 0; const total = d.sections.length + d.notes.length + Object.keys(d.srs || {}).length;
+    let done = 0; const total = secs.length + notes.length + srs.length;
     const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: `Импортирую… ${done} из ${total}` }; renderProg(); } };
     try {
-      for (const sc of d.sections) { await S.db.collection('sections').doc(sc.id).set(strip(sc)); tick(); }
-      for (const n of d.notes) { await S.db.collection('notes').doc(n.id).set(strip(n)); tick(); }
+      for (const sc of secs) { await S.db.collection('sections').doc(sc.id).set(strip(sc)); tick(); }
+      for (const n of notes) { await S.db.collection('notes').doc(n.id).set(strip(n)); tick(); }
       if (S.uid) {
-        for (const [id, v] of Object.entries(d.srs || {})) { await srsCol().doc(id).set(v); tick(); }
-        if (d.settings) await S.db.doc(`data/users/${S.uid}/settings`).set(d.settings);
+        for (const [id, v] of srs) { await srsCol().doc(id).set(v); tick(); }
+        if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
       }
-      S.dataPanel = { status: `Готово: ${d.sections.length} разделов, ${d.notes.length} заметок, прогресс по ${Object.keys(d.srs || {}).length} карточкам.` };
-    } catch (err) { S.dataPanel = { status: 'Импорт прервался: ' + (err?.message || err) + '. Можно запустить ещё раз, уже загруженное просто перезапишется.' }; }
+      const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
+      const replaced = notes.length - added;
+      const parts = [`добавлено заметок: ${added}`];
+      if (replaced) parts.push(`заменено: ${replaced}`);
+      if (keep && X.notes.length) parts.push(`оставлено как на сайте: ${X.notes.length}`);
+      if (secs.length) parts.push(`разделов записано: ${secs.length}`);
+      if (srs.length) parts.push(`прогресс по ${srs.length} карточкам`);
+      S.dataPanel = { status: 'Готово: ' + parts.join(', ') + '.' };
+    } catch (err) { S.dataPanel = { status: 'Импорт прервался: ' + (err?.message || err) + '. Можно выбрать файл и запустить ещё раз.' }; }
     renderProg();
-  });
+  };
+  $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
+  $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
   $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
 }
 
