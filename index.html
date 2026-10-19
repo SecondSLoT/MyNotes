@@ -360,6 +360,7 @@ button.tag{border:0;background:none;padding:0}
 .tb-end{margin-left:auto}
 .tb{width:32px;height:30px;border:0;border-radius:6px;background:none;color:var(--muted);display:grid;place-items:center;font:15px/1 var(--f-body);padding:0}
 .tb:hover{background:var(--surface);color:var(--ink)}
+.tb.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
 .tb:active{background:var(--accent-soft)}
 .tb b{font-weight:700}.tb i{font-family:Georgia,serif;font-style:italic;font-size:16px}.tb s{text-decoration-thickness:1.5px}
 .tb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -2554,6 +2555,45 @@ function keepScroll(fn) {
   fn();
   for (const [el, t] of els) if (el.scrollTop !== t) el.scrollTop = t;
 }
+/* ---------- toolbar: which formatting is under the caret ---------- */
+document.addEventListener('selectionchange', () => { const E = S.editing; if (E?.refreshTb && document.activeElement?.id === 'ed-prev') E.refreshTb(); });
+function setTbState(tb, st) { tb.querySelectorAll('[data-md]').forEach(b => { const on = st.has(b.dataset.md); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); }
+function visFormatState(vis) {
+  const st = new Set(); const sel = getSelection(); if (!sel.rangeCount) return st;
+  let n = sel.anchorNode; if (n && n.nodeType === 3) n = n.parentElement; if (!n || !vis.contains(n)) return st;
+  const up = q => { const h = n.closest(q); return h && vis.contains(h) ? h : null; };
+  if (up('b,strong')) st.add('bold');
+  if (up('i,em')) st.add('italic');
+  if (up('s,del,strike')) st.add('strike');
+  if (up('pre')) st.add('block'); else if (up('code')) st.add('code');
+  if (up('h1,h2')) st.add('h1'); else if (up('h3,h4,h5,h6')) st.add('h2');
+  if (up('blockquote')) st.add('quote');
+  const li = up('li');
+  if (li) { if (li.classList.contains('task')) st.add('task'); else if (li.parentElement?.tagName === 'OL') st.add('ol'); else st.add('ul'); }
+  const a = up('a[href]'); if (a) st.add(noteLinkId(a.getAttribute('href')) ? 'note' : 'link');
+  return st;
+}
+function mdFormatState(ta) {
+  const st = new Set(); const v = ta.value, p = ta.selectionStart;
+  const before = v.slice(0, p);
+  if (((before.match(/^\s*(```|~~~)/gm) || []).length) % 2) { st.add('block'); return st; }
+  const ls = before.lastIndexOf('\n') + 1; let le = v.indexOf('\n', p); if (le < 0) le = v.length;
+  const line = v.slice(ls, le), col = p - ls;
+  const m = line.match(/^\s*(#{1,6}) /); if (m) st.add(m[1].length <= 2 ? 'h1' : 'h2');
+  if (/^\s*>/.test(line)) st.add('quote');
+  if (/^\s*[-*+] \[[ xX]\] /.test(line)) st.add('task'); else if (/^\s*[-*+] /.test(line)) st.add('ul'); else if (/^\s*\d+[.)] /.test(line)) st.add('ol');
+  const left = line.slice(0, col);
+  const codeOdd = (left.match(/`/g) || []).length % 2 === 1;
+  if (codeOdd) st.add('code');
+  else {
+    const noCode = left.replace(/`[^`]*`/g, '');
+    if ((noCode.match(/\*\*|__/g) || []).length % 2) st.add('bold');
+    if ((noCode.replace(/\*\*|__/g, '').match(/(?<![\w*])[*_](?![\s*])|(?<=\S)[*_](?![\w*])/g) || []).length % 2) st.add('italic');
+    if ((noCode.match(/~~/g) || []).length % 2) st.add('strike');
+  }
+  for (const lm of line.matchAll(/\[[^\]]*\]\(([^)\s]*)\)/g)) if (col > lm.index && col < lm.index + lm[0].length) st.add(noteLinkId(lm[1]) ? 'note' : 'link');
+  return st;
+}
 /* ---------- links between notes: [текст](#note:ID) ---------- */
 const noteLinkId = href => { const m = /^#note:(.+)$/.exec(href || ''); return m ? decodeURIComponent(m[1]) : null; };
 function backlinks(id) {
@@ -2794,7 +2834,17 @@ function renderEditor(box) {
   tb.addEventListener('click', e => {
     const b = e.target.closest('[data-md]'); if (!b) return;
     if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
+    requestAnimationFrame(refreshTb);
   });
+  // pressed state of toolbar buttons follows the caret
+  const refreshTb = () => {
+    if (!tb.isConnected) return;
+    const st = E.pane === 'vis' && vis && document.activeElement === vis ? visFormatState(vis) : ta && document.activeElement === ta ? mdFormatState(ta) : null;
+    if (st) setTbState(tb, st);
+  };
+  if (ta) for (const ev of ['keyup', 'mouseup', 'input', 'focus', 'select']) ta.addEventListener(ev, () => requestAnimationFrame(refreshTb));
+  if (vis) for (const ev of ['keyup', 'mouseup', 'input', 'focus']) vis.addEventListener(ev, () => requestAnimationFrame(refreshTb));
+  E.refreshTb = refreshTb;
   const lb = $('#link-bar');
   const linkOk = () => { const v = $('#link-url').value.trim(); if (lb.dataset.mode === 'img') applyVisImg(vis, v); else applyVisLink(vis, v); lb.hidden = true; };
   $('#link-ok').onclick = linkOk;
