@@ -1492,7 +1492,7 @@ function ghPanelHtml() {
   const inp = 'border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:7px 9px;width:100%;font:inherit';
   return `<details class="panel" id="gh-panel" ${S.ghOpen ? 'open' : ''}>
     <summary>Картинки <span>· ${ghReady() ? 'загрузка в GitHub подключена' : 'загрузка в GitHub не подключена'}</span></summary>
-    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена кнопка «Картинка» вставляет шаблон ссылки, как раньше.</p>
+    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена кнопка «Картинка» вставляет шаблон ссылки.</p>
     <form id="gh-form" class="opts" style="gap:10px;margin-top:10px">
       <label class="field"><span class="lbl">Репозиторий (владелец/имя)</span><input id="gh-repo" style="${inp}" value="${esc(c.repo)}" placeholder="login/my-notes" autocomplete="off"></label>
       <label class="field"><span class="lbl">Ветка</span><input id="gh-branch" style="${inp}" value="${esc(c.branch)}" placeholder="main" autocomplete="off"></label>
