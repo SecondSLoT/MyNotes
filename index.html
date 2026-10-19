@@ -116,10 +116,6 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .orph img{width:100%;height:100px;object-fit:contain;background:#fff;border-radius:6px}
 .orph span{font:11px var(--f-mono);color:var(--muted);word-break:break-all;display:flex;flex-direction:column;gap:2px}
 .orph:has(input:checked){border-color:var(--again);box-shadow:0 0 0 1px var(--again)}
-.edit-fab{position:fixed;right:24px;bottom:24px;z-index:20;width:52px;height:52px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,.22);cursor:pointer;display:grid;place-items:center}
-.edit-fab:hover{filter:brightness(1.08)}
-.edit-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-@media (max-width:760px){.edit-fab{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
 .draft-note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:13px}
 .draft-note .btn{padding:3px 10px;font-size:13px}
 #md{cursor:text}
@@ -190,9 +186,11 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .hitbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:6px 10px;margin:0 0 12px;font-size:13px;width:max-content;max-width:100%}
 .hitbar button{border:1px solid var(--line);background:var(--raised);border-radius:6px;min-width:28px;height:26px;color:var(--ink)}
 .md mark.cur,.art-note mark.cur{outline:2px solid var(--accent);outline-offset:1px}
-@media (max-width:760px){.hitbar{top:60px}}
-.items{overflow:auto;flex:1;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
-.rail{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
+@media (max-width:760px){.hitbar{top:60px}
+  body.editing .top{display:none}
+  body.editing .lib{height:100%}}
+.items{overflow:auto;flex:1;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.rail{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
 .item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding-block:11px;padding-inline:16px;color:var(--ink)}
 .item:hover{background:var(--surface)}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
@@ -357,6 +355,7 @@ button.tag{border:0;background:none;padding:0}
 .md-toolbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:5px 6px;background:var(--raised);border:1px solid var(--line);border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .tb-group{display:flex;gap:2px;align-items:center}
 .tb-group+.tb-group{padding-left:10px;border-left:1px solid var(--line)}
+@media (max-width:760px){.md-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.md-toolbar::-webkit-scrollbar{display:none}.tb-group{flex:none}.md-toolbar .tb-end{margin-left:0}}
 .tb-end{margin-left:auto}
 .tb{width:32px;height:30px;border:0;border-radius:6px;background:none;color:var(--muted);display:grid;place-items:center;font:15px/1 var(--f-body);padding:0}
 .tb:hover{background:var(--surface);color:var(--ink)}
@@ -529,6 +528,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .brand span.long{display:none}
 }
 .modes .gear{display:inline-grid;place-items:center;padding-inline:10px}
+.modes .help-q{font:600 16px/1 var(--f-display);min-width:36px}
 .modes .gear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -540,6 +540,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
       <button id="m-lib" data-mode="lib" aria-pressed="true">Заметки</button>
       <button id="m-train" data-mode="train" aria-pressed="false">Тренировка <span class="badge" id="due-badge" hidden>0</span></button>
       <button id="m-prog" data-mode="prog" aria-pressed="false" class="gear" title="Настройки" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+      <button id="help-btn" class="gear help-q" type="button" aria-haspopup="dialog" title="Справка: как всё устроено (клавиша ?)" aria-label="Справка">?</button>
     </nav>
     <div class="search" id="search-box">
       <input id="q" type="search" placeholder="Поиск по заметкам…" autocomplete="off" aria-label="Поиск по заметкам">
@@ -565,7 +566,6 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   <main class="page" id="prog" hidden></main>
 </div>
 <div class="toast" id="toast" role="status"></div>
-<button class="help-fab" id="help-btn" type="button" aria-haspopup="dialog" title="Как всё устроено (клавиша ?)"><span aria-hidden="true">?</span> Справка</button>
 <div class="edit-overlay" id="edit-overlay" hidden><div class="edit-sheet"><div class="doc"></div></div></div>
 <div class="help-overlay" id="help" hidden>
   <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
@@ -612,7 +612,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
         </ul></section>
       <section id="h-edit"><h3>Редактор</h3>
         <ul>
-          <li><b>Быстро начать править:</b> двойной клик (на телефоне — двойное касание) по тексту заметки открывает редактор с курсором в этом месте. Круглая кнопка ✎ справа внизу и клавиша <kbd>E</kbd> открывают редактор там, где ты сейчас читаешь.</li>
+          <li><b>Быстро начать править:</b> двойной клик (на телефоне — двойное касание) по тексту заметки открывает редактор с курсором в этом месте. Кнопка «Редактировать» и клавиша <kbd>E</kbd> открывают редактор там, где ты сейчас читаешь. На телефоне в режиме редактирования шапка сайта прячется, чтобы над клавиатурой оставалось больше текста.</li>
           <li><kbd>MOD</kbd>+<kbd>S</kbd> — сохранить, не выходя из редактора. <kbd>Esc</kbd> — сохранить и вернуться к чтению на то же место (если ничего не менял — просто закрыть). «Отмена» — выйти без сохранения.</li>
           <li><b>Черновики.</b> Пока пишешь, правки каждые полсекунды сохраняются в черновик в этом браузере. Если ушёл на другую заметку или закрыл вкладку, не сохранив, — в заметке появится «Есть несохранённые правки · Продолжить редактирование», а в редакторе — «Восстановить» или «Удалить черновик».</li>
           <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
@@ -1182,13 +1182,13 @@ function markTerms(root, Q) {
 function sessionClass() { document.body.classList.toggle('in-session', S.mode === 'train' && !!S.train && !S.train.done); }
 function setMode(m) {
   S.mode = m;
-  for (const b of document.querySelectorAll('.modes button')) b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+  for (const b of document.querySelectorAll('.modes button[data-mode]')) b.setAttribute('aria-pressed', String(b.dataset.mode === m));
   $('#lib').hidden = m !== 'lib'; $('#train').hidden = m !== 'train'; $('#prog').hidden = m !== 'prog';
   $('#search-box').style.visibility = m === 'lib' ? 'visible' : 'hidden';
   if (m === 'train') renderTrain(); if (m === 'prog') renderProg(); if (m === 'lib') renderLib();
   sessionClass();
 }
-document.querySelectorAll('.modes button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 let toastT;
 function toast(msg, action) {
@@ -2459,6 +2459,7 @@ function renderTrashed(box, n) {
   $('#tr-purge') && ($('#tr-purge').onclick = () => purgeNotes([n.id]));
 }
 function renderReader(scrollTop) {
+  document.body.classList.toggle('editing', !!S.editing);
   const ov = $('#edit-overlay');
   if (S.editing?.overlay) { // editing a card from the training session: the same editor, in a sheet over the session
     if (ov.hidden) { ov.hidden = false; ov.scrollTop = 0; document.body.classList.add('sheet-open'); }
@@ -2487,7 +2488,6 @@ function renderReader(scrollTop) {
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
     ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>Есть несохранённые правки от ${hhmm(getDraft(n.id).ts)}.</span><button class="btn primary" id="dr-cont">Продолжить редактирование</button></div>` : ''}
-    ${S.canWrite ? `<button class="edit-fab" id="edit-fab" title="Редактировать с этого места (E, двойной клик по тексту)" aria-label="Редактировать"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
   setupHits(box);
@@ -2507,7 +2507,6 @@ function renderReader(scrollTop) {
       getSelection().removeAllRanges();
       editHere(n.id, { block: bi, text, snip, vis: true, viewY: Math.max(0, el.getBoundingClientRect().top - $('#reader').getBoundingClientRect().top) });
     };
-    $('#edit-fab') && ($('#edit-fab').onclick = () => editHere(n.id));
     $('#dr-cont') && ($('#dr-cont').onclick = () => startEdit(n.id, readerAnchor(), true));
   }
   if (S.slide) { const dcl = S.slide === 'next' ? 'slide-in-next' : 'slide-in-prev'; S.slide = null; box.classList.remove('slide-in-next', 'slide-in-prev'); void box.offsetWidth; box.classList.add(dcl); }
@@ -3457,7 +3456,7 @@ function renderProg() {
       <h3>Редактор</h3>
       <div class="opt-row" style="margin-top:10px"><span class="lbl" style="margin-right:6px">Открывать в режиме</span><div class="seg" id="ed-default">
         ${[['prev', 'Визуально'], ['split', 'Рядом'], ['edit', 'Markdown']].map(([k, l]) => `<button data-edt="${k}" aria-pressed="${store.get('edTab', 'edit') === k}">${l}</button>`).join('')}</div></div>
-      <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка ✎ и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
+      <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
     </section>
     ${tagsPanelHtml()}
     ${window.NOTES_STANDALONE ? ghPanelHtml() + dataPanelHtml() : ''}
