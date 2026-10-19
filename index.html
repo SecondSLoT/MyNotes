@@ -1492,7 +1492,7 @@ function ghPanelHtml() {
   const inp = 'border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:7px 9px;width:100%;font:inherit';
   return `<details class="panel" id="gh-panel" ${S.ghOpen ? 'open' : ''}>
     <summary>Картинки <span>· ${ghReady() ? 'загрузка в GitHub подключена' : 'загрузка в GitHub не подключена'}</span></summary>
-    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена кнопка «Картинка» вставляет шаблон ссылки.</p>
+    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена «Картинка» вставляет шаблон ссылки, само изображение нужно будет загрузить в репозиторий вручную.</p>
     <form id="gh-form" class="opts" style="gap:10px;margin-top:10px">
       <label class="field"><span class="lbl">Репозиторий (владелец/имя)</span><input id="gh-repo" style="${inp}" value="${esc(c.repo)}" placeholder="login/my-notes" autocomplete="off"></label>
       <label class="field"><span class="lbl">Ветка</span><input id="gh-branch" style="${inp}" value="${esc(c.branch)}" placeholder="main" autocomplete="off"></label>
@@ -1503,10 +1503,11 @@ function ghPanelHtml() {
     <details style="margin-top:10px"><summary style="cursor:pointer;font:inherit;padding:0">Как получить токен</summary>
       <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
         <li>GitHub → аватар справа вверху → <b>Settings</b> → внизу слева <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
-        <li>Token name — любое, например «My Notes images». Expiration — сколько не жалко (потом можно выпустить новый).</li>
-        <li>Repository access → <b>Only select repositories</b> → выбери репозиторий сайта.</li>
-        <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Остальное не трогай.</li>
-        <li><b>Generate token</b>, скопируй его (начинается на <code>github_pat_</code>) и вставь сюда.</li>
+        <li><b>Token name</b> — любое, например «My Notes images». <b>Expiration</b> — сколько не жалко (когда истечёт, выпустишь новый и вставишь сюда).</li>
+        <li><b>Repository access</b> → <b>Only select repositories</b> → выбери репозиторий сайта. Без этого шага нужного разрешения в списке не будет.</li>
+        <li>В блоке <b>Permissions</b> (вкладка <b>Repositories</b>, если вкладки есть) нажми <b>+ Add permissions</b>, найди <b>Contents</b> и отметь его.</li>
+        <li>Справа от появившейся строки <b>Contents</b> смени <b>Read-only</b> на <b>Read and write</b>. <b>Metadata: Read-only</b> GitHub добавит сам — так и надо, больше ничего не нужно.</li>
+        <li><b>Generate token</b>, скопируй токен (начинается на <code>github_pat_</code>) и вставь в поле «Токен» выше. Потом его уже не показать — если потеряешь, просто выпусти новый.</li>
       </ol></details>
   </details>`;
 }
