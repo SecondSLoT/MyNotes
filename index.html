@@ -456,6 +456,13 @@ button.tag{border:0;background:none;padding:0}
 .help-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;gap:7px;border:1px solid var(--line-strong);background:var(--raised);color:var(--muted);border-radius:999px;padding:6px 13px 6px 7px;font:500 13px var(--f-body);box-shadow:0 4px 14px rgba(0,0,0,.08)}
 .help-fab span{width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 12px/1 var(--f-display)}
 .help-fab:hover{color:var(--ink);border-color:var(--muted)}
+.edit-overlay{position:fixed;inset:0;z-index:35;background:rgba(10,14,12,.45);overflow:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 40px}
+.edit-overlay[hidden]{display:none}
+.edit-sheet{max-width:1180px;margin:0 auto;background:var(--surface);border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.edit-sheet .doc{max-width:none;padding:clamp(18px,3vw,32px)}
+.edit-overlay #back,.edit-overlay #ed-del{display:none}
+body.sheet-open{overflow:hidden}
+@media (max-width:760px){.edit-overlay{padding:0}.edit-sheet{border-radius:0;min-height:100%}}
 .help-overlay{position:fixed;inset:0;z-index:40;background:rgba(10,14,12,.45);display:flex;justify-content:center;align-items:flex-start;padding-block:calc(24px + env(safe-area-inset-top,0px)) 24px;padding-inline:16px;overflow:auto}
 .help-sheet{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:16px;width:100%;max-width:760px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
 .help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px 10px}
@@ -558,6 +565,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 </div>
 <div class="toast" id="toast" role="status"></div>
 <button class="help-fab" id="help-btn" type="button" aria-haspopup="dialog" title="Как всё устроено (клавиша ?)"><span aria-hidden="true">?</span> Справка</button>
+<div class="edit-overlay" id="edit-overlay" hidden><div class="edit-sheet"><div class="doc"></div></div></div>
 <div class="help-overlay" id="help" hidden>
   <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
     <div class="help-head"><h2 id="help-title">Как всё устроено</h2><button class="btn" id="help-close" type="button">Закрыть</button></div>
@@ -628,7 +636,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
-          <li><b>«✎ Править»</b> рядом с вопросом (или клавиша <kbd>E</kbd>, или двойной клик по ответу) — дополнить или исправить карточку прямо в тренировке, пока помнишь. После сохранения сессия продолжается с той же карточки. <kbd>MOD</kbd>+<kbd>Enter</kbd> — сохранить, <kbd>Esc</kbd> — отменить.</li>
+          <li><b>«✎ Править»</b> рядом с вопросом (или клавиша <kbd>E</kbd>, или двойной клик по ответу) — дополнить или исправить карточку прямо в тренировке, пока помнишь. Открывается обычный редактор (Markdown, Рядом, Визуально) поверх сессии; после сохранения сессия продолжается с той же карточки.</li>
           <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, внизу вкладки «Тренировка» → «Вне тренировки», в самой заметке или через «⋮».</li>
           <li>В итоге сессии есть кнопка «Прогнать ещё раз то, что не знал».</li>
           <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам заново (завтра → 5 дней → ~12 дней…), а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
@@ -2450,6 +2458,15 @@ function renderTrashed(box, n) {
   $('#tr-purge') && ($('#tr-purge').onclick = () => purgeNotes([n.id]));
 }
 function renderReader(scrollTop) {
+  const ov = $('#edit-overlay');
+  if (S.editing?.overlay) { // editing a card from the training session: the same editor, in a sheet over the session
+    if (ov.hidden) { ov.hidden = false; ov.scrollTop = 0; document.body.classList.add('sheet-open'); }
+    renderEditor(ov.querySelector('.doc')); return;
+  }
+  if (ov && !ov.hidden) {
+    ov.hidden = true; ov.querySelector('.doc').innerHTML = ''; document.body.classList.remove('sheet-open');
+    if (S.mode === 'train' && S.train && !S.train.done) { S.train.shown = true; renderSession($('#train')); }
+  }
   const box = $('#reader .doc');
   $('#lib').classList.toggle('wide-edit', !!S.editing && S.editing.tab === 'split');
   if (S.editing) { renderEditor(box); return; }
@@ -2531,6 +2548,12 @@ function renderReader(scrollTop) {
   reader.addEventListener('animationend', e => e.target.classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
 })();
 
+// resizing an auto-growing textarea briefly collapses it; keep every scroll container where it was
+function keepScroll(fn) {
+  const els = [document.scrollingElement, $('#reader'), $('#train'), $('#edit-overlay')].filter(Boolean).map(el => [el, el.scrollTop]);
+  fn();
+  for (const [el, t] of els) if (el.scrollTop !== t) el.scrollTop = t;
+}
 /* ---------- links between notes: [текст](#note:ID) ---------- */
 const noteLinkId = href => { const m = /^#note:(.+)$/.exec(href || ''); return m ? decodeURIComponent(m[1]) : null; };
 function backlinks(id) {
@@ -2674,9 +2697,9 @@ $('#new-note').addEventListener('click', () => {
   const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
   $('#lib').classList.add('reading'); renderReader(true);
 });
-function startEdit(id, anchor, restore) {
+function startEdit(id, anchor, restore, overlay) {
   const n = S.notes.get(id);
-  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null };
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay };
   const dr = getDraft(id);
   if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
   renderReader(!anchor);
@@ -2716,7 +2739,7 @@ function renderEditor(box) {
   const ta = $('#ed-body'), vis = $('#ed-prev');
   E.pane = ta ? 'md' : 'vis';
   if (vis) enhance(vis);
-  const grow = () => { if (!ta) return; ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; };
+  const grow = () => { if (!ta) return; keepScroll(() => { ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; }); };
   let pT, visDirty = false;
   const renderVis = () => { if (vis) { vis.innerHTML = renderMd(d.body); enhance(vis); } };
   if (ta) {
@@ -2818,6 +2841,7 @@ function renderEditor(box) {
     const wasNew = !E.id;
     const ok = await write(() => S.db.collection('notes').doc(id).set(doc), wasNew ? 'Заметка добавлена' : 'Сохранено');
     if (!ok) return;
+    S.notes.set(id, Object.assign({ id }, prev || {}, doc));
     dropDraft(E.id); if (wasNew) dropDraft(null);
     S.noteId = id; store.set('note', id);
     if (stay) { E.id = id; S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = 'Редактирование'; renderList(); return; }
@@ -3233,23 +3257,18 @@ function renderSession(root) {
     <div class="sbar"><button class="btn" id="s-end">Завершить</button><div class="track"><i style="width:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
     <div class="card">
       <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
-      ${T.edit ? `<form class="t-edit editor" id="t-edit">
-        <input id="te-title" value="${esc(T.edit.title)}" aria-label="Вопрос / заголовок" required>
-        ${toolbarHtml()}
-        <textarea id="te-body" aria-label="Ответ" spellcheck="true">${esc(T.edit.body)}</textarea>
-        <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" id="te-cancel">Отмена</button><span class="hint">${MOD}+Enter — сохранить · Esc — отмена</span></div>
-      </form>` : `<div class="q">${esc(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>
+      ${`<div class="q">${esc(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>
       ${S.canWrite ? tagRowHtml(id, 'train') : ''}
       ${T.shown ? `<div class="ans md" id="ans">${renderMd(n.body)}</div>` : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}`}
     </div>
-    ${T.shown && !T.edit ? `<div class="grades">
+    ${T.shown ? `<div class="grades">
       <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
       <button class="grade g2" data-g="2" title="Клавиша 2"><kbd>2</kbd>Плаваю<small>${pv(2)}</small></button>
       <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
     <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
   </div>`;
   if (T.shown && $('#ans')) enhance($('#ans'));
-  $('#s-end').onclick = () => { T.edit = null; T.done = true; renderSession(root); };
+  $('#s-end').onclick = () => { T.done = true; renderSession(root); };
   wireTrainEdit(root, n);
   $('#reveal') && ($('#reveal').onclick = () => { T.shown = true; renderSession(root); });
   root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => gradeCurrent(+b.dataset.g));
@@ -3258,45 +3277,18 @@ function renderSession(root) {
   root.scrollTop = 0;
 }
 function startTrainEdit() {
-  const T = S.train; if (!T || T.done || !S.canWrite) return;
+  const T = S.train; if (!T || T.done || !S.canWrite || S.editing) return;
   const n = S.notes.get(T.queue[T.i]); if (!n) return;
-  T.edit = { id: n.id, title: n.title, body: n.body || '' };
-  renderSession($('#train'));
+  if ($('#reader #ed')) $('#reader .doc').innerHTML = ''; // the editor lives in the overlay now; no duplicate ids
+  startEdit(n.id, null, false, true);
 }
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || e.defaultPrevented || !S.editing?.overlay || S.menu || document.activeElement?.closest?.('#ed')) return;
+  e.preventDefault(); $('#edit-overlay #ed')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+});
 function wireTrainEdit(root, n) {
-  const T = S.train;
   $('#t-edit-btn') && ($('#t-edit-btn').onclick = startTrainEdit);
   $('#ans') && S.canWrite && ($('#ans').ondblclick = e => { if (!e.target.closest('a, input, button')) { getSelection().removeAllRanges(); startTrainEdit(); } });
-  const f = $('#t-edit'); if (!f) return;
-  const ta = $('#te-body'), ti = $('#te-title');
-  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(220, ta.scrollHeight + 4) + 'px'; };
-  grow(); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
-  const sync = () => { T.edit.title = ti.value; T.edit.body = ta.value; };
-  ta.addEventListener('input', () => { sync(); grow(); });
-  ti.addEventListener('input', sync);
-  ta.addEventListener('keydown', e => mdKeydown(e, ta));
-  ta.addEventListener('input', e => { const p = ta.selectionStart; if (e.inputType === 'insertText' && ta.value.slice(p - 2, p) === '[[') pickForMd(ta, p - 2, p); });
-  ta.addEventListener('paste', e => { const fl = imageFiles(e.clipboardData); if (!fl.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); fl.forEach(insertUpload); });
-  const tb = f.querySelector('.md-toolbar');
-  tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
-  tb.addEventListener('click', e => { const b = e.target.closest('[data-md]'); if (b) mdAction(b.dataset.md, ta); });
-  const cancel = () => { T.edit = null; renderSession(root); };
-  $('#te-cancel').onclick = cancel;
-  f.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); f.requestSubmit(); }
-    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu) { e.preventDefault(); e.stopPropagation(); cancel(); }
-  });
-  f.onsubmit = async e => {
-    e.preventDefault();
-    if (uploads.size) { toast('Жду, пока загрузится картинка…'); await Promise.allSettled([...uploads]); }
-    sync();
-    const title = T.edit.title.trim(); if (!title) return;
-    const cur = S.notes.get(T.edit.id); if (!cur) { T.edit = null; renderSession(root); return; }
-    const upd = { title, body: T.edit.body, updated: new Date().toISOString() };
-    const ok = await write(() => S.db.collection('notes').doc(cur.id).update(upd), 'Карточка обновлена');
-    if (!ok) return;
-    Object.assign(cur, upd); T.edit = null; T.shown = true; renderSession(root);
-  };
 }
 function dropCurrent() {
   const T = S.train; const id = T.queue[T.i]; if (!id) return;
@@ -3348,8 +3340,8 @@ document.addEventListener('keydown', e => {
   if (S.mode === 'lib' && !typing && !S.editing && !S.article && !S.menu && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.noteId && S.notes.has(S.noteId) && $('#md')) { e.preventDefault(); editHere(S.noteId); }
   if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
   if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
-  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.train.edit && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.canWrite) { e.preventDefault(); startTrainEdit(); return; }
-  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.train.edit) {
+  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.canWrite) { e.preventDefault(); startTrainEdit(); return; }
+  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing) {
     if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown) { e.preventDefault(); S.train.shown = true; renderSession($('#train')); }
     else if (S.train.shown && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
   }
