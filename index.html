@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#f3f4ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121513" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -188,7 +188,9 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .md mark.cur,.art-note mark.cur{outline:2px solid var(--accent);outline-offset:1px}
 @media (max-width:760px){.hitbar{top:60px}
   body.editing .top{display:none}
-  body.editing .lib{height:100%}}
+  body.editing .lib{height:100%}
+  body.editing.kb{overflow:hidden}
+  body.editing.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
 .items{overflow:auto;flex:1;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .rail{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
 .item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding-block:11px;padding-inline:16px;color:var(--ink)}
@@ -2491,6 +2493,18 @@ function renderTrashed(box, n) {
   $('#back').onclick = () => $('#lib').classList.remove('reading');
   $('#tr-restore') && ($('#tr-restore').onclick = () => restoreNotes([n.id]));
   $('#tr-purge') && ($('#tr-purge').onclick = () => purgeNotes([n.id]));
+}
+/* phone keyboard: browsers that overlay the keyboard instead of resizing the page would scroll the whole
+   page to reach the caret and push the toolbar off-screen; pin the app to the visible area instead */
+if (window.visualViewport) {
+  const vv = window.visualViewport, root = document.documentElement;
+  const fit = () => {
+    const kb = vv.scale < 1.05 && window.innerHeight - vv.height > 80;
+    document.body.classList.toggle('kb', kb);
+    if (kb) { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', (vv.pageTop || 0) + 'px'); }
+    else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvt'); }
+  };
+  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
 function renderReader(scrollTop) {
   document.body.classList.toggle('editing', !!S.editing);
