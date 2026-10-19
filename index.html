@@ -295,7 +295,11 @@ button.tag{border:0;background:none;padding:0}
 .md{font-size:15.5px;line-height:1.65;overflow-wrap:anywhere}
 .md>*:first-child{margin-top:0}
 .md p{margin:0 0 .8em}
-.md h1,.md h2,.md h3,.md h4{font:600 16px/1.35 var(--f-body);margin:1.5em 0 .5em;padding-top:.6em;border-top:1px solid var(--line)}
+.md h1,.md h2{font:600 21px/1.3 var(--f-display);letter-spacing:-.01em;margin:1.6em 0 .55em;padding-top:.65em;border-top:1px solid var(--line)}
+.md h3,.md h4,.md h5,.md h6{font:600 16.5px/1.35 var(--f-body);margin:1.35em 0 .4em}
+.md > :is(h1,h2,h3,h4,h5,h6):first-child{margin-top:.2em}
+.md > :is(h1,h2):first-child{border-top:0;padding-top:0}
+.tb .hl{font:700 13px/1 var(--f-body);letter-spacing:-.02em}.tb .hl small{font-size:9px;font-weight:700;margin-left:1px}
 .md ul,.md ol{padding-left:1.4em;margin:0 0 .9em}
 .md li{margin:.15em 0}
 .md li>p{margin:0 0 .3em}
@@ -577,7 +581,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Черновики.</b> Пока пишешь, правки каждые полсекунды сохраняются в черновик в этом браузере. Если ушёл на другую заметку или закрыл вкладку, не сохранив, — в заметке появится «Есть несохранённые правки · Продолжить редактирование», а в редакторе — «Восстановить» или «Удалить черновик».</li>
           <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
-          <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
+          <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
@@ -2691,7 +2695,7 @@ function toolbarHtml() {
   const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
     <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}</div>
-    <div class="tb-group">${b('heading', ICO.h, 'Подзаголовок')}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
+    <div class="tb-group">${b('h1', '<span class="hl">H<small>1</small></span>', `Заголовок (${MOD}+Alt+1)`)}${b('h2', '<span class="hl">H<small>2</small></span>', `Подзаголовок (${MOD}+Alt+2)`)}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
     <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
   </div>`;
@@ -2731,7 +2735,7 @@ function lineBounds(ta) {
 const PREFIX_RE = /^(\s*)(#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> )?/;
 function toggleLines(ta, kind) {
   const [ls, le] = lineBounds(ta); const lines = ta.value.slice(ls, le).split('\n');
-  const has = l => kind === 'heading' ? /^\s*#{1,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*> /.test(l);
+  const has = l => kind === 'h1' ? /^\s*#{1,2} /.test(l) : kind === 'h2' ? /^\s*#{3,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*> /.test(l);
   const nonEmpty = lines.filter(l => l.trim());
   const all = nonEmpty.length && nonEmpty.every(has);
   let n = 0;
@@ -2740,7 +2744,7 @@ function toggleLines(ta, kind) {
     const m = l.match(PREFIX_RE); const ind = m[1] || ''; const rest = l.slice(m[0].length);
     if (all) return ind + rest;
     n++;
-    const p = kind === 'heading' ? '#### ' : kind === 'ul' ? '- ' : kind === 'ol' ? `${n}. ` : kind === 'task' ? '- [ ] ' : '> ';
+    const p = kind === 'h1' ? '## ' : kind === 'h2' ? '### ' : kind === 'ul' ? '- ' : kind === 'ol' ? `${n}. ` : kind === 'task' ? '- [ ] ' : '> ';
     return ind + p + rest;
   });
   const t = out.join('\n');
@@ -2766,7 +2770,8 @@ function mdAction(act, ta) {
     case 'code':
       if (sel.includes('\n')) return mdAction('block', ta);
       return wrapInline(ta, '`', 'code');
-    case 'heading': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
+    case 'heading': return toggleLines(ta, 'h2');
+    case 'h1': case 'h2': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
     case 'block': {
       if (!sel) return insertBlock(ta, '```kotlin\n\n```', 10);
       const t = '```kotlin\n' + sel.replace(/\n$/, '') + '\n```';
@@ -2792,6 +2797,7 @@ function mdAction(act, ta) {
 }
 function mdKeydown(e, ta) {
   const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); mdAction(e.code === 'Digit1' ? 'h1' : 'h2', ta); return; }
   if (mod && !e.altKey) {
     const k = e.key.toLowerCase(), code = e.code;
     const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
@@ -2917,7 +2923,8 @@ function visAction(act, vis) {
       if (c && !c.closest('pre')) { const r = document.createRange(); r.selectNodeContents(c); sel.removeAllRanges(); sel.addRange(r); return exec('insertText', c.textContent); }
       return exec('insertHTML', `<code>${esc(text || 'code')}</code>&#8203;`);
     }
-    case 'heading': return exec('formatBlock', closestIn(vis, 'h1,h2,h3,h4,h5,h6') ? 'p' : 'h4');
+    case 'h1': return exec('formatBlock', closestIn(vis, 'h1,h2') ? 'p' : 'h2');
+    case 'heading': case 'h2': return exec('formatBlock', closestIn(vis, 'h3,h4,h5,h6') ? 'p' : 'h3');
     case 'quote': return exec('formatBlock', closestIn(vis, 'blockquote') ? 'p' : 'blockquote');
     case 'ul': return exec('insertUnorderedList');
     case 'ol': return exec('insertOrderedList');
@@ -2971,6 +2978,7 @@ function applyVisLink(vis, url) {
 }
 function visKeydown(e, vis) {
   const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); visAction(e.code === 'Digit1' ? 'h1' : 'h2', vis); return; }
   if (!mod || e.altKey) return;
   const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
   const act = map[e.code];
