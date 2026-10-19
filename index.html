@@ -114,6 +114,13 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .orph img{width:100%;height:100px;object-fit:contain;background:#fff;border-radius:6px}
 .orph span{font:11px var(--f-mono);color:var(--muted);word-break:break-all;display:flex;flex-direction:column;gap:2px}
 .orph:has(input:checked){border-color:var(--again);box-shadow:0 0 0 1px var(--again)}
+.edit-fab{position:fixed;right:24px;bottom:24px;z-index:20;width:52px;height:52px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,.22);cursor:pointer;display:grid;place-items:center}
+.edit-fab:hover{filter:brightness(1.08)}
+.edit-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:760px){.edit-fab{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+.draft-note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:13px}
+.draft-note .btn{padding:3px 10px;font-size:13px}
+#md{cursor:text}
 .menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
@@ -565,6 +572,10 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
         </ul></section>
       <section id="h-edit"><h3>Редактор</h3>
         <ul>
+          <li><b>Быстро начать править:</b> двойной клик (на телефоне — двойное касание) по тексту заметки открывает редактор с курсором в этом месте. Круглая кнопка ✎ справа внизу и клавиша <kbd>E</kbd> открывают редактор там, где ты сейчас читаешь.</li>
+          <li><kbd>MOD</kbd>+<kbd>S</kbd> — сохранить, не выходя из редактора. <kbd>Esc</kbd> — сохранить и вернуться к чтению на то же место (если ничего не менял — просто закрыть). «Отмена» — выйти без сохранения.</li>
+          <li><b>Черновики.</b> Пока пишешь, правки каждые полсекунды сохраняются в черновик в этом браузере. Если ушёл на другую заметку или закрыл вкладку, не сохранив, — в заметке появится «Есть несохранённые правки · Продолжить редактирование», а в редакторе — «Восстановить» или «Удалить черновик».</li>
+          <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
@@ -601,6 +612,8 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
       <section id="h-keys"><h3>Горячие клавиши</h3>
         <table class="keys-table"><tbody>
           <tr><td><kbd>/</kbd></td><td>перейти в поиск</td></tr>
+          <tr><td><kbd>E</kbd></td><td>редактировать открытую заметку с текущего места</td></tr>
+          <tr><td><kbd>MOD</kbd>+<kbd>S</kbd> · <kbd>Esc</kbd></td><td>в редакторе: сохранить · сохранить и закрыть</td></tr>
           <tr><td><kbd>?</kbd></td><td>открыть эту справку</td></tr>
           <tr><td><kbd>Пробел</kbd></td><td>показать ответ в тренировке</td></tr>
           <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>не знаю / плаваю / знаю</td></tr>
@@ -2372,19 +2385,35 @@ function renderReader(scrollTop) {
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
+    ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>Есть несохранённые правки от ${hhmm(getDraft(n.id).ts)}.</span><button class="btn primary" id="dr-cont">Продолжить редактирование</button></div>` : ''}
+    ${S.canWrite ? `<button class="edit-fab" id="edit-fab" title="Редактировать с этого места (E, двойной клик по тексту)" aria-label="Редактировать"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
   setupHits(box);
   $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
   if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = 'Отметить'; cb.onchange = () => toggleTask(n.id, i, cb.checked); });
-  if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
+  if (S.readAnchor && S.readAnchor.id === n.id && !terms) { const A = S.readAnchor; S.readAnchor = null; const el = $('#md').children[Math.min(A.block, $('#md').children.length - 1)]; if (el) scrollToY(el, A.viewY ?? 80); }
+  else if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
+  if (S.canWrite) {
+    $('#md').ondblclick = e => {
+      if (e.target.closest('a, input, button, img')) return;
+      const md = $('#md'); const c = caretFromPoint(e.clientX, e.clientY); if (!c || !md.contains(c.node)) return;
+      const bi = blockIndexOf(md, c.node); if (bi < 0) return;
+      const el = md.children[bi]; const text = textOffsetIn(el, c.node, c.offset);
+      const snip = el.textContent.slice(Math.max(0, text - 16), text);
+      getSelection().removeAllRanges();
+      editHere(n.id, { block: bi, text, snip, vis: true, viewY: Math.max(0, el.getBoundingClientRect().top - $('#reader').getBoundingClientRect().top) });
+    };
+    $('#edit-fab') && ($('#edit-fab').onclick = () => editHere(n.id));
+    $('#dr-cont') && ($('#dr-cont').onclick = () => startEdit(n.id, readerAnchor(), true));
+  }
   if (S.slide) { const dcl = S.slide === 'next' ? 'slide-in-next' : 'slide-in-prev'; S.slide = null; box.classList.remove('slide-in-next', 'slide-in-prev'); void box.offsetWidth; box.classList.add(dcl); }
   $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(n.id)}"]`); if (r) scrollWithin($('#items'), r); };
   $('#sec-link').onclick = () => gotoInSection(n.id);
   S.nbr = nbr;
   $('#prev-note').onclick = () => nbr.prev && openNote(nbr.prev, 'prev');
   $('#next-note').onclick = () => nbr.next && openNote(nbr.next, 'next');
-  $('#edit') && ($('#edit').onclick = () => startEdit(n.id));
+  $('#edit') && ($('#edit').onclick = () => editHere(n.id));
   $('#unref') && ($('#unref').onclick = () => setRef(n.id, false));
   $('#relearn') && ($('#relearn').onclick = () => relearn([n.id]));
   $('#drill') && ($('#drill').onclick = () => startSession([n.id], 'free', 'Одна карточка'));
@@ -2417,17 +2446,98 @@ function renderReader(scrollTop) {
   reader.addEventListener('animationend', e => e.target.classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
 })();
 
+/* ---------- editing where you read: anchors, drafts ---------- */
+const draftKey = id => 'draft.' + (id || 'new');
+function getDraft(id) { const d = store.get(draftKey(id), null); return d && typeof d.body === 'string' ? d : null; }
+function dropDraft(id) { try { localStorage.removeItem('aw.' + draftKey(id)); } catch {} }
+function draftDiffers(id, d) {
+  const n = id ? S.notes.get(id) : null;
+  if (!n) return !!(d.title || d.body);
+  return d.title !== n.title || d.body !== (n.body || '') || d.section !== n.section || (d.tags || []).join(' ') !== (n.tags || []).join(' ') || !!d.ref !== !!n.ref;
+}
+function saveDraft(E) {
+  const d = E.draft;
+  if (!draftDiffers(E.id, d)) { dropDraft(E.id); return; }
+  store.set(draftKey(E.id), { title: d.title, section: d.section, tags: d.tags, ref: d.ref, body: d.body, ts: Date.now() });
+}
+const hhmm = ts => { const d = new Date(ts), z = n => String(n).padStart(2, '0'); const today0 = new Date(); return (d.toDateString() === today0.toDateString() ? '' : `${z(d.getDate())}.${z(d.getMonth() + 1)} `) + `${z(d.getHours())}:${z(d.getMinutes())}`; };
+// top-level markdown blocks <-> rendered elements: start offset of each block in the source
+function blockOffsets(src) {
+  try {
+    const toks = marked.lexer(src || ''); const out = []; let pos = 0;
+    for (const t of toks) { if (t.type !== 'space' && t.type !== 'def') out.push({ start: pos, raw: t.raw }); pos += (t.raw || '').length; }
+    return out;
+  } catch { return []; }
+}
+function blockIndexOf(root, node) { while (node && node.parentNode !== root) node = node.parentNode; return node ? [...root.children].indexOf(node) : -1; }
+function textOffsetIn(el, container, offset) { try { const r = document.createRange(); r.setStart(el, 0); r.setEnd(container, offset); return r.toString().length; } catch { return 0; } }
+function caretFromPoint(x, y) {
+  if (document.caretPositionFromPoint) { const p = document.caretPositionFromPoint(x, y); return p ? { node: p.offsetNode, offset: p.offset } : null; }
+  if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(x, y); return r ? { node: r.startContainer, offset: r.startOffset } : null; }
+  return null;
+}
+// where the reader is right now: the first block that is visible, and where it sits on screen
+function readerAnchor() {
+  const md = $('#md'), box = $('#reader'); if (!md) return null;
+  const top = box.getBoundingClientRect().top + (document.querySelector('#reader .mbar')?.offsetHeight || 0);
+  const kids = [...md.children];
+  for (let i = 0; i < kids.length; i++) { const r = kids[i].getBoundingClientRect(); if (r.bottom > top + 8) return { block: i, text: 0, viewY: Math.max(0, r.top - box.getBoundingClientRect().top) }; }
+  return { block: 0, text: 0, viewY: 80 };
+}
+function scrollToY(el, viewY) { const box = $('#reader'); box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - viewY; }
+function placeCaretInText(el, chars) {
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n, left = chars, last = null;
+  while ((n = w.nextNode())) { last = n; if (left <= n.nodeValue.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } left -= n.nodeValue.length; }
+  const r = document.createRange(); if (last) r.setStart(last, last.nodeValue.length); else r.setStart(el, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+function caretY(ta, pos) { // pixel offset of a textarea position (mirror element)
+  const cs = getComputedStyle(ta); const m = document.createElement('div');
+  for (const k of ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'paddingTop', 'paddingLeft', 'paddingRight', 'borderTopWidth', 'borderLeftWidth', 'boxSizing', 'tabSize']) m.style[k] = cs[k];
+  m.style.position = 'absolute'; m.style.visibility = 'hidden'; m.style.whiteSpace = 'pre-wrap'; m.style.wordWrap = 'break-word'; m.style.width = ta.clientWidth + 'px';
+  m.textContent = ta.value.slice(0, pos); const mk = document.createElement('span'); mk.textContent = '​'; m.appendChild(mk);
+  document.body.appendChild(m); const y = mk.offsetTop; m.remove(); return y;
+}
+function applyEditAnchor(E) {
+  const A = E.anchor; E.anchor = null; if (!A) return;
+  const vis = $('#ed-prev'), ta = $('#ed-body');
+  if (vis && (A.vis || !ta)) {
+    const el = vis.children[Math.min(A.block, vis.children.length - 1)];
+    if (!el) { vis.focus(); return; }
+    vis.focus({ preventScroll: true }); E.pane = 'vis'; placeCaretInText(el, A.text || 0); scrollToY(el, Math.max(A.viewY ?? 80, 110)); return;
+  }
+  if (!ta) return;
+  const offs = blockOffsets(ta.value); const b = offs[Math.min(A.block, offs.length - 1)];
+  let pos = 0;
+  if (b) {
+    pos = b.start;
+    if (A.snip) for (let L = Math.min(16, A.snip.length); L >= 3; L--) { const k = b.raw.indexOf(A.snip.slice(-L)); if (k >= 0) { pos = b.start + k + L; break; } }
+  }
+  ta.focus({ preventScroll: true }); ta.setSelectionRange(pos, pos); E.pane = 'md';
+  const box = $('#reader'); box.scrollTop += ta.getBoundingClientRect().top + caretY(ta, pos) - box.getBoundingClientRect().top - Math.max(A.viewY ?? 80, 110);
+}
+// from the editor back to reading: remember which block the caret was in
+function editorAnchor(E) {
+  const vis = $('#ed-prev'), ta = $('#ed-body'), box = $('#reader');
+  if (E.pane === 'vis' && vis) { const s = getSelection(); const i = s.rangeCount ? blockIndexOf(vis, s.getRangeAt(0).startContainer) : -1; if (i >= 0) return { block: i, viewY: Math.max(0, vis.children[i].getBoundingClientRect().top - box.getBoundingClientRect().top) }; }
+  if (ta) { const offs = blockOffsets(ta.value); const p = ta.selectionStart; let i = 0; offs.forEach((o, k) => { if (o.start <= p) i = k; }); return { block: i, viewY: Math.max(0, ta.getBoundingClientRect().top + caretY(ta, p) - box.getBoundingClientRect().top) }; }
+  return null;
+}
+function editHere(id, anchor) { if (!S.canWrite || !S.notes.has(id)) return; startEdit(id, anchor || readerAnchor()); }
+
 /* ---------- editor ---------- */
 document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
   const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : lastFolder();
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
+  const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
   $('#lib').classList.add('reading'); renderReader(true);
 });
-function startEdit(id) {
+function startEdit(id, anchor, restore) {
   const n = S.notes.get(id);
-  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
-  renderReader(true);
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null };
+  const dr = getDraft(id);
+  if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
+  renderReader(!anchor);
 }
 function renderEditor(box) {
   const E = S.editing, d = E.draft;
@@ -2435,6 +2545,7 @@ function renderEditor(box) {
   box.innerHTML = `
     <button class="back" id="back">${E.tab === 'split' ? '← Показать список заметок' : '← К списку'}</button>
     <div class="eyebrow">${E.id ? 'Редактирование' : 'Новая заметка'}</div>
+    ${E.draftOffer ? `<div class="draft-note" style="margin-top:10px"><span>Есть несохранённый черновик${E.id ? ' этой заметки' : ' новой заметки'} от ${hhmm(E.draftOffer.ts)}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}.</span><button class="btn primary" type="button" id="dr-restore">Восстановить</button><button class="btn" type="button" id="dr-drop">Удалить черновик</button></div>` : ''}
     <form class="editor" id="ed" style="margin-top:14px">
       <div class="field"><label for="ed-title">Вопрос / заголовок</label><input id="ed-title" required value="${esc(d.title)}" placeholder="Например: Чем launch отличается от async?"></div>
       <div class="grid2">
@@ -2451,7 +2562,7 @@ function renderEditor(box) {
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="Ответ в Markdown" placeholder="Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Ответ, визуальный редактор" data-empty="Пиши ответ прямо здесь">${renderMd(d.body)}</div>` : ''}
         </div>
-        <span class="hint">${E.tab === 'edit' ? '' : 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам. '}${MOD}+B жирный · ${MOD}+I курсив · ${MOD}+E код · ${MOD}+K ссылка · ${MOD}+Enter — сохранить</span>
+        <span class="hint">${E.tab === 'edit' ? '' : 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам. '}${MOD}+B жирный · ${MOD}+I курсив · ${MOD}+E код · ${MOD}+K ссылка · ${MOD}+S — сохранить · Esc или ${MOD}+Enter — сохранить и закрыть</span>
       </div>
       <div class="bar">
         <button class="btn primary" type="submit">Сохранить</button>
@@ -2517,7 +2628,8 @@ function renderEditor(box) {
   };
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader(); });
   $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else $('#lib').classList.remove('reading'); };
-  $('#ed-cancel').onclick = () => { S.editing = null; if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else renderReader(); };
+  const closeEditor = () => { const A = E.id ? editorAnchor(E) : null; S.editing = null; if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else { if (A) S.readAnchor = Object.assign({ id: E.id }, A); renderReader(); } };
+  $('#ed-cancel').onclick = () => { dropDraft(E.id); closeEditor(); };
   $('#ed-del') && ($('#ed-del').onclick = () => { sync(); E.confirmDel = true; renderEditor(box); });
   $('#ed-del-no') && ($('#ed-del-no').onclick = () => { E.confirmDel = false; renderEditor(box); });
   $('#ed-del-yes') && ($('#ed-del-yes').onclick = async () => {
@@ -2525,7 +2637,15 @@ function renderEditor(box) {
     S.editing = null; trashNotes([id]);
   });
   const form = $('#ed');
-  form.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); }
+    else if ((e.key === 's' || e.key === 'ы' || e.code === 'KeyS') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); E.stay = true; form.requestSubmit(); }
+    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
+  });
+  let drT; form.addEventListener('input', () => { clearTimeout(drT); drT = setTimeout(() => { if (S.editing !== E) return; sync(); saveDraft(E); }, 500); });
+  $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); renderReader(); });
+  $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
+  if (E.anchor) requestAnimationFrame(() => applyEditAnchor(E));
   form.addEventListener('submit', async e => {
     e.preventDefault();
     if (uploads.size) { toast('Жду, пока загрузится картинка…'); await Promise.allSettled([...uploads]); }
@@ -2537,8 +2657,16 @@ function renderEditor(box) {
     const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
     if (prev?.pinned) doc.pinned = true;
-    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), E.id ? 'Сохранено' : 'Заметка добавлена');
-    if (ok) { S.editing = null; S.noteId = id; store.set('note', id); S.artJumpToCurrent = true; renderList(); renderReader(true); }
+    const stay = E.stay; E.stay = false;
+    const A = !stay && E.id ? editorAnchor(E) : null;
+    const wasNew = !E.id;
+    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), wasNew ? 'Заметка добавлена' : 'Сохранено');
+    if (!ok) return;
+    dropDraft(E.id); if (wasNew) dropDraft(null);
+    S.noteId = id; store.set('note', id);
+    if (stay) { E.id = id; S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = 'Редактирование'; renderList(); return; }
+    S.editing = null; S.artJumpToCurrent = true; renderList();
+    if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
   });
   if (!E.id) $('#ed-title').focus();
 }
@@ -3002,7 +3130,8 @@ function renderSummary(root) {
   root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.train = null; setMode('lib'); openNote(b.dataset.open); });
 }
 document.addEventListener('keydown', e => {
-  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+  if (S.mode === 'lib' && !typing && !S.editing && !S.article && !S.menu && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.noteId && S.notes.has(S.noteId) && $('#md')) { e.preventDefault(); editHere(S.noteId); }
   if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
   if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
   if (S.mode === 'train' && S.train && !S.train.done && !typing) {
@@ -3067,10 +3196,17 @@ function renderProg() {
         <button class="btn">Сохранить</button>
       </form>
     </section>
+    <section class="panel">
+      <h3>Редактор</h3>
+      <div class="opt-row" style="margin-top:10px"><span class="lbl" style="margin-right:6px">Открывать в режиме</span><div class="seg" id="ed-default">
+        ${[['prev', 'Визуально'], ['split', 'Рядом'], ['edit', 'Markdown']].map(([k, l]) => `<button data-edt="${k}" aria-pressed="${store.get('edTab', 'edit') === k}">${l}</button>`).join('')}</div></div>
+      <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка ✎ и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
+    </section>
     ${tagsPanelHtml()}
     ${window.NOTES_STANDALONE ? ghPanelHtml() + dataPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
+  root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
   if (window.NOTES_STANDALONE) { wireDataPanel(); wireGhPanel(); }
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
