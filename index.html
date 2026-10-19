@@ -94,6 +94,20 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .sec .caret.none{visibility:hidden}
 .sec .trn{flex:none;font-size:11px;color:var(--accent);opacity:.85}
 .chip.chip-up{padding-inline:9px}
+.sec.virt .ico{flex:none;width:16px;text-align:center;color:var(--faint);font-size:12px}
+.sec.drop-target,.rail h4.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.rail .trash-row{margin-top:auto;padding-top:10px}
+.item .star{color:#d49b1f;margin-right:4px}
+.item[draggable="true"]{cursor:pointer}
+.trash-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.trash-tools .spacer{flex:1}
+.row-item .tr-acts{display:flex;gap:6px;padding:0 12px 10px 16px}
+.row-item .tr-acts .btn{padding:3px 10px;font-size:12px}
+.trash-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:10px 0 16px;font-size:14px}
+.pin-btn{border:0;background:none;font-size:20px;line-height:1;color:var(--faint);padding:2px 4px;border-radius:6px;cursor:pointer;vertical-align:middle}
+.pin-btn[aria-pressed="true"]{color:#d49b1f}
+.pin-btn:hover{background:var(--line)}
+.md input[type=checkbox]:not(:disabled){cursor:pointer}
 .menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
@@ -479,7 +493,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
-      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
+      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="tagbar" id="tagbar" hidden></div>
       <div class="bulkbar" id="bulkbar" hidden></div>
       <div class="items" id="items"><div class="empty-state">Загружаю заметки…</div></div>
@@ -507,6 +521,10 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Ширина панели разделов</b> на компьютере меняется перетаскиванием её правой границы мышкой; двойной клик по границе возвращает исходную ширину. Ширина запоминается.</li>
           <li><b>Вложенные разделы.</b> Раздел может содержать подразделы (например, «Учёба» → «Английский» → заметки). Стрелка ▶ слева сворачивает и разворачивает ветку. Выбранный раздел показывает заметки вместе со всеми подразделами; у заметок из подразделов видна плашка с их названием. На телефоне строка чипов показывает текущий уровень: «‹» — на уровень выше, чип со знаком › — раздел с подразделами.</li>
           <li>В меню раздела: переименовать, новый подраздел, выше/ниже среди соседей, переместить в другой раздел или на верхний уровень, включить тренировку, удалить (только пустой раздел без подразделов).</li>
+          <li><b>Избранное, Недавние, Корзина</b> — сверху и внизу панели разделов. Звёздочка ☆ рядом с заголовком заметки (или «⋮ → В избранное») добавляет её в избранное. «Недавние» — то, что ты недавно открывал или менял. Удалённые заметки попадают в корзину и хранятся там 30 дней: их можно восстановить или удалить навсегда.</li>
+          <li><b>Сортировка</b> — кнопка ⇅ над списком: вручную, по дате изменения, по дате создания, по алфавиту. Для каждого раздела своя и синхронизируется между устройствами. Перетаскивать заметки за ⠿ можно только при сортировке «вручную».</li>
+          <li><b>Перетаскивание</b> (на компьютере): заметку из списка можно бросить на раздел слева — она туда переедет, на «Избранное» — добавится в избранное, на «Корзину» — удалится. Раздел можно перетащить на другой раздел (станет подразделом) или на заголовок «Разделы» (выйдет на верхний уровень).</li>
+          <li><b>Чек-листы</b> (<code>- [ ] пункт</code>) отмечаются кликом прямо в режиме чтения.</li>
           <li><b>Тренировка включается для раздела целиком</b>: «Тренировать заметки раздела» в его меню. Действует на все подразделы, такой раздел помечен значком ◎. В тренировку, прогресс и счётчик повторений попадают только заметки из таких разделов; у остальных нет плашек «новая», «повторить» и кнопок тренировки.</li>
           <li><b>«⋮»</b> у заметки в списке (или правый клик): переименовать, редактировать, теги, переместить выше/ниже, перенести в другой раздел, убрать из тренировки, удалить.</li>
           <li><b>Порядок</b> внутри раздела меняется перетаскиванием за значок <b>⠿</b> слева от заметки. Во «Всех заметках», в поиске и при фильтре по тегу порядок не меняется.</li>
@@ -600,7 +618,7 @@ const store = {
 /* ---------- state ---------- */
 const S = {
   db: null, uid: null, canWrite: true,
-  sections: new Map(), notes: new Map(), srs: new Map(), settings: { newPerDay: 10 },
+  sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), settings: { newPerDay: 10 },
   loaded: { sections: false, notes: false },
   mode: 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
   editing: null, // {id|null, draft}
@@ -725,6 +743,105 @@ async function migrateTree() {
     toast('Разделы шпаргалки собраны в папку «Android-шпаргалка»');
   } catch { toast('Не получилось обновить структуру разделов'); }
   S.migratingTree = false;
+}
+
+const FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+/* ---------- virtual views, trash, favourites, recent, sorting ---------- */
+const VIRTUAL = { all: 'Все заметки', fav: 'Избранное', recent: 'Недавние', trash: 'Корзина' };
+const isVirtual = id => Object.prototype.hasOwnProperty.call(VIRTUAL, id);
+const TRASH_DAYS = 30;
+const recentLog = store.get('recent', {});
+function touchRecent(id) {
+  recentLog[id] = Date.now();
+  const ids = Object.keys(recentLog).sort((a, b) => recentLog[b] - recentLog[a]);
+  for (const x of ids.slice(60)) delete recentLog[x];
+  store.set('recent', recentLog);
+}
+function recentList() {
+  const ts = n => Math.max(recentLog[n.id] || 0, Date.parse(n.updated || '') || 0);
+  return [...S.notes.values()].filter(n => ts(n) > 0).sort((a, b) => ts(b) - ts(a)).slice(0, 30);
+}
+function lastFolder() { const f = store.get('lastFolder', null); return f && S.sections.has(f) ? f : (sectionsSorted()[0]?.id || ''); }
+const SORTS = [['manual', 'Вручную'], ['updated', 'По дате изменения'], ['created', 'По дате создания'], ['title', 'По алфавиту']];
+function sortMode(sec) { return S.sections.has(sec) ? (S.sections.get(sec).sort || 'manual') : store.get('sort.' + sec, 'manual'); }
+function applySort(list, mode) {
+  const d = (n, k) => n[k] || n.created || '';
+  if (mode === 'updated') return list.slice().sort((a, b) => d(b, 'updated').localeCompare(d(a, 'updated')));
+  if (mode === 'created') return list.slice().sort((a, b) => (b.created || '').localeCompare(a.created || ''));
+  if (mode === 'title') return list.slice().sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+  return list;
+}
+async function setSortMode(sec, mode) {
+  if (S.sections.has(sec)) {
+    const f = S.sections.get(sec); const was = f.sort; f.sort = mode; renderList();
+    const ok = await write(() => S.db.collection('sections').doc(sec).update({ sort: mode }), null);
+    if (!ok) { f.sort = was; renderList(); }
+  } else { store.set('sort.' + sec, mode); renderList(); }
+}
+async function togglePin(id) {
+  const n = S.notes.get(id); if (!n) return;
+  const val = !n.pinned; n.pinned = val; rerender();
+  const ok = await write(() => S.db.collection('notes').doc(id).update({ pinned: val }), val ? 'Добавлено в избранное' : 'Убрано из избранного');
+  if (!ok) { n.pinned = !val; rerender(); }
+}
+async function trashNotes(ids, undoable = true) {
+  const now = new Date().toISOString(); const done = [];
+  for (const id of ids) {
+    const n = S.notes.get(id); if (!n) continue;
+    S.notes.delete(id); n.deleted = now; S.trash.set(id, n); S.select?.delete(id); done.push(id);
+  }
+  if (!done.length) return;
+  if (done.includes(S.noteId) && S.section !== 'trash') { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); }
+  rerender(); updateBadge();
+  let ok = true;
+  for (const id of done) ok = (await write(() => S.db.collection('notes').doc(id).update({ deleted: now }), null)) && ok;
+  if (!ok) { toast('Не всё удалось переместить в корзину'); return; }
+  const msg = done.length > 1 ? `В корзине: ${done.length}` : 'Заметка в корзине';
+  if (undoable) toast(msg, { label: 'Вернуть', fn: () => restoreNotes(done) }); else toast(msg);
+}
+async function restoreNotes(ids) {
+  const done = [];
+  for (const id of ids) {
+    const n = S.trash.get(id); if (!n) continue;
+    S.trash.delete(id); delete n.deleted;
+    if (!S.sections.has(n.section)) n.section = lastFolder();
+    S.notes.set(id, n); done.push(id);
+  }
+  if (!done.length) return;
+  rerender(); updateBadge();
+  for (const id of done) { const n = S.notes.get(id); await write(() => S.db.collection('notes').doc(id).update({ deleted: null, section: n.section }), null); }
+  toast(done.length > 1 ? `Восстановлено: ${done.length}` : `Восстановлено в «${S.sections.get(S.notes.get(done[0])?.section)?.title || ''}»`);
+}
+async function purgeNotes(ids, quiet) {
+  for (const id of ids) {
+    S.trash.delete(id);
+    await write(() => S.db.collection('notes').doc(id).delete(), null);
+    if (S.uid && S.srs.has(id)) { try { await srsCol().doc(id).delete(); } catch {} }
+  }
+  if (ids.includes(S.noteId)) { S.noteId = null; $('#lib').classList.remove('reading'); }
+  rerender();
+  if (!quiet) toast(ids.length > 1 ? `Удалено навсегда: ${ids.length}` : 'Удалено навсегда');
+}
+let purgedOnce = false;
+function autoPurge() {
+  if (purgedOnce || !S.canWrite || !S.db) return; purgedOnce = true;
+  const lim = Date.now() - TRASH_DAYS * 864e5;
+  const old = [...S.trash.values()].filter(n => Date.parse(n.deleted) < lim).map(n => n.id);
+  if (old.length) purgeNotes(old, true);
+}
+const daysLeft = n => Math.max(0, TRASH_DAYS - Math.floor((Date.now() - Date.parse(n.deleted)) / 864e5));
+function toggleTask(id, idx, checked) {
+  const n = S.notes.get(id); if (!n) return;
+  const lines = (n.body || '').split('\n'); let fence = false, k = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*(```|~~~)/.test(lines[i])) { fence = !fence; continue; }
+    if (fence) continue;
+    const m = lines[i].match(/^(\s*(?:[-*+]|\d+[.)])\s+)\[( |x|X)\]/);
+    if (m && ++k === idx) { lines[i] = m[1] + (checked ? '[x]' : '[ ]') + lines[i].slice(m[0].length); break; }
+  }
+  if (k !== idx) return;
+  n.body = lines.join('\n'); n.updated = new Date().toISOString();
+  write(() => S.db.collection('notes').doc(id).update({ body: n.body, updated: n.updated }), null);
 }
 
 /* ---------- notes helpers ---------- */
@@ -856,7 +973,9 @@ function revealFolder(id) { let ch = false; for (const a of ancestors(id)) if (c
 let addingSection = false, renamingSection = null;
 function renderRail() {
   const { c, d } = sectionCounts();
-  const rows = [`<button class="sec" data-sec="all" aria-current="${S.section === 'all'}"><span class="name">Все заметки</span><span class="n">${S.notes.size}</span></button>`, '<h4>Разделы</h4>'];
+  const favN = [...S.notes.values()].filter(n => n.pinned).length;
+  const virt = (id, ico, n) => `<button class="sec virt" data-sec="${id}" aria-current="${S.section === id}"><span class="ico" aria-hidden="true">${ico}</span><span class="name">${VIRTUAL[id]}</span>${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
+  const rows = [virt('all', '≡', S.notes.size), virt('fav', '★', favN), virt('recent', '◷', null), '<h4 data-drop-root="1" title="Перетащи сюда раздел, чтобы вынести его на верхний уровень">Разделы</h4>'];
   const hiddenUnder = new Set();
   for (const { s, depth } of tree().list) {
     const p = parentOf(s.id);
@@ -866,7 +985,7 @@ function renderRail() {
       continue;
     }
     const k = hasKids(s.id);
-    rows.push(`<button class="sec tree" style="--d:${depth}" data-sec="${esc(s.id)}" aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="Двойной клик — переименовать, правый клик — меню">`
+    rows.push(`<button class="sec tree" style="--d:${depth}" data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="Двойной клик — переименовать, правый клик — меню">`
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${collapsed.has(s.id) ? 'Развернуть' : 'Свернуть'}"` : ''}>▶</span>`
       + `${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span>`
       + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}<span class="n">${c.get(s.id) || 0}</span></button>`);
@@ -874,13 +993,14 @@ function renderRail() {
   rows.push(addingSection
     ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="Название раздела" aria-label="Название нового раздела"><button class="btn">OK</button></form>`
     : `<button class="ghost" id="add-sec" ${S.canWrite ? '' : 'hidden'}>+ Раздел</button>`);
+  rows.push(`<div class="trash-row">${virt('trash', '🗑', S.trash.size || null)}</div>`);
   $('#rail').innerHTML = rows.join('');
   // phone: drill-down — the current level and its children
   const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
   const chip = x => `<button class="chip" data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
   const chips = (ctx
     ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="На уровень выше">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : 'Все')}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
-    : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`].concat(kids(null).map(chip)))
+    : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`, `<button class="chip" data-sec="fav" aria-pressed="${S.section === 'fav'}">★</button>`, `<button class="chip" data-sec="recent" aria-pressed="${S.section === 'recent'}">Недавние</button>`].concat(kids(null).map(chip), [`<button class="chip" data-sec="trash" aria-pressed="${S.section === 'trash'}">Корзина${S.trash.size ? ' ' + S.trash.size : ''}</button>`]))
     .concat(S.canWrite ? [`<button class="chip chip-add" id="chip-add" aria-label="Новый раздел" title="Новый раздел">+</button>`] : []);
   $('#chips').innerHTML = chips.join('');
   if (addingSection) $('#new-sec-name')?.focus();
@@ -890,6 +1010,36 @@ $('#rail').addEventListener('click', e => {
   const t = e.target.closest('[data-toggle]'); if (t) { e.stopPropagation(); toggleFolder(t.dataset.toggle); return; }
   const b = e.target.closest('[data-sec]'); if (b) { if (b.dataset.sec === S.section && hasKids(b.dataset.sec) && collapsed.has(b.dataset.sec)) toggleFolder(b.dataset.sec, true); selectSection(b.dataset.sec); return; }
   if (e.target.closest('#add-sec')) { addingSection = true; renderRail(); }
+});
+/* ---------- drag & drop: notes and folders onto the rail (desktop) ---------- */
+let dragFolder = null;
+const clearDrop = () => document.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target'));
+document.addEventListener('dragstart', e => {
+  const it = e.target.closest?.('#items .item[draggable="true"]');
+  if (it) { e.dataTransfer.setData('text/x-note', it.dataset.id); e.dataTransfer.setData('text/plain', S.notes.get(it.dataset.id)?.title || ''); e.dataTransfer.effectAllowed = 'move'; return; }
+  const f = e.target.closest?.('#rail .sec.tree[draggable="true"]');
+  if (f) { dragFolder = f.dataset.sec; e.dataTransfer.setData('text/x-folder', dragFolder); e.dataTransfer.effectAllowed = 'move'; }
+});
+document.addEventListener('dragend', () => { dragFolder = null; clearDrop(); });
+function dropTarget(e) {
+  const types = [...(e.dataTransfer?.types || [])];
+  const isNote = types.includes('text/x-note'), isFolder = types.includes('text/x-folder');
+  if (!isNote && !isFolder) return null;
+  const root = e.target.closest('#rail [data-drop-root]');
+  if (root) return isFolder ? { el: root, to: null } : null;
+  const b = e.target.closest('#rail .sec[data-sec]'); if (!b) return null;
+  const id = b.dataset.sec;
+  if (isNote) return id === 'all' || id === 'recent' ? null : { el: b, to: id };
+  if (isVirtual(id) || (dragFolder && subtree(dragFolder).has(id))) return null;
+  return { el: b, to: id };
+}
+$('#rail').addEventListener('dragover', e => { const t = dropTarget(e); clearDrop(); if (!t) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; t.el.classList.add('drop-target'); });
+$('#rail').addEventListener('dragleave', e => { if (!$('#rail').contains(e.relatedTarget)) clearDrop(); });
+$('#rail').addEventListener('drop', e => {
+  const t = dropTarget(e); clearDrop(); if (!t) return; e.preventDefault();
+  const noteId = e.dataTransfer.getData('text/x-note'), folderId = e.dataTransfer.getData('text/x-folder');
+  if (noteId) { if (t.to === 'trash') trashNotes([noteId]); else if (t.to === 'fav') { if (!S.notes.get(noteId)?.pinned) togglePin(noteId); } else moveToSection(noteId, t.to); }
+  else if (folderId) moveFolder(folderId, t.to);
 });
 /* ---------- resizable sections rail ---------- */
 (() => {
@@ -921,7 +1071,7 @@ $('#rail').addEventListener('click', e => {
     apply(w); store.set('railW', w);
   });
 })();
-$('#rail').addEventListener('dblclick', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { renamingSection = b.dataset.sec; renderRail(); } });
+$('#rail').addEventListener('dblclick', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { renamingSection = b.dataset.sec; renderRail(); } });
 $('#rail').addEventListener('submit', async e => {
   e.preventDefault();
   if (e.target.id === 'add-sec-form') {
@@ -943,7 +1093,7 @@ $('#rail').addEventListener('submit', async e => {
   }
 });
 let lpTimer = null, lpFired = false, lpStart = null, menuWasOpen = false;
-function secMenuFrom(el) { const id = el.dataset.sec; if (!id || id === 'all' || !S.canWrite) return false; openSecMenu(id, el); return true; }
+function secMenuFrom(el) { const id = el.dataset.sec; if (!id || isVirtual(id) || !S.canWrite) return false; openSecMenu(id, el); return true; }
 $('#chips').addEventListener('click', e => {
   if (lpFired) { lpFired = false; e.preventDefault(); return; }
   if (menuWasOpen) { menuWasOpen = false; closeMenu(); return; } // a tap while the menu is open only closes it
@@ -954,23 +1104,30 @@ $('#chips').addEventListener('click', e => {
 });
 $('#chips').addEventListener('pointerdown', e => {
   menuWasOpen = !!S.menu;
-  const b = e.target.closest('[data-sec]'); if (!b || b.dataset.sec === 'all') return;
+  const b = e.target.closest('[data-sec]'); if (!b || isVirtual(b.dataset.sec)) return;
   lpFired = false; lpStart = { x: e.clientX, y: e.clientY };
   clearTimeout(lpTimer); lpTimer = setTimeout(() => { lpFired = secMenuFrom(b); }, 500);
 });
 $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.clientX - lpStart.x, e.clientY - lpStart.y) > 10) clearTimeout(lpTimer); });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
-$('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && b.dataset.sec !== 'all') { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
-$('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { if (id !== 'all') revealFolder(id); S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
+$('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
+$('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
+function selectSection(id) { if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
 
 function currentList() {
   const r = searchNotes(S.q);
   if (r) return { list: r.list, terms: r.terms, title: `Поиск: «${S.q.trim()}»` };
-  let list = sortedNotes();
-  if (S.section !== 'all') { const sub = subtree(S.section); list = list.filter(n => sub.has(n.section)); }
+  let list;
+  if (S.section === 'trash') list = [...S.trash.values()].sort((a, b) => (b.deleted || '').localeCompare(a.deleted || ''));
+  else if (S.section === 'recent') list = recentList();
+  else {
+    list = sortedNotes();
+    if (S.section === 'fav') list = list.filter(n => n.pinned);
+    else if (S.section !== 'all') { const sub = subtree(S.section); list = list.filter(n => sub.has(n.section)); }
+    list = applySort(list, sortMode(S.section));
+  }
   if (S.tag) list = list.filter(n => (n.tags || []).includes(S.tag));
-  return { list, terms: null, title: S.section === 'all' ? 'Все заметки' : (S.sections.get(S.section)?.title || 'Раздел') };
+  return { list, terms: null, title: VIRTUAL[S.section] || S.sections.get(S.section)?.title || 'Раздел' };
 }
 function renderList() {
   if (!S.loaded.notes) return;
@@ -982,12 +1139,17 @@ function renderList() {
   tb.hidden = !tags.length || !!terms;
   tb.innerHTML = tags.slice(0, 30).map(([t, c]) => `<button class="chip" data-tag="${esc(t)}" aria-pressed="${S.tag === t}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')
     + (S.canWrite ? `<button class="chip chip-manage" id="tags-manage" title="Переименовать или удалить теги">⚙ теги</button>` : '');
+  const sortable = !terms && S.section !== 'trash' && S.section !== 'recent';
+  const sb = $('#sort-btn'); if (sb) { sb.hidden = !sortable; const m = sortMode(S.section); sb.setAttribute('aria-pressed', String(sortable && m !== 'manual')); sb.title = 'Сортировка: ' + (SORTS.find(x => x[0] === m) || SORTS[0])[1].toLowerCase(); }
+  $('#select-btn').hidden = S.section === 'trash' && !terms;
+  if (S.section === 'trash' && !terms) { renderTrashList(list); return; }
   if (!list.length) {
     renderBulkBar([]);
-    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
+    const virtEmpty = { fav: 'Здесь будут избранные заметки. Отметь заметку звёздочкой ☆ рядом с заголовком или через «⋮ → В избранное».', recent: 'Здесь появятся заметки, которые ты недавно открывал или менял.' };
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
-  const showSec = S.section === 'all' || terms || hasKids(S.section);
+  const showSec = isVirtual(S.section) || terms || hasKids(S.section);
   const reorder = canReorder();
   const hadFocus = document.activeElement?.id === 'rename-input';
   $('#items').innerHTML = list.map(n => S.renaming?.id === n.id ? `
@@ -999,8 +1161,8 @@ function renderList() {
     <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}">
       ${S.select ? `<span class="selbox" aria-hidden="true">${S.select.has(n.id) ? '✓' : ''}</span>` : ''}
       ${reorder ? `<span class="grip" data-grip="${esc(n.id)}" title="Перетащи, чтобы поменять порядок" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span>` : ''}
-      <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''}>
-        <span class="t">${hl(n.title, terms)}</span>
+      <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''} ${S.canWrite && !S.select && FINE ? 'draggable="true"' : ''}>
+        <span class="t">${n.pinned ? '<span class="star" title="В избранном">★</span>' : ''}${hl(n.title, terms)}</span>
         ${terms ? `<span class="snip">${snippet(n, terms)}</span>` : ''}
         <span class="meta">${srsPill(n.id)}${showSec && n.section !== S.section ? `<span class="pill" title="${esc(secPath(n.section))}">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${(n.tags || []).map(t => `<span class="tag">#${esc(t)}</span>`).join(' ')}</span>
       </button>
@@ -1015,13 +1177,35 @@ function renderList() {
   }
 }
 
+function renderTrashList(list) {
+  renderBulkBar([]);
+  const head = `<div class="trash-tools"><span>Удалённые заметки хранятся ${TRASH_DAYS} дней, потом исчезают насовсем.</span><span class="spacer"></span>${list.length && S.canWrite ? (S.emptyAsk
+    ? `<span>Удалить все ${list.length} навсегда?</span><button class="btn danger" id="trash-empty-yes">Удалить</button><button class="btn" id="trash-empty-no">Отмена</button>`
+    : `<button class="btn" id="trash-empty">Очистить корзину</button>`) : ''}</div>`;
+  $('#items').innerHTML = head + (list.length ? list.map(n => `
+    <div class="row-item" data-id="${esc(n.id)}">
+      <button class="item" data-id="${esc(n.id)}" aria-current="${n.id === S.noteId}">
+        <span class="t">${esc(n.title)}</span>
+        <span class="meta"><span class="pill">${esc(S.sections.get(n.section)?.title || 'раздел удалён')}</span><span class="hint">ещё ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}</span></span>
+      </button>
+      ${S.canWrite ? `<div class="tr-acts"><button class="btn" data-restore="${esc(n.id)}">Восстановить</button><button class="btn danger" data-purge="${esc(n.id)}">Удалить навсегда</button></div>` : ''}
+    </div>`).join('') : '<div class="empty-state">Корзина пуста.</div>');
+  $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
+  $('#trash-empty-no') && ($('#trash-empty-no').onclick = () => { S.emptyAsk = false; renderList(); });
+  $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.keys()]); });
+}
+$('#items').addEventListener('click', e => {
+  const r = e.target.closest('[data-restore]'); if (r) { e.stopPropagation(); restoreNotes([r.dataset.restore]); return; }
+  const p = e.target.closest('[data-purge]'); if (p) { e.stopPropagation(); purgeNotes([p.dataset.purge]); }
+}, true);
+
 /* ---------- navigation & ordering ---------- */
 function scrollWithin(box, el) {
   const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
   box.scrollTop += (r.top - b.top) - (b.height - r.height) / 2;
 }
 function canReorder() {
-  if (!S.canWrite || S.select || S.section === 'all' || S.q.trim() || S.tag) return false;
+  if (!S.canWrite || S.select || isVirtual(S.section) || S.q.trim() || S.tag || sortMode(S.section) !== 'manual') return false;
   const sub = subtree(S.section); if (sub.size === 1) return true;
   for (const n of S.notes.values()) if (n.section !== S.section && sub.has(n.section)) return false; // mixed list from nested folders
   return true;
@@ -1135,7 +1319,7 @@ function importDiff(d) {
   const notes = [], same = [];
   let fresh = 0;
   for (const n of d.notes) {
-    const cur = S.notes.get(n.id);
+    const cur = S.notes.get(n.id) || S.trash.get(n.id);
     if (!cur) fresh++;
     else if (sameNote(cur, n)) same.push(n.id);
     else notes.push({ id: n.id, file: n, site: cur });
@@ -1185,7 +1369,7 @@ function wireDataPanel() {
   $('#data-export').onclick = () => {
     const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
     const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
-      sections: [...S.sections.values()], notes: [...S.notes.values()], srs, settings: S.settings };
+      sections: [...S.sections.values()], notes: [...S.notes.values(), ...S.trash.values()], srs, settings: S.settings };
     const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `my-notes-${today()}.json`;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -1206,7 +1390,7 @@ function wireDataPanel() {
     const same = new Set(X.same);
     // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
     const secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
-    const notes = d.notes.filter(n => !S.notes.has(n.id) || (!keep && !same.has(n.id)));
+    const notes = d.notes.filter(n => !(S.notes.has(n.id) || S.trash.has(n.id)) || (!keep && !same.has(n.id)));
     const srs = Object.entries(d.srs || {}).filter(([id, v]) => !S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v)));
     const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
     S.dataPanel = { status: 'Импортирую…' }; renderProg();
@@ -1435,7 +1619,7 @@ function renderBulkMenu() {
   if (M.mode === 'tags') renderTagChecklist(ids, `Теги для ${n} ${plural(n, 'заметки', 'заметок', 'заметок')}`, false);
   else if (M.mode === 'move') menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Перенести ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} в раздел</div><div class="menu-scroll">${menuFolderButtons('bulk-move', null)}</div>`;
   else if (M.mode === 'train') menuEl.innerHTML = `${S.uid ? '<button data-act="bulk-relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>' : ''}<button data-act="bulk-ref-on" role="menuitem"><span class="ico">⊘</span>Убрать из тренировки</button><button data-act="bulk-ref-off" role="menuitem"><span class="ico">↺</span>Вернуть в тренировку</button>`;
-  else if (M.mode === 'del') menuEl.innerHTML = `<div class="ask">Удалить ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} насовсем?</div><div class="ask-row"><button class="yes" data-act="bulk-del-yes">Удалить</button><button data-act="bulk-cancel">Отмена</button></div>`;
+  else if (M.mode === 'del') menuEl.innerHTML = `<div class="ask">Переместить ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} в корзину?</div><div class="ask-row"><button class="yes" data-act="bulk-del-yes">В корзину</button><button data-act="bulk-cancel">Отмена</button></div>`;
   placeMenu(M.anchor?.isConnected ? M.anchor : document.querySelector(`#bulkbar [data-bulk="${M.mode}"]`) || $('#bulkbar'));
   const inp = $('#mtag-new'); if (!inp) menuEl.querySelector('button:not([disabled]), input')?.focus();
 }
@@ -1456,9 +1640,7 @@ async function bulkMenuAct(act, b) {
   }
   if (act === 'bulk-del-yes') {
     closeMenu();
-    for (const id of ids) { await write(() => S.db.collection('notes').doc(id).delete(), null); S.notes.delete(id); S.select.delete(id); }
-    if (ids.includes(S.noteId)) { S.noteId = null; renderReader(); }
-    toast(`Удалено: ${ids.length}`); renderRail(); renderList(); return;
+    await trashNotes(ids); return;
   }
 }
 
@@ -1596,6 +1778,11 @@ async function setFolderTrain(id, val) {
 function renderMenu() {
   const M = S.menu; if (!M) return;
   if (M.kind === 'sec') { renderSecMenu(); return; }
+  if (M.kind === 'sort') {
+    const cur = sortMode(M.id);
+    menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Сортировка${S.sections.has(M.id) ? ' в разделе' : ''}</div>` + SORTS.map(([k, l]) => `<button data-act="sort-set" data-sort="${k}" role="menuitemradio" aria-checked="${cur === k}"><span class="ico">${cur === k ? '✓' : ''}</span>${l}</button>`).join('');
+    menuEl.hidden = false; placeMenu(M.anchor); menuEl.querySelector('[aria-checked="true"]')?.focus(); return;
+  }
   if (M.kind === 'bulk') { renderBulkMenu(); return; }
   const n = S.notes.get(M.id); if (!n) { closeMenu(); return; }
   if (M.tags) { renderTagChecklist([M.id], 'Теги заметки', true); placeMenu(document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor); return; }
@@ -1607,6 +1794,7 @@ function renderMenu() {
     : `${(S.q || S.section !== n.section || S.tag) ? `<button data-act="goto" role="menuitem"><span class="ico">↳</span>Показать в разделе</button><div class="sep" role="separator"></div>` : ''}
        <button data-act="rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
        <button data-act="edit" role="menuitem"><span class="ico">¶</span>Редактировать</button>
+       <button data-act="pin" role="menuitem"><span class="ico">${n.pinned ? '★' : '☆'}</span>${n.pinned ? 'Убрать из избранного' : 'В избранное'}</button>
        <div class="sep" role="separator"></div>
        ${canReorder() ? `<button data-act="up" role="menuitem"><span class="ico">↑</span>Переместить выше</button><button data-act="down" role="menuitem"><span class="ico">↓</span>Переместить ниже</button>` : ''}
        <button data-act="tags" role="menuitem"><span class="ico">#</span>Теги…${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
@@ -1614,7 +1802,7 @@ function renderMenu() {
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
        ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
        <div class="sep" role="separator"></div>
-       <button class="danger" data-act="delete" role="menuitem"><span class="ico">✕</span>Удалить</button>`;
+       <button class="danger" data-act="delete" role="menuitem"><span class="ico">🗑</span>В корзину</button>`;
   menuEl.hidden = false;
   const a = (document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor).getBoundingClientRect();
   const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
@@ -1663,6 +1851,7 @@ menuEl.addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b || !S.menu) return;
   const id = S.menu.id; const act = b.dataset.act;
   if (S.menu.kind === 'bulk') { bulkMenuAct(act, b); return; }
+  if (S.menu.kind === 'sort') { if (act === 'sort-set') { const sec = S.menu.id; closeMenu(); setSortMode(sec, b.dataset.sort); } return; }
   if (S.menu.kind === 'sec') {
     if (act === 'sec-rename') { S.menu.mode = 'rename'; renderMenu(); }
     else if (act === 'sec-cancel') closeMenu();
@@ -1691,12 +1880,12 @@ menuEl.addEventListener('click', async e => {
   if (act === 'move-to') { closeMenu(); moveToSection(id, b.dataset.sec); return; }
   if (act === 'rename') { closeMenu(); S.renaming = { id, draft: S.notes.get(id)?.title || '', fresh: true }; renderList(); }
   else if (act === 'edit') { closeMenu(); S.noteId = id; store.set('note', id); $('#lib').classList.add('reading'); startEdit(id); renderList(); }
-  else if (act === 'delete') { S.menu.confirm = true; renderMenu(); }
+  else if (act === 'pin') { closeMenu(); togglePin(id); }
+  else if (act === 'delete') { closeMenu(); trashNotes([id]); }
   else if (act === 'delete-no') { S.menu.confirm = false; renderMenu(); }
   else if (act === 'delete-yes') {
     closeMenu();
-    const ok = await write(() => S.db.collection('notes').doc(id).delete(), 'Заметка удалена');
-    if (ok && S.noteId === id) { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); renderReader(); }
+    trashNotes([id]);
   }
 });
 menuEl.addEventListener('keydown', e => {
@@ -1755,6 +1944,10 @@ $('#q').addEventListener('keydown', e => {
 });
 
 /* ---------- read the whole list as one article ---------- */
+$('#sort-btn').addEventListener('click', e => {
+  if (S.menu?.kind === 'sort') { closeMenu(); return; }
+  S.menu = { kind: 'sort', id: S.section, anchor: e.currentTarget }; renderMenu();
+});
 $('#read-all').addEventListener('click', () => {
   if (S.article) { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); renderReader(true); return; }
   S.article = true; S.editing = null; S.artJumpToCurrent = true; $('#read-all').setAttribute('aria-pressed', 'true');
@@ -1816,16 +2009,29 @@ function openNote(id, dir) {
     if (sec) { $('#lib').classList.add('reading'); S.noteId = id; markListCurrent(id); scrollArticleTo(sec); return; }
   }
   S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
-  S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null;
+  S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null; if (S.notes.has(id)) touchRecent(id);
   $('#lib').classList.add('reading');
   document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
   renderReader(true);
+}
+function renderTrashed(box, n) {
+  box.innerHTML = `
+    <div class="mbar"><button class="back" id="back">← К списку</button></div>
+    <div class="eyebrow">Корзина · был в «${esc(secPath(n.section) || 'раздел удалён')}»</div>
+    <h1>${esc(n.title)}</h1>
+    ${S.canWrite ? `<div class="trash-banner"><span>Заметка в корзине: исчезнет насовсем через ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}.</span><button class="btn primary" id="tr-restore">Восстановить</button><button class="btn danger" id="tr-purge">Удалить навсегда</button></div>` : ''}
+    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Пустая заметка.</p>'}</div>`;
+  enhance($('#md'), null);
+  $('#back').onclick = () => $('#lib').classList.remove('reading');
+  $('#tr-restore') && ($('#tr-restore').onclick = () => restoreNotes([n.id]));
+  $('#tr-purge') && ($('#tr-purge').onclick = () => purgeNotes([n.id]));
 }
 function renderReader(scrollTop) {
   const box = $('#reader .doc');
   $('#lib').classList.toggle('wide-edit', !!S.editing && S.editing.tab === 'split');
   if (S.editing) { renderEditor(box); return; }
   if (S.article) { renderArticle(box, scrollTop); return; }
+  if (!S.notes.has(S.noteId) && S.trash.has(S.noteId)) { renderTrashed(box, S.trash.get(S.noteId)); return; }
   const n = S.notes.get(S.noteId);
   if (!n) { box.innerHTML = `<div class="empty-state">${S.loaded.notes ? 'Выбери заметку слева или найди её через поиск.' : 'Загружаю заметки…'}</div>`; return; }
   const s = S.srs.get(n.id);
@@ -1835,12 +2041,14 @@ function renderReader(scrollTop) {
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><button id="prev-note" aria-label="Предыдущая заметка в списке" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="Следующая заметка в списке" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(secPath(n.section))} ↳</button></div>
-    <h1>${esc(n.title)}</h1>
+    <h1>${esc(n.title)}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${n.pinned ? 'Убрать из избранного' : 'В избранное'}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); return terms ? markTerms(md, terms) : null; })();
+  $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
+  if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = 'Отметить'; cb.onchange = () => toggleTask(n.id, i, cb.checked); });
   if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
   if (S.slide) { const dcl = S.slide === 'next' ? 'slide-in-next' : 'slide-in-prev'; S.slide = null; box.classList.remove('slide-in-next', 'slide-in-prev'); void box.offsetWidth; box.classList.add(dcl); }
   $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(n.id)}"]`); if (r) scrollWithin($('#items'), r); };
@@ -1884,7 +2092,7 @@ function renderReader(scrollTop) {
 /* ---------- editor ---------- */
 document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
-  const sec = S.section !== 'all' ? S.section : (sectionsSorted()[0]?.id || '');
+  const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : lastFolder();
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
   $('#lib').classList.add('reading'); renderReader(true);
 });
@@ -1921,7 +2129,7 @@ function renderEditor(box) {
         <button class="btn primary" type="submit">Сохранить</button>
         <button class="btn" type="button" id="ed-cancel">Отмена</button>
         <span class="spacer"></span>
-        ${E.id ? (E.confirmDel ? `<span class="confirm">Удалить заметку насовсем? <button class="btn danger" type="button" id="ed-del-yes">Удалить</button><button class="btn" type="button" id="ed-del-no">Нет</button></span>` : `<button class="btn danger" type="button" id="ed-del">Удалить</button>`) : ''}
+        ${E.id ? (E.confirmDel ? `<span class="confirm">Переместить заметку в корзину? <button class="btn danger" type="button" id="ed-del-yes">В корзину</button><button class="btn" type="button" id="ed-del-no">Нет</button></span>` : `<button class="btn danger" type="button" id="ed-del">В корзину</button>`) : ''}
       </div>
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
@@ -1979,8 +2187,7 @@ function renderEditor(box) {
   $('#ed-del-no') && ($('#ed-del-no').onclick = () => { E.confirmDel = false; renderEditor(box); });
   $('#ed-del-yes') && ($('#ed-del-yes').onclick = async () => {
     const id = E.id;
-    const ok = await write(() => S.db.collection('notes').doc(id).delete(), 'Заметка удалена');
-    if (ok) { S.editing = null; S.noteId = null; $('#lib').classList.remove('reading'); renderReader(); }
+    S.editing = null; trashNotes([id]);
   });
   const form = $('#ed');
   form.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); } });
@@ -1992,6 +2199,7 @@ function renderEditor(box) {
     const prev = S.notes.get(id);
     const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
+    if (prev?.pinned) doc.pinned = true;
     const ok = await write(() => S.db.collection('notes').doc(id).set(doc), E.id ? 'Сохранено' : 'Заметка добавлена');
     if (ok) { S.editing = null; S.noteId = id; store.set('note', id); S.artJumpToCurrent = true; renderList(); renderReader(true); }
   });
@@ -2563,12 +2771,14 @@ async function boot() {
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
   db.collection('sections').onSnapshot(snap => {
-    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train }]; }));
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
-    S.notes = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())]));
-    S.loaded.notes = true; rerender();
+    const act = new Map(), tr = new Map();
+    for (const d of snap.docs) { const v = Object.assign({ id: d.id }, d.data()); (v.deleted ? tr : act).set(d.id, v); }
+    S.notes = act; S.trash = tr;
+    S.loaded.notes = true; rerender(); autoPurge();
   }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
