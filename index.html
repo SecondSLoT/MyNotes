@@ -138,6 +138,11 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .pick-list button{flex-direction:column;align-items:flex-start !important;gap:2px !important}
 .pick-list button.on{background:var(--accent-soft)}
 .pick-list small{color:var(--faint);font-size:11.5px}
+.t-edit-btn{border:1px solid var(--line);background:var(--raised);color:var(--muted);border-radius:999px;padding:2px 10px;font:500 12px/1.6 var(--f-body);vertical-align:middle;margin-left:6px;cursor:pointer}
+.t-edit-btn:hover{color:var(--ink);border-color:var(--line-strong)}
+.t-edit{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.t-edit #te-title{font:600 18px/1.3 var(--f-display);border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--raised);width:100%}
+.t-edit textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:14px/1.6 var(--f-mono);background:var(--raised);resize:vertical}
 .menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
@@ -618,6 +623,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
+          <li><b>«✎ Править»</b> рядом с вопросом (или клавиша <kbd>E</kbd>, или двойной клик по ответу) — дополнить или исправить карточку прямо в тренировке, пока помнишь. После сохранения сессия продолжается с той же карточки. <kbd>MOD</kbd>+<kbd>Enter</kbd> — сохранить, <kbd>Esc</kbd> — отменить.</li>
           <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, внизу вкладки «Тренировка» → «Вне тренировки», в самой заметке или через «⋮».</li>
           <li>В итоге сессии есть кнопка «Прогнать ещё раз то, что не знал».</li>
           <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам заново (завтра → 5 дней → ~12 дней…), а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
@@ -1050,20 +1056,21 @@ function newImgPath(blob) {
   return `img/${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
 }
 function replaceInEditor(from, to) {
-  const E = S.editing; if (!E) return;
-  E.draft.body = E.draft.body.split(from).join(to);
-  const ta = $('#ed-body');
+  const E = S.editing;
+  if (E) E.draft.body = E.draft.body.split(from).join(to);
+  if (S.train?.edit) S.train.edit.body = S.train.edit.body.split(from).join(to);
+  const ta = $('#ed-body') || $('#te-body');
   if (ta && ta.value.includes(from)) { const a = ta.selectionStart, b = ta.selectionEnd, i = ta.value.indexOf(from), dl = to.length - from.length; ta.value = ta.value.split(from).join(to); const f = x => x > i ? x + dl : x; ta.setSelectionRange(f(a), f(b)); }
   const vis = $('#ed-prev');
   if (vis) vis.querySelectorAll(`img[data-src="${CSS.escape(from)}"]`).forEach(img => { if (to) img.dataset.src = to; else img.closest('p')?.childNodes.length === 1 ? img.closest('p').remove() : img.remove(); });
 }
 // put an image into the open editor right away (as a local preview) and upload it in the background
 function insertUpload(file) {
-  if (!S.editing || !file || !/^image\//.test(file.type)) return;
+  if ((!S.editing && !$('#te-body')) || !file || !/^image\//.test(file.type)) return;
   const key = 'uploading-' + Math.random().toString(36).slice(2, 8);
   localImages[key] = URL.createObjectURL(file);
-  const ta = $('#ed-body'), vis = $('#ed-prev');
-  if (S.editing.pane === 'vis' && vis) {
+  const ta = $('#ed-body') || $('#te-body'), vis = $('#ed-prev');
+  if (S.editing?.pane === 'vis' && vis) {
     // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
     vis.focus(); restoreSel();
     const sel = getSelection(); let block = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
@@ -3200,23 +3207,70 @@ function renderSession(root) {
     <div class="sbar"><button class="btn" id="s-end">Завершить</button><div class="track"><i style="width:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
     <div class="card">
       <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
-      <div class="q">${esc(n.title)}</div>
+      ${T.edit ? `<form class="t-edit editor" id="t-edit">
+        <input id="te-title" value="${esc(T.edit.title)}" aria-label="Вопрос / заголовок" required>
+        ${toolbarHtml()}
+        <textarea id="te-body" aria-label="Ответ" spellcheck="true">${esc(T.edit.body)}</textarea>
+        <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" id="te-cancel">Отмена</button><span class="hint">${MOD}+Enter — сохранить · Esc — отмена</span></div>
+      </form>` : `<div class="q">${esc(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>
       ${S.canWrite ? tagRowHtml(id, 'train') : ''}
-      ${T.shown ? `<div class="ans md" id="ans">${renderMd(n.body)}</div>` : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}
+      ${T.shown ? `<div class="ans md" id="ans">${renderMd(n.body)}</div>` : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}`}
     </div>
-    ${T.shown ? `<div class="grades">
+    ${T.shown && !T.edit ? `<div class="grades">
       <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
       <button class="grade g2" data-g="2" title="Клавиша 2"><kbd>2</kbd>Плаваю<small>${pv(2)}</small></button>
       <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
     <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
   </div>`;
-  if (T.shown) enhance($('#ans'));
-  $('#s-end').onclick = () => { T.done = true; renderSession(root); };
+  if (T.shown && $('#ans')) enhance($('#ans'));
+  $('#s-end').onclick = () => { T.edit = null; T.done = true; renderSession(root); };
+  wireTrainEdit(root, n);
   $('#reveal') && ($('#reveal').onclick = () => { T.shown = true; renderSession(root); });
   root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => gradeCurrent(+b.dataset.g));
   $('#drop-card') && ($('#drop-card').onclick = () => dropCurrent());
   restoreTagEdit();
   root.scrollTop = 0;
+}
+function startTrainEdit() {
+  const T = S.train; if (!T || T.done || !S.canWrite) return;
+  const n = S.notes.get(T.queue[T.i]); if (!n) return;
+  T.edit = { id: n.id, title: n.title, body: n.body || '' };
+  renderSession($('#train'));
+}
+function wireTrainEdit(root, n) {
+  const T = S.train;
+  $('#t-edit-btn') && ($('#t-edit-btn').onclick = startTrainEdit);
+  $('#ans') && S.canWrite && ($('#ans').ondblclick = e => { if (!e.target.closest('a, input, button')) { getSelection().removeAllRanges(); startTrainEdit(); } });
+  const f = $('#t-edit'); if (!f) return;
+  const ta = $('#te-body'), ti = $('#te-title');
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.max(220, ta.scrollHeight + 4) + 'px'; };
+  grow(); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  const sync = () => { T.edit.title = ti.value; T.edit.body = ta.value; };
+  ta.addEventListener('input', () => { sync(); grow(); });
+  ti.addEventListener('input', sync);
+  ta.addEventListener('keydown', e => mdKeydown(e, ta));
+  ta.addEventListener('input', e => { const p = ta.selectionStart; if (e.inputType === 'insertText' && ta.value.slice(p - 2, p) === '[[') pickForMd(ta, p - 2, p); });
+  ta.addEventListener('paste', e => { const fl = imageFiles(e.clipboardData); if (!fl.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); fl.forEach(insertUpload); });
+  const tb = f.querySelector('.md-toolbar');
+  tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
+  tb.addEventListener('click', e => { const b = e.target.closest('[data-md]'); if (b) mdAction(b.dataset.md, ta); });
+  const cancel = () => { T.edit = null; renderSession(root); };
+  $('#te-cancel').onclick = cancel;
+  f.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); f.requestSubmit(); }
+    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu) { e.preventDefault(); e.stopPropagation(); cancel(); }
+  });
+  f.onsubmit = async e => {
+    e.preventDefault();
+    if (uploads.size) { toast('Жду, пока загрузится картинка…'); await Promise.allSettled([...uploads]); }
+    sync();
+    const title = T.edit.title.trim(); if (!title) return;
+    const cur = S.notes.get(T.edit.id); if (!cur) { T.edit = null; renderSession(root); return; }
+    const upd = { title, body: T.edit.body, updated: new Date().toISOString() };
+    const ok = await write(() => S.db.collection('notes').doc(cur.id).update(upd), 'Карточка обновлена');
+    if (!ok) return;
+    Object.assign(cur, upd); T.edit = null; T.shown = true; renderSession(root);
+  };
 }
 function dropCurrent() {
   const T = S.train; const id = T.queue[T.i]; if (!id) return;
@@ -3268,7 +3322,8 @@ document.addEventListener('keydown', e => {
   if (S.mode === 'lib' && !typing && !S.editing && !S.article && !S.menu && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.noteId && S.notes.has(S.noteId) && $('#md')) { e.preventDefault(); editHere(S.noteId); }
   if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
   if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
-  if (S.mode === 'train' && S.train && !S.train.done && !typing) {
+  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.train.edit && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.canWrite) { e.preventDefault(); startTrainEdit(); return; }
+  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.train.edit) {
     if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown) { e.preventDefault(); S.train.shown = true; renderSession($('#train')); }
     else if (S.train.shown && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
   }
