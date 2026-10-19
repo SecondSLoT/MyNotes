@@ -599,6 +599,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>Название раздела над открытой заметкой — ссылка: открывает раздел и прокручивает список к этой заметке.</li>
           <li><b>«Подряд»</b> над списком показывает все заметки текущего списка одной статьёй с содержанием: раздел, результаты поиска или фильтр по тегу. Клик по заметке в списке прокручивает статью к ней, а список подсвечивает то, что сейчас читаешь. У каждой заметки в статье есть «Открыть» и «Править». Повторное нажатие «Подряд» или «закрыть статью ✕» возвращает обычный режим.</li>
           <li>На телефоне заметки можно листать свайпом влево и вправо или стрелками ‹ › в верхней полоске.</li>
+          <li>Жест или кнопка «Назад» возвращает к предыдущей открытой заметке, разделу или экрану. Если открыто меню, справка или редактор, «Назад» сначала закрывает их (редактор при этом сохраняет правки, как Esc).</li>
         </ul></section>
       <section id="h-search"><h3>Поиск и теги</h3>
         <ul>
@@ -1193,7 +1194,7 @@ function setMode(m) {
   $('#lib').hidden = m !== 'lib'; $('#train').hidden = m !== 'train'; $('#prog').hidden = m !== 'prog';
   $('#search-box').style.visibility = m === 'lib' ? 'visible' : 'hidden';
   if (m === 'train') renderTrain(); if (m === 'prog') renderProg(); if (m === 'lib') renderLib();
-  sessionClass();
+  sessionClass(); histSync();
 }
 document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
@@ -1392,7 +1393,7 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
+function selectSection(id) { if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -2468,7 +2469,7 @@ function openNote(id, dir) {
   S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null; if (S.notes.has(id)) touchRecent(id);
   $('#lib').classList.add('reading');
   document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
-  renderReader(true);
+  renderReader(true); histSync();
 }
 function setupHits(box) {
   const marks = [...box.querySelectorAll('#md mark')];
@@ -3565,6 +3566,54 @@ async function boot() {
     db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { if (d.exists) { S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); } }, () => {});
   }
 }
+
+/* ---------- browser history: the phone's back gesture walks back through opened notes ---------- */
+var NAV = { ready: false, popping: false, t: 0 };
+const isPhone = () => window.matchMedia('(max-width:760px)').matches;
+function navNow() { return { m: S.mode, s: S.section, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') }; }
+const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0].join('|') : '';
+function histSync() {
+  if (!NAV || !NAV.ready || NAV.popping) return;
+  clearTimeout(NAV.t);
+  NAV.t = setTimeout(() => {   // coalesce "open folder + open note" into one step
+    if (NAV.popping) return;
+    const st = navNow(), cur = history.state?.nav;
+    if (!cur) { history.replaceState({ nav: st }, ''); return; }
+    if (navKey(cur) !== navKey(st)) history.pushState({ nav: st }, '');
+  }, 0);
+}
+function navStart() {
+  if (NAV.ready) return; NAV.ready = true;
+  history.replaceState({ nav: navNow() }, '');
+}
+['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (S.loaded?.notes) navStart(); }, { capture: true, passive: true }));
+new MutationObserver(histSync).observe($('#lib'), { attributes: true, attributeFilter: ['class'] });
+// something "on top" (menu, help, editor, selection) is closed by back instead of leaving the note
+function closeTopLayer() {
+  if (S.menu) { closeMenu(); return true; }
+  if (!$('#help').hidden) { $('#help-close').click(); return true; }
+  if (S.editing) { const f = $('#edit-overlay #ed') || $('#ed'); if (f) { f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); return true; } }
+  if (S.select) { setSelectMode(false); return true; }
+  return false;
+}
+window.addEventListener('popstate', e => {
+  if (!NAV.ready) return;
+  const here = navNow();
+  if (closeTopLayer()) { history.pushState({ nav: here }, ''); return; }
+  const st = e.state?.nav; if (!st) return;
+  NAV.popping = true;
+  try {
+    if (st.m !== S.mode) setMode(st.m);
+    if (st.m === 'lib') {
+      if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s);
+      if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
+        openNote(st.n);
+        const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(st.n)}"]`); if (r) scrollWithin($('#items'), r);
+      }
+      if (isPhone()) $('#lib').classList.toggle('reading', !!st.r);
+    }
+  } finally { setTimeout(() => { NAV.popping = false; }, 0); }
+});
 
 /* ---------- help ---------- */
 (() => {
