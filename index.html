@@ -3574,13 +3574,16 @@ function navNow() { return { m: S.mode, s: S.section, n: S.noteId || null, r: is
 const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0].join('|') : '';
 function histSync() {
   if (!NAV || !NAV.ready || NAV.popping) return;
-  clearTimeout(NAV.t);
-  NAV.t = setTimeout(() => {   // coalesce "open folder + open note" into one step
+  // a microtask, not a timer: the entry must be pushed before the browser paints the new note,
+  // otherwise Chrome's back-swipe preview snapshots the new note as the picture of the old entry
+  if (NAV.queued) return; NAV.queued = true;
+  queueMicrotask(() => {   // still coalesces "open folder + open note" into one step
+    NAV.queued = false;
     if (NAV.popping) return;
     const st = navNow(), cur = history.state?.nav;
     if (!cur) { history.replaceState({ nav: st }, ''); return; }
     if (navKey(cur) !== navKey(st)) history.pushState({ nav: st }, '');
-  }, 0);
+  });
 }
 function navStart() {
   if (NAV.ready) return; NAV.ready = true;
