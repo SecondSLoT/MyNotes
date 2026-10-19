@@ -561,7 +561,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
         <ul>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
-          <li><b>Картинка</b> вставляет шаблон <code>![](img/имя.png)</code> — останется вписать имя файла (в визуальном режиме появится поле для имени). Сам файл нужно положить в папку <code>img</code> рядом с сайтом.</li>
+          <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
           <li>Галочка <b>«Не тренировать»</b> оставляет заметку в разделе, но убирает из тренировки. Видна только для разделов с включённой тренировкой.</li>
@@ -958,6 +958,112 @@ function snippet(n, Q) {
 }
 function allTags() { const m = new Map(); for (const n of S.notes.values()) for (const t of n.tags || []) m.set(t, (m.get(t) || 0) + 1); return [...m.entries()].sort((a, b) => b[1] - a[1]); }
 
+/* ---------- images: upload to the GitHub repo that hosts the site ---------- */
+const localImages = {}; // path or upload key -> blob: URL, so a fresh image shows before GitHub Pages republishes
+function ghGuess() {
+  const h = location.hostname.match(/^([^.]+)\.github\.io$/i); if (!h) return '';
+  const seg = location.pathname.split('/').filter(Boolean)[0];
+  return `${h[1]}/${seg && !/\.html?$/.test(seg) ? seg : h[1] + '.github.io'}`;
+}
+function ghConf() { const c = store.get('gh', {}); return { repo: c.repo || ghGuess(), branch: c.branch || 'main', token: c.token || '' }; }
+const ghReady = () => { const c = ghConf(); return !!(window.NOTES_STANDALONE && c.token && c.repo); };
+function fixImgs(root) {
+  root.querySelectorAll('img').forEach(img => {
+    const orig = img.dataset.src || img.getAttribute('src') || '';
+    if (localImages[orig]) { img.dataset.src = orig; img.src = localImages[orig]; return; }
+    const gh = ghConf();
+    if (gh.repo && /^img\//.test(orig)) img.onerror = () => {
+      if (img.dataset.rawTried) return; img.dataset.rawTried = '1'; img.dataset.src = orig;
+      img.src = `https://raw.githubusercontent.com/${gh.repo}/${gh.branch}/${orig}`; // not on Pages yet: take it straight from the repo
+    };
+  });
+}
+async function compressImage(file) {
+  if (!/^image\/(png|jpe?g|webp|bmp)$/.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1800 / bmp.width);
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const out = await new Promise(r => c.toBlob(r, 'image/webp', 0.86));
+    return out && (out.size < file.size || k < 1) ? out : file;
+  } catch { return file; }
+}
+const blobB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
+async function ghPut(path, blob, message) {
+  const gh = ghConf();
+  const r = await fetch(`https://api.github.com/repos/${gh.repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${gh.token}`, Accept: 'application/vnd.github+json' },
+    body: JSON.stringify({ message, content: await blobB64(blob), branch: gh.branch }),
+  });
+  if (!r.ok) {
+    const why = r.status === 401 ? 'токен не подходит или истёк' : r.status === 403 || r.status === 404 ? 'у токена нет доступа на запись к репозиторию' : r.status === 422 ? 'GitHub отклонил файл' : 'ошибка ' + r.status;
+    throw new Error(why);
+  }
+}
+const uploads = new Set();
+function newImgPath(blob) {
+  const ext = ({ 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/svg+xml': 'svg', 'image/bmp': 'bmp' })[blob.type] || 'png';
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  return `img/${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+}
+function replaceInEditor(from, to) {
+  const E = S.editing; if (!E) return;
+  E.draft.body = E.draft.body.split(from).join(to);
+  const ta = $('#ed-body');
+  if (ta && ta.value.includes(from)) { const a = ta.selectionStart, b = ta.selectionEnd, i = ta.value.indexOf(from), dl = to.length - from.length; ta.value = ta.value.split(from).join(to); const f = x => x > i ? x + dl : x; ta.setSelectionRange(f(a), f(b)); }
+  const vis = $('#ed-prev');
+  if (vis) vis.querySelectorAll(`img[data-src="${CSS.escape(from)}"]`).forEach(img => { if (to) img.dataset.src = to; else img.closest('p')?.childNodes.length === 1 ? img.closest('p').remove() : img.remove(); });
+}
+// put an image into the open editor right away (as a local preview) and upload it in the background
+function insertUpload(file) {
+  if (!S.editing || !file || !/^image\//.test(file.type)) return;
+  const key = 'uploading-' + Math.random().toString(36).slice(2, 8);
+  localImages[key] = URL.createObjectURL(file);
+  const ta = $('#ed-body'), vis = $('#ed-prev');
+  if (S.editing.pane === 'vis' && vis) {
+    // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
+    vis.focus(); restoreSel();
+    const sel = getSelection(); let block = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    if (block && !vis.contains(block)) block = null;
+    while (block && block.parentNode !== vis) block = block.parentNode;
+    const para = document.createElement('p'); const img = document.createElement('img');
+    img.src = localImages[key]; img.dataset.src = key; img.alt = ''; para.appendChild(img);
+    if (block && block !== vis) block.after(para); else vis.appendChild(para);
+    if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
+    const r = document.createRange(); r.setStart(para.nextSibling, 0); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); saveSel();
+    vis.dispatchEvent(new Event('input', { bubbles: true }));
+  } else if (ta) {
+    const s0 = ta.selectionStart, e0 = ta.selectionEnd, v = ta.value;
+    const pre = !s0 || v[s0 - 1] === '\n' ? '' : '\n\n', post = v[e0] === '\n' ? '\n' : '\n\n';
+    const text = `${pre}![](${key})${post}`;
+    replaceRange(ta, s0, e0, text, s0 + text.length);
+  }
+  toast('Загружаю картинку…');
+  const job = (async () => {
+    try {
+      const blob = await compressImage(file);
+      const path = newImgPath(blob);
+      await ghPut(path, blob, `Add ${path} (My Notes)`);
+      localImages[path] = localImages[key];
+      replaceInEditor(key, path);
+      toast('Картинка загружена');
+    } catch (err) {
+      replaceInEditor(`![](${key})`, ''); replaceInEditor(key, '');
+      toast('Картинка не загрузилась: ' + (err?.message || err));
+    }
+  })();
+  uploads.add(job); job.finally(() => uploads.delete(job));
+}
+function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.test(f.type)); }
+function pickImages() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+  inp.onchange = () => { for (const f of inp.files) insertUpload(f); };
+  inp.click();
+}
+function noGhHint() { if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
+
 /* ---------- markdown ---------- */
 const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
 let mdReady = false;
@@ -974,6 +1080,7 @@ function renderMd(src) {
 function enhance(root, terms) {
   root.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
   root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.alt = img.alt || 'Иллюстрация из заметки'; });
+  fixImgs(root);
   if (window.hljs) root.querySelectorAll('pre code').forEach(c => {
     try {
       const m = (c.className.match(/language-(\w+)/) || [])[1];
@@ -1380,6 +1487,52 @@ document.addEventListener('keydown', e => { if (drag && e.key === 'Escape') endD
 
 
 /* ---------- backup: export / import (standalone build only) ---------- */
+function ghPanelHtml() {
+  const c = ghConf(); const st = S.ghStatus || '';
+  const inp = 'border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:7px 9px;width:100%;font:inherit';
+  return `<details class="panel" id="gh-panel" ${S.ghOpen ? 'open' : ''}>
+    <summary>Картинки <span>· ${ghReady() ? 'загрузка в GitHub подключена' : 'загрузка в GitHub не подключена'}</span></summary>
+    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена кнопка «Картинка» вставляет шаблон ссылки, как раньше.</p>
+    <form id="gh-form" class="opts" style="gap:10px;margin-top:10px">
+      <label class="field"><span class="lbl">Репозиторий (владелец/имя)</span><input id="gh-repo" style="${inp}" value="${esc(c.repo)}" placeholder="login/my-notes" autocomplete="off"></label>
+      <label class="field"><span class="lbl">Ветка</span><input id="gh-branch" style="${inp}" value="${esc(c.branch)}" placeholder="main" autocomplete="off"></label>
+      <label class="field"><span class="lbl">Токен</span><input id="gh-token" type="password" style="${inp}" value="${esc(c.token)}" placeholder="github_pat_…" autocomplete="off"></label>
+      <div class="bar"><button class="btn primary" type="submit">Сохранить и проверить</button>${c.token ? '<button class="btn" type="button" id="gh-off">Отключить на этом устройстве</button>' : ''}</div>
+      ${st ? `<p class="hint" style="margin:0">${esc(st)}</p>` : ''}
+    </form>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font:inherit;padding:0">Как получить токен</summary>
+      <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
+        <li>GitHub → аватар справа вверху → <b>Settings</b> → внизу слева <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+        <li>Token name — любое, например «My Notes images». Expiration — сколько не жалко (потом можно выпустить новый).</li>
+        <li>Repository access → <b>Only select repositories</b> → выбери репозиторий сайта.</li>
+        <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Остальное не трогай.</li>
+        <li><b>Generate token</b>, скопируй его (начинается на <code>github_pat_</code>) и вставь сюда.</li>
+      </ol></details>
+  </details>`;
+}
+function wireGhPanel() {
+  const p = $('#gh-panel'); if (!p) return;
+  p.ontoggle = () => { S.ghOpen = p.open; };
+  $('#gh-form').onsubmit = async e => {
+    e.preventDefault();
+    const repo = $('#gh-repo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, ''), branch = $('#gh-branch').value.trim() || 'main', token = $('#gh-token').value.trim();
+    store.set('gh', { repo, branch, token });
+    if (!repo || !token) { S.ghStatus = 'Укажи репозиторий и токен.'; renderProg(); return; }
+    S.ghStatus = 'Проверяю…'; renderProg();
+    try {
+      const r = await fetch(`https://api.github.com/repos/${repo}`, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+      if (r.status === 401) throw new Error('GitHub не принял токен. Проверь, что он скопирован целиком и не истёк.');
+      if (r.status === 404) throw new Error('Репозиторий не найден или токену не дан к нему доступ.');
+      if (!r.ok) throw new Error('GitHub ответил ошибкой ' + r.status);
+      const info = await r.json();
+      if (info.permissions && !info.permissions.push) throw new Error('У токена нет права записи. Нужно Contents: Read and write.');
+      if (!$('#gh-branch').value.trim() && info.default_branch) store.set('gh', { repo, branch: info.default_branch, token });
+      S.ghStatus = `Готово: картинки будут загружаться в ${repo}, ветка ${ghConf().branch}.`;
+    } catch (err) { S.ghStatus = err.message || String(err); }
+    renderProg();
+  };
+  $('#gh-off') && ($('#gh-off').onclick = () => { const c = store.get('gh', {}); store.set('gh', { repo: c.repo, branch: c.branch, token: '' }); S.ghStatus = 'Токен удалён с этого устройства.'; renderProg(); });
+}
 function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
@@ -2240,6 +2393,9 @@ function renderEditor(box) {
       if (vis) { clearTimeout(pT); pT = setTimeout(renderVis, 160); }
     });
     ta.addEventListener('keydown', e => mdKeydown(e, ta));
+    ta.addEventListener('paste', e => { const f = imageFiles(e.clipboardData); if (!f.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); f.forEach(insertUpload); });
+    ta.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+    ta.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } ta.focus(); f.forEach(insertUpload); });
     ta.addEventListener('focus', () => { E.pane = 'md'; });
     requestAnimationFrame(grow);
   }
@@ -2253,7 +2409,11 @@ function renderEditor(box) {
       if (visDirty) { visDirty = false; renderVis(); }
     });
     vis.addEventListener('keydown', e => visKeydown(e, vis));
+    vis.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+    vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
     vis.addEventListener('paste', e => {
+      const f = imageFiles(e.clipboardData);
+      if (f.length) { e.preventDefault(); if (!ghReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
       e.preventDefault();
       const t = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
       document.execCommand('insertText', false, t);
@@ -2288,7 +2448,9 @@ function renderEditor(box) {
   const form = $('#ed');
   form.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); } });
   form.addEventListener('submit', async e => {
-    e.preventDefault(); sync();
+    e.preventDefault();
+    if (uploads.size) { toast('Жду, пока загрузится картинка…'); await Promise.allSettled([...uploads]); }
+    sync();
     if (!d.title.trim()) return;
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
@@ -2410,6 +2572,7 @@ function mdAction(act, ta) {
       return replaceRange(ta, s, e, t, s + label.length + 3, s + label.length + 11);
     }
     case 'img': {
+      if (ghReady()) { pickImages(); return; }
       const name = sel.trim().replace(/^img\//, '') || 'имя.png';
       const base = name.replace(/\.[a-z0-9]+$/i, '');
       return insertBlock(ta, `![](img/${name})`, 8, base.length);
@@ -2520,7 +2683,7 @@ function mdInline(nodes) {
     else if (t === 'DEL' || t === 'S' || t === 'STRIKE') s += mdWrap('~~', kids());
     else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
     else if (t === 'A') { const label = kids().trim() || n.getAttribute('href') || ''; s += `[${label}](${n.getAttribute('href') || ''})`; }
-    else if (t === 'IMG') s += `![${n.getAttribute('alt') === 'Иллюстрация из заметки' ? '' : (n.getAttribute('alt') || '')}](${n.getAttribute('src') || ''})`;
+    else if (t === 'IMG') s += `![${n.getAttribute('alt') === 'Иллюстрация из заметки' ? '' : (n.getAttribute('alt') || '')}](${n.dataset.src || n.getAttribute('src') || ''})`;
     else if (t === 'BR') s += '  \n';
     else if (t === 'INPUT') continue;
     else if (BLOCK_TAGS.has(t)) s += '\n\n' + mdBlock(n) + '\n\n';
@@ -2570,6 +2733,7 @@ function visAction(act, vis) {
     }
     case 'img': {
       saveSel();
+      if (ghReady()) { pickImages(); return; }
       const lb = $('#link-bar'); lb.dataset.mode = 'img'; lb.hidden = false;
       $('#link-label').textContent = 'Файл картинки: img/';
       const inp = $('#link-url'); inp.placeholder = 'имя.png'; inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
@@ -2825,10 +2989,10 @@ function renderProg() {
       </form>
     </section>
     ${tagsPanelHtml()}
-    ${window.NOTES_STANDALONE ? dataPanelHtml() : ''}
+    ${window.NOTES_STANDALONE ? ghPanelHtml() + dataPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
-  if (window.NOTES_STANDALONE) wireDataPanel();
+  if (window.NOTES_STANDALONE) { wireDataPanel(); wireGhPanel(); }
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
