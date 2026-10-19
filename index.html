@@ -213,6 +213,11 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .is-dragging,.is-dragging *{cursor:grabbing!important;user-select:none}
 .row-item.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
 .row-item.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+.grp-h{display:flex;align-items:center;gap:8px;width:100%;border:0;border-bottom:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 12px/1.4 var(--f-mono);text-align:left;padding:12px 14px 6px;cursor:pointer}
+.grp-h:hover{color:var(--ink)}
+.grp-h .n{margin-left:auto;font-weight:500;color:var(--faint)}
+.grp-h.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
+.grp-h.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
 .goto{position:absolute;right:8px;bottom:8px;border:1px solid var(--line);background:var(--raised);color:var(--accent);border-radius:6px;font-size:12px;padding:2px 8px}
 .goto:hover{border-color:var(--accent)}
 .row-item:has(.goto) .item{padding-bottom:30px}
@@ -580,7 +585,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>Слева разделы, в середине список, справа открытая заметка. На телефоне разделы — это строка чипов над списком.</li>
           <li><b>Разделы.</b> На компьютере: «+ Раздел» внизу списка разделов, двойной клик — переименовать, правый клик — меню раздела. На телефоне: «+» в конце строки разделов, а меню раздела открывается долгим нажатием на раздел. Обычное нажатие при открытом меню закрывает его.</li>
           <li><b>Ширина панели разделов</b> на компьютере меняется перетаскиванием её правой границы мышкой; двойной клик по границе возвращает исходную ширину. Ширина запоминается.</li>
-          <li><b>Вложенные разделы.</b> Раздел может содержать подразделы (например, «Учёба» → «Английский» → заметки). Стрелка ▶ слева сворачивает и разворачивает ветку. Выбранный раздел показывает заметки вместе со всеми подразделами; у заметок из подразделов видна плашка с их названием. На телефоне строка чипов показывает текущий уровень: «‹» — на уровень выше, чип со знаком › — раздел с подразделами.</li>
+          <li><b>Вложенные разделы.</b> Раздел может содержать подразделы (например, «Учёба» → «Английский» → заметки). Стрелка ▶ слева сворачивает и разворачивает ветку. Выбранный раздел показывает заметки вместе со всеми подразделами. При ручной сортировке они разбиты на группы с заголовками: сначала заметки самого раздела, потом каждого подраздела. Порядок внутри группы меняется перетаскиванием за ⠿, а если перетащить заметку в другую группу, она переедет в этот подраздел. Клик по заголовку группы открывает подраздел. При других сортировках у заметок из подразделов видна плашка с их названием. На телефоне строка чипов показывает текущий уровень: «‹» — на уровень выше, чип со знаком › — раздел с подразделами.</li>
           <li>В меню раздела: переименовать, новый подраздел, выше/ниже среди соседей, переместить в другой раздел или на верхний уровень, включить тренировку, удалить (только пустой раздел без подразделов).</li>
           <li><b>Избранное, Недавние, Корзина</b> — сверху и внизу панели разделов. Звёздочка ☆ рядом с заголовком заметки (или «⋮ → В избранное») добавляет её в избранное. «Недавние» — то, что ты недавно открывал или менял. Удалённые заметки попадают в корзину и хранятся там 30 дней: их можно восстановить или удалить навсегда.</li>
           <li><b>Сортировка</b> — кнопка ⇅ над списком: вручную, по дате изменения, по дате создания, по алфавиту. Для каждого раздела своя и синхронизируется между устройствами. Перетаскивать заметки за ⠿ можно только при сортировке «вручную».</li>
@@ -1436,16 +1441,20 @@ function renderList() {
     $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
-  const showSec = isVirtual(S.section) || terms || hasKids(S.section);
+  const grouped = !terms && !S.tag && !isVirtual(S.section) && hasKids(S.section) && sortMode(S.section) === 'manual';
+  const showSec = !grouped && (isVirtual(S.section) || terms || hasKids(S.section));
   const reorder = canReorder();
   const hadFocus = document.activeElement?.id === 'rename-input';
-  $('#items').innerHTML = list.map(n => S.renaming?.id === n.id ? `
+  const gcount = new Map(); if (grouped) for (const n of list) gcount.set(n.section, (gcount.get(n.section) || 0) + 1);
+  const relPath = sec => { const chain = []; let x = sec; while (x && x !== S.section) { chain.unshift(S.sections.get(x)?.title || ''); x = parentOf(x); } return chain.join(' › ') || 'Заметки раздела'; };
+  let prevSec = null;
+  $('#items').innerHTML = list.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="Открыть «${esc(secPath(n.section))}»"><span>${n.section === S.section ? '' : '📁 '}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
     <form class="row-item rename-form" data-id="${esc(n.id)}">
       <label class="lbl" for="rename-input">Новое название</label>
       <input id="rename-input" value="${esc(S.renaming.draft)}" autocomplete="off">
       <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" data-rename-cancel>Отмена</button><span class="hint">Enter / Esc</span></div>
     </form>` : `
-    <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}">
+    <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}" data-sec="${esc(n.section)}">
       ${S.select ? `<span class="selbox" aria-hidden="true">${S.select.has(n.id) ? '✓' : ''}</span>` : ''}
       ${reorder ? `<span class="grip" data-grip="${esc(n.id)}" title="Перетащи, чтобы поменять порядок" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span>` : ''}
       <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''} ${S.canWrite && !S.select && FINE ? 'draggable="true"' : ''}>
@@ -1455,7 +1464,7 @@ function renderList() {
       </button>
       ${S.canWrite && !S.select ? `<button class="more" data-more="${esc(n.id)}" aria-label="Действия с карточкой" aria-haspopup="menu" aria-expanded="${S.menu?.id === n.id}">⋮</button>` : ''}
       ${(terms || S.tag) && !S.select ? `<button class="goto" data-goto="${esc(n.id)}" title="Открыть раздел и прокрутить список к этой заметке">в разделе →</button>` : ''}
-    </div>`).join('');
+    </div>`)).join('');
   renderBulkBar(list);
   if (S.flash) { const el = document.querySelector(`.row-item[data-id="${CSS.escape(S.flash)}"]`); if (el) { scrollWithin($('#items'), el); el.classList.add('flash'); } S.flash = null; }
   if (S.renaming) {
@@ -1493,8 +1502,6 @@ function scrollWithin(box, el) {
 }
 function canReorder() {
   if (!S.canWrite || S.select || isVirtual(S.section) || S.q.trim() || S.tag || sortMode(S.section) !== 'manual') return false;
-  const sub = subtree(S.section); if (sub.size === 1) return true;
-  for (const n of S.notes.values()) if (n.section !== S.section && sub.has(n.section)) return false; // mixed list from nested folders
   return true;
 }
 function gotoInSection(id) {
@@ -1549,18 +1556,29 @@ $('#items').addEventListener('pointerdown', e => {
   const g = e.target.closest('[data-grip]'); if (!g || !canReorder() || e.button > 0) return;
   e.preventDefault();
   const row = g.closest('.row-item');
-  drag = { id: g.dataset.grip, row, pointer: e.pointerId, index: null, scrollT: null };
+  drag = { id: g.dataset.grip, home: row.dataset.sec, row, pointer: e.pointerId, index: null, scrollT: null };
   row.classList.add('dragging'); document.body.classList.add('is-dragging');
   g.setPointerCapture(e.pointerId);
   closeMenu();
 });
+/* returns {sec, before|after: note id}; group headers split the list into folders */
 function dragTarget(y) {
-  const rows = [...document.querySelectorAll('#items .row-item')].filter(r => r !== drag.row);
-  let idx = rows.length;
-  for (let i = 0; i < rows.length; i++) { const r = rows[i].getBoundingClientRect(); if (y < r.top + r.height / 2) { idx = i; break; } }
-  rows.forEach(r => r.classList.remove('drop-before', 'drop-after'));
-  if (rows.length) { if (idx < rows.length) rows[idx].classList.add('drop-before'); else rows[rows.length - 1].classList.add('drop-after'); }
-  return idx;
+  const els = [...$('#items').children].filter(el => el !== drag.row && (el.classList.contains('row-item') || el.classList.contains('grp-h')));
+  els.forEach(r => r.classList.remove('drop-before', 'drop-after'));
+  let sec = drag.home, last = null, lastHead = null, t = null, mark = null;
+  for (const el of els) {
+    const r = el.getBoundingClientRect(), mid = r.top + r.height / 2;
+    if (el.classList.contains('grp-h')) {
+      if (y < mid && lastHead) { t = { sec, after: last?.dataset.id }; mark = [last || lastHead, 'drop-after']; break; }
+      sec = el.dataset.grp; last = null; lastHead = el; continue;
+    }
+    sec = el.dataset.sec;
+    if (y < mid) { t = { sec, before: el.dataset.id }; mark = [el, 'drop-before']; break; }
+    last = el;
+  }
+  if (!t) { t = { sec, after: last?.dataset.id }; mark = last ? [last, 'drop-after'] : lastHead ? [lastHead, 'drop-after'] : null; }
+  if (mark) mark[0].classList.add(mark[1]);
+  return t;
 }
 $('#items').addEventListener('pointermove', e => {
   if (!drag || e.pointerId !== drag.pointer) return;
@@ -1573,11 +1591,27 @@ $('#items').addEventListener('pointermove', e => {
 function endDrag(commit) {
   if (!drag) return;
   clearInterval(drag.scrollT);
-  document.querySelectorAll('#items .row-item').forEach(r => r.classList.remove('drop-before', 'drop-after', 'dragging'));
+  document.querySelectorAll('#items .row-item, #items .grp-h').forEach(r => r.classList.remove('drop-before', 'drop-after', 'dragging'));
   document.body.classList.remove('is-dragging');
   const d = drag; drag = null;
-  if (commit && d.index != null) placeAt(d.id, d.index);
+  if (commit && d.index) dropNote(d.id, d.index);
 }
+async function dropNote(id, t) {
+  const n = S.notes.get(id); if (!n || !t.sec) return;
+  const list = sectionList(t.sec).filter(x => x.id !== id);
+  let i = t.before ? list.findIndex(x => x.id === t.before) : t.after ? list.findIndex(x => x.id === t.after) + 1 : 0;
+  if (i < 0) i = list.length;
+  if (t.sec === n.section) return placeAt(id, i);
+  const order = orderBetween(list[i - 1]?.order, list[i]?.order);
+  n.section = t.sec; n.order = order; S.flash = id; renderRail(); renderList();
+  const ok = await write(() => S.db.collection('notes').doc(id).update({ section: t.sec, order, updated: new Date().toISOString() }), `Перенесено в «${S.sections.get(t.sec)?.title || ''}»`);
+  if (ok && S.noteId === id && !S.editing) renderReader();
+}
+$('#items').addEventListener('click', e => {
+  const h = e.target.closest('[data-grp]'); if (!h || drag) return;
+  const sec = h.dataset.grp; if (sec === S.section) return;
+  selectSection(sec);
+});
 $('#items').addEventListener('pointerup', e => { if (drag && e.pointerId === drag.pointer) endDrag(true); });
 $('#items').addEventListener('pointercancel', () => endDrag(false));
 document.addEventListener('keydown', e => { if (drag && e.key === 'Escape') endDrag(false); });
