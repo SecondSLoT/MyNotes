@@ -373,6 +373,11 @@ button.tag{border:0;background:none;padding:0}
 .field textarea#ed-body{overflow:hidden}
 .md ul:has(> li > input[type=checkbox]){list-style:none;padding-left:.3em}
 .md li > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
+.visual ul:has(> li.task),.visual ol:has(> li.task){padding-left:.3em}
+.visual li.task{list-style:none;position:relative;padding-left:1.55em}
+.visual li.task::before{content:'';position:absolute;left:0;top:.28em;width:.95em;height:.95em;border:1.5px solid var(--muted);border-radius:3px;background:var(--raised);box-sizing:border-box;cursor:pointer}
+.visual li.task[data-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
+.visual li.task[data-checked="true"]::after{content:'';position:absolute;left:.3em;top:.36em;width:.28em;height:.55em;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);pointer-events:none}
 .md del{color:var(--muted)}
 .preview.visual{cursor:text;min-height:360px;outline:none;transition:border-color .12s,box-shadow .12s}
 .preview.visual:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -1014,6 +1019,13 @@ function ghGuess() {
 }
 function ghConf() { const c = store.get('gh', {}); return { repo: c.repo || ghGuess(), branch: c.branch || 'main', token: c.token || '' }; }
 const ghReady = () => { const c = ghConf(); return !!(window.NOTES_STANDALONE && c.token && c.repo); };
+// in the visual editor, task items are li.task[data-checked] (a real <input> inside contenteditable is unreliable)
+function prepVisTasks(root) {
+  root.querySelectorAll('li > input[type=checkbox], li > p:first-child > input[type=checkbox]').forEach(cb => {
+    const li = cb.closest('li'); li.classList.add('task'); li.dataset.checked = String(cb.checked || cb.hasAttribute('checked'));
+    const nx = cb.nextSibling; cb.remove(); if (nx && nx.nodeType === 3) nx.nodeValue = nx.nodeValue.replace(/^\s+/, '');
+  });
+}
 function fixImgs(root) {
   root.querySelectorAll('img').forEach(img => {
     const orig = img.dataset.src || img.getAttribute('src') || '';
@@ -1133,6 +1145,7 @@ function enhance(root, terms) {
   });
   root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.alt = img.alt || 'Иллюстрация из заметки'; });
   fixImgs(root);
+  if (root.id === 'ed-prev') prepVisTasks(root);
   if (window.hljs) root.querySelectorAll('pre code').forEach(c => {
     try {
       const m = (c.className.match(/language-(\w+)/) || [])[1];
@@ -2725,7 +2738,16 @@ function renderEditor(box) {
   if (vis) {
     try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
     const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); if (ta) { ta.value = d.body; grow(); } };
+    vis.addEventListener('input', e => {
+      if (e.inputType !== 'insertParagraph') return;
+      const li = closestIn(vis, 'li'); const prevLi = li?.previousElementSibling;
+      if (li && prevLi?.classList.contains('task')) { li.classList.add('task'); if (!li.textContent.trim()) li.dataset.checked = 'false'; }
+    });
     vis.addEventListener('input', fromVis);
+    vis.addEventListener('mousedown', e => {
+      const li = e.target.closest?.('li.task'); if (!li || e.target !== li || e.clientX - li.getBoundingClientRect().left > 20) return;
+      e.preventDefault(); li.dataset.checked = String(li.dataset.checked !== 'true'); fromVis();
+    });
     vis.addEventListener('focus', () => { E.pane = 'vis'; });
     vis.addEventListener('blur', e => {
       if (e.relatedTarget && (e.relatedTarget.closest('#link-bar, .md-toolbar') || menuEl.contains(e.relatedTarget))) return;
@@ -2998,6 +3020,7 @@ function mdList(el) {
     let marker = ordered ? `${start + i}. ` : '- ';
     const cb = li.querySelector(':scope > input[type=checkbox], :scope > p:first-child > input[type=checkbox]');
     if (cb) marker += (cb.checked || cb.hasAttribute('checked')) ? '[x] ' : '[ ] ';
+    else if (li.classList.contains('task')) marker += li.dataset.checked === 'true' ? '[x] ' : '[ ] ';
     const body = mdBlocks(li).join(loose ? '\n\n' : '\n');
     const ind = ' '.repeat(ordered ? marker.length : 2);
     return marker + body.split('\n').map((l, j) => j === 0 || !l ? l : ind + l).join('\n');
@@ -3061,10 +3084,13 @@ function visAction(act, vis) {
     case 'ul': return exec('insertUnorderedList');
     case 'ol': return exec('insertOrderedList');
     case 'task': {
-      if (!closestIn(vis, 'ul')) exec('insertUnorderedList');
-      const li = closestIn(vis, 'li'); if (!li) return;
-      const has = li.querySelector(':scope > input[type=checkbox]');
-      if (has) has.remove(); else { const cb = document.createElement('input'); cb.type = 'checkbox'; cb.disabled = true; li.insertBefore(document.createTextNode(' '), li.firstChild); li.insertBefore(cb, li.firstChild); }
+      if (!closestIn(vis, 'ul,ol')) exec('insertUnorderedList');
+      const sl = getSelection(); let lis = [];
+      if (sl.rangeCount && !sl.isCollapsed) { const r = sl.getRangeAt(0); lis = [...vis.querySelectorAll('li')].filter(li => r.intersectsNode(li) && !li.querySelector('li')); }
+      if (!lis.length) { const li = closestIn(vis, 'li'); if (li) lis = [li]; }
+      if (!lis.length) return;
+      const on = !lis.every(li => li.classList.contains('task'));
+      lis.forEach(li => { li.classList.toggle('task', on); if (on) li.dataset.checked = li.dataset.checked || 'false'; else delete li.dataset.checked; });
       vis.dispatchEvent(new Event('input', { bubbles: true })); return;
     }
     case 'block': return exec('insertHTML', `<pre><code class="language-kotlin">${esc(text || '// код')}</code></pre><p><br></p>`);
