@@ -121,6 +121,21 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .draft-note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:13px}
 .draft-note .btn{padding:3px 10px;font-size:13px}
 #md{cursor:text}
+.md a.note-link{color:var(--accent);text-decoration:none;border-bottom:1px dashed currentColor;background:var(--accent-soft);border-radius:4px;padding:0 3px;cursor:pointer}
+.md a.note-link::before{content:'↗ ';font-size:.85em;opacity:.7}
+.md a.note-link.broken{color:var(--faint);background:none;text-decoration:line-through;cursor:default}
+.backlinks{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
+.backlinks h4{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:0 0 8px}
+.backlinks button{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:6px;color:var(--ink);cursor:pointer}
+.backlinks button:hover{background:var(--surface)}
+.backlinks small{color:var(--faint);font-size:12px}
+.link-back{border:0;background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;margin-left:8px}
+.pick{width:min(420px,calc(100vw - 32px));display:flex;flex-direction:column;gap:6px;padding:4px}
+.pick input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;font:inherit;width:100%}
+.pick-list{display:flex;flex-direction:column;max-height:min(50vh,360px);overflow:auto}
+.pick-list button{flex-direction:column;align-items:flex-start !important;gap:2px !important}
+.pick-list button.on{background:var(--accent-soft)}
+.pick-list small{color:var(--faint);font-size:11.5px}
 .menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
@@ -582,6 +597,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
+          <li><b>Ссылка на другую заметку:</b> набери <code>[[</code> в Markdown-колонке или нажми кнопку «Ссылка на заметку» на панели, начни вводить название и выбери заметку (стрелки и Enter). Если перед этим выделить текст — он станет текстом ссылки. Ссылка держится за заметку, а не за название: переименование или перенос в другой раздел её не ломают. По клику открывается нужная заметка, рядом с разделом появляется «← назад» к той, откуда пришёл. Внизу каждой заметки — список «Ссылаются на эту заметку». Ссылка на удалённую заметку становится зачёркнутой.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
@@ -1101,7 +1117,11 @@ function renderMd(src) {
   return window.DOMPurify ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] }) : html;
 }
 function enhance(root, terms) {
-  root.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+  root.querySelectorAll('a[href]').forEach(a => {
+    const nid = noteLinkId(a.getAttribute('href'));
+    if (nid) { a.classList.add('note-link'); const t = S.notes.get(nid); if (t) a.title = 'Заметка: ' + t.title; else { a.classList.add('broken'); a.title = S.trash.has(nid) ? 'Заметка в корзине' : 'Заметка удалена'; } return; }
+    a.target = '_blank'; a.rel = 'noopener';
+  });
   root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.alt = img.alt || 'Иллюстрация из заметки'; });
   fixImgs(root);
   if (window.hljs) root.querySelectorAll('pre code').forEach(c => {
@@ -2109,6 +2129,17 @@ async function setFolderTrain(id, val) {
 function renderMenu() {
   const M = S.menu; if (!M) return;
   if (M.kind === 'sec') { renderSecMenu(); return; }
+  if (M.kind === 'pick') {
+    menuEl.innerHTML = `<form class="pick" id="pick-form"><input id="pick-q" placeholder="Найти заметку…" autocomplete="off" aria-label="Найти заметку"><div class="pick-list" id="pick-list"></div></form>`;
+    renderPickList(); placeMenu(M.anchor);
+    const q = $('#pick-q'); q.focus();
+    q.oninput = () => { M.q = q.value; M.i = 0; renderPickList(); };
+    q.onkeydown = e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = M.res?.length || 0; if (n) { M.i = (M.i + (e.key === 'ArrowDown' ? 1 : -1) + n) % n; renderPickList(); $('#pick-list .on')?.scrollIntoView({ block: 'nearest' }); } }
+    };
+    $('#pick-form').onsubmit = e => { e.preventDefault(); const n = M.res?.[M.i]; if (n) { const f = M.onPick; closeMenu(); f(n); } };
+    return;
+  }
   if (M.kind === 'sort') {
     const cur = sortMode(M.id);
     menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Сортировка${S.sections.has(M.id) ? ' в разделе' : ''}</div>` + SORTS.map(([k, l]) => `<button data-act="sort-set" data-sort="${k}" role="menuitemradio" aria-checked="${cur === k}"><span class="ico">${cur === k ? '✓' : ''}</span>${l}</button>`).join('');
@@ -2182,6 +2213,7 @@ menuEl.addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b || !S.menu) return;
   const id = S.menu.id; const act = b.dataset.act;
   if (S.menu.kind === 'bulk') { bulkMenuAct(act, b); return; }
+  if (S.menu.kind === 'pick') { if (act === 'pick') { const n = S.notes.get(b.dataset.id); const f = S.menu.onPick; closeMenu(); if (n) f(n); } return; }
   if (S.menu.kind === 'sort') { if (act === 'sort-set') { const sec = S.menu.id; closeMenu(); setSortMode(sec, b.dataset.sort); } return; }
   if (S.menu.kind === 'sec') {
     if (act === 'sec-rename') { S.menu.mode = 'rename'; renderMenu(); }
@@ -2341,6 +2373,7 @@ function openNote(id, dir) {
     if (sec) { $('#lib').classList.add('reading'); S.noteId = id; markListCurrent(id); scrollArticleTo(sec); return; }
   }
   S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
+  if (!S._following) S.linkBack = null;
   S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null; if (S.notes.has(id)) touchRecent(id);
   $('#lib').classList.add('reading');
   document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
@@ -2384,7 +2417,7 @@ function renderReader(scrollTop) {
   const srsLine = n.ref ? '' : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><button id="prev-note" aria-label="Предыдущая заметка в списке" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="Следующая заметка в списке" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
-    <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(secPath(n.section))} ↳</button></div>
+    <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(secPath(n.section))} ↳</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="Вернуться к заметке, из которой пришёл по ссылке">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(n.title)}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${n.pinned ? 'Убрать из избранного' : 'В избранное'}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
@@ -2395,6 +2428,8 @@ function renderReader(scrollTop) {
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
   setupHits(box);
   $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
+  $('#link-back') && ($('#link-back').onclick = () => { const b = S.linkBack; S.linkBack = null; openNote(b); });
+  { const bl = backlinks(n.id); if (bl.length) { const d = document.createElement('div'); d.className = 'backlinks'; d.innerHTML = `<h4>Ссылаются на эту заметку · ${bl.length}</h4>` + bl.map(x => `<button type="button" data-bl="${esc(x.id)}">${esc(x.title)} <small>${esc(secPath(x.section))}</small></button>`).join(''); $('#md').after(d); d.onclick = e => { const b = e.target.closest('[data-bl]'); if (b) followNoteLink(b.dataset.bl, n.id); }; } }
   if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = 'Отметить'; cb.onchange = () => toggleTask(n.id, i, cb.checked); });
   if (S.readAnchor && S.readAnchor.id === n.id && !terms) { const A = S.readAnchor; S.readAnchor = null; const el = $('#md').children[Math.min(A.block, $('#md').children.length - 1)]; if (el) scrollToY(el, A.viewY ?? 80); }
   else if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
@@ -2449,6 +2484,63 @@ function renderReader(scrollTop) {
   // drop the animation class once played, so the note does not replay it every time the reader is shown again
   reader.addEventListener('animationend', e => e.target.classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
 })();
+
+/* ---------- links between notes: [текст](#note:ID) ---------- */
+const noteLinkId = href => { const m = /^#note:(.+)$/.exec(href || ''); return m ? decodeURIComponent(m[1]) : null; };
+function backlinks(id) {
+  const key = '#note:' + id; const out = [];
+  for (const n of S.notes.values()) if (n.id !== id && (n.body || '').includes(key)) out.push(n);
+  const idx = tree().idx; return out.sort((a, b) => (idx.get(a.section) ?? 1e6) - (idx.get(b.section) ?? 1e6) || a.title.localeCompare(b.title, 'ru'));
+}
+function followNoteLink(id, fromId) {
+  if (!S.notes.has(id)) { toast(S.trash.has(id) ? 'Эта заметка в корзине' : 'Заметка, на которую ведёт ссылка, удалена'); return; }
+  if (S.mode !== 'lib') setMode('lib');
+  S.linkBack = fromId && fromId !== id ? fromId : null;
+  S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
+  S._following = true; try { openNote(id); } finally { S._following = false; }
+  const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(id)}"]`); if (r) scrollWithin($('#items'), r);
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="#note:"]'); if (!a || a.closest('[contenteditable="true"]')) return;
+  e.preventDefault(); e.stopPropagation();
+  const from = a.closest('.art-note')?.dataset.id || (S.mode === 'lib' ? S.noteId : null);
+  followNoteLink(noteLinkId(a.getAttribute('href')), from);
+});
+// note picker: used by the toolbar button and by typing [[ in the editor
+function openNotePicker(anchor, onPick, exclude) { S.menu = { kind: 'pick', anchor, onPick, exclude, q: '', i: 0 }; renderMenu(); }
+function pickResults() {
+  const M = S.menu; const q = M.q.trim();
+  const list = q ? (searchNotes(q)?.list || []) : recentList();
+  return list.filter(n => n.id !== M.exclude).slice(0, 8);
+}
+function renderPickList() {
+  const M = S.menu; const res = pickResults(); M.res = res; M.i = Math.min(M.i, Math.max(0, res.length - 1));
+  const Q = M.q.trim() ? parseQuery(M.q) : null;
+  $('#pick-list').innerHTML = res.length ? res.map((n, i) => `<button type="button" data-act="pick" data-id="${esc(n.id)}" class="${i === M.i ? 'on' : ''}"><span>${hl(n.title, Q)}</span><small>${esc(secPath(n.section))}</small></button>`).join('')
+    : `<div class="ask" style="color:var(--muted)">${M.q.trim() ? 'Ничего не нашлось' : 'Начни вводить название заметки'}</div>`;
+}
+function caretAnchor(ta) {
+  const r = ta.getBoundingClientRect(); const y = r.top + caretY(ta, ta.selectionStart) - ta.scrollTop;
+  return { isConnected: true, getBoundingClientRect: () => ({ left: r.left + 12, right: r.left + 12, top: y, bottom: y + 22, width: 0, height: 22 }) };
+}
+function insertNoteLinkMd(ta, n, from, to) {
+  const sel = ta.value.slice(from, to); const text = (sel && sel !== '[[' ? sel : n.title).replace(/[\[\]]/g, '');
+  const md = `[${text}](#note:${n.id})`;
+  replaceRange(ta, from, to, md, from + md.length);
+}
+function pickForMd(ta, from, to) {
+  openNotePicker(caretAnchor(ta), n => { ta.focus(); insertNoteLinkMd(ta, n, from, to); }, S.editing?.id);
+}
+function pickForVis(vis, anchorEl) {
+  saveSel();
+  openNotePicker(anchorEl, n => {
+    vis.focus(); restoreSel();
+    const sel = getSelection(); const href = '#note:' + n.id;
+    if (sel.rangeCount && !sel.isCollapsed) exec('createLink', href);
+    else exec('insertHTML', `<a href="${esc(href)}">${esc(n.title)}</a>&#8203;`);
+    vis.dispatchEvent(new Event('input', { bubbles: true }));
+  }, S.editing?.id);
+}
 
 /* ---------- editing where you read: anchors, drafts ---------- */
 const draftKey = id => 'draft.' + (id || 'new');
@@ -2587,6 +2679,10 @@ function renderEditor(box) {
       if (vis) { clearTimeout(pT); pT = setTimeout(renderVis, 160); }
     });
     ta.addEventListener('keydown', e => mdKeydown(e, ta));
+    ta.addEventListener('input', e => {
+      const p = ta.selectionStart;
+      if (e.inputType === 'insertText' && ta.value.slice(p - 2, p) === '[[') pickForMd(ta, p - 2, p);
+    });
     ta.addEventListener('paste', e => { const f = imageFiles(e.clipboardData); if (!f.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); f.forEach(insertUpload); });
     ta.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
     ta.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } ta.focus(); f.forEach(insertUpload); });
@@ -2599,7 +2695,8 @@ function renderEditor(box) {
     vis.addEventListener('input', fromVis);
     vis.addEventListener('focus', () => { E.pane = 'vis'; });
     vis.addEventListener('blur', e => {
-      if (e.relatedTarget && e.relatedTarget.closest('#link-bar, .md-toolbar')) return;
+      if (e.relatedTarget && (e.relatedTarget.closest('#link-bar, .md-toolbar') || menuEl.contains(e.relatedTarget))) return;
+      if (S.menu?.kind === 'pick') return;
       if (visDirty) { visDirty = false; renderVis(); }
     });
     vis.addEventListener('keydown', e => visKeydown(e, vis));
@@ -2686,6 +2783,7 @@ const ICO = {
   block: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2" width="13" height="12" rx="2"/><path d="M6 6L4 8l2 2M10 6l2 2-2 2"/></svg>',
   link: '<svg viewBox="0 0 16 16"><path d="M6.8 9.2a3 3 0 004.2 0l2.2-2.2a3 3 0 00-4.2-4.2L8 3.8M9.2 6.8a3 3 0 00-4.2 0L2.8 9a3 3 0 004.2 4.2L8 12.2"/></svg>',
   table: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11"/></svg>',
+  note: '<svg viewBox="0 0 16 16"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3"/><path d="M6 10.5l4-4M7.5 6.5H10V9"/></svg>',
   img: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>',
   hr: '<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>',
   undo: '<svg viewBox="0 0 16 16"><path d="M5 3L2 6l3 3"/><path d="M2.5 6H10a4 4 0 010 8H7"/></svg>',
@@ -2696,7 +2794,7 @@ function toolbarHtml() {
   return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
     <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}</div>
     <div class="tb-group">${b('h1', '<span class="hl">H<small>1</small></span>', `Заголовок (${MOD}+Alt+1)`)}${b('h2', '<span class="hl">H<small>2</small></span>', `Подзаголовок (${MOD}+Alt+2)`)}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
-    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
+    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('note', ICO.note, 'Ссылка на заметку ([[ в тексте)')}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
   </div>`;
 }
@@ -2789,6 +2887,7 @@ function mdAction(act, ta) {
       const base = name.replace(/\.[a-z0-9]+$/i, '');
       return insertBlock(ta, `![](img/${name})`, 8, base.length);
     }
+    case 'note': return pickForMd(ta, s, e);
     case 'table': return insertBlock(ta, '| Колонка 1 | Колонка 2 |\n| --- | --- |\n| значение | значение |', 2, 9);
     case 'hr': return insertBlock(ta, '---', 3);
     case 'undo': ta.focus(); try { document.execCommand('undo'); } catch {} return;
@@ -2953,6 +3052,7 @@ function visAction(act, vis) {
       const inp = $('#link-url'); inp.placeholder = 'имя.png'; inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
       return;
     }
+    case 'note': return pickForVis(vis, document.querySelector('.md-toolbar [data-md="note"]') || vis);
     case 'table': return exec('insertHTML', '<table><thead><tr><th>Колонка 1</th><th>Колонка 2</th></tr></thead><tbody><tr><td>значение</td><td>значение</td></tr></tbody></table><p><br></p>');
     case 'hr': return exec('insertHorizontalRule');
     case 'undo': return exec('undo');
