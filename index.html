@@ -149,6 +149,13 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .tagbar{display:flex;gap:6px;flex-wrap:wrap;padding-block:8px;padding-inline:16px;border-bottom:1px solid var(--line)}
 .tagbar[hidden]{display:none}
+.scopebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-block:8px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.scopebar[hidden]{display:none}
+.scopebar .seg button{font-size:13px;padding:4px 10px}
+.hitbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:6px 10px;margin:0 0 12px;font-size:13px;width:max-content;max-width:100%}
+.hitbar button{border:1px solid var(--line);background:var(--raised);border-radius:6px;min-width:28px;height:26px;color:var(--ink)}
+.md mark.cur,.art-note mark.cur{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:760px){.hitbar{top:60px}}
 .items{overflow:auto;flex:1;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 .rail{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
 .item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding-block:11px;padding-inline:16px;color:var(--ink)}
@@ -156,7 +163,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.item .snip{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
+.item .snip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
 .row-item{position:relative;border-bottom:1px solid var(--line)}
 .row-item .item{border-bottom:0;padding-right:46px}
 .more{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:18px;line-height:1;display:grid;place-items:center;opacity:0;transition:opacity .12s}
@@ -495,6 +502,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
       <div class="chips-row" id="chips"></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="tagbar" id="tagbar" hidden></div>
+      <div class="scopebar" id="scopebar" hidden></div>
       <div class="bulkbar" id="bulkbar" hidden></div>
       <div class="items" id="items"><div class="empty-state">Загружаю заметки…</div></div>
     </section>
@@ -535,7 +543,11 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
       <section id="h-search"><h3>Поиск и теги</h3>
         <ul>
           <li>Поиск ищет сразу по заголовкам, тексту и тегам, без учёта регистра и разницы «е/ё». Несколько слов — значит, должны найтись все. Можно писать часть слова: <code>корут</code> найдёт «корутины».</li>
-          <li>Выше в результатах те, где слово есть в заголовке, потом в тегах, потом в тексте.</li>
+          <li><b>Словоформы:</b> <code>корутина</code> найдёт и «корутины», и «корутинами»; <code>binding</code> — и «bind», и «bindings».</li>
+          <li><b>Фраза целиком</b> — в кавычках: <code>"two-way binding"</code>. <b>Исключить слово</b> — минусом: <code>flow -shared</code>. <b>Только по тегу</b> — решёткой: <code>#собес</code>.</li>
+          <li>Выше в результатах те, где слово есть в заголовке, потом в тегах, потом в тексте; фраза целиком и точная форма слова поднимают результат.</li>
+          <li>Под результатом — один-два фрагмента текста с подсветкой. Если открыт раздел, над результатами есть переключатель <b>«везде / в этом разделе»</b>.</li>
+          <li>Открытая из поиска заметка прокручена к первому совпадению; плашка <b>«Совпадение 1 из N ‹ ›»</b> переключает между ними (с клавиатуры — <kbd>]</kbd> и <kbd>[</kbd>).</li>
           <li><b>Enter</b> в поиске открывает первый результат, <b>Esc</b> очищает поиск.</li>
           <li>Кнопка <b>«в разделе →»</b> у результата открывает заметку в её разделе среди соседних.</li>
           <li><b>Теги</b> ставятся прямо в открытой заметке: <b>«+ тег»</b> под заголовком, начни печатать — появятся подсказки из уже существующих тегов. Enter, пробел или запятая добавляют тег, <b>×</b> убирает, Backspace в пустом поле убирает последний. Ещё теги можно ставить через «⋮ → Теги…» в списке, прямо на карточке во время тренировки и в редакторе.</li>
@@ -620,6 +632,7 @@ const S = {
   db: null, uid: null, canWrite: true,
   sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), settings: { newPerDay: 10 },
   loaded: { sections: false, notes: false },
+  searchHere: store.get('searchHere', false),
   mode: 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
   editing: null, // {id|null, draft}
   train: null,   // active session
@@ -859,35 +872,89 @@ function plain(n) {
   plainCache.set(n.id, { key, text });
   return text;
 }
-function searchNotes(q) {
-  const terms = norm(q).split(/\s+/).map(t => t.replace(/^#+/, '')).filter(Boolean);
-  if (!terms.length) return null;
-  const out = [];
-  for (const n of S.notes.values()) {
-    const t = norm(n.title), g = norm((n.tags || []).join(' ')), b = norm(plain(n));
-    let score = 0, ok = true;
-    for (const term of terms) {
-      const inT = t.includes(term), inG = g.includes(term), inB = b.includes(term);
-      if (!inT && !inG && !inB) { ok = false; break; }
-      score += (inT ? 6 : 0) + (inG ? 3 : 0) + (inB ? 1 : 0) + (t.startsWith(term) ? 2 : 0);
-    }
-    if (ok) out.push({ n, score });
+/* ---------- search: word forms, "phrases", -exclude, #tag ---------- */
+const RU_SUF = ['иями', 'ями', 'ами', 'иях', 'ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ией', 'ешь', 'ете', 'ует', 'уют', 'ях', 'ах', 'ов', 'ев', 'ей', 'ой', 'ий', 'ый', 'ая', 'яя', 'ое', 'ее', 'ые', 'ие', 'ом', 'ем', 'ам', 'ям', 'ую', 'юю', 'ют', 'ут', 'ет', 'ит', 'ат', 'ят', 'ть', 'а', 'я', 'о', 'е', 'ы', 'и', 'у', 'ю', 'ь', 'й'];
+const EN_SUF = ['ings', 'ing', 'ies', 'es', 'ed', 's'];
+function stemWord(w) {
+  if (/[а-я]/.test(w)) {
+    if (w.length < 5) return w;
+    w = w.replace(/(ся|сь)$/, '');
+    for (const x of RU_SUF) if (w.endsWith(x) && w.length - x.length >= 4) return w.slice(0, -x.length);
+    return w;
   }
-  { const idx = tree().idx; out.sort((a, b) => b.score - a.score || (idx.get(a.n.section) ?? 1e6) - (idx.get(b.n.section) ?? 1e6)); }
-  return { terms, list: out.map(x => x.n) };
+  if (/^[a-z]{5,}$/.test(w)) for (const x of EN_SUF) if (w.endsWith(x) && w.length - x.length >= 4) return w.slice(0, -x.length);
+  return w;
 }
-function hl(text, terms) {
-  let h = esc(text);
-  if (!terms || !terms.length) return h;
-  const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]')).join('|') + ')', 'gi');
-  return h.replace(re, '<mark>$1</mark>');
+const rxEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]');
+function parseQuery(q) {
+  if (!q || !q.trim()) return null;
+  const parts = []; const re = /(-?)"([^"]+)"?|(\S+)/g; let m;
+  while ((m = re.exec(q))) {
+    if (m[2] != null) { const t = norm(m[2]).replace(/\s+/g, ' ').trim(); if (t) parts.push({ kind: 'phrase', t, s: t, neg: !!m[1] }); continue; }
+    let w = m[3], neg = false;
+    if (w.length > 1 && w[0] === '-') { neg = true; w = w.slice(1); }
+    if (w[0] === '#') { const t = norm(w.replace(/^#+/, '')); if (t) parts.push({ kind: 'tag', t, s: t, neg }); continue; }
+    const t = norm(w).replace(/^[«»"'(),.:;!?]+|[«»"'(),.:;!?]+$/g, ''); if (!t) continue;
+    parts.push({ kind: 'word', t, s: stemWord(t), neg });
+  }
+  const pos = parts.filter(p => !p.neg);
+  if (!pos.length) return null;
+  const src = pos.filter(p => p.kind !== 'tag')
+    .map(p => p.kind === 'phrase' ? p.t.split(' ').map(rxEsc).join('\\s+') : rxEsc(p.s) + '[\\wа-яё]*')
+    .sort((a, b) => b.length - a.length);
+  return { parts, pos, re: src.length ? new RegExp('(' + src.join('|') + ')', 'gi') : null };
 }
-function snippet(n, terms) {
-  const p = plain(n); const np = norm(p);
-  let i = -1; for (const t of terms) { i = np.indexOf(t); if (i >= 0) break; }
-  if (i < 0) return '';
-  const a = Math.max(0, i - 50), b = Math.min(p.length, i + 110);
-  return (a > 0 ? '…' : '') + hl(p.slice(a, b), terms) + (b < p.length ? '…' : '');
+function normPlain(n) { const p = plain(n); const c = plainCache.get(n.id); if (c.norm == null) c.norm = norm(p).replace(/\s+/g, ' '); return c.norm; }
+function countOcc(h, k, max) { let c = 0, i = h.indexOf(k); while (i >= 0 && c < max) { c++; i = h.indexOf(k, i + k.length); } return c; }
+function scoreNote(n, Q) {
+  const t = norm(n.title), tags = (n.tags || []).map(norm), b = normPlain(n);
+  let score = 0;
+  for (const p of Q.parts) {
+    let inT = false, inG = false, inB = false, cnt = 0;
+    if (p.kind === 'tag') inG = tags.some(x => x.startsWith(p.t));
+    else { inT = t.includes(p.s); inG = tags.some(x => x.includes(p.s)); inB = b.includes(p.s); if (inB) cnt = countOcc(b, p.s, 6); }
+    const hit = inT || inG || inB;
+    if (p.neg) { if (hit) return 0; continue; }
+    if (!hit) return 0;
+    score += (inT ? 8 : 0) + (inG ? 4 : 0) + (inB ? 1 + cnt * 0.4 : 0) + (p.kind === 'phrase' ? 3 : 0);
+    if (p.kind === 'word') {
+      if (t.startsWith(p.s) || t.includes(' ' + p.s)) score += 2;  // matches at a word start in the title
+      if (p.t !== p.s && (t.includes(p.t) || b.includes(p.t))) score += 1; // exact word form
+    }
+  }
+  const words = Q.pos.filter(p => p.kind !== 'tag').map(p => p.t);
+  if (words.length > 1) { const whole = words.join(' '); if (t.includes(whole)) score += 6; else if (b.includes(whole)) score += 3; }
+  return score;
+}
+function searchNotes(q) {
+  const Q = parseQuery(q); if (!Q) return null;
+  const out = [];
+  for (const n of S.notes.values()) { const sc = scoreNote(n, Q); if (sc > 0) out.push({ n, sc }); }
+  const idx = tree().idx;
+  out.sort((a, b) => b.sc - a.sc || (idx.get(a.n.section) ?? 1e6) - (idx.get(b.n.section) ?? 1e6));
+  return { terms: Q, list: out.map(x => x.n) };
+}
+function hl(text, Q) {
+  const h = esc(text);
+  if (!Q || !Q.re) return h;
+  Q.re.lastIndex = 0;
+  return h.replace(Q.re, '<mark>$1</mark>');
+}
+function snippet(n, Q) {
+  if (!Q || !Q.re) return '';
+  const p = plain(n); Q.re.lastIndex = 0;
+  const hits = []; let m;
+  while ((m = Q.re.exec(p)) && hits.length < 12) { hits.push(m.index); if (m[0].length === 0) Q.re.lastIndex++; }
+  Q.re.lastIndex = 0;
+  if (!hits.length) return '';
+  const frags = []; let lastEnd = -1;
+  for (const i of hits) {
+    if (frags.length >= 2) break;
+    if (i < lastEnd) continue;
+    const a = Math.max(0, i - 35), b = Math.min(p.length, i + 75);
+    frags.push([a, b]); lastEnd = b + 40;
+  }
+  return frags.map(([a, b]) => (a > 0 ? '…' : '') + hl(p.slice(a, b), Q) + (b < p.length ? '…' : '')).join(' ');
 }
 function allTags() { const m = new Map(); for (const n of S.notes.values()) for (const t of n.tags || []) m.set(t, (m.get(t) || 0) + 1); return [...m.entries()].sort((a, b) => b[1] - a[1]); }
 
@@ -914,16 +981,17 @@ function enhance(root, terms) {
       c.innerHTML = r.value;
     } catch {}
   });
-  if (terms && terms.length) markTerms(root, terms);
+  if (terms) markTerms(root, terms);
 }
-function markTerms(root, terms) {
-  const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/е/g, '[её]')).join('|') + ')', 'gi');
+function markTerms(root, Q) {
+  if (!Q || !Q.re) return null;
+  const re = new RegExp(Q.re.source, 'i');
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('pre,mark') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   let first = null;
   for (const node of nodes) {
-    if (!re.test(node.nodeValue)) continue; re.lastIndex = 0;
-    const span = document.createElement('span'); span.innerHTML = esc(node.nodeValue).replace(re, '<mark>$1</mark>');
+    if (!re.test(node.nodeValue)) continue;
+    const span = document.createElement('span'); span.innerHTML = esc(node.nodeValue).replace(new RegExp(Q.re.source, 'gi'), '<mark>$1</mark>');
     node.replaceWith(span); first = first || span.querySelector('mark');
   }
   return first;
@@ -1116,7 +1184,12 @@ function selectSection(id) { if (!isVirtual(id)) { revealFolder(id); store.set('
 
 function currentList() {
   const r = searchNotes(S.q);
-  if (r) return { list: r.list, terms: r.terms, title: `Поиск: «${S.q.trim()}»` };
+  if (r) {
+    const scope = searchScopeId();
+    const here = scope ? (scope === 'fav' ? r.list.filter(n => n.pinned) : (sub => r.list.filter(n => sub.has(n.section)))(subtree(scope))) : null;
+    const list = here && S.searchHere ? here : r.list;
+    return { list, terms: r.terms, title: `Поиск: «${S.q.trim()}»`, scope, allN: r.list.length, hereN: here ? here.length : null };
+  }
   let list;
   if (S.section === 'trash') list = [...S.trash.values()].sort((a, b) => (b.deleted || '').localeCompare(a.deleted || ''));
   else if (S.section === 'recent') list = recentList();
@@ -1129,9 +1202,18 @@ function currentList() {
   if (S.tag) list = list.filter(n => (n.tags || []).includes(S.tag));
   return { list, terms: null, title: VIRTUAL[S.section] || S.sections.get(S.section)?.title || 'Раздел' };
 }
+function searchScopeId() { return S.section === 'fav' || S.sections.has(S.section) ? S.section : null; }
+function renderScopeBar(cl) {
+  const bar = $('#scopebar'); if (!bar) return;
+  if (!cl.terms || !cl.scope) { bar.hidden = true; bar.innerHTML = ''; return; }
+  const name = cl.scope === 'fav' ? 'в избранном' : `в «${esc(S.sections.get(cl.scope)?.title || '')}»`;
+  bar.hidden = false;
+  bar.innerHTML = `<span class="lbl">Искать</span><div class="seg"><button data-scope="all" aria-pressed="${!S.searchHere}">везде <span class="tag">${cl.allN}</span></button><button data-scope="here" aria-pressed="${!!S.searchHere}">${name} <span class="tag">${cl.hereN}</span></button></div>`;
+}
 function renderList() {
   if (!S.loaded.notes) return;
-  const { list, terms, title } = currentList();
+  const cl = currentList(); const { list, terms, title } = cl;
+  renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
   $('#list-count').textContent = list.length;
   const tags = allTags();
@@ -1933,6 +2015,7 @@ $('#items').addEventListener('input', e => { if (e.target.id === 'rename-input' 
 $('#items').addEventListener('submit', e => { e.preventDefault(); saveRename(); });
 $('#items').addEventListener('keydown', e => { if (e.target.id === 'rename-input' && e.key === 'Escape') { S.renaming = null; renderList(); } });
 $('#items').addEventListener('contextmenu', e => { const r = e.target.closest('.row-item:not(form)'); if (r && S.canWrite) { e.preventDefault(); openMenu(r.dataset.id, r.querySelector('.more') || r); } });
+$('#scopebar').addEventListener('click', e => { const b = e.target.closest('[data-scope]'); if (!b) return; S.searchHere = b.dataset.scope === 'here'; store.set('searchHere', S.searchHere); renderList(); if (S.article) renderReader(true); });
 $('#tagbar').addEventListener('click', e => { if (e.target.closest('#tags-manage')) { S.tagsOpen = true; setMode('prog'); requestAnimationFrame(() => { const p = $('#tags-panel'); if (p) $('#prog').scrollTop = p.offsetTop - 16; }); return; } });
 $('#tagbar').addEventListener('click', e => { const b = e.target.closest('[data-tag]'); if (b) { S.tag = S.tag === b.dataset.tag ? null : b.dataset.tag; renderList(); if (S.article) renderReader(true); } });
 
@@ -1980,7 +2063,7 @@ function renderArticle(box, scrollTop) {
     </section>`).join('')}
     ${list.length ? `<div class="art-end">Конец раздела · ${list.length} ${plural(list.length, 'заметка', 'заметки', 'заметок')}</div>` : ''}`;
   box.querySelectorAll('.art-note .md').forEach(md => enhance(md, null));
-  if (terms && terms.length) box.querySelectorAll('.art-note .md, .art-head h2').forEach(el => markTerms(el, terms));
+  if (terms) box.querySelectorAll('.art-note .md, .art-head h2').forEach(el => markTerms(el, terms));
   $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = S.noteId && document.querySelector(`#items .row-item[data-id="${CSS.escape(S.noteId)}"]`); if (r) scrollWithin($('#items'), r); };
   $('#art-close').onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); renderReader(true); };
   box.querySelectorAll('[data-art-jump]').forEach(a => a.onclick = e => { e.preventDefault(); const t = document.getElementById('art-' + a.dataset.artJump); if (t) scrollArticleTo(t); });
@@ -2014,6 +2097,18 @@ function openNote(id, dir) {
   document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
   renderReader(true);
 }
+function setupHits(box) {
+  const marks = [...box.querySelectorAll('#md mark')];
+  if (!marks.length) return;
+  let cur = 0;
+  const bar = document.createElement('div'); bar.className = 'hitbar';
+  bar.innerHTML = `<span>Совпадение <b class="hn">1</b> из ${marks.length}</span><button type="button" data-hit="-1" aria-label="Предыдущее совпадение">‹</button><button type="button" data-hit="1" aria-label="Следующее совпадение">›</button>`;
+  $('#md').before(bar);
+  const go = i => { marks[cur]?.classList.remove('cur'); cur = (i + marks.length) % marks.length; marks[cur].classList.add('cur'); bar.querySelector('.hn').textContent = cur + 1; scrollWithin($('#reader'), marks[cur]); };
+  marks[0].classList.add('cur');
+  bar.addEventListener('click', e => { const b = e.target.closest('[data-hit]'); if (b) go(cur + +b.dataset.hit); });
+  S.hitNav = go.bind(null); S.hitNav = d => go(cur + d);
+}
 function renderTrashed(box, n) {
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">← К списку</button></div>
@@ -2034,8 +2129,8 @@ function renderReader(scrollTop) {
   if (!S.notes.has(S.noteId) && S.trash.has(S.noteId)) { renderTrashed(box, S.trash.get(S.noteId)); return; }
   const n = S.notes.get(S.noteId);
   if (!n) { box.innerHTML = `<div class="empty-state">${S.loaded.notes ? 'Выбери заметку слева или найди её через поиск.' : 'Загружаю заметки…'}</div>`; return; }
-  const s = S.srs.get(n.id);
-  const terms = S.q ? norm(S.q).split(/\s+/).map(t => t.replace(/^#+/, '')).filter(Boolean) : null;
+  const s = S.srs.get(n.id); S.hitNav = null;
+  const terms = S.q ? parseQuery(S.q) : null;
   const nbr = (() => { const l = currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
   const srsLine = n.ref ? '' : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
   box.innerHTML = `
@@ -2046,7 +2141,8 @@ function renderReader(scrollTop) {
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
-  const first = (() => { const md = $('#md'); enhance(md, null); return terms ? markTerms(md, terms) : null; })();
+  const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
+  setupHits(box);
   $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
   if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = 'Отметить'; cb.onchange = () => toggleTask(n.id, i, cb.checked); });
   if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
@@ -2665,6 +2761,7 @@ function renderSummary(root) {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
   if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
   if (S.mode === 'train' && S.train && !S.train.done && !typing) {
     if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown) { e.preventDefault(); S.train.shown = true; renderSession($('#train')); }
     else if (S.train.shown && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
