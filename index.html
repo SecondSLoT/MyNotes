@@ -108,6 +108,12 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .pin-btn[aria-pressed="true"]{color:#d49b1f}
 .pin-btn:hover{background:var(--line)}
 .md input[type=checkbox]:not(:disabled){cursor:pointer}
+.orph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.orph{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:10px;padding:8px;position:relative;cursor:pointer;background:var(--raised)}
+.orph input{position:absolute;top:10px;left:10px;width:18px;height:18px}
+.orph img{width:100%;height:100px;object-fit:contain;background:#fff;border-radius:6px}
+.orph span{font:11px var(--f-mono);color:var(--muted);word-break:break-all;display:flex;flex-direction:column;gap:2px}
+.orph:has(input:checked){border-color:var(--again);box-shadow:0 0 0 1px var(--again)}
 .menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
@@ -561,7 +567,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
         <ul>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, подзаголовок, списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
-          <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
+          <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
           <li>Галочка <b>«Не тренировать»</b> оставляет заметку в разделе, но убирает из тренировки. Видна только для разделов с включённой тренировкой.</li>
@@ -1500,6 +1506,7 @@ function ghPanelHtml() {
       <div class="bar"><button class="btn primary" type="submit">Сохранить и проверить</button>${c.token ? '<button class="btn" type="button" id="gh-off">Отключить на этом устройстве</button>' : ''}</div>
       ${st ? `<p class="hint" style="margin:0">${esc(st)}</p>` : ''}
     </form>
+    ${ghReady() ? orphansHtml() : ''}
     <details style="margin-top:10px"><summary style="cursor:pointer;font:inherit;padding:0">Как получить токен</summary>
       <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
         <li>GitHub → аватар справа вверху → <b>Settings</b> → внизу слева <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
@@ -1510,6 +1517,71 @@ function ghPanelHtml() {
         <li><b>Generate token</b>, скопируй токен (начинается на <code>github_pat_</code>) и вставь в поле «Токен» выше. Потом его уже не показать — если потеряешь, просто выпусти новый.</li>
       </ol></details>
   </details>`;
+}
+/* unused images: files in img/ that no note (including the trash) links to */
+function usedImagePaths() {
+  const used = new Set();
+  for (const n of [...S.notes.values(), ...S.trash.values()]) {
+    for (const m of (n.body || '').matchAll(/img\/[^\s)"'<>\]]+/g)) { used.add(m[0]); try { used.add(decodeURIComponent(m[0])); } catch {} }
+  }
+  return used;
+}
+function orphansHtml() {
+  const O = S.orphans || {};
+  const kb = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' МБ' : Math.max(1, Math.round(b / 1024)) + ' КБ';
+  let body = '';
+  if (O.loading) body = '<p class="hint">Смотрю, что лежит в папке img…</p>';
+  else if (O.error) body = `<p class="hint" style="color:var(--again)">${esc(O.error)}</p>`;
+  else if (O.list) {
+    if (!O.list.length) body = `<p class="hint">${O.progress ? esc(O.progress) + ' ' : ''}Всё чисто: ${O.total ? `все ${O.total} ${plural(O.total, 'картинка', 'картинки', 'картинок')} в img используются в заметках` : 'в папке img пока нет картинок'}.</p>`;
+    else {
+      const gh = ghConf(); const selN = O.sel.size; const selSize = O.list.filter(f => O.sel.has(f.path)).reduce((a, f) => a + f.size, 0);
+      body = `<p class="hint">Не используются: ${O.list.length} из ${O.total} (${kb(O.list.reduce((a, f) => a + f.size, 0))}). Картинки из заметок в корзине считаются используемыми. Если ты прямо сейчас вставил картинку в незаконченную заметку — сначала сохрани заметку.</p>
+        <div class="orph-grid">${O.list.map(f => `<label class="orph"><input type="checkbox" data-orph="${esc(f.path)}" ${O.sel.has(f.path) ? 'checked' : ''}><img loading="lazy" src="https://raw.githubusercontent.com/${esc(gh.repo)}/${esc(gh.branch)}/${esc(f.path)}" alt=""><span>${esc(f.name)}<small>${kb(f.size)}</small></span></label>`).join('')}</div>
+        <div class="bar" style="margin-top:10px;flex-wrap:wrap">
+          <button class="btn" type="button" id="orph-all">${selN === O.list.length ? 'Снять все' : 'Выбрать все'}</button>
+          ${O.confirm
+            ? `<span>Удалить ${selN} ${plural(selN, 'файл', 'файла', 'файлов')} из репозитория?</span><button class="btn danger" type="button" id="orph-del-yes">Удалить</button><button class="btn" type="button" id="orph-del-no">Отмена</button>`
+            : `<button class="btn danger" type="button" id="orph-del" ${selN ? '' : 'disabled'}>Удалить выбранные${selN ? ` · ${selN} (${kb(selSize)})` : ''}</button>`}
+        </div>
+        ${O.progress ? `<p class="hint">${esc(O.progress)}</p>` : ''}`;
+    }
+  }
+  return `<div class="orphans" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    <div class="bar"><b style="font-weight:600">Неиспользуемые картинки</b><span class="spacer"></span><button class="btn" type="button" id="orph-scan" ${O.loading || O.busy ? 'disabled' : ''}>${O.list ? 'Проверить заново' : 'Найти неиспользуемые'}</button></div>
+    ${body}</div>`;
+}
+async function scanOrphans() {
+  const gh = ghConf();
+  S.orphans = { loading: true }; renderProg();
+  try {
+    const r = await fetch(`https://api.github.com/repos/${gh.repo}/contents/img?ref=${encodeURIComponent(gh.branch)}`, { headers: { Authorization: `Bearer ${gh.token}`, Accept: 'application/vnd.github+json' } });
+    if (r.status === 404) { S.orphans = { list: [], total: 0, sel: new Set() }; renderProg(); return; }
+    if (!r.ok) throw new Error(r.status === 401 ? 'GitHub не принял токен.' : 'GitHub ответил ошибкой ' + r.status);
+    const files = (await r.json()).filter(f => f.type === 'file');
+    const used = usedImagePaths();
+    const list = files.filter(f => !used.has(f.path)).map(f => ({ name: f.name, path: f.path, sha: f.sha, size: f.size }));
+    S.orphans = { list, total: files.length, sel: new Set() };
+  } catch (err) { S.orphans = { error: 'Не получилось проверить: ' + (err.message || err) }; }
+  renderProg();
+}
+async function deleteOrphans() {
+  const O = S.orphans; const gh = ghConf();
+  const todo = O.list.filter(f => O.sel.has(f.path));
+  O.confirm = false; O.busy = true; let done = 0, failed = 0;
+  for (const f of todo) {
+    O.progress = `Удаляю… ${done + failed + 1} из ${todo.length}`; renderProg();
+    try {
+      const r = await fetch(`https://api.github.com/repos/${gh.repo}/contents/${f.path}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${gh.token}`, Accept: 'application/vnd.github+json' },
+        body: JSON.stringify({ message: `Remove unused ${f.path} (My Notes)`, sha: f.sha, branch: gh.branch }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      done++; O.list = O.list.filter(x => x.path !== f.path); O.sel.delete(f.path);
+    } catch { failed++; }
+  }
+  O.busy = false; O.total -= done; O.progress = failed ? `Удалено: ${done}, не получилось: ${failed}.` : `Удалено: ${done}.`;
+  renderProg(); toast(O.progress);
 }
 function wireGhPanel() {
   const p = $('#gh-panel'); if (!p) return;
@@ -1532,6 +1604,12 @@ function wireGhPanel() {
     } catch (err) { S.ghStatus = err.message || String(err); }
     renderProg();
   };
+  $('#orph-scan') && ($('#orph-scan').onclick = scanOrphans);
+  p.querySelectorAll('[data-orph]').forEach(cb => cb.onchange = () => { const O = S.orphans; cb.checked ? O.sel.add(cb.dataset.orph) : O.sel.delete(cb.dataset.orph); O.confirm = false; renderProg(); });
+  $('#orph-all') && ($('#orph-all').onclick = () => { const O = S.orphans; O.sel = O.sel.size === O.list.length ? new Set() : new Set(O.list.map(f => f.path)); O.confirm = false; renderProg(); });
+  $('#orph-del') && ($('#orph-del').onclick = () => { S.orphans.confirm = true; renderProg(); });
+  $('#orph-del-no') && ($('#orph-del-no').onclick = () => { S.orphans.confirm = false; renderProg(); });
+  $('#orph-del-yes') && ($('#orph-del-yes').onclick = deleteOrphans);
   $('#gh-off') && ($('#gh-off').onclick = () => { const c = store.get('gh', {}); store.set('gh', { repo: c.repo, branch: c.branch, token: '' }); S.ghStatus = 'Токен удалён с этого устройства.'; renderProg(); });
 }
 function dataPanelHtml() {
