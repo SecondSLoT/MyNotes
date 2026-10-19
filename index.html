@@ -73,7 +73,12 @@ a{color:var(--accent)}
 .status{font-size:12px;color:var(--faint)}
 
 /* library */
-.lib{flex:1;min-height:0;display:grid;grid-template-columns:230px minmax(280px,360px) minmax(0,1fr)}
+.lib{flex:1;min-height:0;display:grid;grid-template-columns:var(--rail-w,230px) minmax(280px,360px) minmax(0,1fr);position:relative}
+.rail-resizer{position:absolute;top:0;bottom:0;left:calc(var(--rail-w,230px) - 4px);width:8px;cursor:col-resize;z-index:5;touch-action:none}
+.rail-resizer::after{content:'';position:absolute;top:0;bottom:0;left:3px;width:2px;background:transparent;transition:background .15s}
+.rail-resizer:hover::after,.rail-resizer.dragging::after{background:var(--accent)}
+body.resizing-rail{cursor:col-resize;user-select:none}
+.lib.wide-edit .rail-resizer{display:none}
 .rail{border-right:1px solid var(--line);overflow:auto;padding-block:14px;padding-inline:10px;display:flex;flex-direction:column;gap:2px}
 .rail h4{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:10px 8px 6px}
 .sec{display:flex;align-items:center;gap:8px;border:0;background:none;text-align:left;padding:7px 10px;border-radius:8px;color:var(--ink)}
@@ -82,6 +87,14 @@ a{color:var(--accent)}
 .sec .n{margin-left:auto;font:12px var(--f-mono);color:var(--faint);font-variant-numeric:tabular-nums}
 .sec .due{width:6px;height:6px;border-radius:50%;background:var(--kt);flex:none}
 .sec .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec.tree{padding-left:calc(4px + var(--d,0) * 16px)}
+.sec .caret{flex:none;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;color:var(--faint);font-size:10px;transition:transform .15s}
+.sec .caret.open{transform:rotate(90deg)}
+.sec .caret:hover{background:var(--line);color:var(--ink)}
+.sec .caret.none{visibility:hidden}
+.sec .trn{flex:none;font-size:11px;color:var(--accent);opacity:.85}
+.chip.chip-up{padding-inline:9px}
+.menu-scroll{display:flex;flex-direction:column;max-height:min(55vh,420px);overflow:auto}
 .rail .ghost{margin-top:8px}
 .ghost{border:1px dashed var(--line-strong);background:none;border-radius:8px;padding:7px 10px;color:var(--muted);text-align:left}
 .ghost:hover{color:var(--ink);border-color:var(--muted)}
@@ -413,6 +426,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 @media (max-width:1100px){
   .lib{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
   .rail{display:none}
+  .rail-resizer{display:none}
   .chips-row{display:flex}
 }
 @media (max-width:760px){
@@ -459,6 +473,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 
   <main class="lib" id="lib">
     <aside class="rail" id="rail" aria-label="Разделы"></aside>
+    <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
@@ -486,7 +501,10 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>Каждая заметка — это вопрос (заголовок) и ответ (текст). В тренировке заголовок становится вопросом, текст — ответом.</li>
           <li>Слева разделы, в середине список, справа открытая заметка. На телефоне разделы — это строка чипов над списком.</li>
           <li><b>Разделы.</b> На компьютере: «+ Раздел» внизу списка разделов, двойной клик — переименовать, правый клик — меню раздела. На телефоне: «+» в конце строки разделов, а меню раздела открывается долгим нажатием на раздел. Обычное нажатие при открытом меню закрывает его.</li>
-          <li>В меню раздела: переименовать, поднять или опустить в списке, удалить (только пустой раздел).</li>
+          <li><b>Ширина панели разделов</b> на компьютере меняется перетаскиванием её правой границы мышкой; двойной клик по границе возвращает исходную ширину. Ширина запоминается.</li>
+          <li><b>Вложенные разделы.</b> Раздел может содержать подразделы (например, «Учёба» → «Английский» → заметки). Стрелка ▶ слева сворачивает и разворачивает ветку. Выбранный раздел показывает заметки вместе со всеми подразделами; у заметок из подразделов видна плашка с их названием. На телефоне строка чипов показывает текущий уровень: «‹» — на уровень выше, чип со знаком › — раздел с подразделами.</li>
+          <li>В меню раздела: переименовать, новый подраздел, выше/ниже среди соседей, переместить в другой раздел или на верхний уровень, включить тренировку, удалить (только пустой раздел без подразделов).</li>
+          <li><b>Тренировка включается для раздела целиком</b>: «Тренировать заметки раздела» в его меню. Действует на все подразделы, такой раздел помечен значком ◎. В тренировку, прогресс и счётчик повторений попадают только заметки из таких разделов; у остальных нет плашек «новая», «повторить» и кнопок тренировки.</li>
           <li><b>«⋮»</b> у заметки в списке (или правый клик): переименовать, редактировать, теги, переместить выше/ниже, перенести в другой раздел, убрать из тренировки, удалить.</li>
           <li><b>Порядок</b> внутри раздела меняется перетаскиванием за значок <b>⠿</b> слева от заметки. Во «Всех заметках», в поиске и при фильтре по тегу порядок не меняется.</li>
           <li>Название раздела над открытой заметкой — ссылка: открывает раздел и прокручивает список к этой заметке.</li>
@@ -592,7 +610,7 @@ const today = () => dstr(new Date());
 const addDays = (s, n) => { const [y, m, d] = s.split('-').map(Number); return dstr(new Date(y, m - 1, d + n)); };
 const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number); return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 864e5); };
 
-const trainable = n => n && !n.ref && (n.body || '').trim().length > 0;
+const trainable = n => n && !n.ref && (n.body || '').trim().length > 0 && isTrainFolder(n.section);
 const isDue = id => { const s = S.srs.get(id); return s && s.due && s.due <= today(); };
 
 function schedule(prev, g, free) {
@@ -631,6 +649,7 @@ function stage(id) {
 }
 function srsPill(id) {
   const n = S.notes.get(id);
+  if (n && !isTrainFolder(n.section)) return '';
   if (n && n.ref) return '<span class="pill ref" title="Не попадает в тренировку">вне тренировки</span>';
   if (n && !(n.body || '').trim()) return '<span class="pill empty">без ответа</span>';
   const s = S.srs.get(id); const st = stage(id);
@@ -653,10 +672,61 @@ function reviewQueue() {
   return { due, fresh: fresh.slice(0, room), freshTotal: fresh.length };
 }
 
+/* ---------- folder tree: sections have parent (id or null) and train (bool) ---------- */
+let treeCache = { sig: null };
+function parentOf(id) { const p = S.sections.get(id)?.parent; return p && p !== id && S.sections.has(p) ? p : null; }
+function tree() {
+  const all = [...S.sections.values()];
+  const sig = all.map(x => `${x.id}/${x.parent || ''}/${x.order}/${x.title}`).join('|');
+  if (treeCache.sig === sig) return treeCache;
+  const by = new Map();
+  for (const x of all) { const p = parentOf(x.id); if (!by.has(p)) by.set(p, []); by.get(p).push(x); }
+  for (const l of by.values()) l.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title, 'ru'));
+  const list = [], seen = new Set();
+  const walk = (pid, depth) => { for (const x of by.get(pid) || []) { if (seen.has(x.id)) continue; seen.add(x.id); list.push({ s: x, depth }); walk(x.id, depth + 1); } };
+  walk(null, 0);
+  for (const x of all) if (!seen.has(x.id)) { seen.add(x.id); list.push({ s: x, depth: 0 }); walk(x.id, 1); } // broken cycles end up at the root
+  const idx = new Map(list.map((e, i) => [e.s.id, i]));
+  treeCache = { sig, list, idx, by };
+  return treeCache;
+}
+function kids(pid) { return tree().by.get(pid || null) || []; }
+function hasKids(id) { return kids(id).length > 0; }
+function subtree(id) {
+  const T = tree(); const i = T.idx.get(id); if (i == null) return new Set([id]);
+  const out = new Set([id]); const d = T.list[i].depth;
+  for (let j = i + 1; j < T.list.length && T.list[j].depth > d; j++) out.add(T.list[j].s.id);
+  return out;
+}
+function ancestors(id) { const out = []; let p = parentOf(id); while (p && !out.includes(p)) { out.push(p); p = parentOf(p); } return out; }
+function isTrainFolder(id) { if (!id || !S.sections.has(id)) return false; if (S.sections.get(id).train) return true; return ancestors(id).some(a => S.sections.get(a)?.train); }
+function trainOwner(id) { if (S.sections.get(id)?.train) return id; return ancestors(id).find(a => S.sections.get(a)?.train) || null; }
+function secPath(id, sep = ' › ') { return [...ancestors(id).reverse(), id].map(x => S.sections.get(x)?.title || '').join(sep); }
+function folderOptions(sel, exclude) {
+  return tree().list.filter(e => !exclude || !exclude.has(e.s.id))
+    .map(e => `<option value="${esc(e.s.id)}" ${e.s.id === sel ? 'selected' : ''}>${'\u00a0\u00a0\u00a0'.repeat(e.depth)}${esc(e.s.title)}</option>`).join('');
+}
+function menuFolderButtons(act, cur, exclude, attr = 'data-sec') {
+  return tree().list.filter(e => !exclude || !exclude.has(e.s.id)).map(e => `<button data-act="${act}" ${attr}="${esc(e.s.id)}" role="menuitem" style="padding-left:${10 + e.depth * 14}px" ${e.s.id === cur ? 'disabled' : ''}><span class="ico">${e.s.id === cur ? '✓' : ''}</span>${esc(e.s.title)}</button>`).join('');
+}
+async function migrateTree() {
+  // one-time: old flat sections become children of an «Android-шпаргалка» folder with training on
+  if (S.migratingTree || !S.canWrite || !S.db) return;
+  const secs = [...S.sections.values()];
+  if (!secs.length || S.sections.has('cheatsheet') || secs.some(x => x.parent !== undefined || x.train !== undefined)) return;
+  S.migratingTree = true;
+  try {
+    await S.db.collection('sections').doc('cheatsheet').set({ title: 'Android-шпаргалка', order: 0, parent: null, train: true });
+    for (const x of secs) await S.db.collection('sections').doc(x.id).update({ parent: 'cheatsheet' });
+    toast('Разделы шпаргалки собраны в папку «Android-шпаргалка»');
+  } catch { toast('Не получилось обновить структуру разделов'); }
+  S.migratingTree = false;
+}
+
 /* ---------- notes helpers ---------- */
-const secOrder = id => (S.sections.get(id)?.order ?? 999);
 function sortedNotes() {
-  return [...S.notes.values()].sort((a, b) => secOrder(a.section) - secOrder(b.section) || (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title, 'ru'));
+  const idx = tree().idx; const so = id => idx.get(id) ?? 1e6;
+  return [...S.notes.values()].sort((a, b) => so(a.section) - so(b.section) || (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title, 'ru'));
 }
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е');
 const plainCache = new Map();
@@ -682,7 +752,7 @@ function searchNotes(q) {
     }
     if (ok) out.push({ n, score });
   }
-  out.sort((a, b) => b.score - a.score || secOrder(a.n.section) - secOrder(b.n.section));
+  { const idx = tree().idx; out.sort((a, b) => b.score - a.score || (idx.get(a.n.section) ?? 1e6) - (idx.get(b.n.section) ?? 1e6)); }
   return { terms, list: out.map(x => x.n) };
 }
 function hl(text, terms) {
@@ -769,37 +839,84 @@ async function setRef(id, val, undoable) {
 
 /* ---------- library ---------- */
 function sectionCounts() {
+  // counts include everything inside nested folders
   const c = new Map(), d = new Map();
-  for (const n of S.notes.values()) { c.set(n.section, (c.get(n.section) || 0) + 1); if (trainable(n) && isDue(n.id)) d.set(n.section, (d.get(n.section) || 0) + 1); }
+  const bump = (m, id) => { for (const x of [id, ...ancestors(id)]) m.set(x, (m.get(x) || 0) + 1); };
+  for (const n of S.notes.values()) { if (!S.sections.has(n.section)) continue; bump(c, n.section); if (trainable(n) && isDue(n.id)) bump(d, n.section); }
   return { c, d };
 }
-function sectionsSorted() { return [...S.sections.values()].sort((a, b) => a.order - b.order); }
+function sectionsSorted() { return tree().list.map(e => e.s); }
+const collapsed = new Set(store.get('collapsed', []));
+function toggleFolder(id, open) { if (open ?? collapsed.has(id)) collapsed.delete(id); else collapsed.add(id); store.set('collapsed', [...collapsed]); renderRail(); }
+function revealFolder(id) { let ch = false; for (const a of ancestors(id)) if (collapsed.delete(a)) ch = true; if (ch) store.set('collapsed', [...collapsed]); }
 let addingSection = false, renamingSection = null;
 function renderRail() {
   const { c, d } = sectionCounts();
   const rows = [`<button class="sec" data-sec="all" aria-current="${S.section === 'all'}"><span class="name">Все заметки</span><span class="n">${S.notes.size}</span></button>`, '<h4>Разделы</h4>'];
-  for (const s of sectionsSorted()) {
+  const hiddenUnder = new Set();
+  for (const { s, depth } of tree().list) {
+    const p = parentOf(s.id);
+    if (p && (collapsed.has(p) || hiddenUnder.has(p))) { hiddenUnder.add(s.id); continue; }
     if (renamingSection === s.id) {
-      rows.push(`<form class="inline-form" data-rename="${esc(s.id)}"><input id="rename-sec" value="${esc(s.title)}" aria-label="Название раздела"><button class="btn">OK</button></form>`);
+      rows.push(`<form class="inline-form" data-rename="${esc(s.id)}" style="margin-left:${depth * 16}px"><input id="rename-sec" value="${esc(s.title)}" aria-label="Название раздела"><button class="btn">OK</button></form>`);
       continue;
     }
-    rows.push(`<button class="sec" data-sec="${esc(s.id)}" aria-current="${S.section === s.id}" title="Двойной клик — переименовать">${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span><span class="n">${c.get(s.id) || 0}</span></button>`);
+    const k = hasKids(s.id);
+    rows.push(`<button class="sec tree" style="--d:${depth}" data-sec="${esc(s.id)}" aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="Двойной клик — переименовать, правый клик — меню">`
+      + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${collapsed.has(s.id) ? 'Развернуть' : 'Свернуть'}"` : ''}>▶</span>`
+      + `${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span>`
+      + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}<span class="n">${c.get(s.id) || 0}</span></button>`);
   }
   rows.push(addingSection
     ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="Название раздела" aria-label="Название нового раздела"><button class="btn">OK</button></form>`
     : `<button class="ghost" id="add-sec" ${S.canWrite ? '' : 'hidden'}>+ Раздел</button>`);
   $('#rail').innerHTML = rows.join('');
-  const chips = [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`]
-    .concat(sectionsSorted().map(s => `<button class="chip" data-sec="${esc(s.id)}" aria-pressed="${S.section === s.id}">${esc(s.title)}</button>`))
+  // phone: drill-down — the current level and its children
+  const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
+  const chip = x => `<button class="chip" data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
+  const chips = (ctx
+    ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="На уровень выше">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : 'Все')}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
+    : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`].concat(kids(null).map(chip)))
     .concat(S.canWrite ? [`<button class="chip chip-add" id="chip-add" aria-label="Новый раздел" title="Новый раздел">+</button>`] : []);
   $('#chips').innerHTML = chips.join('');
   if (addingSection) $('#new-sec-name')?.focus();
   if (renamingSection) { const i = $('#rename-sec'); i?.focus(); i?.select(); }
 }
 $('#rail').addEventListener('click', e => {
-  const b = e.target.closest('[data-sec]'); if (b) { selectSection(b.dataset.sec); return; }
+  const t = e.target.closest('[data-toggle]'); if (t) { e.stopPropagation(); toggleFolder(t.dataset.toggle); return; }
+  const b = e.target.closest('[data-sec]'); if (b) { if (b.dataset.sec === S.section && hasKids(b.dataset.sec) && collapsed.has(b.dataset.sec)) toggleFolder(b.dataset.sec, true); selectSection(b.dataset.sec); return; }
   if (e.target.closest('#add-sec')) { addingSection = true; renderRail(); }
 });
+/* ---------- resizable sections rail ---------- */
+(() => {
+  const lib = $('#lib'), h = $('#rail-resizer'); if (!h) return;
+  const MIN = 160, MAX = 480, DEF = 230;
+  const clamp = w => Math.round(Math.min(MAX, Math.max(MIN, w)));
+  const apply = w => lib.style.setProperty('--rail-w', clamp(w) + 'px');
+  apply(store.get('railW', DEF));
+  let x0 = 0, w0 = 0;
+  h.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault(); h.setPointerCapture(e.pointerId);
+    x0 = e.clientX; w0 = $('#rail').getBoundingClientRect().width;
+    h.classList.add('dragging'); document.body.classList.add('resizing-rail');
+  });
+  h.addEventListener('pointermove', e => { if (h.hasPointerCapture(e.pointerId)) apply(w0 + e.clientX - x0); });
+  const end = e => {
+    if (!h.classList.contains('dragging')) return;
+    h.classList.remove('dragging'); document.body.classList.remove('resizing-rail');
+    try { h.releasePointerCapture(e.pointerId); } catch {}
+    store.set('railW', clamp($('#rail').getBoundingClientRect().width));
+  };
+  h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+  h.addEventListener('dblclick', () => { apply(DEF); store.set('railW', DEF); });
+  h.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const w = clamp($('#rail').getBoundingClientRect().width + (e.key === 'ArrowRight' ? 16 : -16));
+    apply(w); store.set('railW', w);
+  });
+})();
 $('#rail').addEventListener('dblclick', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { renamingSection = b.dataset.sec; renderRail(); } });
 $('#rail').addEventListener('submit', async e => {
   e.preventDefault();
@@ -807,8 +924,8 @@ $('#rail').addEventListener('submit', async e => {
     const name = $('#new-sec-name').value.trim(); addingSection = false;
     if (name) {
       const id = 's' + Date.now().toString(36);
-      const order = Math.max(0, ...[...S.sections.values()].map(s => s.order)) + 1;
-      await write(() => S.db.collection('sections').doc(id).set({ title: name, order }), 'Раздел добавлен');
+      const order = Math.max(0, ...kids(null).map(s => s.order ?? 0)) + 1;
+      await write(() => S.db.collection('sections').doc(id).set({ title: name, order, parent: null }), 'Раздел добавлен');
       S.section = id; store.set('section', id);
     }
     renderRail(); return;
@@ -817,7 +934,7 @@ $('#rail').addEventListener('submit', async e => {
   if (id) {
     const name = $('#rename-sec').value.trim(); renamingSection = null;
     const s = S.sections.get(id);
-    if (name && s && name !== s.title) await write(() => S.db.collection('sections').doc(id).set({ title: name, order: s.order }), 'Раздел переименован');
+    if (name && s && name !== s.title) { s.title = name; await write(() => S.db.collection('sections').doc(id).update({ title: name }), 'Раздел переименован'); }
     renderRail(); renderList();
   }
 });
@@ -827,6 +944,7 @@ $('#chips').addEventListener('click', e => {
   if (lpFired) { lpFired = false; e.preventDefault(); return; }
   if (menuWasOpen) { menuWasOpen = false; closeMenu(); return; } // a tap while the menu is open only closes it
   if (e.target.closest('#chip-add')) { openSecMenu(null, e.target.closest('#chip-add'), 'new'); return; }
+  const up = e.target.closest('[data-up]'); if (up) { selectSection(up.dataset.up); return; }
   const b = e.target.closest('[data-sec]'); if (!b) return;
   selectSection(b.dataset.sec);
 });
@@ -840,13 +958,13 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && b.dataset.sec !== 'all') { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && b.dataset.sec !== 'all' && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
+function selectSection(id) { if (id !== 'all') revealFolder(id); S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); }
 
 function currentList() {
   const r = searchNotes(S.q);
   if (r) return { list: r.list, terms: r.terms, title: `Поиск: «${S.q.trim()}»` };
   let list = sortedNotes();
-  if (S.section !== 'all') list = list.filter(n => n.section === S.section);
+  if (S.section !== 'all') { const sub = subtree(S.section); list = list.filter(n => sub.has(n.section)); }
   if (S.tag) list = list.filter(n => (n.tags || []).includes(S.tag));
   return { list, terms: null, title: S.section === 'all' ? 'Все заметки' : (S.sections.get(S.section)?.title || 'Раздел') };
 }
@@ -865,7 +983,7 @@ function renderList() {
     $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Прогресс» → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
-  const showSec = S.section === 'all' || terms;
+  const showSec = S.section === 'all' || terms || hasKids(S.section);
   const reorder = canReorder();
   const hadFocus = document.activeElement?.id === 'rename-input';
   $('#items').innerHTML = list.map(n => S.renaming?.id === n.id ? `
@@ -880,7 +998,7 @@ function renderList() {
       <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''}>
         <span class="t">${hl(n.title, terms)}</span>
         ${terms ? `<span class="snip">${snippet(n, terms)}</span>` : ''}
-        <span class="meta">${srsPill(n.id)}${showSec ? `<span class="pill">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${(n.tags || []).map(t => `<span class="tag">#${esc(t)}</span>`).join(' ')}</span>
+        <span class="meta">${srsPill(n.id)}${showSec && n.section !== S.section ? `<span class="pill" title="${esc(secPath(n.section))}">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${(n.tags || []).map(t => `<span class="tag">#${esc(t)}</span>`).join(' ')}</span>
       </button>
       ${S.canWrite && !S.select ? `<button class="more" data-more="${esc(n.id)}" aria-label="Действия с карточкой" aria-haspopup="menu" aria-expanded="${S.menu?.id === n.id}">⋮</button>` : ''}
       ${(terms || S.tag) && !S.select ? `<button class="goto" data-goto="${esc(n.id)}" title="Открыть раздел и прокрутить список к этой заметке">в разделе →</button>` : ''}
@@ -898,12 +1016,17 @@ function scrollWithin(box, el) {
   const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
   box.scrollTop += (r.top - b.top) - (b.height - r.height) / 2;
 }
-function canReorder() { return S.canWrite && !S.select && S.section !== 'all' && !S.q.trim() && !S.tag; }
+function canReorder() {
+  if (!S.canWrite || S.select || S.section === 'all' || S.q.trim() || S.tag) return false;
+  const sub = subtree(S.section); if (sub.size === 1) return true;
+  for (const n of S.notes.values()) if (n.section !== S.section && sub.has(n.section)) return false; // mixed list from nested folders
+  return true;
+}
 function gotoInSection(id) {
   const n = S.notes.get(id); if (!n) return;
   S.article = false;
   S.q = ''; $('#q').value = ''; S.tag = null;
-  S.section = n.section; store.set('section', n.section);
+  S.section = n.section; store.set('section', n.section); revealFolder(n.section);
   S.noteId = id; store.set('note', id); S.editing = null;
   S.flash = id;
   if (window.matchMedia('(max-width:760px)').matches) $('#lib').classList.remove('reading');
@@ -1087,7 +1210,7 @@ function wireDataPanel() {
     let done = 0; const total = secs.length + notes.length + srs.length;
     const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: `Импортирую… ${done} из ${total}` }; renderProg(); } };
     try {
-      for (const sc of secs) { await S.db.collection('sections').doc(sc.id).set(strip(sc)); tick(); }
+      for (const sc of secs) { const ref = S.db.collection('sections').doc(sc.id); await (S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(strip(sc))); tick(); }
       for (const n of notes) { await S.db.collection('notes').doc(n.id).set(strip(n)); tick(); }
       if (S.uid) {
         for (const [id, v] of srs) { await srsCol().doc(id).set(v); tick(); }
@@ -1306,7 +1429,7 @@ $('#bulkbar').addEventListener('click', e => {
 function renderBulkMenu() {
   const M = S.menu; const ids = [...S.select]; const n = ids.length;
   if (M.mode === 'tags') renderTagChecklist(ids, `Теги для ${n} ${plural(n, 'заметки', 'заметок', 'заметок')}`, false);
-  else if (M.mode === 'move') menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Перенести ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} в раздел</div>${sectionsSorted().map(s => `<button data-act="bulk-move" data-sec="${esc(s.id)}" role="menuitem"><span class="ico"></span>${esc(s.title)}</button>`).join('')}`;
+  else if (M.mode === 'move') menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Перенести ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} в раздел</div><div class="menu-scroll">${menuFolderButtons('bulk-move', null)}</div>`;
   else if (M.mode === 'train') menuEl.innerHTML = `${S.uid ? '<button data-act="bulk-relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>' : ''}<button data-act="bulk-ref-on" role="menuitem"><span class="ico">⊘</span>Убрать из тренировки</button><button data-act="bulk-ref-off" role="menuitem"><span class="ico">↺</span>Вернуть в тренировку</button>`;
   else if (M.mode === 'del') menuEl.innerHTML = `<div class="ask">Удалить ${n} ${plural(n, 'заметку', 'заметки', 'заметок')} насовсем?</div><div class="ask-row"><button class="yes" data-act="bulk-del-yes">Удалить</button><button data-act="bulk-cancel">Отмена</button></div>`;
   placeMenu(M.anchor?.isConnected ? M.anchor : document.querySelector(`#bulkbar [data-bulk="${M.mode}"]`) || $('#bulkbar'));
@@ -1404,21 +1527,37 @@ function placeMenu(anchorEl) {
 function renderSecMenu() {
   const M = S.menu; const sec = M.id ? S.sections.get(M.id) : null;
   if (M.id && !sec) { closeMenu(); return; }
-  const count = sec ? [...S.notes.values()].filter(n => n.section === sec.id).length : 0;
-  const list = sectionsSorted(); const idx = sec ? list.findIndex(x => x.id === sec.id) : -1;
-  if (M.mode === 'rename' || M.mode === 'new') {
-    menuEl.innerHTML = `<form class="menu-form" id="sec-form"><label class="ask" style="color:var(--muted)" for="sec-name">${M.mode === 'new' ? 'Новый раздел' : 'Название раздела'}</label>
+  const sub = sec ? subtree(sec.id) : new Set();
+  const count = sec ? [...S.notes.values()].filter(n => sub.has(n.section)).length : 0;
+  const list = sec ? kids(parentOf(sec.id)) : []; const idx = sec ? list.findIndex(x => x.id === sec.id) : -1;
+  if (M.mode === 'rename' || M.mode === 'new' || M.mode === 'sub') {
+    menuEl.innerHTML = `<form class="menu-form" id="sec-form"><label class="ask" style="color:var(--muted)" for="sec-name">${M.mode === 'new' ? 'Новый раздел' : M.mode === 'sub' ? `Подраздел в «${esc(sec.title)}»` : 'Название раздела'}</label>
       <input id="sec-name" value="${esc(sec && M.mode === 'rename' ? sec.title : '')}" placeholder="Например: Compose" autocomplete="off">
       <div class="ask-row"><button class="yes-ok" type="submit">${M.mode === 'new' ? 'Создать' : 'Сохранить'}</button><button type="button" data-act="sec-cancel">Отмена</button></div></form>`;
+  } else if (M.mode === 'moveTo') {
+    menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">Переместить «${esc(sec.title)}» в…</div><div class="menu-scroll">
+      <button data-act="sec-move-to" data-to="" role="menuitem" ${!parentOf(sec.id) ? 'disabled' : ''}><span class="ico">${!parentOf(sec.id) ? '✓' : ''}</span>Верхний уровень</button>
+      ${menuFolderButtons('sec-move-to', parentOf(sec.id), sub, 'data-to')}</div>
+      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem"><span class="ico">←</span>Назад</button>`;
+  } else if (M.mode === 'confirmDel' && sub.size > 1) {
+    menuEl.innerHTML = `<div class="ask">Внутри «${esc(sec.title)}» есть подразделы. Сначала перенеси или удали их.</div><div class="ask-row"><button data-act="sec-back">Понятно</button></div>`;
   } else if (M.mode === 'confirmDel') {
     menuEl.innerHTML = count
       ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали.</div><div class="ask-row"><button data-act="sec-back">Понятно</button></div>`
       : `<div class="ask">Удалить пустой раздел «${esc(sec.title)}»?</div><div class="ask-row"><button class="yes" data-act="sec-del-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
   } else {
+    const owner = trainOwner(sec.id);
+    const trainBtn = owner && owner !== sec.id
+      ? `<button role="menuitem" disabled><span class="ico">◎</span>Тренируется в составе «${esc(S.sections.get(owner).title)}»</button>`
+      : `<button data-act="sec-train" role="menuitem" aria-checked="${!!sec.train}"><span class="ico">${sec.train ? '☑' : '☐'}</span>Тренировать заметки раздела</button>`;
     menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">${esc(sec.title)} · ${count}</div>
       <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
-      <button data-act="sec-up" role="menuitem" ${idx <= 0 ? 'disabled' : ''}><span class="ico">↑</span>Выше в списке разделов</button>
-      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 ? 'disabled' : ''}><span class="ico">↓</span>Ниже в списке разделов</button>
+      <button data-act="sec-sub" role="menuitem"><span class="ico">+</span>Новый подраздел</button>
+      <button data-act="sec-up" role="menuitem" ${idx <= 0 ? 'disabled' : ''}><span class="ico">↑</span>Выше</button>
+      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 ? 'disabled' : ''}><span class="ico">↓</span>Ниже</button>
+      <button data-act="sec-move" role="menuitem"><span class="ico">⇄</span>Переместить в…</button>
+      <div class="sep" role="separator"></div>
+      ${trainBtn}
       <div class="sep" role="separator"></div>
       <button class="danger" data-act="sec-del" role="menuitem"><span class="ico">✕</span>Удалить раздел</button>`;
   }
@@ -1429,11 +1568,26 @@ function renderSecMenu() {
   const inp = $('#sec-name'); if (inp) { inp.focus(); inp.select(); } else menuEl.querySelector('button:not([disabled])')?.focus();
 }
 async function swapSections(id, dir) {
-  const list = sectionsSorted(); const i = list.findIndex(x => x.id === id); const j = i + dir;
+  const list = kids(parentOf(id)); const i = list.findIndex(x => x.id === id); const j = i + dir;
   if (i < 0 || j < 0 || j >= list.length) return;
   const a = list[i], b = list[j]; const oa = a.order, ob = b.order === oa ? oa + dir : b.order;
   a.order = ob; b.order = oa; renderRail();
   await write(async () => { await S.db.collection('sections').doc(a.id).update({ order: ob }); await S.db.collection('sections').doc(b.id).update({ order: oa }); }, null);
+}
+async function moveFolder(id, to) {
+  const f = S.sections.get(id); if (!f || (to && subtree(id).has(to)) || parentOf(id) === (to || null)) return;
+  const order = Math.max(0, ...kids(to).map(s => s.order ?? 0)) + 1;
+  const was = { parent: f.parent, order: f.order };
+  f.parent = to; f.order = order; if (to) { collapsed.delete(to); store.set('collapsed', [...collapsed]); }
+  rerender();
+  const ok = await write(() => S.db.collection('sections').doc(id).update({ parent: to, order }), `«${f.title}» → ${to ? '«' + S.sections.get(to).title + '»' : 'верхний уровень'}`);
+  if (!ok) { Object.assign(f, was); rerender(); }
+}
+async function setFolderTrain(id, val) {
+  const f = S.sections.get(id); if (!f) return;
+  f.train = val; rerender(); updateBadge();
+  const ok = await write(() => S.db.collection('sections').doc(id).update({ train: val }), val ? `Тренировка включена для «${f.title}»` : `Тренировка выключена для «${f.title}»`);
+  if (!ok) { f.train = !val; rerender(); updateBadge(); }
 }
 function renderMenu() {
   const M = S.menu; if (!M) return;
@@ -1445,7 +1599,7 @@ function renderMenu() {
     ? `<div class="ask">Удалить «${esc(n.title.length > 60 ? n.title.slice(0, 60) + '…' : n.title)}» насовсем?</div>
        <div class="ask-row"><button class="yes" data-act="delete-yes" role="menuitem">Удалить</button><button data-act="delete-no" role="menuitem">Отмена</button></div>`
     : M.move
-    ? `<div class="ask" style="color:var(--muted)">Перенести в раздел</div>${sectionsSorted().map(s => `<button data-act="move-to" data-sec="${esc(s.id)}" role="menuitem" ${s.id === n.section ? 'disabled' : ''}><span class="ico">${s.id === n.section ? '✓' : ''}</span>${esc(s.title)}</button>`).join('')}<div class="sep" role="separator"></div><button data-act="move-back" role="menuitem"><span class="ico">←</span>Назад</button>`
+    ? `<div class="ask" style="color:var(--muted)">Перенести в раздел</div><div class="menu-scroll">${menuFolderButtons('move-to', n.section)}</div><div class="sep" role="separator"></div><button data-act="move-back" role="menuitem"><span class="ico">←</span>Назад</button>`
     : `${(S.q || S.section !== n.section || S.tag) ? `<button data-act="goto" role="menuitem"><span class="ico">↳</span>Показать в разделе</button><div class="sep" role="separator"></div>` : ''}
        <button data-act="rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
        <button data-act="edit" role="menuitem"><span class="ico">¶</span>Редактировать</button>
@@ -1454,7 +1608,7 @@ function renderMenu() {
        <button data-act="tags" role="menuitem"><span class="ico">#</span>Теги…${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
        <button data-act="move" role="menuitem"><span class="ico">⇄</span>Перенести в раздел…</button>
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
-       ${(n.body || '').trim() ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
+       ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
        <div class="sep" role="separator"></div>
        <button class="danger" data-act="delete" role="menuitem"><span class="ico">✕</span>Удалить</button>`;
   menuEl.hidden = false;
@@ -1475,11 +1629,13 @@ menuEl.addEventListener('submit', async e => {
   const M = S.menu; if (!M || M.kind !== 'sec') return;
   const name = ($('#sec-name')?.value || '').trim(); if (!name) return;
   closeMenu();
-  if (M.mode === 'new') {
+  if (M.mode === 'new' || M.mode === 'sub') {
     const id = 's' + Date.now().toString(36);
-    const order = Math.max(0, ...[...S.sections.values()].map(s => s.order)) + 1;
-    S.sections.set(id, { id, title: name, order });
-    const ok = await write(() => S.db.collection('sections').doc(id).set({ title: name, order }), 'Раздел добавлен');
+    const parent = M.mode === 'sub' ? M.id : null;
+    const order = Math.max(0, ...kids(parent).map(s => s.order ?? 0)) + 1;
+    S.sections.set(id, { id, title: name, order, parent });
+    if (parent) { collapsed.delete(parent); store.set('collapsed', [...collapsed]); }
+    const ok = await write(() => S.db.collection('sections').doc(id).set({ title: name, order, parent }), parent ? 'Подраздел добавлен' : 'Раздел добавлен');
     if (ok) selectSection(id); else { S.sections.delete(id); renderRail(); }
   } else {
     const sec = S.sections.get(M.id); if (!sec || sec.title === name) return;
@@ -1509,6 +1665,10 @@ menuEl.addEventListener('click', async e => {
     else if (act === 'sec-del') { S.menu.mode = 'confirmDel'; renderMenu(); }
     else if (act === 'sec-back') { S.menu.mode = 'main'; renderMenu(); }
     else if (act === 'sec-up' || act === 'sec-down') { closeMenu(); swapSections(id, act === 'sec-up' ? -1 : 1); }
+    else if (act === 'sec-sub') { S.menu.mode = 'sub'; renderMenu(); }
+    else if (act === 'sec-move') { S.menu.mode = 'moveTo'; renderMenu(); }
+    else if (act === 'sec-move-to') { closeMenu(); moveFolder(id, b.dataset.to || null); }
+    else if (act === 'sec-train') { closeMenu(); setFolderTrain(id, !S.sections.get(id)?.train); }
     else if (act === 'sec-del-yes') {
       closeMenu();
       const ok = await write(() => S.db.collection('sections').doc(id).delete(), 'Раздел удалён');
@@ -1670,11 +1830,11 @@ function renderReader(scrollTop) {
   const srsLine = n.ref ? '' : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><button id="prev-note" aria-label="Предыдущая заметка в списке" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="Следующая заметка в списке" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
-    <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(S.sections.get(n.section)?.title || '')} ↳</button></div>
+    <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(secPath(n.section))} ↳</button></div>
     <h1>${esc(n.title)}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
-      <span class="actions">${n.ref && S.canWrite ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
+      <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); return terms ? markTerms(md, terms) : null; })();
   if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
@@ -1718,6 +1878,7 @@ function renderReader(scrollTop) {
 })();
 
 /* ---------- editor ---------- */
+document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
   const sec = S.section !== 'all' ? S.section : (sectionsSorted()[0]?.id || '');
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
@@ -1737,10 +1898,10 @@ function renderEditor(box) {
     <form class="editor" id="ed" style="margin-top:14px">
       <div class="field"><label for="ed-title">Вопрос / заголовок</label><input id="ed-title" required value="${esc(d.title)}" placeholder="Например: Чем launch отличается от async?"></div>
       <div class="grid2">
-        <div class="field"><label for="ed-sec">Раздел</label><select id="ed-sec">${sectionsSorted().map(s => `<option value="${esc(s.id)}" ${s.id === d.section ? 'selected' : ''}>${esc(s.title)}</option>`).join('')}</select></div>
+        <div class="field"><label for="ed-sec">Раздел</label><select id="ed-sec">${folderOptions(d.section)}</select></div>
         <div class="field"><label for="ed-tags">Теги через пробел</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="часто_спрашивают senior" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
       </div>
-      <label class="check"><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>Не тренировать: заметка остаётся в шпаргалке, но не попадает в тренировку</span></label>
+      <label class="check" id="ed-ref-wrap" ${isTrainFolder(d.section) ? '' : 'hidden'}><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>Не тренировать: заметка остаётся в разделе, но не попадает в тренировку</span></label>
       <div class="field">
         <div class="bar"><span class="lbl">Ответ</span><span class="spacer"></span>
           <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">Рядом</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">Визуально</button></div></div>
@@ -2157,7 +2318,7 @@ function weakness(id) {
 }
 function freePool(o) {
   let list = sortedNotes().filter(trainable);
-  if (o.sections.length) list = list.filter(n => o.sections.includes(n.section));
+  if (o.sections.length) { const allow = new Set(); for (const id of o.sections) for (const x of subtree(id)) allow.add(x); list = list.filter(n => allow.has(n.section)); }
   if (o.tags.length) list = list.filter(n => (n.tags || []).some(t => o.tags.includes(t)));
   let ids = list.map(n => n.id);
   if (o.order === 'shuffle') ids = shuffle(ids);
@@ -2188,7 +2349,7 @@ function renderTrain() {
       <div class="opts">
         <div><div class="lbl" style="margin-bottom:8px">Разделы</div><div class="opt-row" id="o-secs">
           <button class="chip" data-s="" aria-pressed="${!o.sections.length}">Все</button>
-          ${sectionsSorted().map(s => { const c = sortedNotes().filter(n => n.section === s.id && trainable(n)).length; return c ? `<button class="chip" data-s="${esc(s.id)}" aria-pressed="${o.sections.includes(s.id)}">${esc(s.title)} <span class="tag">${c}</span></button>` : ''; }).join('')}
+          ${sectionsSorted().map(s => { const sub = subtree(s.id); const c = sortedNotes().filter(n => sub.has(n.section) && trainable(n)).length; return c ? `<button class="chip" data-s="${esc(s.id)}" aria-pressed="${o.sections.includes(s.id)}">${esc(s.title)} <span class="tag">${c}</span></button>` : ''; }).join('')}
         </div></div>
         ${tags.length ? `<div><div class="lbl" style="margin-bottom:8px">Теги</div><div class="opt-row" id="o-tags">${tags.map(([t, c]) => `<button class="chip" data-t="${esc(t)}" aria-pressed="${o.tags.includes(t)}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')}</div></div>` : ''}
         <div class="opt-row"><span class="lbl" style="margin-right:6px">Порядок</span><div class="seg" id="o-order">
@@ -2386,8 +2547,8 @@ async function boot() {
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
   db.collection('sections').onSnapshot(snap => {
-    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0 }]; }));
-    S.loaded.sections = true; rerender();
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train }]; }));
+    S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
     S.notes = new Map(snap.docs.map(d => [d.id, Object.assign({ id: d.id }, d.data())]));
