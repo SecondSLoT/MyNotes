@@ -265,8 +265,15 @@ button.tchip-t:hover{text-decoration:underline}
 .tag-rename input{flex:1;min-width:140px;border:1px solid var(--accent);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 9px;font:13px var(--f-mono)}
 #tags-panel .nm .tag{font-size:13.5px}
 .rename-form{display:flex;flex-direction:column;gap:8px;padding-block:10px;padding-inline:16px;background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
-.rename-form input{border:1px solid var(--accent);background:var(--bg);border-radius:8px;padding:7px 10px;width:100%;box-sizing:border-box;font-weight:500}
+.rename-form textarea{resize:none;field-sizing:content;max-height:9em;line-height:1.4;font-family:inherit;border:1px solid var(--accent);background:var(--bg);border-radius:8px;padding:7px 10px;width:100%;box-sizing:border-box;font-weight:500}
 .rename-form .bar{gap:6px}
+@media (max-width:760px){
+  .rename-form{position:fixed;left:0;right:0;top:0;z-index:40;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;gap:10px;border-bottom:1px solid var(--line);box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+  .rename-form .lbl{font-weight:600;color:var(--ink)}
+  .rename-form textarea{font-size:16px;padding:10px 12px;min-height:3.2em}
+  .rename-form .bar .btn{flex:1;padding:10px}
+  .rename-form .hint{display:none}
+}
 .menu{position:fixed;z-index:30;max-height:calc(100vh - 16px);overflow:auto;min-width:210px;max-width:calc(100vw - 32px);background:var(--raised);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px;display:flex;flex-direction:column}
 .menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:6px;color:var(--ink);font-size:14px}
 .menu button:hover,.menu button:focus-visible{background:var(--surface)}
@@ -1454,7 +1461,7 @@ function renderList() {
   $('#items').innerHTML = list.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="Открыть «${esc(secPath(n.section))}»"><span>${n.section === S.section ? '' : '📁 '}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
     <form class="row-item rename-form" data-id="${esc(n.id)}">
       <label class="lbl" for="rename-input">Новое название</label>
-      <input id="rename-input" value="${esc(S.renaming.draft)}" autocomplete="off">
+      <textarea id="rename-input" rows="1" autocomplete="off" enterkeyhint="done">${esc(S.renaming.draft)}</textarea>
       <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" data-rename-cancel>Отмена</button><span class="hint">Enter / Esc</span></div>
     </form>` : `
     <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}" data-sec="${esc(n.section)}">
@@ -2384,9 +2391,18 @@ $('#items').addEventListener('click', e => {
   if (S.select) { toggleSelect(b.dataset.id, e.shiftKey); return; }
   openNote(b.dataset.id);
 });
-$('#items').addEventListener('input', e => { if (e.target.id === 'rename-input' && S.renaming) S.renaming.draft = e.target.value; });
+// phone: the rename sheet covers the screen; a tap outside it cancels instead of opening what is underneath
+document.addEventListener('click', e => {
+  if (!S.renaming || !window.matchMedia('(max-width:760px)').matches || e.target.closest('.rename-form')) return;
+  e.preventDefault(); e.stopPropagation(); S.renaming = null; renderList();
+}, true);
+$('#items').addEventListener('input', e => { if (e.target.id === 'rename-input' && S.renaming) S.renaming.draft = e.target.value.replace(/\s*\n\s*/g, ' '); });
 $('#items').addEventListener('submit', e => { e.preventDefault(); saveRename(); });
-$('#items').addEventListener('keydown', e => { if (e.target.id === 'rename-input' && e.key === 'Escape') { S.renaming = null; renderList(); } });
+$('#items').addEventListener('keydown', e => {
+  if (e.target.id !== 'rename-input') return;
+  if (e.key === 'Escape') { S.renaming = null; renderList(); }
+  else if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); S.renaming.draft = e.target.value.replace(/\s*\n\s*/g, ' '); saveRename(); }
+});
 $('#items').addEventListener('contextmenu', e => { const r = e.target.closest('.row-item:not(form)'); if (r && S.canWrite) { e.preventDefault(); openMenu(r.dataset.id, r.querySelector('.more') || r); } });
 $('#scopebar').addEventListener('click', e => { const b = e.target.closest('[data-scope]'); if (!b) return; S.searchHere = b.dataset.scope === 'here'; store.set('searchHere', S.searchHere); renderList(); if (S.article) renderReader(true); });
 $('#tagbar').addEventListener('click', e => { if (e.target.closest('#tags-manage')) { S.tagsOpen = true; setMode('prog'); requestAnimationFrame(() => { const p = $('#tags-panel'); if (p) $('#prog').scrollTop = p.offsetTop - 16; }); return; } });
