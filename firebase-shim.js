@@ -1,4 +1,4 @@
-/* Android-шпаргалка: подключение к Firebase вместо хранилища claude.ai.
+/* My Notes: подключение к Firebase вместо хранилища claude.ai.
    Страница обращается к данным через window.claude.use('db') и window.claude.use('user');
    здесь эти вызовы отдаются в Firestore и Firebase Auth. */
 (function () {
@@ -62,7 +62,7 @@
   var userReady = new Promise(function (r) { resolveUser = r; });
   auth.getRedirectResult().catch(function (err) { if (err) gateError('Не получилось войти: ' + (err.message || err.code)); });
   auth.onAuthStateChanged(function (u) {
-    if (!u) { showGate('Android-шпаргалка', 'Войди, чтобы открыть свои заметки на этом устройстве.', true); return; }
+    if (!u) { showGate('My Notes', 'Войди, чтобы открыть свои заметки на этом устройстве.', true); return; }
     var allowed = (cfg.allowedEmails || []).map(function (x) { return String(x).toLowerCase(); });
     if (allowed.length && allowed.indexOf(String(u.email || '').toLowerCase()) < 0) {
       showGate('Этот аккаунт не подходит', 'Вход выполнен как ' + u.email + '. Заметки доступны только владельцу.', true);

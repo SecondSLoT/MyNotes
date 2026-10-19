@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#f3f4ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121513" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Шпаргалка">
+<meta name="apple-mobile-web-app-title" content="My Notes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6b55'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='white' text-anchor='middle'%3E%E2%80%B9/%E2%80%BA%3C/text%3E%3C/svg%3E">
-<title>Android-шпаргалка</title>
+<title>My Notes</title>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -370,6 +370,7 @@ button.tag{border:0;background:none;padding:0}
 .missed{display:flex;flex-direction:column;gap:4px;margin:6px 0 16px;padding:0;list-style:none}
 .missed button{border:0;background:none;color:var(--accent);text-align:left;padding:2px 0}
 
+.page-title{font:600 22px/1.2 var(--f-display);margin:4px 2px 2px}
 .prog-row{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr) 180px;gap:14px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
 .prog-row:last-child{border-bottom:0}
 .prog-row .nm{font-weight:500;min-width:0}
@@ -454,19 +455,21 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .prog-row .stack{grid-column:1/-1;grid-row:2}
   .brand span.long{display:none}
 }
+.modes .gear{display:inline-grid;place-items:center;padding-inline:10px}
+.modes .gear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 <div class="app">
   <header class="top">
-    <div class="brand" aria-label="Android-шпаргалка">‹/›<span><b>Android</b><span class="long">-шпаргалка</span></span></div>
+    <div class="brand" aria-label="My Notes">‹/›<span><b>My</b> Notes</span></div>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true">Заметки</button>
       <button id="m-train" data-mode="train" aria-pressed="false">Тренировка <span class="badge" id="due-badge" hidden>0</span></button>
-      <button id="m-prog" data-mode="prog" aria-pressed="false">Прогресс</button>
+      <button id="m-prog" data-mode="prog" aria-pressed="false" class="gear" title="Настройки" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
     </nav>
     <div class="search" id="search-box">
-      <input id="q" type="search" placeholder="Поиск по заметкам: HashMap, launchMode, StateFlow…" autocomplete="off" aria-label="Поиск по заметкам">
+      <input id="q" type="search" placeholder="Поиск по заметкам…" autocomplete="off" aria-label="Поиск по заметкам">
       <kbd>/</kbd>
     </div>
   </header>
@@ -493,7 +496,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
     <div class="help-head"><h2 id="help-title">Как всё устроено</h2><button class="btn" id="help-close" type="button">Закрыть</button></div>
     <nav class="help-toc" aria-label="Разделы справки">
-      <a href="#h-notes">Заметки</a><a href="#h-search">Поиск и теги</a><a href="#h-edit">Редактор</a><a href="#h-train">Тренировка</a><a href="#h-prog">Прогресс</a><a href="#h-keys">Клавиши</a>
+      <a href="#h-notes">Заметки</a><a href="#h-search">Поиск и теги</a><a href="#h-edit">Редактор</a><a href="#h-train">Тренировка</a><a href="#h-prog">Прогресс и настройки</a><a href="#h-keys">Клавиши</a>
     </nav>
     <div class="help-body">
       <section id="h-notes"><h3>Заметки и разделы</h3>
@@ -519,7 +522,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>Кнопка <b>«в разделе →»</b> у результата открывает заметку в её разделе среди соседних.</li>
           <li><b>Теги</b> ставятся прямо в открытой заметке: <b>«+ тег»</b> под заголовком, начни печатать — появятся подсказки из уже существующих тегов. Enter, пробел или запятая добавляют тег, <b>×</b> убирает, Backspace в пустом поле убирает последний. Ещё теги можно ставить через «⋮ → Теги…» в списке, прямо на карточке во время тренировки и в редакторе.</li>
           <li><b>«Выбрать»</b> над списком включает выбор нескольких заметок (Shift+клик выделяет диапазон). Для выбранных: поставить или снять теги, перенести в раздел, убрать или вернуть в тренировку, удалить.</li>
-          <li><b>«⚙ теги»</b> в строке тегов (или «Прогресс» → «Теги»): переименовать тег сразу во всех заметках, слить дубли (переименуй в существующий тег) или удалить тег отовсюду.</li>
+          <li><b>«⚙ теги»</b> в строке тегов (или «Настройки» ⚙ → «Теги»): переименовать тег сразу во всех заметках, слить дубли (переименуй в существующий тег) или удалить тег отовсюду.</li>
           <li>Если теги есть, над списком появляется строка тегов: клик по тегу фильтрует список, повторный клик снимает фильтр. Тег в открытой заметке тоже кликабелен.</li>
           <li>Поиск находит и по тегам: <code>senior</code> или <code>#senior</code>.</li>
           <li>По тегам можно запускать отдельную тренировку (см. ниже).</li>
@@ -531,11 +534,11 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Картинка</b> вставляет шаблон <code>![](img/имя.png)</code> — останется вписать имя файла (в визуальном режиме появится поле для имени). Сам файл нужно положить в папку <code>img</code> рядом с сайтом.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
-          <li>Галочка <b>«Не тренировать»</b> оставляет заметку в шпаргалке, но убирает из тренировки.</li>
+          <li>Галочка <b>«Не тренировать»</b> оставляет заметку в разделе, но убирает из тренировки. Видна только для разделов с включённой тренировкой.</li>
         </ul></section>
       <section id="h-train"><h3>Тренировка</h3>
         <ul>
-          <li><b>Повторение на сегодня</b> — карточки, у которых подошёл срок, плюс порция новых (по умолчанию 10 в день, меняется в «Прогрессе»). Число на вкладке «Тренировка» — сколько ждёт сегодня.</li>
+          <li><b>Повторение на сегодня</b> — карточки, у которых подошёл срок, плюс порция новых (по умолчанию 10 в день, меняется в «Настройках» ⚙). Число на вкладке «Тренировка» — сколько ждёт сегодня.</li>
           <li>Сначала вспоминаешь ответ сам, потом «Показать ответ» и честная оценка:
             <ul>
               <li><b>Знаю</b> — интервал растёт: через 2 дня → 5 дней → ~12 дней → ~месяц → дальше примерно в 2,5 раза. Если в этот день уже был «Не знаю» по этой карточке — завтра.</li>
@@ -546,15 +549,16 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
-          <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, в «Прогрессе» → «Вне тренировки», в самой заметке или через «⋮».</li>
+          <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, внизу вкладки «Тренировка» → «Вне тренировки», в самой заметке или через «⋮».</li>
           <li>В итоге сессии есть кнопка «Прогнать ещё раз то, что не знал».</li>
           <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам заново (завтра → 5 дней → ~12 дней…), а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
           <li>Заметки без текста ответа в тренировку не попадают.</li>
         </ul></section>
-      <section id="h-prog"><h3>Прогресс</h3>
+      <section id="h-prog"><h3>Прогресс и настройки</h3>
         <ul>
-          <li>Полоса по каждому разделу: <b>новые</b> (ещё не видел), <b>изучаются</b> (интервал меньше недели), <b>знаю</b> (от недели), <b>уверенно</b> (от трёх недель). Процент — доля «знаю» и «уверенно».</li>
-          <li>Там же список карточек вне тренировки и настройка числа новых карточек в день.</li>
+          <li><b>Прогресс</b> — внизу вкладки «Тренировка». Полоса по каждому разделу: <b>новые</b> (ещё не видел), <b>изучаются</b> (интервал меньше недели), <b>знаю</b> (от недели), <b>уверенно</b> (от трёх недель). Процент — доля «знаю» и «уверенно».</li>
+          <li>Там же список карточек вне тренировки.</li>
+          <li><b>Настройки</b> — шестерёнка ⚙ в шапке: число новых карточек в день, управление тегами, резервная копия и импорт, выход из аккаунта.</li>
           <li>Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span>.</li>
           <li>Заметки общие для всех твоих устройств, а прогресс тренировок хранится лично за тобой.</li>
         </ul></section>
@@ -980,7 +984,7 @@ function renderList() {
     + (S.canWrite ? `<button class="chip chip-manage" id="tags-manage" title="Переименовать или удалить теги">⚙ теги</button>` : '');
   if (!list.length) {
     renderBulkBar([]);
-    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Прогресс» → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
   const showSec = S.section === 'all' || terms || hasKids(S.section);
@@ -1183,7 +1187,7 @@ function wireDataPanel() {
     const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
       sections: [...S.sections.values()], notes: [...S.notes.values()], srs, settings: S.settings };
     const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `android-notes-${today()}.json`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `my-notes-${today()}.json`;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   };
   $('#data-file').onchange = async e => {
@@ -1193,7 +1197,7 @@ function wireDataPanel() {
       if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
       e.target.value = '';
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
-    } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии шпаргалки.' }; renderProg(); }
+    } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии My Notes.' }; renderProg(); }
   };
   $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
   const runImport = async mode => {
@@ -1458,7 +1462,7 @@ async function bulkMenuAct(act, b) {
   }
 }
 
-/* manage tags (in «Прогресс») */
+/* manage tags (in «Настройки») */
 function tagsPanelHtml() {
   const tags = allTags(); const M = S.tagMgr || {};
   return `<details class="panel" id="tags-panel" ${S.tagsOpen ? 'open' : ''}>
@@ -2358,7 +2362,9 @@ function renderTrain() {
           ${[[5, '5'], [10, '10'], [15, '15'], [25, '25'], [0, 'Все']].map(([k, l]) => `<button data-l="${k}" aria-pressed="${o.limit === k}">${l}</button>`).join('')}</div></div>
         <div><button class="btn primary big" id="start-free" ${pool ? '' : 'disabled'}>Начать · ${o.limit ? Math.min(o.limit, pool) : pool} ${plural(o.limit ? Math.min(o.limit, pool) : pool, 'карточка', 'карточки', 'карточек')}</button></div>
       </div>
-    </section></div>`;
+    </section>
+    ${progressHtml()}</div>`;
+  wireProgress(root);
   $('#start-review').onclick = () => startSession(shuffle(rq.due).concat(rq.fresh), 'review', 'Повторение');
   const save = () => { store.set('trainOpts', S.trainOpts); renderTrain(); };
   root.querySelectorAll('#o-secs [data-s]').forEach(b => b.onclick = () => { const v = b.dataset.s; o.sections = !v ? [] : o.sections.includes(v) ? o.sections.filter(x => x !== v) : o.sections.concat(v); save(); });
@@ -2457,10 +2463,8 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ---------- progress ---------- */
-function renderProg() {
-  const root = $('#prog');
-  if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю…</div></div>'; return; }
+/* ---------- training statistics (shown under «Тренировка») ---------- */
+function progressHtml() {
   const tot = { new: 0, learn: 0, know: 0, solid: 0 }; let dueAll = 0;
   const rows = sectionsSorted().map(s => {
     const c = { new: 0, learn: 0, know: 0, solid: 0 }; let due = 0, all = 0;
@@ -2474,7 +2478,7 @@ function renderProg() {
       <div class="nums">${pct}% · ${all} карт.${due ? ` · <span style="color:var(--kt)">${due} к повтору</span>` : ''}</div></div>`;
   }).join('');
   const allT = tot.new + tot.learn + tot.know + tot.solid;
-  root.innerHTML = `<div class="wrap">
+  return `
     <section class="panel">
       <h3>Прогресс</h3>
       <p class="sub">«Знаю» — карточка с интервалом от недели, «уверенно» — от трёх недель. Заметки вне тренировки и вопросы без ответа не считаются.</p>
@@ -2489,25 +2493,37 @@ function renderProg() {
       <div class="legend" style="margin-bottom:10px"><span><i class="s-solid"></i>уверенно</span><span><i class="s-know"></i>знаю</span><span><i class="s-learn"></i>изучаются</span><span><i class="s-new"></i>новые</span></div>
       ${rows || '<div class="empty-state">Пока нет карточек для тренировки.</div>'}
     </section>
-    ${tagsPanelHtml()}
-    ${window.NOTES_STANDALONE ? dataPanelHtml() : ''}
     ${(() => { const ex = sortedNotes().filter(n => n.ref && (n.body || '').trim()); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
       <summary>Вне тренировки <span>· ${ex.length} ${plural(ex.length, 'карточка', 'карточки', 'карточек')}</span></summary>
-      <p class="sub" style="margin-top:8px">Заметки, которые ты убрал из ротации. Они остаются в шпаргалке, их можно вернуть в любой момент.</p>
-      ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(S.sections.get(n.section)?.title || '')}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">Вернуть</button>` : ''}</li>`).join('')}</ul>` : '<div class="empty-state">Пока ничего не убрано.</div>'}
+      <p class="sub" style="margin-top:8px">Заметки, которые ты убрал из ротации. Они остаются в заметках, их можно вернуть в любой момент.</p>
+      ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(secPath(n.section))}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">Вернуть</button>` : ''}</li>`).join('')}</ul>` : '<div class="empty-state">Пока ничего не убрано.</div>'}
     </details>`; })()}
+  `;
+}
+function wireProgress(root) {
+  const ep = root.querySelector('#ex-panel'); if (ep) ep.ontoggle = e => { S.exOpen = e.target.open; };
+  root.querySelectorAll('[data-unref]').forEach(b => b.onclick = () => setRef(b.dataset.unref, false, true));
+}
+
+/* ---------- settings ---------- */
+function renderProg() {
+  const root = $('#prog');
+  if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю…</div></div>'; return; }
+  root.innerHTML = `<div class="wrap">
+    <h2 class="page-title">Настройки</h2>
     <section class="panel">
-      <h3>Настройки</h3>
+      <h3>Тренировка</h3>
       <form class="opt-row" id="set-form" style="margin-top:10px">
         <label for="npd">Новых карточек в день</label>
         <input id="npd" type="number" min="0" max="100" value="${S.settings.newPerDay ?? 10}" style="width:80px;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">
         <button class="btn">Сохранить</button>
       </form>
-    </section></div>`;
-  $('#ex-panel').ontoggle = e => { S.exOpen = e.target.open; };
+    </section>
+    ${tagsPanelHtml()}
+    ${window.NOTES_STANDALONE ? dataPanelHtml() : ''}
+    </div>`;
   wireTagsPanel(root);
   if (window.NOTES_STANDALONE) wireDataPanel();
-  root.querySelectorAll('[data-unref]').forEach(b => b.onclick = () => setRef(b.dataset.unref, false, true));
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
