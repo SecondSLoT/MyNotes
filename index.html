@@ -634,6 +634,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Черновики.</b> Пока пишешь, правки каждые полсекунды сохраняются в черновик в этом браузере. Если ушёл на другую заметку или закрыл вкладку, не сохранив, — в заметке появится «Есть несохранённые правки · Продолжить редактирование», а в редакторе — «Восстановить» или «Удалить черновик».</li>
           <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
+          <li>В режиме «Визуально» разметку можно печатать как в Markdown — она превращается в оформление, как только нажмёшь пробел: <code>`код`</code>, <code>**жирный**</code>, <code>*курсив*</code>, <code>~~зачёркнутый~~</code>. В начале строки: <code>#</code> и <code>##</code> — заголовки, <code>-</code> или <code>1.</code> — списки, <code>[ ]</code> — чек-лист, <code>&gt;</code> — цитата, <code>```</code> — блок кода (Enter на пустой последней строке выходит из него). Стрелка → в конце кода, жирного или курсива выводит курсор за оформление, чтобы дальше печатать обычный текст.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Ссылка на другую заметку:</b> набери <code>[[</code> в Markdown-колонке или нажми кнопку «Ссылка на заметку» на панели, начни вводить название и выбери заметку (стрелки и Enter). Если перед этим выделить текст — он станет текстом ссылки. Ссылка держится за заметку, а не за название: переименование или перенос в другой раздел её не ломают. По клику открывается нужная заметка, рядом с разделом появляется «← назад» к той, откуда пришёл. Внизу каждой заметки — список «Ссылаются на эту заметку». Ссылка на удалённую заметку становится зачёркнутой.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
@@ -2875,6 +2876,7 @@ function renderEditor(box) {
       const li = closestIn(vis, 'li'); const prevLi = li?.previousElementSibling;
       if (li && prevLi?.classList.contains('task')) { li.classList.add('task'); if (!li.textContent.trim()) li.dataset.checked = 'false'; }
     });
+    vis.addEventListener('input', e => visAutoFormat(e, vis));
     vis.addEventListener('input', fromVis);
     vis.addEventListener('mousedown', e => {
       const li = e.target.closest?.('li.task'); if (!li || e.target !== li || e.clientX - li.getBoundingClientRect().left > 20) return;
@@ -3278,7 +3280,106 @@ function applyVisLink(vis, url) {
   if (sel.isCollapsed) exec('insertHTML', `<a href="${esc(url)}">${esc(url)}</a>&#8203;`);
   else exec('createLink', url);
 }
+/* markdown typed in the visual editor turns into formatting as soon as the space is typed:
+   `code`, **bold**, *italic*, _italic_, ~~strike~~ anywhere; #, ##, -, *, 1., >, [ ], ``` at the start of a line */
+const INLINE_RULES = [
+  [/`([^`]+)`$/, 'code'], [/\*\*([^*]+)\*\*$/, 'strong'], [/~~([^~]+)~~$/, 'del'],
+  [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, 'em'], [/(?:^|[^_\wа-яё])_([^_\s](?:[^_]*[^_\s])?)_$/i, 'em'],
+];
+function caretAfter(node, off) { const r = document.createRange(); r.setStart(node, off); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+function visAutoFormat(e, vis) {
+  if (e.inputType !== 'insertText' || e.data !== ' ') return;
+  const sl = getSelection(); if (!sl.isCollapsed) return;
+  const node = sl.anchorNode, off = sl.anchorOffset;
+  if (!node || node.nodeType !== 3 || !vis.contains(node) || node.parentElement.closest('code, pre')) return;
+  const before = node.data.slice(0, off - 1).replace(/ /g, ' ');
+  // block rules: the marker is the whole text before the caret, at the very start of a paragraph
+  const block = node.parentElement.closest('p, div, li, h1, h2, h3, h4, h5, h6, blockquote');
+  const atStart = block && block !== vis && (() => { const r = document.createRange(); r.setStart(block, 0); r.setEnd(node, 0); return !r.toString().replace(/​/g, ''); })();
+  // a paragraph becomes a list item (joining a list right above it); inside a list item, [ ] makes it a task
+  const toList = (tag, task) => {
+    let li = block.tagName === 'LI' ? block : null;
+    if (!li) {
+      li = document.createElement('li'); while (block.firstChild) li.appendChild(block.firstChild);
+      const prev = block.previousElementSibling;
+      if (prev && prev.tagName === tag && !task === !prev.querySelector(':scope > li.task')) { prev.appendChild(li); block.remove(); }
+      else { const list = document.createElement(tag); list.appendChild(li); block.replaceWith(list); }
+    }
+    if (task) { li.classList.add('task'); li.dataset.checked = task; }
+    const t = li.firstChild && li.firstChild.nodeType === 3 ? li.firstChild : li.insertBefore(document.createTextNode('\u200b'), li.firstChild);
+    caretAfter(t, t.data.startsWith('\u200b') ? 1 : 0);
+  };
+  if (atStart) {
+    const m = before.trim();
+    const bl = {
+      '#': () => exec('formatBlock', 'h2'), '##': () => exec('formatBlock', 'h3'), '>': () => exec('formatBlock', 'blockquote'),
+      '-': () => toList('UL'), '*': () => toList('UL'), '+': () => toList('UL'),
+      '1.': () => toList('OL'), '1)': () => toList('OL'),
+      '[]': () => toList('UL', 'false'), '[ ]': () => toList('UL', 'false'), '[x]': () => toList('UL', 'true'),
+      '```': () => { const ln = block; const pre = document.createElement('pre'); pre.innerHTML = '<code class="language-kotlin">​</code>'; ln.replaceWith(pre); if (!pre.nextElementSibling) pre.after(Object.assign(document.createElement('p'), { innerHTML: '<br>' })); caretAfter(pre.firstChild.firstChild, 1); },
+    }[m];
+    const okHere = bl && before === m && (block.tagName === 'P' || block.tagName === 'DIV' || (block.tagName === 'LI' && m.startsWith('[')) || /^H[1-6]$/.test(block.tagName) && m.startsWith('#'));
+    if (okHere) {
+      node.deleteData(0, off); if (!node.data) node.data = '​';
+      caretAfter(node, node.data === '​' ? 1 : 0);
+      bl(); vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+    }
+  }
+  for (const [re, tag] of INLINE_RULES) {
+    const m = before.match(re); if (!m) continue;
+    const inner = m[1], whole = m[0].slice(m[0].length - inner.length - (tag === 'strong' || tag === 'del' ? 4 : 2));
+    const start = before.length - whole.length;
+    const rest = node.data.slice(off);
+    node.data = node.data.slice(0, start);
+    const el = document.createElement(tag); el.textContent = inner;
+    const after = document.createTextNode((rest && !rest.startsWith(' ') ? ' ' : ' ') + rest);
+    node.after(el, after);
+    caretAfter(after, 1);
+    return;
+  }
+}
+// → at the end of inline code / bold / italic / link leaves it, so typing continues as plain text
+function visExitInline(e, vis) {
+  if (e.key !== 'ArrowRight' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
+  const sl = getSelection(); if (!sl.isCollapsed || !sl.anchorNode) return false;
+  const atEnd = el => { const r = document.createRange(); r.setStart(sl.anchorNode, sl.anchorOffset); r.setEnd(el, el.childNodes.length); return !r.toString().replace(/​/g, ''); };
+  let el = sl.anchorNode.nodeType === 3 ? sl.anchorNode.parentElement : sl.anchorNode, out = null;
+  while (el && el !== vis && /^(CODE|STRONG|B|EM|I|DEL|S|STRIKE|A)$/.test(el.tagName) && !el.closest('pre') && atEnd(el)) { out = el; el = el.parentElement; }
+  if (!out) return false;
+  e.preventDefault();
+  let nx = out.nextSibling;
+  if (!(nx && nx.nodeType === 3 && nx.data.startsWith('​'))) { nx = document.createTextNode('​' + (nx && nx.nodeType === 3 ? '' : '')); out.after(nx); }
+  caretAfter(nx, 1);
+  return true;
+}
+// Enter inside a code block adds a line instead of a new block; Enter on an empty last line leaves the block
+function visPreEnter(e, vis) {
+  if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.isComposing) return false;
+  const pre = closestIn(vis, 'pre'); if (!pre) return false;
+  e.preventDefault();
+  const sl = getSelection(), r = sl.getRangeAt(0);
+  const tail = document.createRange(); tail.setStart(r.endContainer, r.endOffset); tail.setEnd(pre, pre.childNodes.length);
+  const head = document.createRange(); head.setStart(pre, 0); head.setEnd(r.startContainer, r.startOffset);
+  if (sl.isCollapsed && !tail.toString().replace(/[\u200b\n]/g, '') && /\n\u200b?$/.test(head.toString())) {
+    exec('delete');   // drop the empty line, then step out below
+    let nx = pre.nextElementSibling;
+    if (!nx || nx.tagName !== 'P') { nx = Object.assign(document.createElement('p'), { innerHTML: '<br>' }); pre.after(nx); }
+    caretAfter(nx, 0); vis.dispatchEvent(new Event('input', { bubbles: true })); return true;
+  }
+  // a trailing newline is invisible in a <pre> until something follows it
+  if (sl.isCollapsed && !head.toString().replace(/\u200b/g, '')) return true;   // no empty first line right after ```
+  // (execCommand would turn "\n" into a new block, so the text is inserted by hand)
+  const atEnd = !tail.toString().replace(/\u200b/g, '');
+  r.deleteContents();
+  let n = r.startContainer, off = r.startOffset;
+  if (n.nodeType !== 3) { const t = document.createTextNode(''); const ref = n.childNodes[off] || null; (n.tagName === 'PRE' ? (pre.querySelector('code') || pre) : n).insertBefore(t, n.tagName === 'PRE' ? null : ref); n = t; off = 0; }
+  n.insertData(off, atEnd ? '\n\u200b' : '\n');
+  caretAfter(n, off + 1);
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+}
 function visKeydown(e, vis) {
+  if (visExitInline(e, vis) || visPreEnter(e, vis)) return;
   const mod = e.ctrlKey || e.metaKey;
   if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); visAction(e.code === 'Digit1' ? 'h1' : 'h2', vis); return; }
   if (!mod || e.altKey) return;
