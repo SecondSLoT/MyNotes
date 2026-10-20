@@ -837,7 +837,7 @@ function menuFolderButtons(act, cur, exclude, attr = 'data-sec') {
 }
 async function migrateTree() {
   // one-time: old flat sections become children of an «Android-шпаргалка» folder with training on
-  if (S.migratingTree || !S.canWrite || !S.db) return;
+  if (S.migratingTree || !S.canWrite || !S.db || window.NOTES_FLAVOR === 'public') return;
   const secs = [...S.sections.values()];
   if (!secs.length || S.sections.has('cheatsheet') || secs.some(x => x.parent !== undefined || x.train !== undefined)) return;
   S.migratingTree = true;
@@ -1161,7 +1161,7 @@ function pickImages() {
   inp.onchange = () => { for (const f of inp.files) insertUpload(f); };
   inp.click();
 }
-function noGhHint() { if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
+function noGhHint() { if (window.NOTES_FLAVOR === 'public') toast('Загрузка картинок скоро появится'); else if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
 
 /* ---------- markdown ---------- */
 const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
@@ -3836,7 +3836,7 @@ function renderProg() {
       <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
     </section>
     ${tagsPanelHtml()}
-    ${window.NOTES_STANDALONE ? ghPanelHtml() + dataPanelHtml() : ''}
+    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? '' : ghPanelHtml()) + dataPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
   root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
