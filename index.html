@@ -635,6 +635,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>В каком режиме открывается редактор (визуально, рядом или Markdown), можно выбрать в ⚙ Настройках → «Редактор».</li>
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>В режиме «Визуально» разметку можно печатать как в Markdown — она превращается в оформление, как только нажмёшь пробел: <code>`код`</code>, <code>**жирный**</code>, <code>*курсив*</code>, <code>~~зачёркнутый~~</code>. В начале строки: <code>#</code> и <code>##</code> — заголовки, <code>-</code> или <code>1.</code> — списки, <code>[ ]</code> — чек-лист, <code>&gt;</code> — цитата, <code>```</code> — блок кода (Enter на пустой последней строке выходит из него). Стрелка → в конце кода, жирного или курсива выводит курсор за оформление, чтобы дальше печатать обычный текст.</li>
+          <li>Выдели текст и вставь ссылку из буфера (<kbd>MOD</kbd>+<kbd>V</kbd> или «Вставить» на телефоне) — выделенный текст сразу станет ссылкой. Работает и в «Визуально», и в Markdown.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Ссылка на другую заметку:</b> набери <code>[[</code> в Markdown-колонке или нажми кнопку «Ссылка на заметку» на панели, начни вводить название и выбери заметку (стрелки и Enter). Если перед этим выделить текст — он станет текстом ссылки. Ссылка держится за заметку, а не за название: переименование или перенос в другой раздел её не ломают. По клику открывается нужная заметка, рядом с разделом появляется «← назад» к той, откуда пришёл. Внизу каждой заметки — список «Ссылаются на эту заметку». Ссылка на удалённую заметку становится зачёркнутой.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
@@ -2862,6 +2863,14 @@ function renderEditor(box) {
       const p = ta.selectionStart;
       if (e.inputType === 'insertText' && ta.value.slice(p - 2, p) === '[[') pickForMd(ta, p - 2, p);
     });
+    ta.addEventListener('paste', e => {
+      const url = pastedUrl(e.clipboardData), a0 = ta.selectionStart, a1 = ta.selectionEnd, sel = ta.value.slice(a0, a1);
+      if (!url || !sel.trim() || sel.includes('\n') || pastedUrl(sel)) return;
+      e.preventDefault();
+      const lead = sel.match(/^\s*/)[0], trail = sel.match(/\s*$/)[0];
+      const md = `${lead}[${sel.trim().replace(/([\[\]])/g, '\\$1')}](${url})${trail}`;
+      if (!document.execCommand('insertText', false, md)) { ta.setRangeText(md, a0, a1, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
+    });
     ta.addEventListener('paste', e => { const f = imageFiles(e.clipboardData); if (!f.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); f.forEach(insertUpload); });
     ta.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
     ta.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } ta.focus(); f.forEach(insertUpload); });
@@ -2896,6 +2905,15 @@ function renderEditor(box) {
       if (f.length) { e.preventDefault(); if (!ghReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
       e.preventDefault();
       const t = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
+      const url = pastedUrl(e.clipboardData), sl = getSelection(), selText = sl.toString();
+      if (url && !sl.isCollapsed && selText.trim() && !selText.includes('\n') && !pastedUrl(selText) && !closestIn(vis, 'pre')) {
+        // selected text + a link in the clipboard → the selection becomes the link's text
+        document.execCommand('createLink', false, url);
+        const a = closestIn(vis, 'a') || [...vis.querySelectorAll('a')].find(x => x.getAttribute('href') === url && sl.containsNode(x, true));
+        if (a) { const r = document.createRange(); r.setStartAfter(a); r.collapse(true); sl.removeAllRanges(); sl.addRange(r); }
+        vis.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+      }
       document.execCommand('insertText', false, t);
     });
     vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
@@ -3287,6 +3305,14 @@ const INLINE_RULES = [
   [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, 'em'], [/(?:^|[^_\wа-яё])_([^_\s](?:[^_]*[^_\s])?)_$/i, 'em'],
 ];
 function caretAfter(node, off) { const r = document.createRange(); r.setStart(node, off); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+// the clipboard (or a string) holds just one link: http(s)://…, www.…, mailto:… or a link to another note
+function pastedUrl(src) {
+  const t = (typeof src === 'string' ? src : src?.getData('text/plain') || '').trim();
+  if (!t || /\s/.test(t)) return '';
+  if (/^(https?:\/\/|mailto:|tg:\/\/)\S+$/i.test(t) || /^#note:/.test(t)) return t;
+  if (/^www\.[^\s.]+\.\S+$/i.test(t)) return 'https://' + t;
+  return '';
+}
 function visAutoFormat(e, vis) {
   if (e.inputType !== 'insertText' || e.data !== ' ') return;
   const sl = getSelection(); if (!sl.isCollapsed) return;
