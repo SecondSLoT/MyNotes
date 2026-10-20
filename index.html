@@ -24,6 +24,7 @@
   --kt:#6b4fd8; --kt-soft:#ece8fb;
   --again:#b5442f; --again-soft:#f6e3de; --hard:#a8700f; --hard-soft:#f6ecd8; --good:#2f6b55; --good-soft:#dfece4;
   --code-bg:#eef0ea; --mark:#f3e39a;
+  --tc-red:#c62828; --tc-orange:#c25e00; --tc-green:#2e7d32; --tc-blue:#1565c0; --tc-purple:#7b1fa2; --tc-gray:#7a807b;
   --hl-kw:#7a3fb8; --hl-str:#2f6b3a; --hl-num:#a8560f; --hl-com:#8b938d; --hl-type:#1f5f8b; --hl-attr:#9a3f5c;
   --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
   --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -37,6 +38,7 @@
   --kt:#a993ff; --kt-soft:#2a2442;
   --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
   --code-bg:#1b201d; --mark:#5b4f17;
+  --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
   --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
   color-scheme:dark}}
 :root[data-theme="dark"]{
@@ -46,6 +48,7 @@
   --kt:#a993ff; --kt-soft:#2a2442;
   --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
   --code-bg:#1b201d; --mark:#5b4f17;
+  --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
   --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
   color-scheme:dark}
 [hidden]{display:none!important}
@@ -376,6 +379,13 @@ button.tag{border:0;background:none;padding:0}
 .tb.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
 .tb:active{background:var(--accent-soft)}
 .tb b{font-weight:700}.tb i{font-family:Georgia,serif;font-style:italic;font-size:16px}.tb s{text-decoration-thickness:1.5px}
+.tc-red{color:var(--tc-red)}.tc-orange{color:var(--tc-orange)}.tc-green{color:var(--tc-green)}.tc-blue{color:var(--tc-blue)}.tc-purple{color:var(--tc-purple)}.tc-gray{color:var(--tc-gray)}
+.tb .tc-ico{display:grid;justify-items:center;line-height:1;font-weight:600;font-size:15px}
+.tb .tc-ico i{display:block;width:14px;height:3px;border-radius:2px;margin-top:2px;background:var(--cur-tc,var(--ink))}
+.color-pop{position:fixed;z-index:60;display:flex;gap:6px;align-items:center;padding:8px;background:var(--raised);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.color-pop button{width:30px;height:30px;border-radius:50%;border:2px solid var(--raised);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
+.color-pop button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+.color-pop .clear{background:none;color:var(--muted);font-size:15px;display:grid;place-items:center}
 .tb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .lib.wide-edit{grid-template-columns:minmax(0,1fr)}
 .lib.wide-edit .rail,.lib.wide-edit .list{display:none}
@@ -636,6 +646,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li>Три режима: <b>Markdown</b> (исходный текст), <b>Рядом</b> (текст и результат, на всю ширину окна) и <b>Визуально</b> (только оформленный текст). Писать можно в любой колонке, вторая обновляется сама.</li>
           <li>В режиме «Визуально» разметку можно печатать как в Markdown — она превращается в оформление, как только нажмёшь пробел: <code>`код`</code>, <code>**жирный**</code>, <code>*курсив*</code>, <code>~~зачёркнутый~~</code>. В начале строки: <code>#</code> и <code>##</code> — заголовки, <code>-</code> или <code>1.</code> — списки, <code>[ ]</code> — чек-лист, <code>&gt;</code> — цитата, <code>```</code> — блок кода (Enter на пустой последней строке выходит из него). Стрелка → в конце кода, жирного или курсива выводит курсор за оформление, чтобы дальше печатать обычный текст.</li>
           <li>Выдели текст и вставь ссылку из буфера (<kbd>MOD</kbd>+<kbd>V</kbd> или «Вставить» на телефоне) — выделенный текст сразу станет ссылкой. Работает и в «Визуально», и в Markdown.</li>
+          <li><b>Цвет текста</b> — кнопка <b>A</b> с цветной полоской на панели: выдели текст и выбери один из шести цветов, ✕ возвращает обычный цвет. Цвета подстраиваются под светлую и тёмную тему. В Markdown цвет записывается как <code>&lt;span class="tc-red"&gt;текст&lt;/span&gt;</code>.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Ссылка на другую заметку:</b> набери <code>[[</code> в Markdown-колонке или нажми кнопку «Ссылка на заметку» на панели, начни вводить название и выбери заметку (стрелки и Enter). Если перед этим выделить текст — он станет текстом ссылки. Ссылка держится за заметку, а не за название: переименование или перенос в другой раздел её не ломают. По клику открывается нужная заметка, рядом с разделом появляется «← назад» к той, откуда пришёл. Внизу каждой заметки — список «Ссылаются на эту заметку». Ссылка на удалённую заметку становится зачёркнутой.</li>
           <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
@@ -948,7 +959,7 @@ function plain(n) {
   const key = n.id + '|' + (n.updated || '') + '|' + (n.body || '').length;
   const hit = plainCache.get(n.id);
   if (hit && hit.key === key) return hit.text;
-  const text = (n.body || '').replace(/```[a-z]*\n?/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
+  const text = (n.body || '').replace(/```[a-z]*\n?/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/<\/?span[^>]*>/g, '').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
   plainCache.set(n.id, { key, text });
   return text;
 }
@@ -1159,8 +1170,8 @@ function renderMd(src) {
   if (!window.marked) return '<pre>' + esc(src) + '</pre>';
   if (!mdReady) {
     mdReady = true;
-    // raw HTML in notes is shown as text, so <activity> or List<String> never disappear
-    try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return esc(raw); } } }); } catch {}
+    // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the text-colour spans pass
+    try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
   }
   const html = marked.parse(src || '', { gfm: true, breaks: false });
   return window.DOMPurify ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] }) : html;
@@ -2922,6 +2933,7 @@ function renderEditor(box) {
   tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
   tb.addEventListener('click', e => {
     const b = e.target.closest('[data-md]'); if (!b) return;
+    if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
     if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
     requestAnimationFrame(refreshTb);
   });
@@ -2930,6 +2942,8 @@ function renderEditor(box) {
     if (!tb.isConnected) return;
     const st = E.pane === 'vis' && vis && document.activeElement === vis ? visFormatState(vis) : ta && document.activeElement === ta ? mdFormatState(ta) : null;
     if (st) setTbState(tb, st);
+    const cb = tb.querySelector('[data-md="color"]');
+    if (cb) { const c = E.pane === 'vis' && vis && document.activeElement === vis ? visColorAt(vis) : ta && document.activeElement === ta ? mdColorAt(ta) : null; cb.style.setProperty('--cur-tc', c ? `var(--tc-${c})` : ''); }
   };
   if (ta) for (const ev of ['keyup', 'mouseup', 'input', 'focus', 'select']) ta.addEventListener(ev, () => requestAnimationFrame(refreshTb));
   if (vis) for (const ev of ['keyup', 'mouseup', 'input', 'focus']) vis.addEventListener(ev, () => requestAnimationFrame(refreshTb));
@@ -3010,7 +3024,7 @@ const ICO = {
 function toolbarHtml() {
   const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
-    <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}</div>
+    <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}${b('color', '<span class="tc-ico">A<i></i></span>', 'Цвет текста')}</div>
     <div class="tb-group">${b('h1', '<span class="hl">H<small>1</small></span>', `Заголовок (${MOD}+Alt+1)`)}${b('h2', '<span class="hl">H<small>2</small></span>', `Подзаголовок (${MOD}+Alt+2)`)}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
     <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('note', ICO.note, 'Ссылка на заметку ([[ в тексте)')}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
@@ -3212,6 +3226,7 @@ function mdInline(nodes) {
     if (t === 'STRONG' || t === 'B') s += mdWrap('**', kids());
     else if (t === 'EM' || t === 'I') s += mdWrap('*', kids());
     else if (t === 'DEL' || t === 'S' || t === 'STRIKE') s += mdWrap('~~', kids());
+    else if (t === 'SPAN' && tcOf(n)) { const inner = kids(); const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0]; s += inner.trim() ? `${lead}<span class="tc-${tcOf(n)}">${inner.trim()}</span>${trail}` : inner; }
     else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
     else if (t === 'A') { const label = kids().trim() || n.getAttribute('href') || ''; s += `[${label}](${n.getAttribute('href') || ''})`; }
     else if (t === 'IMG') s += `![${n.getAttribute('alt') === 'Иллюстрация из заметки' ? '' : (n.getAttribute('alt') || '')}](${n.dataset.src || n.getAttribute('src') || ''})`;
@@ -3305,6 +3320,114 @@ const INLINE_RULES = [
   [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, 'em'], [/(?:^|[^_\wа-яё])_([^_\s](?:[^_]*[^_\s])?)_$/i, 'em'],
 ];
 function caretAfter(node, off) { const r = document.createRange(); r.setStart(node, off); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+/* ---------- text colour: a fixed set, stored as <span class="tc-red">…</span> inside the markdown ---------- */
+const TEXT_COLORS = [['red', 'Красный'], ['orange', 'Оранжевый'], ['green', 'Зелёный'], ['blue', 'Синий'], ['purple', 'Фиолетовый'], ['gray', 'Серый']];
+const TC_NAMES = new Set(TEXT_COLORS.map(c => c[0]));
+function tcOf(el) { for (const c of el.classList || []) if (c.startsWith('tc-') && TC_NAMES.has(c.slice(3))) return c.slice(3); return null; }
+let colorPop = null;
+function closeColorPop() { colorPop?.remove(); colorPop = null; }
+function openColorPop(btn, apply, cur) {
+  if (colorPop) { closeColorPop(); return; }
+  const pop = colorPop = document.createElement('div');
+  pop.className = 'color-pop'; pop.setAttribute('role', 'menu');
+  pop.innerHTML = TEXT_COLORS.map(([c, name]) => `<button type="button" data-c="${c}" title="${name}" aria-label="${name}" aria-pressed="${cur === c}" style="background:var(--tc-${c})"></button>`).join('')
+    + `<button type="button" class="clear" data-c="" title="Обычный цвет" aria-label="Обычный цвет">✕</button>`;
+  document.body.appendChild(pop);
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+  pop.style.top = (r.bottom + 6) + 'px';
+  pop.addEventListener('mousedown', e => e.preventDefault());   // keep the text selection
+  pop.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; closeColorPop(); apply(b.dataset.c); });
+}
+document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"]')) closeColorPop(); }, true);
+document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeColorPop(); } }, true);
+window.addEventListener('scroll', () => closeColorPop(), true);
+
+function visColorAt(vis) {
+  const sl = getSelection(); let n = sl.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentElement;
+  while (n && n !== vis && vis.contains(n)) { const c = tcOf(n); if (c) return c; n = n.parentElement; }
+  return null;
+}
+function visColor(vis, c) {
+  vis.focus();
+  const sl = getSelection(); if (!sl.rangeCount) return;
+  const r = sl.getRangeAt(0); if (!vis.contains(r.commonAncestorContainer)) return;
+  const tcUp = n => { n = n.nodeType === 3 ? n.parentElement : n; while (n && n !== vis) { if (tcOf(n)) return n; n = n.parentElement; } return null; };
+  if (r.collapsed) {
+    const a = tcUp(r.startContainer);
+    if (a) { if (c) a.className = 'tc-' + c; else a.replaceWith(...a.childNodes); }
+    else if (c) { const sp = document.createElement('span'); sp.className = 'tc-' + c; sp.textContent = '​'; r.insertNode(sp); caretAfter(sp.firstChild, 1); }
+    vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+  }
+  // cut the selection edges so it covers whole text nodes
+  if (r.endContainer.nodeType === 3 && r.endOffset < r.endContainer.length) r.endContainer.splitText(r.endOffset);
+  if (r.startContainer.nodeType === 3 && r.startOffset > 0) { const t = r.startContainer.splitText(r.startOffset); r.setStart(t, 0); }
+  const walker = document.createTreeWalker(r.commonAncestorContainer.nodeType === 3 ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+  const units = [];
+  for (let t = walker.currentNode.nodeType === 3 ? walker.currentNode : walker.nextNode(); t; t = walker.nextNode()) {
+    if (!r.intersectsNode(t) || !t.data.replace(/​/g, '').trim() && !t.data.includes(' ') || t.parentElement.closest('pre')) continue;
+    const code = t.parentElement.closest('code');   // inline code is coloured as a whole: `…` can't hold a span
+    const u = code && vis.contains(code) ? code : t;
+    if (!units.includes(u)) units.push(u);
+  }
+  const split = (a, u) => {   // make the coloured span `a` wrap exactly `u`
+    const before = document.createRange(); before.setStart(a, 0); before.setEndBefore(u);
+    if (before.toString()) { const f = before.extractContents(); const c1 = a.cloneNode(false); c1.appendChild(f); a.before(c1); }
+    const after = document.createRange(); after.setStartAfter(u); after.setEnd(a, a.childNodes.length);
+    if (after.toString()) { const f = after.extractContents(); const c2 = a.cloneNode(false); c2.appendChild(f); a.after(c2); }
+  };
+  const touched = [];
+  for (const u of units) {
+    let a = tcUp(u.nodeType === 3 ? u.parentElement : u);
+    if (a === u) a = null;
+    while (a) { split(a, u); if (c) { a.className = 'tc-' + c; touched.push(a); a = null; } else { const up = tcUp(a.parentElement); a.replaceWith(...a.childNodes); a = up; } }
+    if (c && !touched.some(x => x.contains(u))) { const sp = document.createElement('span'); sp.className = 'tc-' + c; u.before(sp); sp.appendChild(u); touched.push(sp); }
+  }
+  // merge neighbours of the same colour so the markdown stays tidy
+  for (const sp of touched) { const p = sp.previousSibling; if (p && p.nodeType === 1 && p.tagName === 'SPAN' && p.className === sp.className && sp.isConnected) { while (sp.firstChild) p.appendChild(sp.firstChild); sp.remove(); } }
+  vis.querySelectorAll('span').forEach(x => { if (!x.textContent && !x.querySelector('img,br')) x.remove(); });
+  if (units.length) { const first = units[0], last = units[units.length - 1]; const nr = document.createRange(); if (first.isConnected && last.isConnected) { nr.setStartBefore(first); nr.setEndAfter(last); sl.removeAllRanges(); sl.addRange(nr); } }
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+const TC_OPEN = /<span class="tc-([a-z]+)">/g;
+function mdColorAt(ta) {
+  const v = ta.value, p = ta.selectionStart;
+  let depth = [], m; const re = /<span class="tc-([a-z]+)">|<\/span>/g;
+  while ((m = re.exec(v)) && m.index < p) { if (m[1]) depth.push(m[1]); else depth.pop(); }
+  return depth[depth.length - 1] || null;
+}
+function mdColor(ta, c) {
+  let s = ta.selectionStart, e = ta.selectionEnd; const v = ta.value;
+  while (s < e && /\s/.test(v[s])) s++;
+  while (e > s && /\s/.test(v[e - 1])) e--;
+  const open = c ? `<span class="tc-${c}">` : '';
+  // the selection is exactly the inside of a coloured span → recolour or unwrap it
+  const lm = v.slice(0, s).match(/<span class="tc-[a-z]+">$/), rm = v.slice(e).match(/^<\/span>/);
+  if (lm && rm) {
+    const inner = v.slice(s, e);
+    const t = c ? open + inner + '</span>' : inner;
+    return replaceRange(ta, s - lm[0].length, e + 7, t, s - lm[0].length + open.length, s - lm[0].length + open.length + inner.length);
+  }
+  const strip = x => x.replace(/<span class="tc-[a-z]+">|<\/span>/g, '');
+  if (s === e) {
+    if (!c) { const cur = mdColorAt(ta); if (!cur) return; // caret inside a span: remove that span's tags
+      const before = v.slice(0, s), oi = before.lastIndexOf(`<span class="tc-${cur}">`), ci = v.indexOf('</span>', s);
+      if (oi < 0 || ci < 0) return;
+      const ol = `<span class="tc-${cur}">`.length, inner = v.slice(oi + ol, ci);
+      return replaceRange(ta, oi, ci + 7, inner, s - ol, s - ol);
+    }
+    const ph = 'текст'; return replaceRange(ta, s, e, open + ph + '</span>', s + open.length, s + open.length + ph.length);
+  }
+  const sel = strip(v.slice(s, e));
+  const lines = sel.split('\n');
+  const t = lines.map(l => {
+    if (!c || !l.trim()) return l;
+    const m = l.match(/^(\s*(?:#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> )?)(.*?)(\s*)$/);
+    return m[2] ? m[1] + open + m[2] + '</span>' + m[3] : l;
+  }).join('\n');
+  replaceRange(ta, s, e, t, s, s + t.length);
+}
+
 // the clipboard (or a string) holds just one link: http(s)://…, www.…, mailto:… or a link to another note
 function pastedUrl(src) {
   const t = (typeof src === 'string' ? src : src?.getData('text/plain') || '').trim();
