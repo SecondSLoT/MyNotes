@@ -817,7 +817,7 @@ function trainOwner(id) { if (S.sections.get(id)?.train) return id; return ances
 function secPath(id, sep = ' › ') { return [...ancestors(id).reverse(), id].map(x => S.sections.get(x)?.title || '').join(sep); }
 function folderOptions(sel, exclude) {
   return tree().list.filter(e => !exclude || !exclude.has(e.s.id))
-    .map(e => `<option value="${esc(e.s.id)}" ${e.s.id === sel ? 'selected' : ''}>${'\u00a0\u00a0\u00a0'.repeat(e.depth)}${esc(e.s.title)}</option>`).join('');
+    .map(e => `<option value="${esc(e.s.id)}" ${e.s.id === sel ? 'selected' : ''}>${e.depth ? '◦\u2009'.repeat(e.depth) + '\u00a0' : ''}${esc(e.s.title)}</option>`).join('');
 }
 function menuFolderButtons(act, cur, exclude, attr = 'data-sec') {
   return tree().list.filter(e => !exclude || !exclude.has(e.s.id)).map(e => `<button data-act="${act}" ${attr}="${esc(e.s.id)}" role="menuitem" style="padding-left:${10 + e.depth * 14}px" ${e.s.id === cur ? 'disabled' : ''}><span class="ico">${e.s.id === cur ? '✓' : ''}</span>${esc(e.s.title)}</button>`).join('');
