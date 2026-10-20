@@ -1866,10 +1866,12 @@ function wireDataPanel() {
     let done = 0; const total = secs.length + notes.length + srs.length;
     const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: `Импортирую… ${done} из ${total}` }; renderProg(); } };
     try {
-      for (const sc of secs) { const ref = S.db.collection('sections').doc(sc.id); await (S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(strip(sc))); tick(); }
-      for (const n of notes) { await S.db.collection('notes').doc(n.id).set(strip(n)); tick(); }
+      // по 50 записей за раз: хранилище может отправить их одной пачкой
+      const inChunks = async (items, fn) => { for (let i = 0; i < items.length; i += 50) await Promise.all(items.slice(i, i + 50).map(x => fn(x).then(tick))); };
+      await inChunks(secs, sc => { const ref = S.db.collection('sections').doc(sc.id); return S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(strip(sc)); });
+      await inChunks(notes, n => S.db.collection('notes').doc(n.id).set(strip(n)));
       if (S.uid) {
-        for (const [id, v] of srs) { await srsCol().doc(id).set(v); tick(); }
+        await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
         if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
       }
       const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
