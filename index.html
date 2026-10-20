@@ -2896,7 +2896,10 @@ function renderEditor(box) {
       const li = closestIn(vis, 'li'); const prevLi = li?.previousElementSibling;
       if (li && prevLi?.classList.contains('task')) { li.classList.add('task'); if (!li.textContent.trim()) li.dataset.checked = 'false'; }
     });
+    visHist(vis);
+    vis.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); histStep(vis, e.inputType === 'historyUndo' ? -1 : 1); } });
     vis.addEventListener('input', e => visAutoFormat(e, vis));
+    vis.addEventListener('input', () => histSoon(vis));
     vis.addEventListener('input', fromVis);
     vis.addEventListener('mousedown', e => {
       const li = e.target.closest?.('li.task'); if (!li || e.target !== li || e.clientX - li.getBoundingClientRect().left > 20) return;
@@ -2912,6 +2915,7 @@ function renderEditor(box) {
     vis.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
     vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
     vis.addEventListener('paste', e => {
+      histRecord(vis);
       const f = imageFiles(e.clipboardData);
       if (f.length) { e.preventDefault(); if (!ghReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
       e.preventDefault();
@@ -3246,6 +3250,7 @@ function closestIn(vis, sel) { const sl = getSelection(); let n = sl.anchorNode;
 function exec(cmd, val) { try { return document.execCommand(cmd, false, val); } catch { return false; } }
 function visAction(act, vis) {
   vis.focus();
+  if (act !== 'undo' && act !== 'redo') histRecord(vis);
   const sel = getSelection(); const text = sel.toString();
   switch (act) {
     case 'bold': return exec('bold');
@@ -3292,8 +3297,8 @@ function visAction(act, vis) {
     case 'note': return pickForVis(vis, document.querySelector('.md-toolbar [data-md="note"]') || vis);
     case 'table': return exec('insertHTML', '<table><thead><tr><th>Колонка 1</th><th>Колонка 2</th></tr></thead><tbody><tr><td>значение</td><td>значение</td></tr></tbody></table><p><br></p>');
     case 'hr': return exec('insertHorizontalRule');
-    case 'undo': return exec('undo');
-    case 'redo': return exec('redo');
+    case 'undo': return histStep(vis, -1);
+    case 'redo': return histStep(vis, 1);
   }
 }
 function applyVisImg(vis, name) {
@@ -3320,6 +3325,52 @@ const INLINE_RULES = [
   [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, 'em'], [/(?:^|[^_\wа-яё])_([^_\s](?:[^_]*[^_\s])?)_$/i, 'em'],
 ];
 function caretAfter(node, off) { const r = document.createRange(); r.setStart(node, off); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+/* ---------- visual editor: own undo history ----------
+   The browser's undo can't see changes made straight in the DOM (colour, markdown shortcuts, lists, code blocks),
+   so the visual editor keeps its own: snapshots of the content + caret, typing grouped by pauses. */
+function visSelOffsets(vis) {
+  const sl = getSelection(); if (!sl.rangeCount || !vis.contains(sl.anchorNode)) return null;
+  const r = sl.getRangeAt(0);
+  const at = (node, off) => { const x = document.createRange(); x.setStart(vis, 0); x.setEnd(node, off); return x.toString().length; };
+  return [at(r.startContainer, r.startOffset), at(r.endContainer, r.endOffset)];
+}
+function visSetOffsets(vis, o) {
+  if (!o) return;
+  const w = document.createTreeWalker(vis, NodeFilter.SHOW_TEXT); let pos = 0, n, r = document.createRange(), st = false, last = null;
+  while ((n = w.nextNode())) {
+    const L = n.data.length; last = n;
+    if (!st && o[0] <= pos + L) { r.setStart(n, o[0] - pos); st = true; }
+    if (st && o[1] <= pos + L) { r.setEnd(n, o[1] - pos); break; }
+    pos += L;
+  }
+  if (!st) { if (last) r.setStart(last, last.data.length); else r.setStart(vis, vis.childNodes.length); r.collapse(true); }
+  else if (!n) r.collapse(true);
+  const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+}
+function visHist(vis) {
+  if (!vis._h) vis._h = { stack: [{ html: vis.innerHTML, sel: null }], i: 0, t: 0, applying: false };
+  return vis._h;
+}
+function histRecord(vis) {   // save the current state if it changed since the last snapshot
+  const h = visHist(vis); clearTimeout(h.t);
+  if (h.applying || vis.innerHTML === h.stack[h.i].html) return;
+  h.stack.length = h.i + 1;
+  h.stack.push({ html: vis.innerHTML, sel: visSelOffsets(vis) });
+  if (h.stack.length > 200) h.stack.shift(); h.i = h.stack.length - 1;
+}
+function histSoon(vis) { const h = visHist(vis); if (h.applying) return; clearTimeout(h.t); h.t = setTimeout(() => histRecord(vis), 700); }
+function histStep(vis, d) {
+  const h = visHist(vis); histRecord(vis);
+  const j = h.i + d; if (j < 0 || j >= h.stack.length) return;
+  // the caret goes where the change happened: for undo, where it was after the step being undone
+  const sel = d < 0 ? h.stack[h.i].sel || h.stack[j].sel : h.stack[j].sel;
+  h.i = j; h.applying = true;
+  vis.innerHTML = h.stack[j].html;
+  vis.focus(); visSetOffsets(vis, sel);
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+  h.applying = false;
+}
+
 /* ---------- text colour: a fixed set, stored as <span class="tc-red">…</span> inside the markdown ---------- */
 const TEXT_COLORS = [['red', 'Красный'], ['orange', 'Оранжевый'], ['green', 'Зелёный'], ['blue', 'Синий'], ['purple', 'Фиолетовый'], ['gray', 'Серый']];
 const TC_NAMES = new Set(TEXT_COLORS.map(c => c[0]));
@@ -3349,7 +3400,7 @@ function visColorAt(vis) {
   return null;
 }
 function visColor(vis, c) {
-  vis.focus();
+  vis.focus(); histRecord(vis);
   const sl = getSelection(); if (!sl.rangeCount) return;
   const r = sl.getRangeAt(0); if (!vis.contains(r.commonAncestorContainer)) return;
   const tcUp = n => { n = n.nodeType === 3 ? n.parentElement : n; while (n && n !== vis) { if (tcOf(n)) return n; n = n.parentElement; } return null; };
@@ -3438,6 +3489,7 @@ function pastedUrl(src) {
 }
 function visAutoFormat(e, vis) {
   if (e.inputType !== 'insertText' || e.data !== ' ') return;
+  if (visHist(vis).applying) return;
   const sl = getSelection(); if (!sl.isCollapsed) return;
   const node = sl.anchorNode, off = sl.anchorOffset;
   if (!node || node.nodeType !== 3 || !vis.contains(node) || node.parentElement.closest('code, pre')) return;
@@ -3469,21 +3521,24 @@ function visAutoFormat(e, vis) {
     }[m];
     const okHere = bl && before === m && (block.tagName === 'P' || block.tagName === 'DIV' || (block.tagName === 'LI' && m.startsWith('[')) || /^H[1-6]$/.test(block.tagName) && m.startsWith('#'));
     if (okHere) {
+      histRecord(vis);
       node.deleteData(0, off); if (!node.data) node.data = '​';
       caretAfter(node, node.data === '​' ? 1 : 0);
-      bl(); vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+      bl(); vis.dispatchEvent(new Event('input', { bubbles: true })); histRecord(vis); return;
     }
   }
   for (const [re, tag] of INLINE_RULES) {
     const m = before.match(re); if (!m) continue;
     const inner = m[1], whole = m[0].slice(m[0].length - inner.length - (tag === 'strong' || tag === 'del' ? 4 : 2));
     const start = before.length - whole.length;
+    histRecord(vis);
     const rest = node.data.slice(off);
     node.data = node.data.slice(0, start);
     const el = document.createElement(tag); el.textContent = inner;
     const after = document.createTextNode((rest && !rest.startsWith(' ') ? ' ' : ' ') + rest);
     node.after(el, after);
     caretAfter(after, 1);
+    histRecord(vis);
     return;
   }
 }
@@ -3505,7 +3560,7 @@ function visExitInline(e, vis) {
 function visPreEnter(e, vis) {
   if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.isComposing) return false;
   const pre = closestIn(vis, 'pre'); if (!pre) return false;
-  e.preventDefault();
+  e.preventDefault(); histRecord(vis);
   const sl = getSelection(), r = sl.getRangeAt(0);
   const tail = document.createRange(); tail.setStart(r.endContainer, r.endOffset); tail.setEnd(pre, pre.childNodes.length);
   const head = document.createRange(); head.setStart(pre, 0); head.setEnd(r.startContainer, r.startOffset);
@@ -3530,6 +3585,8 @@ function visPreEnter(e, vis) {
 function visKeydown(e, vis) {
   if (visExitInline(e, vis) || visPreEnter(e, vis)) return;
   const mod = e.ctrlKey || e.metaKey;
+  if (mod && !e.altKey && (e.code === 'KeyZ' || e.code === 'KeyY')) { e.preventDefault(); histStep(vis, e.code === 'KeyY' || e.shiftKey ? 1 : -1); return; }
+  if (e.key === 'Enter' || (e.key === ' ' && !mod)) histRecord(vis);   // word and line boundaries start a new undo step
   if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); visAction(e.code === 'Digit1' ? 'h1' : 'h2', vis); return; }
   if (!mod || e.altKey) return;
   const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
