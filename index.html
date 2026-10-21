@@ -1187,7 +1187,10 @@ function renderMd(src) {
     // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the text-colour spans pass
     try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
   }
-  const html = marked.parse(src || '', { gfm: true, breaks: false });
+  // пустой пункт чек-листа «- [ ]» marked показывает текстом: даём ему невидимый символ, чтобы вышел квадратик
+  let fence = false;
+  src = (src || '').split('\n').map(l => { if (/^\s*(```|~~~)/.test(l)) fence = !fence; return !fence && /^\s*(?:[-*+]|\d+[.)]) \[[ xX]\]\s*$/.test(l) ? l.replace(/\s*$/, ' \u200b') : l; }).join('\n');
+  const html = marked.parse(src, { gfm: true, breaks: false });
   return window.DOMPurify ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] }) : html;
 }
 function enhance(root, terms) {
@@ -3209,7 +3212,7 @@ function mdKeydown(e, ta) {
 /* ---------- visual editor: HTML -> Markdown ---------- */
 const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'PRE', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'HR', 'TABLE', 'SECTION', 'ARTICLE', 'FIGURE']);
 function htmlToMd(root) {
-  return mdBlocks(root).join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  return mdBlocks(root).join('\n\n').replace(/\u200b/g, '').replace(/\n{3,}/g, '\n\n').trim();
 }
 function mdBlocks(parent) {
   const out = []; let buf = [];
@@ -3290,7 +3293,14 @@ function mdInline(nodes) {
 let savedRange = null;
 function saveSel() { const sel = getSelection(); savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null; }
 function restoreSel() { if (!savedRange) return; const sel = getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
-function closestIn(vis, sel) { const sl = getSelection(); let n = sl.anchorNode; if (n && n.nodeType === 3) n = n.parentElement; const hit = n?.closest(sel); return hit && vis.contains(hit) ? hit : null; }
+function closestIn(vis, sel) {
+  const sl = getSelection(); let n = sl.anchorNode;
+  // курсор может стоять на самом элементе (например, на редакторе после «создать список»): спускаемся к узлу под курсором
+  if (n && n.nodeType === 1 && n.childNodes.length) {
+    const at = n.childNodes[sl.anchorOffset], before = n.childNodes[sl.anchorOffset - 1];
+    if (at) { n = at; while (n.firstChild) n = n.firstChild; } else if (before) { n = before; while (n.lastChild) n = n.lastChild; }
+  }
+  if (n && n.nodeType !== 1) n = n.parentElement; const hit = n?.closest(sel); return hit && vis.contains(hit) ? hit : null; }
 function exec(cmd, val) { try { return document.execCommand(cmd, false, val); } catch { return false; } }
 function visAction(act, vis) {
   vis.focus();
