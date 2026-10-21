@@ -1341,6 +1341,39 @@ function renderRail() {
 function openSecSheet() { S.secSheet = { edit: false }; document.body.classList.add('secs-open'); renderRail(); $('#rail').scrollTop = 0; requestAnimationFrame(() => $('#rail [aria-current="true"]')?.scrollIntoView({ block: 'nearest' })); }
 function closeSecSheet() { if (!S.secSheet) return false; S.secSheet = null; addingSection = false; renamingSection = null; document.body.classList.remove('secs-open'); renderRail(); return true; }
 $('#sheet-bg').addEventListener('click', () => { if (S.menu) closeMenu(); closeSecSheet(); });
+// свайп вниз закрывает шторку: за заголовок — всегда, за список — когда он прокручен до верха
+(() => {
+  const rail = $('#rail'), bg = $('#sheet-bg'); let st = null;
+  const reset = () => { rail.style.transition = ''; rail.style.transform = ''; bg.style.opacity = ''; };
+  rail.addEventListener('touchstart', e => {
+    if (!S.secSheet || e.touches.length !== 1 || S.menu) return;
+    const t = e.touches[0];
+    st = { y: t.clientY, x: t.clientX, t: performance.now(), head: !!e.target.closest('.sheet-head'), top: rail.scrollTop <= 0, drag: false, dy: 0 };
+  }, { passive: true });
+  rail.addEventListener('touchmove', e => {
+    if (!st) return;
+    const t = e.touches[0], dy = t.clientY - st.y, dx = t.clientX - st.x;
+    if (!st.drag) {
+      if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return;
+      if (dy <= 0 || Math.abs(dx) > dy || !(st.head || (st.top && rail.scrollTop <= 0))) { st = null; return; }
+      st.drag = true; rail.style.transition = 'none';
+    }
+    e.preventDefault();
+    st.dy = Math.max(0, dy);
+    rail.style.transform = `translateY(${st.dy}px)`;
+    bg.style.opacity = String(Math.max(0, 1 - st.dy / (rail.offsetHeight || 1)));
+  }, { passive: false });
+  const end = () => {
+    if (!st) return; const s0 = st; st = null; if (!s0.drag) return;
+    const v = s0.dy / Math.max(1, performance.now() - s0.t);   // px/мс
+    rail.style.transition = 'transform .18s ease-out';
+    if (s0.dy > Math.min(140, rail.offsetHeight * 0.3) || (v > 0.6 && s0.dy > 30)) {
+      rail.style.transform = `translateY(${rail.offsetHeight}px)`; bg.style.opacity = '0';
+      setTimeout(() => { closeSecSheet(); reset(); }, 170);
+    } else { rail.style.transform = ''; bg.style.opacity = ''; setTimeout(reset, 200); }
+  };
+  rail.addEventListener('touchend', end); rail.addEventListener('touchcancel', end);
+})();
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.secSheet && !S.menu && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) closeSecSheet(); });
 window.matchMedia('(max-width:1100px)').addEventListener('change', e => { if (!e.matches) closeSecSheet(); });
 $('#rail').addEventListener('click', e => {
