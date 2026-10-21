@@ -722,7 +722,7 @@ const store = {
 const S = {
   db: null, uid: null, canWrite: true,
   sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), settings: { newPerDay: 10 },
-  loaded: { sections: false, notes: false },
+  loaded: { sections: false, notes: false, settings: false },
   searchHere: store.get('searchHere', false),
   mode: 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
   editing: null, // {id|null, draft}
@@ -1058,6 +1058,8 @@ function ghGuess() {
 }
 function ghConf() { const c = store.get('gh', {}); return { repo: c.repo || ghGuess(), branch: c.branch || 'main', token: c.token || '' }; }
 const ghReady = () => { const c = ghConf(); return !!(window.NOTES_STANDALONE && c.token && c.repo); };
+// куда загружать картинки: хранилище сборки (публичная версия: window.NOTES_UPLOAD) или GitHub по токену (личная)
+const uploadReady = () => !!window.NOTES_UPLOAD || ghReady();
 // in the visual editor, task items are li.task[data-checked] (a real <input> inside contenteditable is unreliable)
 function prepVisTasks(root) {
   root.querySelectorAll('li > input[type=checkbox], li > p:first-child > input[type=checkbox]').forEach(cb => {
@@ -1143,8 +1145,9 @@ function insertUpload(file) {
   const job = (async () => {
     try {
       const blob = await compressImage(file);
-      const path = newImgPath(blob);
-      await ghPut(path, blob, `Add ${path} (My Notes)`);
+      let path;
+      if (window.NOTES_UPLOAD) path = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4));
+      else { path = newImgPath(blob); await ghPut(path, blob, `Add ${path} (My Notes)`); }
       localImages[path] = localImages[key];
       replaceInEditor(key, path);
       toast('Картинка загружена');
@@ -1161,7 +1164,7 @@ function pickImages() {
   inp.onchange = () => { for (const f of inp.files) insertUpload(f); };
   inp.click();
 }
-function noGhHint() { if (window.NOTES_FLAVOR === 'public') toast('Загрузка картинок скоро появится'); else if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
+function noGhHint() { if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
 
 /* ---------- markdown ---------- */
 const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
@@ -2884,9 +2887,9 @@ function renderEditor(box) {
       const md = `${lead}[${sel.trim().replace(/([\[\]])/g, '\\$1')}](${url})${trail}`;
       if (!document.execCommand('insertText', false, md)) { ta.setRangeText(md, a0, a1, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
     });
-    ta.addEventListener('paste', e => { const f = imageFiles(e.clipboardData); if (!f.length) return; if (!ghReady()) { noGhHint(); return; } e.preventDefault(); f.forEach(insertUpload); });
+    ta.addEventListener('paste', e => { const f = imageFiles(e.clipboardData); if (!f.length) return; if (!uploadReady()) { noGhHint(); return; } e.preventDefault(); f.forEach(insertUpload); });
     ta.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
-    ta.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } ta.focus(); f.forEach(insertUpload); });
+    ta.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } ta.focus(); f.forEach(insertUpload); });
     ta.addEventListener('focus', () => { E.pane = 'md'; });
     requestAnimationFrame(grow);
   }
@@ -2915,11 +2918,11 @@ function renderEditor(box) {
     });
     vis.addEventListener('keydown', e => visKeydown(e, vis));
     vis.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
-    vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!ghReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
+    vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
     vis.addEventListener('paste', e => {
       histRecord(vis);
       const f = imageFiles(e.clipboardData);
-      if (f.length) { e.preventDefault(); if (!ghReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
+      if (f.length) { e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
       e.preventDefault();
       const t = (e.clipboardData || window.clipboardData)?.getData('text/plain') || '';
       const url = pastedUrl(e.clipboardData), sl = getSelection(), selText = sl.toString();
@@ -3120,7 +3123,7 @@ function mdAction(act, ta) {
       return replaceRange(ta, s, e, t, s + label.length + 3, s + label.length + 11);
     }
     case 'img': {
-      if (ghReady()) { pickImages(); return; }
+      if (uploadReady()) { pickImages(); return; }
       const name = sel.trim().replace(/^img\//, '') || 'имя.png';
       const base = name.replace(/\.[a-z0-9]+$/i, '');
       return insertBlock(ta, `![](img/${name})`, 8, base.length);
@@ -3290,7 +3293,7 @@ function visAction(act, vis) {
     }
     case 'img': {
       saveSel();
-      if (ghReady()) { pickImages(); return; }
+      if (uploadReady()) { pickImages(); return; }
       const lb = $('#link-bar'); lb.dataset.mode = 'img'; lb.hidden = false;
       $('#link-label').textContent = 'Файл картинки: img/';
       const inp = $('#link-url'); inp.placeholder = 'имя.png'; inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
@@ -3874,11 +3877,53 @@ let rerenderT;
 function rerender() {
   clearTimeout(rerenderT);
   rerenderT = setTimeout(() => {
-    updateBadge();
+    updateBadge(); maybeOnboard();
     if (S.mode === 'lib') { renderRail(); renderList(); if (!S.editing) renderReader(); }
     else if (S.mode === 'train' && !S.train) renderTrain();
     else if (S.mode === 'prog') renderProg();
   }, 40);
+}
+/* ---------- первый вход (публичная версия): стартовый раздел, подсказка и пример карточки ---------- */
+const WELCOME_MD = `ReteNote — заметки, которые запоминаются: любую заметку можно превратить в карточку и повторять по расписанию.
+
+## Заметки и разделы
+- **Разделы** — слева (на телефоне — строка сверху). «+ Раздел» создаёт новый, внутри раздела можно делать подразделы, разделы перетаскиваются мышкой.
+- **«+ Заметка»** — новая заметка в открытом разделе. Двойной клик по тексту или клавиша **E** — редактировать прямо в этом месте.
+- В редакторе три режима: **Визуально**, **Markdown** и **Рядом**. В «Визуально» разметка срабатывает сама: напиши \`**жирный**\`, \`- пункт\` или \`# Заголовок\` и нажми пробел.
+- **★** — избранное, **поиск** сверху понимает формы слов, \`"точные фразы"\`, \`-исключения\` и \`#теги\`.
+
+## Тренировка
+Включается для раздела целиком: меню раздела (⋮ или правый клик) → «Тренировка». У этого раздела она уже включена.
+- **Заголовок заметки — это вопрос, текст — ответ.** Вспомни ответ, открой его и честно оцени: «Не знаю», «Плаваю» или «Знаю». Чем лучше помнишь, тем реже карточка будет возвращаться.
+- Заметки-справки вроде этой отмечай галочкой **«Не тренировать»** в редакторе — они останутся в разделе, но не попадут в карточки.
+- Число на вкладке «Тренировка» — сколько карточек ждёт повторения сегодня.
+
+## Данные
+⚙ **Настройки → Данные**: экспорт всех заметок в файл и импорт обратно. Заметки видны только тебе.
+
+Эту заметку можно отредактировать или удалить.`;
+const EXAMPLE_MD = `**Интервальное повторение** — способ запоминать надолго: материал повторяют через растущие промежутки времени — через день, через три, через неделю…
+
+Повторение приходится как раз на момент, когда знание начинает забываться, поэтому оно закрепляется лучше, чем при зубрёжке подряд.
+
+*Это пример карточки: заголовок — вопрос, этот текст — ответ. Удали её, когда добавишь свои.*`;
+async function maybeOnboard() {
+  if (window.NOTES_FLAVOR !== 'public' || S.onboarding || S.onboarded || !S.canWrite || !S.db || !S.uid) return;
+  if (!S.loaded.notes || !S.loaded.sections || !S.loaded.settings) return;
+  if (S.settings?.onboarded || S.sections.size || S.notes.size || S.trash.size) { S.onboarded = true; return; }
+  S.onboarding = true;
+  const now = new Date().toISOString();
+  try {
+    await S.db.collection('sections').doc('start').set({ title: 'Мои заметки', order: 0, parent: null, train: true });
+    await Promise.all([
+      S.db.collection('notes').doc('welcome').set({ section: 'start', title: 'Как пользоваться ReteNote', body: WELCOME_MD, tags: [], ref: true, order: 1, created: now, updated: now }),
+      S.db.collection('notes').doc('example-card').set({ section: 'start', title: 'Что такое интервальное повторение?', body: EXAMPLE_MD, tags: ['пример'], ref: false, order: 2, created: now, updated: now }),
+      S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings || { newPerDay: 10 }, { onboarded: true })),
+    ]);
+    S.onboarded = true;
+    if (S.mode === 'lib' && S.notes.has('welcome')) { selectSection('start'); openNote('welcome'); }
+  } catch { /* не страшно: попробуем при следующем открытии */ }
+  S.onboarding = false;
 }
 async function boot() {
   renderLib();
@@ -3903,7 +3948,7 @@ async function boot() {
   }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
-    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { if (d.exists) { S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); } }, () => {});
+    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); }, () => {});
   }
 }
 
