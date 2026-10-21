@@ -1484,7 +1484,7 @@ function renderList() {
   if (!list.length) {
     renderBulkBar([]);
     const virtEmpty = { fav: 'Здесь будут избранные заметки. Отметь заметку звёздочкой ☆ рядом с заголовком или через «⋮ → В избранное».', recent: 'Здесь появятся заметки, которые ты недавно открывал или менял.' };
-    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Данные» → «Импорт».' : 'База заметок пока пустая.')}</div>`;
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Резервное копирование и перенос» → «Импорт из файла».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
   const grouped = !terms && !S.tag && !isVirtual(S.section) && hasKids(S.section) && sortMode(S.section) === 'manual';
@@ -1787,21 +1787,33 @@ function wireGhPanel() {
 function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
-    <summary>Данные <span>· резервная копия и перенос</span></summary>
+    <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
     <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла. Если какие-то заметки из файла уже есть на сайте и отличаются, перед импортом появится выбор: заменить их версией из файла или оставить как на сайте.</p>
     <div class="bar">
       <button class="btn" id="data-export">Скачать резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
       <input type="file" id="data-file" accept=".json,application/json" hidden>
-      ${window.NOTES_SIGN_OUT ? `<span class="spacer"></span><span class="hint">${esc(window.NOTES_USER_NAME || window.NOTES_USER_EMAIL || '')}</span><button class="btn" id="data-signout">Выйти</button>` : ''}
     </div>
-    ${window.NOTES_DELETE_ACCOUNT ? (D.delAsk ? `<div class="del-account">
+    ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
+    ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
+  </details>`;
+}
+function accountPanelHtml() {
+  if (!window.NOTES_SIGN_OUT) return '';
+  const A = S.accPanel || {}; const who = window.NOTES_USER_NAME || window.NOTES_USER_EMAIL || '';
+  return `<details class="panel" id="acc-panel" ${S.accOpen ? 'open' : ''}>
+    <summary>Аккаунт${who ? ` <span>· ${esc(who)}</span>` : ''}</summary>
+    ${window.NOTES_USER_NAME && window.NOTES_USER_EMAIL ? `<p class="sub" style="margin-top:8px">${esc(window.NOTES_USER_EMAIL)}</p>` : ''}
+    <div class="bar" style="margin-top:12px">
+      <button class="btn" id="data-signout">Выйти</button>
+      ${window.NOTES_DELETE_ACCOUNT && !A.delAsk ? `<button class="btn danger" id="del-ask">Удалить аккаунт</button>` : ''}
+    </div>
+    ${window.NOTES_DELETE_ACCOUNT && A.delAsk ? `<div class="del-account">
       <p><b>Удалить аккаунт и все данные?</b> Заметки, разделы, картинки и прогресс тренировок будут удалены с сервера без возможности восстановления. Если они ещё нужны — сначала скачай резервную копию.</p>
       <label class="lbl" for="del-confirm">Для подтверждения напиши: удалить</label>
       <div class="bar"><input id="del-confirm" autocomplete="off" style="max-width:180px"><button class="btn danger" id="del-yes" disabled>Удалить навсегда</button><button class="btn" id="del-no">Отмена</button></div>
-    </div>` : `<div class="bar" style="margin-top:14px"><button class="btn danger-link" id="del-ask">Удалить аккаунт…</button></div>`) : ''}
-    ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
-    ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
+    </div>` : ''}
+    ${A.status ? `<p class="hint" style="margin-top:10px">${esc(A.status)}</p>` : ''}
   </details>`;
 }
 function importDiff(d) {
@@ -1910,14 +1922,18 @@ function wireDataPanel() {
   };
   $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
   $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
+}
+function wireAccountPanel() {
+  const p = $('#acc-panel'); if (!p) return;
+  p.ontoggle = () => { S.accOpen = p.open; };
   $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
-  $('#del-ask') && ($('#del-ask').onclick = () => { S.dataPanel = Object.assign({}, S.dataPanel, { delAsk: true }); renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
-  $('#del-no') && ($('#del-no').onclick = () => { S.dataPanel = Object.assign({}, S.dataPanel, { delAsk: false }); renderProg(); });
+  $('#del-ask') && ($('#del-ask').onclick = () => { S.accPanel = { delAsk: true }; renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
+  $('#del-no') && ($('#del-no').onclick = () => { S.accPanel = {}; renderProg(); });
   $('#del-confirm') && ($('#del-confirm').oninput = e => { $('#del-yes').disabled = e.target.value.trim().toLowerCase() !== 'удалить'; });
   $('#del-yes') && ($('#del-yes').onclick = async () => {
     $('#del-yes').disabled = true;
     try { await window.NOTES_DELETE_ACCOUNT(); }
-    catch (err) { S.dataPanel = { status: 'Не получилось удалить аккаунт: ' + (err?.message || err) }; renderProg(); }
+    catch (err) { S.accPanel = { status: 'Не получилось удалить аккаунт: ' + (err?.message || err) }; renderProg(); }
   });
 }
 
@@ -3902,11 +3918,11 @@ function renderProg() {
     </section>
     ${tagsPanelHtml()}
     ${window.NOTES_FEEDBACK ? `<section class="panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div></section>` : ''}
-    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? '' : ghPanelHtml()) + dataPanelHtml() : ''}
+    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? '' : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
   root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
-  if (window.NOTES_STANDALONE) { wireDataPanel(); wireGhPanel(); }
+  if (window.NOTES_STANDALONE) { wireDataPanel(); wireAccountPanel(); wireGhPanel(); }
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
@@ -3961,8 +3977,8 @@ const WELCOME_MD = `ReteNote — место для любых заметок: и
 - **Заголовок заметки — это вопрос, текст — ответ.** Вспомни ответ, открой его и честно оцени: «Не знаю», «Плаваю» или «Знаю». Чем лучше помнишь, тем реже карточка будет возвращаться.
 - Как это выглядит — в разделе **«Пример тренировки»**. Не нужно — просто удали его.
 
-## Данные
-⚙ **Настройки → Данные**: экспорт всех заметок в файл и импорт обратно. Заметки видны только тебе. Там же — «Обратная связь»: напиши, если что-то не так.
+## Резервная копия
+⚙ **Настройки → Резервное копирование и перенос**: все заметки одним файлом — скачать себе и загрузить обратно. Заметки видны только тебе. В настройках же — «Обратная связь»: напиши, если что-то не так.
 
 Эту заметку можно отредактировать или удалить.`;
 const EXAMPLE_MD = `**Интервальное повторение** — способ запоминать надолго: материал повторяют через растущие промежутки времени — через день, через три, через неделю…
