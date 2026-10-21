@@ -497,6 +497,11 @@ body.sheet-open{overflow:hidden}
 .help-sheet{background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:16px;width:100%;max-width:760px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
 .help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px 10px}
 .help-head h2{margin:0;font:600 20px/1.2 var(--f-display)}
+.help-head .spacer{flex:1}
+.fb-sheet{max-width:520px;padding:18px 22px 20px;gap:12px;margin-top:8vh}
+.fb-sheet textarea{width:100%;box-sizing:border-box;min-height:140px;resize:vertical;border:1px solid var(--line-strong);border-radius:10px;background:var(--bg);color:var(--ink);padding:10px 12px;font:15px/1.5 var(--f-body)}
+.fb-sheet .hint{margin:0}
+.fb-sheet .seg{align-self:flex-start}
 .help-toc{display:flex;gap:6px;flex-wrap:wrap;padding:0 22px 12px;border-bottom:1px solid var(--line)}
 .help-toc a{font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
 .help-toc a:hover{color:var(--ink);border-color:var(--muted)}
@@ -599,7 +604,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 <div class="edit-overlay" id="edit-overlay" hidden><div class="edit-sheet"><div class="doc"></div></div></div>
 <div class="help-overlay" id="help" hidden>
   <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
-    <div class="help-head"><h2 id="help-title">Как всё устроено</h2><button class="btn" id="help-close" type="button">Закрыть</button></div>
+    <div class="help-head"><h2 id="help-title">Как всё устроено</h2><span class="spacer"></span><button class="btn" id="help-feedback" type="button" hidden>Написать отзыв</button><button class="btn" id="help-close" type="button">Закрыть</button></div>
     <nav class="help-toc" aria-label="Разделы справки">
       <a href="#h-notes">Заметки</a><a href="#h-search">Поиск и теги</a><a href="#h-edit">Редактор</a><a href="#h-train">Тренировка</a><a href="#h-prog">Прогресс и настройки</a><a href="#h-keys">Клавиши</a>
     </nav>
@@ -3860,6 +3865,7 @@ function renderProg() {
       <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
     </section>
     ${tagsPanelHtml()}
+    ${window.NOTES_FEEDBACK ? `<section class="panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div></section>` : ''}
     ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? '' : ghPanelHtml()) + dataPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
@@ -3944,6 +3950,41 @@ async function maybeOnboard() {
   } catch { /* не страшно: попробуем при следующем открытии */ }
   S.onboarding = false;
 }
+/* ---------- отзывы (если сборка их поддерживает: window.NOTES_FEEDBACK) ---------- */
+function openFeedback(kind = 'bug') {
+  if (!window.NOTES_FEEDBACK) return;
+  if (!$('#help').hidden) $('#help-close').click();
+  let ov = $('#fb-ov');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'fb-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet fb-sheet" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+    <h2 id="fb-title" style="margin:0;font:600 20px/1.2 var(--f-display)">Отзыв</h2>
+    <div class="seg" role="group" aria-label="Тип отзыва"><button type="button" data-k="bug">Проблема</button><button type="button" data-k="idea">Идея</button></div>
+    <textarea id="fb-text" maxlength="5000"></textarea>
+    <p class="hint">Вместе с текстом уйдут: экран приложения, размер экрана и браузер. Содержимое заметок не отправляется.</p>
+    <div class="bar"><button class="btn primary" type="button" id="fb-send">Отправить</button><button class="btn" type="button" id="fb-cancel">Отмена</button></div>
+    <p class="hint" id="fb-status" aria-live="polite"></p>
+  </div>`;
+  const ta = $('#fb-text');
+  const setKind = k => { kind = k; ov.querySelectorAll('[data-k]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); ta.placeholder = k === 'bug' ? 'Что случилось и что ты делал перед этим? Чем подробнее, тем быстрее поправлю.' : 'Чего не хватает или что сделать удобнее?'; };
+  setKind(kind);
+  ov.querySelectorAll('[data-k]').forEach(b => b.onclick = () => setKind(b.dataset.k));
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; };
+  $('#fb-cancel').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  $('#fb-send').onclick = async () => {
+    const text = ta.value.trim(); if (!text) { ta.focus(); return; }
+    $('#fb-send').disabled = true; $('#fb-status').textContent = 'Отправляю…';
+    try {
+      await window.NOTES_FEEDBACK(kind, text, { mode: S.mode, editing: !!S.editing, phone: window.matchMedia('(max-width:760px)').matches, theme: document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') });
+      close(); toast('Спасибо! Отзыв отправлен');
+    } catch (err) { $('#fb-send').disabled = false; $('#fb-status').textContent = 'Не отправилось: ' + (err?.message || err); }
+  };
+  ta.focus();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-feedback]'); if (b) openFeedback(b.dataset.feedback); });
+if (window.NOTES_FEEDBACK) { const hb = $('#help-feedback'); if (hb) { hb.hidden = false; hb.onclick = () => openFeedback('bug'); } }
 async function boot() {
   renderLib();
   const [db, user] = await Promise.all([window.claude?.use?.('db') ?? null, window.claude?.use?.('user') ?? null]);
