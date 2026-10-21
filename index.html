@@ -109,6 +109,8 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .trash-tools .spacer{flex:1}
 .row-item .tr-acts{display:flex;gap:6px;padding:0 12px 10px 16px}
 .row-item .tr-acts .btn{padding:3px 10px;font-size:12px}
+.backup-bar{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:0 0 12px;font-size:14px;line-height:1.45}
+.backup-bar p{margin:0;flex:1 1 260px}.backup-bar .bar{display:flex;gap:8px}
 .trash-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:10px 0 16px;font-size:14px}
 .pin-btn{border:0;background:none;font-size:20px;line-height:1;color:var(--faint);padding:2px 4px;border-radius:6px;cursor:pointer;vertical-align:middle}
 .pin-btn[aria-pressed="true"]{color:#d49b1f}
@@ -590,6 +592,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
+      <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="tagbar" id="tagbar" hidden></div>
       <div class="scopebar" id="scopebar" hidden></div>
       <div class="bulkbar" id="bulkbar" hidden></div>
@@ -1468,6 +1471,7 @@ function renderScopeBar(cl) {
 }
 function renderList() {
   if (!S.loaded.notes) return;
+  renderBackupBar();
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
@@ -1790,10 +1794,15 @@ function dataPanelHtml() {
     <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
     <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла. Если какие-то заметки из файла уже есть на сайте и отличаются, перед импортом появится выбор: заменить их версией из файла или оставить как на сайте.</p>
     <div class="bar">
-      <button class="btn" id="data-export">Скачать резервную копию</button>
+      <button class="btn" id="data-export">Сохранить резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
       <input type="file" id="data-file" accept=".json,application/json" hidden>
     </div>
+    ${(() => { const c = backupConf(); const [y, m, d] = (c.last || '').split('-').map(Number);
+      return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}.` : 'Копий на этом устройстве ещё не было.'}</p>
+    <div class="opt-row" style="margin-top:8px"><label for="backup-every">Напоминать о копии</label>
+      <select id="backup-every" style="border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">${[['week', 'раз в неделю'], ['month', 'раз в месяц'], ['off', 'не напоминать']].map(([v, l]) => `<option value="${v}" ${c.every === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <p class="hint" style="margin-top:6px">Картинки в копию не входят — только ссылки на них.</p>`; })()}
     ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
     ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
   </details>`;
@@ -1866,17 +1875,51 @@ function importConfirmHtml(d, X) {
       <button class="btn" id="data-import-cancel">Отмена</button>
     </div></div>`;
 }
+/* ---------- резервная копия у пользователя: файл со всем + напоминание (помним дату копии на этом устройстве) ---------- */
+const BACKUP_EVERY = { week: 7, month: 30, off: 0 };
+const backupConf = () => Object.assign({ last: '', snooze: '', every: 'month' }, store.get('backup.' + (S.uid || ''), {}));
+const backupSet = patch => store.set('backup.' + (S.uid || ''), Object.assign(backupConf(), patch));
+function saveBackup() {
+  const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
+  const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
+    sections: [...S.sections.values()], notes: [...S.notes.values(), ...S.trash.values()], srs, settings: S.settings };
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `${window.NOTES_FLAVOR === 'public' ? 'retenote' : 'my-notes'}-${today()}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  backupSet({ last: today(), snooze: '' });
+  const ev = backupConf().every;
+  toast('Копия сохранена в «Загрузки».' + (ev !== 'off' ? ` Следующее напоминание — через ${ev === 'week' ? 'неделю' : 'месяц'}.` : ''));
+  renderList(); if ($('#data-panel')) renderProg();
+}
+function backupDue() {
+  if (!window.NOTES_STANDALONE || !S.loaded.notes || !S.canWrite) return null;
+  const c = backupConf(), period = BACKUP_EVERY[c.every] || 0, t = today();
+  if (!period || (c.snooze && c.snooze > t) || S.notes.size < 10) return null;
+  // аккаунту от 7 дней: самая старая заметка (у старых заметок даты создания может не быть — они точно давние)
+  const first = [...S.notes.values()].reduce((m, n) => ((n.created || '') < m ? n.created || '' : m), '9');
+  if (first && daysBetween(dstr(new Date(first)), t) < 7) return null;
+  if (!c.last) return { never: true };
+  const ago = daysBetween(c.last, t);
+  return ago > period ? { ago } : null;
+}
+function renderBackupBar() {
+  const bar = $('#backup-bar'); if (!bar) return;
+  const due = backupDue();
+  if (!due) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.innerHTML = (due.never
+    ? '<p><b>Сохрани копию заметок у себя.</b> Один файл со всеми заметками, разделами и прогрессом тренировок. Если с сайтом что-то случится, ничего не потеряется.</p>'
+    : `<p><b>Последняя копия заметок — ${due.ago} ${plural(due.ago, 'день', 'дня', 'дней')} назад.</b> Сохрани свежую, чтобы новые заметки тоже были в безопасности.</p>`) +
+    '<div class="bar"><button class="btn primary" type="button" id="backup-save">Сохранить копию</button><button class="btn" type="button" id="backup-later">Позже</button></div>';
+  bar.hidden = false;
+  $('#backup-save').onclick = saveBackup;
+  $('#backup-later').onclick = () => { backupSet({ snooze: addDays(today(), 7) }); renderList(); };
+}
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
   p.ontoggle = () => { S.dataOpen = p.open; };
-  $('#data-export').onclick = () => {
-    const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
-    const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
-      sections: [...S.sections.values()], notes: [...S.notes.values(), ...S.trash.values()], srs, settings: S.settings };
-    const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `my-notes-${today()}.json`;
-    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  };
+  $('#data-export').onclick = saveBackup;
+  $('#backup-every') && ($('#backup-every').onchange = e => { backupSet({ every: e.target.value, snooze: '' }); renderList(); });
   $('#data-file').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
     try {
