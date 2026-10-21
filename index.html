@@ -539,7 +539,28 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .rail{display:none}
   .rail-resizer{display:none}
   .chips-row{display:flex}
+  /* шторка «Разделы»: то же дерево, что слева на компьютере, выезжает снизу */
+  body.secs-open .rail{display:flex;position:fixed;z-index:26;left:0;right:0;bottom:0;margin:0 auto;max-width:640px;max-height:min(86dvh,calc(100dvh - 40px));
+    background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);
+    padding:0 12px calc(16px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain;animation:sheet-up .2s ease-out}
+  body.secs-open .sheet-bg{display:block}
+  body.secs-open .rail .sheet-head{display:flex}
+  body.secs-open .rail .sec{padding-block:10px;font-size:15px}
+  body.secs-open .rail .sec.tree{padding-left:calc(6px + var(--d,0) * 18px)}
+  body.secs-open .rail .sec .caret{width:28px;height:28px;margin:-6px -4px -6px -6px;font-size:11px}
+  body.secs-open .rail .trash-row{margin-top:10px}
 }
+@keyframes sheet-up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-bg{display:none;position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.4)}
+.rail .sheet-head{display:none;position:sticky;top:0;z-index:1;align-items:center;gap:8px;background:var(--bg);padding:16px 4px 10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.rail .sheet-head::before{content:'';position:absolute;top:6px;left:50%;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--line-strong)}
+.rail .sheet-head b{font:600 18px var(--f-display);margin-right:auto}
+.rail .sheet-head .btn{padding:6px 12px}
+.sec .tools{margin-left:auto;display:flex;gap:4px;flex:none}
+.sec .tools span{display:grid;place-items:center;width:34px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);font-size:15px;line-height:1}
+.sec .tools span[aria-disabled="true"]{opacity:.3}
+.chip.chip-tree{padding-inline:11px;font-size:15px;line-height:1;position:sticky;left:0;z-index:1;flex:none;box-shadow:-10px 0 0 6px var(--bg),8px 0 10px -6px rgba(0,0,0,.25)}
+.chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;left:-17px;width:18px;background:var(--bg)}
 @media (max-width:760px){
   .top{gap:10px}
   .search{order:3;flex-basis:100%;max-width:none;margin-left:0}
@@ -587,6 +608,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   </header>
 
   <main class="lib" id="lib">
+    <div class="sheet-bg" id="sheet-bg"></div>
     <aside class="rail" id="rail" aria-label="Разделы"></aside>
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
@@ -1278,7 +1300,9 @@ function renderRail() {
   const { c, d } = sectionCounts();
   const favN = [...S.notes.values()].filter(n => n.pinned).length;
   const virt = (id, ico, n) => `<button class="sec virt" data-sec="${id}" aria-current="${S.section === id}"><span class="ico" aria-hidden="true">${ico}</span><span class="name">${VIRTUAL[id]}</span>${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
-  const rows = [virt('all', '≡', S.notes.size), virt('fav', '★', favN), virt('recent', '◷', null), '<h4 data-drop-root="1" title="Перетащи сюда раздел, чтобы вынести его на верхний уровень">Разделы</h4>'];
+  const ed = !!(S.secSheet && S.secSheet.edit && S.canWrite);
+  const rows = [`<div class="sheet-head"><b>Разделы</b>${S.canWrite ? `<button class="btn ${ed ? 'primary' : ''}" type="button" id="secs-edit">${ed ? 'Готово' : 'Изменить'}</button>` : ''}<button class="btn" type="button" id="secs-close" aria-label="Закрыть">✕</button></div>`,
+    virt('all', '≡', S.notes.size), virt('fav', '★', favN), virt('recent', '◷', null), '<h4 data-drop-root="1" title="Перетащи сюда раздел, чтобы вынести его на верхний уровень">Разделы</h4>'];
   const hiddenUnder = new Set();
   for (const { s, depth } of tree().list) {
     const p = parentOf(s.id);
@@ -1291,7 +1315,10 @@ function renderRail() {
     rows.push(`<button class="sec tree" style="--d:${depth}" data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="Двойной клик — переименовать, правый клик — меню">`
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${collapsed.has(s.id) ? 'Развернуть' : 'Свернуть'}"` : ''}>▶</span>`
       + `${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span>`
-      + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}<span class="n">${c.get(s.id) || 0}</span></button>`);
+      + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}`
+      + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
+          return `<span class="tools"><span role="button" data-sec-act="up" aria-label="Выше" aria-disabled="${i <= 0}">↑</span><span role="button" data-sec-act="down" aria-label="Ниже" aria-disabled="${i >= sib.length - 1}">↓</span><span role="button" data-sec-act="menu" aria-label="Меню раздела">⋯</span></span>`; })()
+        : `<span class="n">${c.get(s.id) || 0}</span>`) + `</button>`);
   }
   rows.push(addingSection
     ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="Название раздела" aria-label="Название нового раздела"><button class="btn">OK</button></form>`
@@ -1305,13 +1332,31 @@ function renderRail() {
     ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="На уровень выше">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : 'Все')}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
     : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`, `<button class="chip" data-sec="fav" aria-pressed="${S.section === 'fav'}">★</button>`, `<button class="chip" data-sec="recent" aria-pressed="${S.section === 'recent'}">Недавние</button>`].concat(kids(null).map(chip), [`<button class="chip" data-sec="trash" aria-pressed="${S.section === 'trash'}">Корзина${S.trash.size ? ' ' + S.trash.size : ''}</button>`]))
     .concat(S.canWrite ? [`<button class="chip chip-add" id="chip-add" aria-label="Новый раздел" title="Новый раздел">+</button>`] : []);
+  chips.unshift(`<button class="chip chip-tree" id="chip-tree" aria-label="Все разделы деревом" title="Все разделы">☰</button>`);
   $('#chips').innerHTML = chips.join('');
   if (addingSection) $('#new-sec-name')?.focus();
   if (renamingSection) { const i = $('#rename-sec'); i?.focus(); i?.select(); }
 }
+/* шторка «Разделы» на телефоне и планшете: #rail показывается поверх страницы */
+function openSecSheet() { S.secSheet = { edit: false }; document.body.classList.add('secs-open'); renderRail(); $('#rail').scrollTop = 0; requestAnimationFrame(() => $('#rail [aria-current="true"]')?.scrollIntoView({ block: 'nearest' })); }
+function closeSecSheet() { if (!S.secSheet) return false; S.secSheet = null; addingSection = false; renamingSection = null; document.body.classList.remove('secs-open'); renderRail(); return true; }
+$('#sheet-bg').addEventListener('click', () => { if (S.menu) closeMenu(); closeSecSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.secSheet && !S.menu && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) closeSecSheet(); });
+window.matchMedia('(max-width:1100px)').addEventListener('change', e => { if (!e.matches) closeSecSheet(); });
 $('#rail').addEventListener('click', e => {
+  if (e.target.closest('#secs-close')) { closeSecSheet(); return; }
+  if (e.target.closest('#secs-edit')) { S.secSheet.edit = !S.secSheet.edit; addingSection = false; renderRail(); return; }
   const t = e.target.closest('[data-toggle]'); if (t) { e.stopPropagation(); toggleFolder(t.dataset.toggle); return; }
-  const b = e.target.closest('[data-sec]'); if (b) { if (b.dataset.sec === S.section && hasKids(b.dataset.sec) && collapsed.has(b.dataset.sec)) toggleFolder(b.dataset.sec, true); selectSection(b.dataset.sec); return; }
+  const tool = e.target.closest('[data-sec-act]');
+  if (tool) {
+    const id = tool.closest('[data-sec]').dataset.sec, act = tool.dataset.secAct;
+    if (act === 'menu') openSecMenu(id, tool);
+    else if (tool.getAttribute('aria-disabled') !== 'true') swapSections(id, act === 'up' ? -1 : 1);
+    return;
+  }
+  const b = e.target.closest('[data-sec]');
+  if (b && S.secSheet?.edit && !isVirtual(b.dataset.sec)) { openSecMenu(b.dataset.sec, b); return; }
+  if (b) { if (b.dataset.sec === S.section && hasKids(b.dataset.sec) && collapsed.has(b.dataset.sec)) toggleFolder(b.dataset.sec, true); selectSection(b.dataset.sec); if (S.secSheet) closeSecSheet(); return; }
   if (e.target.closest('#add-sec')) { addingSection = true; renderRail(); }
 });
 /* ---------- drag & drop: notes and folders onto the rail (desktop) ---------- */
@@ -1425,6 +1470,7 @@ $('#chips').addEventListener('click', e => {
   if (lpFired) { lpFired = false; e.preventDefault(); return; }
   if (menuWasOpen) { menuWasOpen = false; closeMenu(); return; } // a tap while the menu is open only closes it
   if (e.target.closest('#chip-add')) { openSecMenu(null, e.target.closest('#chip-add'), 'new'); return; }
+  if (e.target.closest('#chip-tree')) { openSecSheet(); return; }
   const up = e.target.closest('[data-up]'); if (up) { selectSection(up.dataset.up); return; }
   const b = e.target.closest('[data-sec]'); if (!b) return;
   selectSection(b.dataset.sec);
@@ -4139,6 +4185,7 @@ new MutationObserver(histSync).observe($('#lib'), { attributes: true, attributeF
 // something "on top" (menu, help, editor, selection) is closed by back instead of leaving the note
 function closeTopLayer() {
   if (S.menu) { closeMenu(); return true; }
+  if (closeSecSheet()) return true;
   if (!$('#help').hidden) { $('#help-close').click(); return true; }
   if (S.editing) { const f = $('#edit-overlay #ed') || $('#ed'); if (f) { f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); return true; } }
   if (S.select) { setSelectMode(false); return true; }
