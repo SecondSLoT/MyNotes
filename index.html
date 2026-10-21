@@ -403,6 +403,7 @@ button.tag{border:0;background:none;padding:0}
 .md li > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
 .visual ul:has(> li.task),.visual ol:has(> li.task){padding-left:.3em}
 .visual li.task{list-style:none;position:relative;padding-left:1.55em}
+.visual li{min-height:1.55em}
 .visual li.task::before{content:'';position:absolute;left:0;top:.28em;width:.95em;height:.95em;border:1.5px solid var(--muted);border-radius:3px;background:var(--raised);box-sizing:border-box;cursor:pointer}
 .visual li.task[data-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
 .visual li.task[data-checked="true"]::after{content:'';position:absolute;left:.3em;top:.36em;width:.28em;height:.55em;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);pointer-events:none}
@@ -2929,6 +2930,20 @@ function renderEditor(box) {
     vis.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); histStep(vis, e.inputType === 'historyUndo' ? -1 : 1); } });
     vis.addEventListener('input', e => visAutoFormat(e, vis));
     vis.addEventListener('input', () => histSoon(vis));
+    // пустые пункты списка не схлопываются: у пункта без текста всегда есть <br>
+    vis.addEventListener('input', () => {
+      vis.querySelectorAll('li').forEach(li => { if (!li.querySelector('br, img, ul, ol') && !li.textContent.replace(/[\u200b\s]/g, '')) { const sl = getSelection(); const here = sl.anchorNode && li.contains(sl.anchorNode); li.innerHTML = '<br>'; if (here) caretAfter(li, 0); } });
+    });
+    // тап по пустому пункту или по маркеру списка — курсор в этот пункт (на телефонах сам он туда не встаёт)
+    vis.addEventListener('click', e => {
+      const t = e.target; let li = null;
+      if (t.tagName === 'UL' || t.tagName === 'OL') li = [...t.children].find(l => { const r = l.getBoundingClientRect(); return e.clientY >= r.top && e.clientY <= r.bottom; }) || null;
+      else if (t.tagName === 'LI' && !t.textContent.replace(/[\u200b\s]/g, '') && !t.classList.contains('task')) li = t;
+      else if (t.tagName === 'LI' && t.classList.contains('task') && !t.textContent.replace(/[\u200b\s]/g, '') && e.clientX - t.getBoundingClientRect().left > 20) li = t;
+      if (!li || !vis.contains(li)) return;
+      if (!li.textContent.replace(/[\u200b\s]/g, '')) { if (!li.querySelector('br')) li.innerHTML = '<br>'; caretAfter(li, 0); }
+      else { const r = document.createRange(); r.selectNodeContents(li); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+    });
     vis.addEventListener('input', fromVis);
     vis.addEventListener('mousedown', e => {
       const li = e.target.closest?.('li.task'); if (!li || e.target !== li || e.clientX - li.getBoundingClientRect().left > 20) return;
@@ -3524,6 +3539,14 @@ function visAutoFormat(e, vis) {
   if (!node || node.nodeType !== 3 || !vis.contains(node) || node.parentElement.closest('code, pre')) return;
   const before = node.data.slice(0, off - 1).replace(/ /g, ' ');
   // block rules: the marker is the whole text before the caret, at the very start of a paragraph
+  // текст набран прямо в корне редактора (пустая заметка) — сначала обернём строку в абзац
+  if (node.parentElement === vis) {
+    const p = document.createElement('p'); let first = node, last = node;
+    while (first.previousSibling && !/^(P|DIV|UL|OL|PRE|BLOCKQUOTE|H[1-6]|TABLE|HR)$/.test(first.previousSibling.nodeName || '')) first = first.previousSibling;
+    while (last.nextSibling && !/^(P|DIV|UL|OL|PRE|BLOCKQUOTE|H[1-6]|TABLE|HR)$/.test(last.nextSibling.nodeName || '')) last = last.nextSibling;
+    first.before(p); let x = first; while (x) { const nx = x === last ? null : x.nextSibling; p.appendChild(x); x = nx; }
+    caretAfter(node, off);
+  }
   const block = node.parentElement.closest('p, div, li, h1, h2, h3, h4, h5, h6, blockquote');
   const atStart = block && block !== vis && (() => { const r = document.createRange(); r.setStart(block, 0); r.setEnd(node, 0); return !r.toString().replace(/​/g, ''); })();
   // a paragraph becomes a list item (joining a list right above it); inside a list item, [ ] makes it a task
@@ -3536,8 +3559,11 @@ function visAutoFormat(e, vis) {
       else { const list = document.createElement(tag); list.appendChild(li); block.replaceWith(list); }
     }
     if (task) { li.classList.add('task'); li.dataset.checked = task; }
-    const t = li.firstChild && li.firstChild.nodeType === 3 ? li.firstChild : li.insertBefore(document.createTextNode('\u200b'), li.firstChild);
-    caretAfter(t, t.data.startsWith('\u200b') ? 1 : 0);
+    // пустой пункт — настоящая пустая строка с <br> (с невидимым символом мобильные клавиатуры ставят курсор криво)
+    li.querySelectorAll(':scope > br').forEach(b => { if (li.textContent.replace(/[\u200b\s]/g, '')) b.remove(); });
+    [...li.childNodes].forEach(n => { if (n.nodeType === 3 && !n.data.replace(/\u200b/g, '')) n.remove(); });
+    if (!li.textContent.replace(/[\u200b\s]/g, '')) { li.innerHTML = '<br>'; caretAfter(li, 0); }
+    else { const t = li.firstChild; caretAfter(t.nodeType === 3 ? t : li, 0); }
   };
   if (atStart) {
     const m = before.trim();
