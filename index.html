@@ -52,6 +52,7 @@
   --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
   color-scheme:dark}
 [hidden]{display:none!important}
+.only-public{display:none}body.flavor-public .only-public{display:revert}body.flavor-public .only-personal{display:none}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -325,6 +326,9 @@ button.tag{border:0;background:none;padding:0}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.05)}
 .btn.danger{color:var(--again)}
+.btn.danger-link{border:0;background:none;color:var(--again);padding:4px 0;font-size:13px}
+.del-account{margin-top:14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--again) 40%,transparent);border-radius:10px;background:var(--again-soft)}
+.del-account p{margin:0 0 10px;line-height:1.5}
 .btn.big{padding:11px 20px;font-size:15px;border-radius:10px}
 .btn:disabled{opacity:.5;cursor:default}
 
@@ -649,7 +653,8 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Цвет текста</b> — кнопка <b>A</b> с цветной полоской на панели: выдели текст и выбери один из шести цветов, ✕ возвращает обычный цвет. Цвета подстраиваются под светлую и тёмную тему. В Markdown цвет записывается как <code>&lt;span class="tc-red"&gt;текст&lt;/span&gt;</code>.</li>
           <li>Панель кнопок: жирный, курсив, зачёркнутый, код, заголовок H1 и подзаголовок H2 (крупнее и мельче; <kbd>MOD</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> / <kbd>2</kbd>), списки, чек-лист, цитата, блок кода, ссылка, картинка, таблица, разделитель, отменить/повторить. Выдели текст и нажми кнопку; повторное нажатие снимает оформление.</li>
           <li><b>Ссылка на другую заметку:</b> набери <code>[[</code> в Markdown-колонке или нажми кнопку «Ссылка на заметку» на панели, начни вводить название и выбери заметку (стрелки и Enter). Если перед этим выделить текст — он станет текстом ссылки. Ссылка держится за заметку, а не за название: переименование или перенос в другой раздел её не ломают. По клику открывается нужная заметка, рядом с разделом появляется «← назад» к той, откуда пришёл. Внизу каждой заметки — список «Ссылаются на эту заметку». Ссылка на удалённую заметку становится зачёркнутой.</li>
-          <li><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
+          <li class="only-public"><b>Картинки.</b> Вставь скриншот из буфера (<kbd>MOD</kbd>+<kbd>V</kbd>), перетащи файл в редактор или нажми кнопку «Картинка»: она сожмётся (до 1800 точек по ширине) и загрузится на сервер. Одна картинка — до 5 МБ.</li>
+          <li class="only-personal"><b>Картинки.</b> Если в ⚙ Настройках → «Картинки» подключён GitHub, картинку можно вставить из буфера (скриншот + Ctrl/⌘+V), перетащить файлом в редактор или выбрать кнопкой «Картинка»: она сожмётся, сама загрузится в папку <code>img</code> репозитория и сразу появится в заметке. Сохранение заметки дождётся окончания загрузки. Если картинка больше нигде не используется, файл в репозитории остаётся; найти и удалить такие файлы можно в ⚙ Настройках → «Картинки» → «Найти неиспользуемые». Без подключения кнопка вставляет шаблон <code>![](img/имя.png)</code>, а файл нужно положить в <code>img</code> вручную.</li>
           <li>Списки продолжаются по Enter, пустой пункт + Enter завершает список. В Markdown-колонке Tab делает отступ.</li>
           <li>Угловые скобки вроде <code>&lt;activity&gt;</code> или <code>List&lt;String&gt;</code> показываются как есть. Если нужно оформить как код — оберни в обратные кавычки.</li>
           <li>Галочка <b>«Не тренировать»</b> оставляет заметку в разделе, но убирает из тренировки. Видна только для разделов с включённой тренировкой.</li>
@@ -1213,6 +1218,7 @@ function markTerms(root, Q) {
 
 /* ---------- UI: modes ---------- */
 document.body.classList.add('mode-lib');
+if (window.NOTES_FLAVOR === 'public') document.body.classList.add('flavor-public');
 // long camelCase identifiers (rememberCoroutineScope) may break between their parts instead of mid-word
 const softBreaks = t => esc(t).replace(/[A-Za-z0-9_.]{16,}/g, w => w.replace(/([a-z0-9])([A-Z])/g, '$1<wbr>$2').replace(/\./g, '.<wbr>'));
 function sessionClass() { document.body.classList.toggle('in-session', S.mode === 'train' && !!S.train && !S.train.done); }
@@ -1778,8 +1784,13 @@ function dataPanelHtml() {
       <button class="btn" id="data-export">Скачать резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
       <input type="file" id="data-file" accept=".json,application/json" hidden>
-      ${window.NOTES_SIGN_OUT ? `<span class="spacer"></span><span class="hint">${esc(window.NOTES_USER_EMAIL || '')}</span><button class="btn" id="data-signout">Выйти</button>` : ''}
+      ${window.NOTES_SIGN_OUT ? `<span class="spacer"></span><span class="hint">${esc(window.NOTES_USER_NAME || window.NOTES_USER_EMAIL || '')}</span><button class="btn" id="data-signout">Выйти</button>` : ''}
     </div>
+    ${window.NOTES_DELETE_ACCOUNT ? (D.delAsk ? `<div class="del-account">
+      <p><b>Удалить аккаунт и все данные?</b> Заметки, разделы, картинки и прогресс тренировок будут удалены с сервера без возможности восстановления. Если они ещё нужны — сначала скачай резервную копию.</p>
+      <label class="lbl" for="del-confirm">Для подтверждения напиши: удалить</label>
+      <div class="bar"><input id="del-confirm" autocomplete="off" style="max-width:180px"><button class="btn danger" id="del-yes" disabled>Удалить навсегда</button><button class="btn" id="del-no">Отмена</button></div>
+    </div>` : `<div class="bar" style="margin-top:14px"><button class="btn danger-link" id="del-ask">Удалить аккаунт…</button></div>`) : ''}
     ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
     ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
   </details>`;
@@ -1852,7 +1863,7 @@ function wireDataPanel() {
       if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
       e.target.value = '';
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
-    } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии My Notes.' }; renderProg(); }
+    } catch { S.dataPanel = { status: 'Это не похоже на файл резервной копии заметок.' }; renderProg(); }
   };
   $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
   const runImport = async mode => {
@@ -1891,6 +1902,14 @@ function wireDataPanel() {
   $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
   $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
   $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
+  $('#del-ask') && ($('#del-ask').onclick = () => { S.dataPanel = Object.assign({}, S.dataPanel, { delAsk: true }); renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
+  $('#del-no') && ($('#del-no').onclick = () => { S.dataPanel = Object.assign({}, S.dataPanel, { delAsk: false }); renderProg(); });
+  $('#del-confirm') && ($('#del-confirm').oninput = e => { $('#del-yes').disabled = e.target.value.trim().toLowerCase() !== 'удалить'; });
+  $('#del-yes') && ($('#del-yes').onclick = async () => {
+    $('#del-yes').disabled = true;
+    try { await window.NOTES_DELETE_ACCOUNT(); }
+    catch (err) { S.dataPanel = { status: 'Не получилось удалить аккаунт: ' + (err?.message || err) }; renderProg(); }
+  });
 }
 
 /* ---------- reset progress: «снова учить» ---------- */
