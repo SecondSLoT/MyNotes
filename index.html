@@ -595,9 +595,11 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .prog-row .stack{grid-column:1/-1;grid-row:2}
   .brand span.long{display:none}
 }
-.modes .gear{display:inline-grid;place-items:center;padding-inline:10px}
-.modes .help-q{font:600 16px/1 var(--f-display);min-width:36px}
-.modes .gear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.modes svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.modes .ml{white-space:nowrap}
+/* «Настройки» и «Справка» подписаны, когда хватает ширины; иначе — только иконки */
+@media (max-width:1180px){.modes .ml-opt{display:none}.modes #m-prog,.modes #help-btn{padding-inline:10px}}
+@media (max-width:400px){.modes button{padding-inline:7px;gap:4px}.modes #m-prog,.modes #help-btn{padding-inline:7px}.top .brand{gap:6px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -605,10 +607,10 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   <header class="top">
     <div class="brand" aria-label="My Notes">‹/›<span><b>My</b> Notes</span></div>
     <nav class="modes" aria-label="Режим">
-      <button id="m-lib" data-mode="lib" aria-pressed="true">Заметки</button>
-      <button id="m-train" data-mode="train" aria-pressed="false">Тренировка <span class="badge" id="due-badge" hidden>0</span></button>
-      <button id="m-prog" data-mode="prog" aria-pressed="false" class="gear" title="Настройки" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
-      <button id="help-btn" class="gear help-q" type="button" aria-haspopup="dialog" title="Справка: как всё устроено (клавиша ?)" aria-label="Справка">?</button>
+      <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
+      <button id="m-train" data-mode="train" aria-pressed="false" title="Тренировка"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="12" rx="2"/><path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/><path d="M8 13.5l1.8 1.8L13 12"/></svg><span class="ml">Тренировка</span><span class="badge" id="due-badge" hidden>0</span></button>
+      <button id="m-prog" data-mode="prog" aria-pressed="false" title="Настройки" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span class="ml ml-opt">Настройки</span></button>
+      <button id="help-btn" type="button" aria-haspopup="dialog" title="Справка: как всё устроено (клавиша ?)" aria-label="Справка"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4"/><path d="M12 16.9v.1"/></svg><span class="ml ml-opt">Справка</span></button>
     </nav>
     <div class="search" id="search-box">
       <input id="q" type="search" placeholder="Поиск по заметкам…" autocomplete="off" aria-label="Поиск по заметкам">
