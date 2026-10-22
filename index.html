@@ -4511,6 +4511,8 @@ async function boot() {
     return;
   }
   S.db = db;
+  // a reload keeps the tab's history entry: come back to the screen it was on (settings, training), not always to notes
+  const was = history.state?.nav?.m; if (['train', 'prog'].includes(was)) setMode(was);
   try { S.uid = user ? await user.id() : null; } catch { S.uid = null; }
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
