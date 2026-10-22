@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#f3f4ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121513" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="My Notes">
+<meta name="apple-mobile-web-app-title" content="MyNotes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6b55'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='white' text-anchor='middle'%3E%E2%80%B9/%E2%80%BA%3C/text%3E%3C/svg%3E">
-<title>My Notes</title>
+<title>MyNotes</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
@@ -359,7 +359,7 @@ button.tag{border:0;background:none;padding:0}
 .md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
 .md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
-.md td,.md th{border:1px solid var(--line);padding:5px 9px}
+.md td,.md th{border:1px solid var(--line);padding:5px 9px;overflow-wrap:normal;word-break:normal;min-width:3.2em}  /* широкая таблица прокручивается, а не рвёт слова по буквам */
 .md hr{border:0;border-top:1px solid var(--line);margin:1.5em 0}
 .hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--hl-kw)}
 .hljs-string,.hljs-regexp{color:var(--hl-str)}
@@ -627,7 +627,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 
 <div class="app">
   <header class="top">
-    <div class="brand" aria-label="My Notes">‹/›<span><b>My</b> Notes</span></div>
+    <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span></div>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
       <button id="m-train" data-mode="train" aria-pressed="false" title="Тренировка"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="12" rx="2"/><path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/><path d="M8 13.5l1.8 1.8L13 12"/></svg><span class="ml">Тренировка</span><span class="badge" id="due-badge" hidden>0</span></button>
@@ -748,6 +748,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Прогресс</b> — внизу вкладки «Тренировка». Полоса по каждому разделу: <b>новые</b> (ещё не видел), <b>изучаются</b> (интервал меньше недели), <b>знаю</b> (от недели), <b>уверенно</b> (от трёх недель). Процент — доля «знаю» и «уверенно».</li>
           <li>Там же список карточек вне тренировки.</li>
           <li><b>Настройки</b> — шестерёнка ⚙ в шапке: число новых карточек в день, управление тегами, резервная копия и импорт, выход из аккаунта.</li>
+          <li><b>Перенос из Evernote.</b> В Evernote выбери блокноты → «Экспортировать» (формат .enex). Потом ⚙ → «Резервное копирование и перенос» → «Импорт из файла» (можно несколько .enex сразу) или «Папка из Evernote» — подпапки станут разделами. Таблицы, списки, чек-листы, код и картинки переносятся; повторный импорт тех же файлов не создаёт дублей.</li>
           <li>Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span>.</li>
           <li>Заметки общие для всех твоих устройств, а прогресс тренировок хранится лично за тобой.</li>
         </ul></section>
@@ -1217,7 +1218,7 @@ function insertUpload(file) {
       const blob = await compressImage(file);
       let path;
       if (window.NOTES_UPLOAD) path = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4));
-      else { path = newImgPath(blob); await ghPut(path, blob, `Add ${path} (My Notes)`); }
+      else { path = newImgPath(blob); await ghPut(path, blob, `Add ${path} (MyNotes)`); }
       localImages[path] = localImages[key];
       replaceInEditor(key, path);
       toast('Картинка загружена');
@@ -1806,7 +1807,7 @@ function ghPanelHtml() {
     <details style="margin-top:10px"><summary style="cursor:pointer;font:inherit;padding:0">Как получить токен</summary>
       <ol style="margin:8px 0 0;padding-left:20px;line-height:1.6">
         <li>GitHub → аватар справа вверху → <b>Settings</b> → внизу слева <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
-        <li><b>Token name</b> — любое, например «My Notes images». <b>Expiration</b> — сколько не жалко (когда истечёт, выпустишь новый и вставишь сюда).</li>
+        <li><b>Token name</b> — любое, например «MyNotes images». <b>Expiration</b> — сколько не жалко (когда истечёт, выпустишь новый и вставишь сюда).</li>
         <li><b>Repository access</b> → <b>Only select repositories</b> → выбери репозиторий сайта. Без этого шага нужного разрешения в списке не будет.</li>
         <li>В блоке <b>Permissions</b> (вкладка <b>Repositories</b>, если вкладки есть) нажми <b>+ Add permissions</b>, найди <b>Contents</b> и отметь его.</li>
         <li>Справа от появившейся строки <b>Contents</b> смени <b>Read-only</b> на <b>Read and write</b>. <b>Metadata: Read-only</b> GitHub добавит сам — так и надо, больше ничего не нужно.</li>
@@ -1870,7 +1871,7 @@ async function deleteOrphans() {
     try {
       const r = await fetch(`https://api.github.com/repos/${gh.repo}/contents/${f.path}`, {
         method: 'DELETE', headers: { Authorization: `Bearer ${gh.token}`, Accept: 'application/vnd.github+json' },
-        body: JSON.stringify({ message: `Remove unused ${f.path} (My Notes)`, sha: f.sha, branch: gh.branch }),
+        body: JSON.stringify({ message: `Remove unused ${f.path} (MyNotes)`, sha: f.sha, branch: gh.branch }),
       });
       if (!r.ok) throw new Error(String(r.status));
       done++; O.list = O.list.filter(x => x.path !== f.path); O.sel.delete(f.path);
@@ -1912,11 +1913,15 @@ function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
     <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
-    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла.</p>
+    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла.
+      Сюда же можно перенести заметки из Evernote: в Evernote выбери блокноты → «Экспортировать» в формате .enex и загрузи файлы
+      (или всю папку — подпапки станут разделами).</p>
     <div class="bar">
       <button class="btn" id="data-export">Сохранить резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
-      <input type="file" id="data-file" accept=".json,application/json" hidden>
+      <input type="file" id="data-file" accept=".json,application/json,.enex" multiple hidden>
+      <label class="btn" for="data-dir" style="cursor:pointer" title="Папка, которую выгрузил Evernote: подпапки станут разделами">Папка из Evernote…</label>
+      <input type="file" id="data-dir" webkitdirectory multiple hidden>
     </div>
     ${(() => { const c = backupConf(); const [y, m, d] = (c.last || '').split('-').map(Number);
       return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя резервная копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}.` : 'Резервных копий на этом устройстве ещё не было.'}</p>
@@ -1946,8 +1951,10 @@ function accountPanelHtml() {
     ${A.status ? `<p class="hint" style="margin-top:10px">${esc(A.status)}</p>` : ''}
   </details>`;
 }
+// картинки при импорте из Evernote меняют вид ссылки (enex:… → адрес загруженной картинки или пометка) — при сравнении не в счёт
+const bodyKey = b => (b || '').replace(/!\[[^\]]*\]\([^)]*\)|\*\(картинка[^)]*из Evernote не перенесена\)\*/g, '\u{1F5BC}');
 function importDiff(d) {
-  const sameNote = (a, b) => a.title === b.title && (a.body || '') === (b.body || '') && a.section === b.section
+  const sameNote = (a, b) => a.title === b.title && bodyKey(a.body) === bodyKey(b.body) && a.section === b.section
     && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001');
   const notes = [], same = [];
   let fresh = 0;
@@ -1963,7 +1970,12 @@ function importDiff(d) {
 }
 function importConfirmHtml(d, X) {
   const nSrs = Object.keys(d.srs || {}).length;
-  const head = `В файле: ${d.sections.length} разделов, ${d.notes.length} заметок${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}.`;
+  const nImg = Object.keys(d.images || {}).length;
+  const head = d.source === 'evernote'
+    ? `Из Evernote: ${d.notes.length} ${plural(d.notes.length, 'заметка', 'заметки', 'заметок')}, ${d.sections.length} ${plural(d.sections.length, 'раздел', 'раздела', 'разделов')}${nImg ? `, ${nImg} ${plural(nImg, 'картинка', 'картинки', 'картинок')}` : ''}.`
+      + (nImg && !uploadReady() ? ` <b>Картинки не перенесутся</b> — для них нужна загрузка картинок (⚙ → «Картинки»). Можно импортировать сейчас и повторить позже.` : '')
+      + (d.warn?.length ? ` Не прочитались: ${esc(d.warn.join(', '))}.` : '')
+    : `В файле: ${d.sections.length} разделов, ${d.notes.length} заметок${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}.`;
   const conflicts = X.notes.length + X.secs.length + X.srs.length;
   const box = 'margin-top:12px;background:var(--accent-soft);color:var(--ink);display:block';
   if (!conflicts) {
@@ -1974,7 +1986,7 @@ function importConfirmHtml(d, X) {
   const rows = X.notes.map(c => {
     const what = [];
     if (c.site.title !== c.file.title) what.push('название');
-    if ((c.site.body || '') !== (c.file.body || '')) what.push('текст');
+    if (bodyKey(c.site.body) !== bodyKey(c.file.body)) what.push('текст');
     if (c.site.section !== c.file.section) what.push('раздел');
     if ((c.site.tags || []).join() !== (c.file.tags || []).join()) what.push('теги');
     if (!!c.site.ref !== !!c.file.ref) what.push('тренировка');
@@ -2037,7 +2049,7 @@ function renderBackupBar() {
   $('#backup-later').onclick = () => { backupSet({ snooze: addDays(today(), 7) }); renderList(); };
 }
 /* ---------- установка приложением (PWA): своё окно, иконка на рабочем столе ---------- */
-const APP_NAME = () => window.NOTES_FLAVOR === 'public' ? 'ReteNote' : 'My Notes';
+const APP_NAME = () => window.NOTES_FLAVOR === 'public' ? 'ReteNote' : 'MyNotes';
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const SHARE_ICO = '<svg class="share-ico" viewBox="0 0 24 24" aria-label="«Поделиться»"><path d="M12 15V4M8 7.5L12 3.5l4 4M7 10.5H5.5v10h13v-10H17"/></svg>';
@@ -2076,19 +2088,176 @@ function renderInstallBar() {
 }
 function appPanelHtml() {
   const m = isStandalone() ? 'standalone' : installMode();
-  const body = m === 'standalone' ? `<p class="sub">✓ ${APP_NAME()} открыт как приложение.</p>`
+  const body = m === 'standalone' ? `<p class="sub">✓ ${APP_NAME()} открыт как приложение</p>`
     : m === 'prompt' ? `<p class="sub">Установи ${APP_NAME()} как приложение: своё окно без адресной строки, значок на рабочем столе или в списке приложений.</p><div class="bar" style="margin-top:10px"><button class="btn primary" type="button" id="install-go2">Установить приложение</button></div>`
     : m === 'ios' ? `<p class="sub">На iPhone и iPad: нажми «Поделиться» ${SHARE_ICO} в Safari и выбери «На экран „Домой“» — ${APP_NAME()} откроется как приложение.</p>`
     : `<p class="sub">Кнопки установки нет — значит, приложение уже установлено или этот браузер не умеет устанавливать сайты (например, Firefox). В Chrome и Edge установка — в меню браузера («Установить приложение» или значок в адресной строке), на iPhone — в Safari: «Поделиться» → «На экран „Домой“».</p>`;
   return `<section class="panel" id="app-panel"><h3>Приложение</h3>${body}</section>`;
 }
+/* ---------- импорт из Evernote (.enex): файл = блокнот, папки = разделы, заметка = заметка ---------- */
+// MD5 — Evernote связывает картинку в тексте с вложением по MD5 его байтов (в WebCrypto MD5 нет)
+function md5hex(bytes) {
+  if (typeof bytes === 'string') bytes = new TextEncoder().encode(bytes);
+  const S = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21], K = new Int32Array(64);
+  for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32) | 0;
+  const n = bytes.length, len = (((n + 8) >>> 6) + 1) << 6, buf = new Uint8Array(len);
+  buf.set(bytes); buf[n] = 0x80;
+  const dv = new DataView(buf.buffer); dv.setUint32(len - 8, (n * 8) >>> 0, true); dv.setUint32(len - 4, Math.floor(n / 2 ** 29), true);
+  let a0 = 0x67452301, b0 = 0xefcdab89 | 0, c0 = 0x98badcfe | 0, d0 = 0x10325476;
+  for (let off = 0; off < len; off += 64) {
+    let A = a0, B = b0, C = c0, D = d0;
+    for (let i = 0; i < 64; i++) {
+      let F, g;
+      if (i < 16) { F = (B & C) | (~B & D); g = i; } else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; } else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+      const sh = S[(i >> 4) * 4 + (i % 4)];
+      F = (F + A + K[i] + dv.getInt32(off + g * 4, true)) | 0;
+      A = D; D = C; C = B; B = (B + ((F << sh) | (F >>> (32 - sh)))) | 0;
+    }
+    a0 = (a0 + A) | 0; b0 = (b0 + B) | 0; c0 = (c0 + C) | 0; d0 = (d0 + D) | 0;
+  }
+  return [a0, b0, c0, d0].map(x => [0, 8, 16, 24].map(s => ((x >>> s) & 255).toString(16).padStart(2, '0')).join('')).join('');
+}
+const enexDate = s => (s || '').replace(/^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)Z$/, '$1-$2-$3T$4:$5:$6.000Z') || new Date().toISOString();
+// ENML (HTML Evernote) → HTML, который понимает htmlToMd
+function enmlToMd(enml, media) {
+  // <en-todo/> и <en-media/> в Evernote самозакрывающиеся, а разбор HTML затянул бы следующий текст внутрь тега
+  const src = (enml || '').replace(/<\?xml[^>]*\?>|<!DOCTYPE[^>]*>/gi, '').replace(/<(en-todo|en-media|en-crypt)\b([^>]*?)\/>/gi, '<$1$2></$1>');
+  const doc = new DOMParser().parseFromString('<body>' + src + '</body>', 'text/html');
+  const root = doc.querySelector('en-note') || doc.body;
+  const isBlockEl = el => el.nodeType === 1 && (BLOCK_TAGS.has(el.tagName) || /^(TBODY|THEAD|TR|TD|TH)$/.test(el.tagName));
+  const hasBlock = el => [...el.children].some(isBlockEl);
+  // блоки кода Evernote: div с -en-codeblock, строки — вложенные div
+  root.querySelectorAll('div[style*="en-codeblock"]').forEach(el => {
+    const pre = doc.createElement('pre'), code = doc.createElement('code');
+    const lines = el.children.length ? [...el.children].map(c => c.textContent) : [el.textContent];
+    code.textContent = lines.join('\n').replace(/ /g, ' '); pre.append(code); el.replaceWith(pre);
+  });
+  // жирный / курсив / зачёркнутый из style
+  root.querySelectorAll('[style]').forEach(el => {
+    if (el.closest('pre') || hasBlock(el)) return;
+    const st = el.getAttribute('style');
+    for (const [re, tag] of [[/font-weight:\s*(bold|[6-9]00)/i, 'B'], [/font-style:\s*italic/i, 'I'], [/text-decoration[^;]*line-through/i, 'S']])
+      if (re.test(st)) { const w = doc.createElement(tag); while (el.firstChild) w.append(el.firstChild); el.append(w); }
+  });
+  // таблицы-вёрстка (веб-клипы: внутри другие таблицы, или всё в одну колонку) — снимаем, содержимое ячеек идёт обычным текстом;
+  // внутренние таблицы обрабатываются первыми, настоящие таблицы с данными остаются таблицами
+  [...root.querySelectorAll('table')].reverse().forEach(t => {
+    const rows = [...t.rows];
+    if (!t.querySelector('table') && rows.length && rows.some(r => r.cells.length > 1)) return;
+    const box = doc.createElement('div');
+    rows.forEach(r => [...r.cells].forEach(c => { const d = doc.createElement('div'); d.append(...c.childNodes); box.append(d); }));
+    t.replaceWith(box);
+  });
+  // чек-боксы → метка в начале строки, ниже превращаем в «- [ ]»
+  root.querySelectorAll('en-todo').forEach(t => t.replaceWith(doc.createTextNode(t.getAttribute('checked') === 'true' ? '☑⁠' : '☐⁠')));
+  // вложения: картинки — в ![](enex:<md5>), остальное — пометкой
+  root.querySelectorAll('en-media').forEach(m => {
+    const r = media[(m.getAttribute('hash') || '').toLowerCase()];
+    if (r && /^image\//.test(r.mime)) { const img = doc.createElement('img'); img.setAttribute('src', 'enex:' + r.hash); img.setAttribute('alt', ''); m.replaceWith(img); }
+    else m.replaceWith(doc.createTextNode(`📎 ${(r && r.name) || 'вложение'} (вложение из Evernote не перенесено)`));
+  });
+  // строки Evernote — это div: подряд идущие строки — один абзац с переносами, пустая строка — граница абзаца
+  const blank = el => el.tagName === 'DIV' && !el.querySelector('img') && !el.textContent.replace(/[\s ​⁠]/g, '');
+  const group = (box, inlineOnly) => {
+    for (const c of [...box.children]) {
+      if (c.tagName === 'DIV' && hasBlock(c)) { group(c, inlineOnly); c.replaceWith(...c.childNodes); }
+      else if (/^(LI|TD|TH)$/.test(c.tagName)) group(c, true);
+      else if (/^(UL|OL|TABLE|TBODY|THEAD|TR|BLOCKQUOTE)$/.test(c.tagName)) group(c, false);
+    }
+    let p = null, lastDiv = false;
+    for (const c of [...box.childNodes]) {
+      const isDiv = c.nodeType === 1 && c.tagName === 'DIV';
+      if (isDiv && blank(c)) { p = null; lastDiv = false; c.remove(); continue; }
+      const inline = isDiv || (c.nodeType === 3 && c.nodeValue.trim()) || (c.nodeType === 1 && !isBlockEl(c));
+      if (!inline) { if (c.nodeType === 1) p = null; continue; }
+      if (inlineOnly) {   // в пунктах списка и ячейках таблиц — без абзацев, только переносы строк
+        if (isDiv) { if (c.previousSibling && !(c.previousSibling.nodeType === 1 && c.previousSibling.tagName === 'BR')) c.before(doc.createElement('br')); c.replaceWith(...c.childNodes); }
+        continue;
+      }
+      if (!p) { p = doc.createElement('p'); c.before(p); }
+      else if (isDiv || lastDiv) p.append(doc.createElement('br'));
+      if (isDiv) { p.append(...c.childNodes); c.remove(); } else p.append(c);
+      lastDiv = isDiv;
+    }
+  };
+  group(root, false);
+  let md = htmlToMd(root);
+  // метки чек-боксов → пункты чек-листа
+  md = md.split('\n').map(l => { const m = l.match(/^(\s*)([☐☑])⁠\s*(.*?)\s*$/); return m ? `${m[1]}- [${m[2] === '☑' ? 'x' : ' '}] ${m[3]}` : l; }).join('\n');
+  md = md.replace(/\[([^\]]*)\]\(\)/g, '$1')   // ссылки без адреса — просто текст
+  md = md.replace(/^(?!- \[)(.+)\n(- \[)/gm, '$1\n\n$2').replace(/[ \t]+$/gm, m => m === '  ' ? m : '').replace(/\n{3,}/g, '\n\n').trim();
+  return md;
+}
+// files: [{ path: ['Папка', 'Подпапка', 'Блокнот.enex'], text }] → резервная копия (как в «Импорт из файла») + картинки
+function enexToBackup(files) {
+  const sections = new Map(), notes = [], images = {}, warn = [];
+  const rootOrder = Math.max(0, ...[...S.sections.values()].filter(x => !x.parent).map(x => x.order ?? 0)) + 1;
+  const secId = path => 'ev' + md5hex('sec:' + path.join('/')).slice(0, 14);
+  const ensure = path => {
+    let parent = null;
+    path.forEach((title, i) => {
+      const id = secId(path.slice(0, i + 1));
+      if (!sections.has(id)) sections.set(id, { id, title, parent, train: false, order: parent ? sections.size : rootOrder + sections.size });
+      parent = id;
+    });
+    return parent;
+  };
+  const sorted = [...files].sort((a, b) => a.path.join('/').localeCompare(b.path.join('/'), 'ru', { numeric: true }));
+  for (const f of sorted) {
+    const xml = new DOMParser().parseFromString(f.text, 'application/xml');
+    if (xml.querySelector('parsererror') || !xml.querySelector('en-export')) { warn.push(f.path.join('/')); continue; }
+    const list = [...xml.querySelectorAll('en-export > note')];
+    const dirs = f.path.slice(0, -1), book = f.path[f.path.length - 1].replace(/\.enex$/i, '');
+    // блокнот из одной заметки — без своего раздела, если есть куда положить
+    const sec = list.length === 1 && dirs.length ? ensure(dirs) : ensure([...dirs, book]);
+    list.forEach((n, i) => {
+      const media = {};
+      n.querySelectorAll('resource').forEach(r => {
+        const b64 = (r.querySelector('data')?.textContent || '').replace(/\s+/g, '');
+        let bytes; try { bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0)); } catch { return; }
+        const hash = md5hex(bytes), mime = r.querySelector('mime')?.textContent || '';
+        media[hash] = { hash, mime, name: r.querySelector('resource-attributes > file-name')?.textContent || '', bytes };
+      });
+      const created = enexDate(n.querySelector('created')?.textContent), updated = enexDate(n.querySelector('updated')?.textContent || n.querySelector('created')?.textContent);
+      const body = enmlToMd(n.querySelector('content')?.textContent || '', media);
+      // у заметок без заголовка Evernote пишет «Заметка без названия» — берём первую строку текста
+      let title = (n.querySelector('title')?.textContent || '').trim();
+      if (!title || /^(заметка без названия|без названия|untitled( note)?)$/i.test(title)) {
+        const line = body.split('\n').map(l => l.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^[\s#>*\-+\d.\[\]x|]+/, '').replace(/[*_`~|]/g, '').trim()).find(Boolean) || '';
+        title = line ? (line.length > 80 ? line.slice(0, 79).replace(/\s+\S*$/, '') + '…' : line) : (title || 'Без названия');
+      }
+      for (const m of Object.values(media)) if (body.includes('enex:' + m.hash)) images[m.hash] = m;
+      notes.push({ id: 'ev' + md5hex(`note:${f.path.join('/')}|${title}|${created}`).slice(0, 14), section: sec, title, body,
+        tags: [...n.querySelectorAll('tag')].map(t => t.textContent.trim().replace(/\s+/g, '_')).filter(Boolean),
+        order: i, created, updated, pinned: false });
+    });
+  }
+  return { format: 'android-notes', version: 1, sections: [...sections.values()], notes, srs: {}, images, source: 'evernote', warn };
+}
+window.NOTES_ENEX = { md5hex, enmlToMd: (enml, media) => enmlToMd(enml, media || {}), toBackup: enexToBackup };   // для тестов
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
   p.ontoggle = () => { S.dataOpen = p.open; };
   $('#data-export').onclick = saveBackup;
   $('#backup-every') && ($('#backup-every').onchange = e => { backupSet({ every: e.target.value, snooze: '' }); renderList(); });
+  const enexImport = async (list, e) => {
+    const fs = [...list].filter(f => /\.enex$/i.test(f.name) && !f.name.startsWith('._') && !/(^|\/)__MACOSX\//.test(f.webkitRelativePath || ''));
+    e.target.value = '';
+    if (!fs.length) { S.dataPanel = { status: 'В выбранном нет файлов .enex из Evernote.' }; renderProg(); return; }
+    S.dataPanel = { status: `Читаю заметки из Evernote (${fs.length} ${plural(fs.length, 'файл', 'файла', 'файлов')})…` }; renderProg();
+    try {
+      const files = await Promise.all(fs.map(async f => ({ path: (f.webkitRelativePath || f.name).split('/').filter(Boolean), text: await f.text() })));
+      const d = enexToBackup(files);
+      if (!d.notes.length) throw new Error(d.warn.length ? 'не получилось прочитать: ' + d.warn.join(', ') : 'в файлах нет заметок');
+      S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true;
+    } catch (err) { S.dataPanel = { status: 'Импорт из Evernote не получился: ' + (err?.message || err) }; }
+    renderProg();
+  };
+  $('#data-dir').onchange = e => enexImport(e.target.files, e);
   $('#data-file').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
+    if ([...e.target.files].some(x => /\.enex$/i.test(x.name))) return enexImport(e.target.files, e);
     try {
       const d = JSON.parse(await f.text());
       if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
@@ -2107,6 +2276,25 @@ function wireDataPanel() {
     const srs = Object.entries(d.srs || {}).filter(([id, v]) => !S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v)));
     const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
     S.dataPanel = { status: 'Импортирую…' }; renderProg();
+    // картинки из Evernote: загрузить туда же, куда обычные картинки заметок, и подставить ссылки
+    const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
+    if (need.length) {
+      const url = {}; let k = 0;
+      for (const h of need) {
+        const m = imgs[h];
+        if (uploadReady()) {
+          S.dataPanel = { status: `Загружаю картинки… ${++k} из ${need.length}` }; renderProg();
+          try {
+            const b = await compressImage(new File([m.bytes], m.name || 'image', { type: m.mime }));
+            if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
+            else { url[h] = newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, импорт из Evernote)`); }
+            localImages[url[h]] = URL.createObjectURL(b);
+          } catch (err) { url[h] = null; }
+        } else url[h] = null;
+      }
+      for (const n of notes) n.body = n.body.replace(/!\[([^\]]*)\]\(enex:([0-9a-f]{32})\)/g, (all, alt, h) => url[h] ? `![${alt}](${url[h]})`
+        : `*(картинка${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*`);
+    }
     const strip = o => { const c = { ...o }; delete c.id; return c; };
     let done = 0; const total = secs.length + notes.length + srs.length;
     const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: `Импортирую… ${done} из ${total}` }; renderProg(); } };

@@ -1,6 +1,6 @@
 {
- "name": "My Notes",
- "short_name": "My Notes",
+ "name": "MyNotes",
+ "short_name": "MyNotes",
  "description": "Заметки, которые остаются с тобой",
  "lang": "ru",
  "start_url": "./",
