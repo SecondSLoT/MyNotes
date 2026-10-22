@@ -116,6 +116,8 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .row-item .tr-acts .btn{padding:3px 10px;font-size:12px}
 .backup-bar{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:0 0 12px;font-size:14px;line-height:1.45}
 .backup-bar p{margin:0;flex:1 1 260px}
+#data-panel .sub-h{margin:16px 0 4px;font:600 14px var(--f-body)}
+.btn.link-like{border:0;background:none;color:var(--accent);padding-inline:4px;text-decoration:underline;text-underline-offset:3px}
 .share-ico{width:16px;height:16px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.backup-bar .bar{display:flex;gap:8px}
 .trash-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin:10px 0 16px;font-size:14px}
 .pin-btn{border:0;background:none;font-size:20px;line-height:1;color:var(--faint);padding:2px 4px;border-radius:6px;cursor:pointer;vertical-align:middle}
@@ -748,7 +750,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
           <li><b>Прогресс</b> — внизу вкладки «Тренировка». Полоса по каждому разделу: <b>новые</b> (ещё не видел), <b>изучаются</b> (интервал меньше недели), <b>знаю</b> (от недели), <b>уверенно</b> (от трёх недель). Процент — доля «знаю» и «уверенно».</li>
           <li>Там же список карточек вне тренировки.</li>
           <li><b>Настройки</b> — шестерёнка ⚙ в шапке: число новых карточек в день, управление тегами, резервная копия и импорт, выход из аккаунта.</li>
-          <li><b>Перенос из Evernote.</b> В Evernote выбери блокноты → «Экспортировать» (формат .enex). Потом ⚙ → «Резервное копирование и перенос» → «Импорт из файла» (можно несколько .enex сразу) или «Папка из Evernote» — подпапки станут разделами. Таблицы, списки, чек-листы, код и картинки переносятся; повторный импорт тех же файлов не создаёт дублей.</li>
+          <li><b>Перенос из Evernote.</b> В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → ENEX (каждый блокнот — отдельный файл). Потом ⚙ → «Резервное копирование и перенос» → «Импорт из Evernote» и выбери все файлы сразу — каждый станет разделом. Если файлы разложены по папкам, можно выбрать папку — подпапки тоже станут разделами. Таблицы, списки, чек-листы, код и картинки переносятся; повторный импорт тех же файлов не создаёт дублей.</li>
           <li>Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span>.</li>
           <li>Заметки общие для всех твоих устройств, а прогресс тренировок хранится лично за тобой.</li>
         </ul></section>
@@ -1609,7 +1611,7 @@ function renderList() {
   if (!list.length) {
     renderBulkBar([]);
     const virtEmpty = { fav: 'Здесь будут избранные заметки. Отметь заметку звёздочкой ☆ рядом с заголовком или через «⋮ → В избранное».', recent: 'Здесь появятся заметки, которые ты недавно открывал или менял.' };
-    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Резервное копирование и перенос» → «Импорт из файла».' : 'База заметок пока пустая.')}</div>`;
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Резервное копирование и перенос»: там «Загрузить резервную копию» и «Импорт из Evernote».' : 'База заметок пока пустая.')}</div>`;
     return;
   }
   const grouped = !terms && !S.tag && !isVirtual(S.section) && hasKids(S.section) && sortMode(S.section) === 'manual';
@@ -1913,16 +1915,24 @@ function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
     <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
-    <p class="sub" style="margin-top:8px">Экспорт сохраняет все разделы, заметки, теги и твой прогресс тренировок в один JSON-файл. Импорт добавляет данные из такого файла.
-      Сюда же можно перенести заметки из Evernote: в Evernote выбери блокноты → «Экспортировать» в формате .enex и загрузи файлы
-      (или всю папку — подпапки станут разделами).</p>
+    <p class="sub" style="margin-top:8px">Резервная копия — один файл со всеми разделами, заметками, тегами и прогрессом тренировок.
+      Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим.</p>
     <div class="bar">
       <button class="btn" id="data-export">Сохранить резервную копию</button>
-      <label class="btn" for="data-file" style="cursor:pointer">Импорт из файла…</label>
-      <input type="file" id="data-file" accept=".json,application/json,.enex" multiple hidden>
-      <label class="btn" for="data-dir" style="cursor:pointer" title="Папка, которую выгрузил Evernote: подпапки станут разделами">Папка из Evernote…</label>
+      <label class="btn" for="data-file" style="cursor:pointer">Загрузить резервную копию…</label>
+      <input type="file" id="data-file" accept=".json,application/json" hidden>
+    </div>
+    <h4 class="sub-h">Перенос из Evernote</h4>
+    <p class="sub">В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → формат ENEX. Каждый блокнот — отдельный файл .enex;
+      выбери их все сразу — каждый станет разделом. Таблицы, списки, чек-листы, код и картинки переносятся, повторный импорт не создаёт дублей.</p>
+    <div class="bar">
+      <label class="btn" for="data-enex" style="cursor:pointer">Импорт из Evernote…</label>
+      <input type="file" id="data-enex" accept=".enex" multiple hidden>
+      <label class="btn link-like" for="data-dir" style="cursor:pointer">или выбрать папку с файлами .enex</label>
       <input type="file" id="data-dir" webkitdirectory multiple hidden>
     </div>
+    <p class="hint">Папка пригодится, если блокноты разложены по подпапкам (например, по стопкам Evernote) — подпапки станут разделами.
+      Стопку можно задать и в имени файла: <code>Стопка@@@Блокнот.enex</code>.</p>
     ${(() => { const c = backupConf(); const [y, m, d] = (c.last || '').split('-').map(Number);
       return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя резервная копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}.` : 'Резервных копий на этом устройстве ещё не было.'}</p>
     <div class="opt-row" style="margin-top:8px"><label for="backup-every">Напоминать о копии</label>
@@ -2208,9 +2218,13 @@ function enexToBackup(files) {
     const xml = new DOMParser().parseFromString(f.text, 'application/xml');
     if (xml.querySelector('parsererror') || !xml.querySelector('en-export')) { warn.push(f.path.join('/')); continue; }
     const list = [...xml.querySelectorAll('en-export > note')];
-    const dirs = f.path.slice(0, -1), book = f.path[f.path.length - 1].replace(/\.enex$/i, '');
-    // блокнот из одной заметки — без своего раздела, если есть куда положить
-    const sec = list.length === 1 && dirs.length ? ensure(dirs) : ensure([...dirs, book]);
+    // «Стопка@@@Блокнот.enex» — стопка Evernote в имени файла (как у импорта Obsidian)
+    const parts = f.path[f.path.length - 1].replace(/\.enex$/i, '').split('@@@').map(x => x.trim()).filter(Boolean);
+    const dirs = [...f.path.slice(0, -1), ...parts.slice(0, -1)], book = parts[parts.length - 1] || 'Evernote';
+    // файл из одной заметки с тем же названием (так Evernote выгружает отдельную заметку) — без своего раздела, если есть куда положить
+    const norm = x => (x || '').normalize('NFC').trim().toLowerCase();
+    const single = list.length === 1 && dirs.length && (t => t === norm(book) || /^(заметка без названия|без названия|untitled( note)?)?$/.test(t))(norm(list[0].querySelector('title')?.textContent));
+    const sec = single ? ensure(dirs) : ensure([...dirs, book]);
     list.forEach((n, i) => {
       const media = {};
       n.querySelectorAll('resource').forEach(r => {
@@ -2247,7 +2261,8 @@ function wireDataPanel() {
     if (!fs.length) { S.dataPanel = { status: 'В выбранном нет файлов .enex из Evernote.' }; renderProg(); return; }
     S.dataPanel = { status: `Читаю заметки из Evernote (${fs.length} ${plural(fs.length, 'файл', 'файла', 'файлов')})…` }; renderProg();
     try {
-      const files = await Promise.all(fs.map(async f => ({ path: (f.webkitRelativePath || f.name).split('/').filter(Boolean), text: await f.text() })));
+      // имена файлов с Mac приходят в «разложенном» Unicode (й = и + ˘) — приводим к обычному виду, иначе не найдутся поиском
+      const files = await Promise.all(fs.map(async f => ({ path: (f.webkitRelativePath || f.name).normalize('NFC').split('/').filter(Boolean), text: await f.text() })));
       const d = enexToBackup(files);
       if (!d.notes.length) throw new Error(d.warn.length ? 'не получилось прочитать: ' + d.warn.join(', ') : 'в файлах нет заметок');
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true;
@@ -2255,6 +2270,7 @@ function wireDataPanel() {
     renderProg();
   };
   $('#data-dir').onchange = e => enexImport(e.target.files, e);
+  $('#data-enex').onchange = e => enexImport(e.target.files, e);
   $('#data-file').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
     if ([...e.target.files].some(x => /\.enex$/i.test(x.name))) return enexImport(e.target.files, e);
