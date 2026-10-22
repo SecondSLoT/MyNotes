@@ -565,6 +565,18 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .rail .sheet-head::before{content:'';position:absolute;top:6px;left:50%;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--line-strong)}
 .rail .sheet-head b{font:600 18px var(--f-display);margin-right:auto}
 .rail .sheet-head .btn{padding:6px 12px}
+.acc-methods{margin-top:14px}
+.acc-methods h4{margin:0 0 6px;font:600 14px var(--f-body)}
+.acc-methods .methods{list-style:none;margin:0;padding:0}
+.acc-methods .methods li{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.acc-methods .methods li:last-child{border-bottom:0}
+.acc-methods .nm{flex:1 1 140px;font-weight:500}
+.acc-methods .ok{color:var(--accent)}
+.acc-methods .warn{color:var(--hard,#a8641b);font-size:13px}
+.acc-methods .btn.small{padding:4px 12px;font-size:13px}
+.acc-methods .acc-pass{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:8px 0}
+.acc-methods .acc-pass input{border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:8px 10px}
+.acc-methods .acc-msg{color:var(--accent)}.acc-methods .acc-msg.err{color:var(--again)}
 .sec .tools{margin-left:auto;display:flex;gap:4px;flex:none}
 .sec .tools span{display:grid;place-items:center;width:34px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--raised);color:var(--ink);font-size:15px;line-height:1}
 .sec .tools span[aria-disabled="true"]{opacity:.3}
@@ -1907,6 +1919,7 @@ function accountPanelHtml() {
       <button class="btn" id="data-signout">Выйти</button>
       ${window.NOTES_DELETE_ACCOUNT && !A.delAsk ? `<button class="btn danger" id="del-ask">Удалить аккаунт</button>` : ''}
     </div>
+    ${window.NOTES_ACCOUNT ? `<div class="acc-methods" id="acc-methods">${accMethodsHtml()}</div>` : ''}
     ${window.NOTES_DELETE_ACCOUNT && A.delAsk ? `<div class="del-account">
       <p><b>Удалить аккаунт и все данные?</b> Заметки, разделы, картинки и прогресс тренировок будут удалены без возможности восстановления. Если они ещё нужны — сначала сохрани резервную копию.</p>
       <label class="lbl" for="del-confirm">Для подтверждения напиши: удалить</label>
@@ -2056,9 +2069,56 @@ function wireDataPanel() {
   $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
   $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
 }
+/* способы входа (публичная версия): Яндекс ID, VK ID, почта и пароль — в один аккаунт */
+function accMethodsHtml() {
+  const I = S.accInfo, M = S.accMethods || {};
+  if (!I) return `<p class="hint">${S.accInfoErr ? 'Не получилось загрузить способы входа: ' + esc(S.accInfoErr) : 'Загружаю способы входа…'}</p>`;
+  const rows = I.methods.filter(m => m.available || m.linked).map(m => {
+    let right;
+    if (m.kind === 'password') {
+      if (m.linked) right = `<span class="ok">✓ ${esc(I.email)}</span>` + (!I.verified && I.email ? ` <span class="warn">· почта не подтверждена</span>${I.mail ? ` <button class="btn small" type="button" id="acc-resend">Прислать письмо</button>` : ''}` : '');
+      else right = M.pass ? '' : `<button class="btn small" type="button" id="acc-setpass">${I.email ? 'Задать пароль' : 'Задать почту и пароль'}</button>`;
+    } else right = m.linked ? '<span class="ok">✓ привязан</span>' : `<button class="btn small" type="button" data-link="${m.kind}">Привязать</button>`;
+    return `<li><span class="nm">${esc(m.name)}</span>${right}</li>`;
+  }).join('');
+  const passForm = M.pass ? `<form class="acc-pass" id="acc-pass-form">
+      ${I.email ? `<p class="hint">Почта для входа: ${esc(I.email)}</p>` : `<input id="acc-email" type="email" autocomplete="email" placeholder="Почта" required>`}
+      <input id="acc-pass" type="password" autocomplete="new-password" placeholder="Пароль (от 8 символов)" minlength="8" required>
+      <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" id="acc-pass-no">Отмена</button></div></form>` : '';
+  return `<h4>Способы входа</h4><ul class="methods">${rows}</ul>${passForm}
+    <p class="hint">Привязанные способы ведут в этот аккаунт. Войти непривязанным — получится новый, отдельный аккаунт.</p>
+    ${M.msg ? `<p class="hint acc-msg ${M.err ? 'err' : ''}">${esc(M.msg)}</p>` : ''}`;
+}
+function loadAccInfo(force) {
+  if (!window.NOTES_ACCOUNT || (S.accInfo && !force)) return;
+  window.NOTES_ACCOUNT().then(i => { S.accInfo = i; S.accInfoErr = null; }, e => { S.accInfoErr = e?.message || String(e); })
+    .then(() => { const box = $('#acc-methods'); if (box) { box.innerHTML = accMethodsHtml(); wireAccMethods(); } });
+}
+function wireAccMethods() {
+  const box = $('#acc-methods'); if (!box) return;
+  const M = S.accMethods = S.accMethods || {};
+  const redraw = () => { box.innerHTML = accMethodsHtml(); wireAccMethods(); };
+  const say = (msg, err) => { M.msg = msg; M.err = !!err; redraw(); };
+  box.querySelectorAll('[data-link]').forEach(b => b.onclick = () => {
+    b.disabled = true;
+    window.NOTES_LINK(b.dataset.link).then(() => { M.msg = ''; S.accInfo = null; loadAccInfo(true); say('Готово: способ входа привязан.'); }, e => say(e.message, true));
+  });
+  $('#acc-setpass') && ($('#acc-setpass').onclick = () => { M.pass = true; M.msg = ''; redraw(); ($('#acc-email') || $('#acc-pass')).focus(); });
+  $('#acc-pass-no') && ($('#acc-pass-no').onclick = () => { M.pass = false; redraw(); });
+  $('#acc-pass-form') && ($('#acc-pass-form').onsubmit = ev => {
+    ev.preventDefault();
+    window.NOTES_SET_PASSWORD($('#acc-email')?.value.trim() || '', $('#acc-pass').value)
+      .then(() => { M.pass = false; S.accInfo = null; loadAccInfo(true); say('Пароль задан — теперь можно входить и по почте.'); }, e => say(e.message, true));
+  });
+  $('#acc-resend') && ($('#acc-resend').onclick = () => {
+    window.NOTES_RESEND_VERIFY().then(() => say('Письмо отправлено — открой ссылку из него. Не видно — загляни в «Спам».'), e => say(e.message, true));
+  });
+}
 function wireAccountPanel() {
   const p = $('#acc-panel'); if (!p) return;
-  p.ontoggle = () => { S.accOpen = p.open; };
+  p.ontoggle = () => { S.accOpen = p.open; if (p.open) loadAccInfo(); };
+  if (p.open) loadAccInfo();
+  wireAccMethods();
   $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
   $('#del-ask') && ($('#del-ask').onclick = () => { S.accPanel = { delAsk: true }; renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
   $('#del-no') && ($('#del-no').onclick = () => { S.accPanel = {}; renderProg(); });
