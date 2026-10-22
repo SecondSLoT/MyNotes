@@ -92,13 +92,15 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .sec .due{width:6px;height:6px;border-radius:50%;background:var(--kt);flex:none}
 .sec .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sec.tree{padding-left:calc(4px + var(--d,0) * 16px)}
-.sec .caret{flex:none;width:16px;height:16px;display:grid;place-items:center;border-radius:4px;color:var(--faint);font-size:10px;transition:transform .15s}
+.sec .caret{flex:none;width:18px;height:18px;display:grid;place-items:center;border-radius:4px;color:var(--faint);font-size:12px;transition:transform .15s}
 .sec .caret.open{transform:rotate(90deg)}
 .sec .caret:hover{background:var(--line);color:var(--ink)}
 .sec .caret.none{visibility:hidden}
 .sec .trn{flex:none;font-size:11px;color:var(--accent);opacity:.85}
 .chip.chip-up{padding-inline:9px}
-.sec.virt .ico{flex:none;width:16px;text-align:center;color:var(--faint);font-size:12px}
+.sec.virt .ico{flex:none;width:18px;height:18px;display:grid;place-items:center;color:var(--faint)}
+.sec.virt .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sec.virt[aria-current="true"] .ico{color:var(--accent)}
 .sec.drop-before{box-shadow:inset 0 3px 0 -1px var(--accent);border-radius:0}
 .sec.drop-after{box-shadow:inset 0 -3px 0 -1px var(--accent);border-radius:0}
 .sec.drop-target,.rail h4.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
@@ -502,12 +504,14 @@ body.sheet-open{overflow:hidden}
 .help-head h2{margin:0;font:600 20px/1.2 var(--f-display)}
 .help-head .spacer{flex:1}
 .help-head .btn{flex:none;white-space:nowrap}
+#help-close svg{display:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 @media (max-width:760px){
   .help-head{flex-wrap:wrap;padding:16px 16px 8px;row-gap:10px}
   .help-head h2{flex:1 1 calc(100% - 56px);min-width:0}
   .help-head .spacer{display:none}
-  .help-head #help-close{order:2;width:40px;height:40px;padding:0;font-size:0;display:grid;place-items:center}
-  .help-head #help-close::before{content:'✕';font-size:17px}
+  .help-head #help-close{order:2;width:40px;height:40px;padding:0;display:grid;place-items:center}
+  .help-head #help-close svg{display:block}
+  .help-head #help-close .txt{display:none}
   .help-head #help-feedback{order:3}
 }
 .fb-sheet{max-width:520px;padding:18px 22px 20px;gap:12px;margin-top:8vh}
@@ -556,7 +560,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   body.secs-open .rail .sheet-head{display:flex}
   body.secs-open .rail .sec{padding-block:10px;font-size:15px}
   body.secs-open .rail .sec.tree{padding-left:calc(6px + var(--d,0) * 18px)}
-  body.secs-open .rail .sec .caret{width:28px;height:28px;margin:-6px -4px -6px -6px;font-size:11px}
+  body.secs-open .rail .sec .caret{width:28px;height:28px;margin:-6px -4px -6px -6px;font-size:13px}
   body.secs-open .rail .trash-row{margin-top:10px}
 }
 @keyframes sheet-up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
@@ -565,6 +569,8 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .rail .sheet-head::before{content:'';position:absolute;top:6px;left:50%;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--line-strong)}
 .rail .sheet-head b{font:600 18px var(--f-display);margin-right:auto}
 .rail .sheet-head .btn{padding:6px 12px}
+.rail .sheet-head #secs-close{width:36px;height:34px;padding:0;display:grid;place-items:center}
+.rail .sheet-head #secs-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .acc-methods{margin-top:14px}
 .acc-methods h4{margin:0 0 6px;font:600 14px var(--f-body)}
 .acc-methods .methods{list-style:none;margin:0;padding:0}
@@ -653,7 +659,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 <div class="edit-overlay" id="edit-overlay" hidden><div class="edit-sheet"><div class="doc"></div></div></div>
 <div class="help-overlay" id="help" hidden>
   <div class="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title">
-    <div class="help-head"><h2 id="help-title">Как всё устроено</h2><span class="spacer"></span><button class="btn" id="help-feedback" type="button" hidden>Написать отзыв</button><button class="btn" id="help-close" type="button">Закрыть</button></div>
+    <div class="help-head"><h2 id="help-title">Как всё устроено</h2><span class="spacer"></span><button class="btn" id="help-feedback" type="button" hidden>Написать отзыв</button><button class="btn" id="help-close" type="button" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="txt">Закрыть</span></button></div>
     <nav class="help-toc" aria-label="Разделы справки">
       <a href="#h-notes">Заметки</a><a href="#h-search">Поиск и теги</a><a href="#h-edit">Редактор</a><a href="#h-train">Тренировка</a><a href="#h-prog">Прогресс и настройки</a><a href="#h-keys">Клавиши</a>
     </nav>
@@ -1319,13 +1325,20 @@ const collapsed = new Set(store.get('collapsed', []));
 function toggleFolder(id, open) { if (open ?? collapsed.has(id)) collapsed.delete(id); else collapsed.add(id); store.set('collapsed', [...collapsed]); renderRail(); }
 function revealFolder(id) { let ch = false; for (const a of ancestors(id)) if (collapsed.delete(a)) ch = true; if (ch) store.set('collapsed', [...collapsed]); }
 let addingSection = false, renamingSection = null;
+// значки «Все заметки», «Избранное», «Недавние», «Корзина» — в стиле иконок шапки
+const VICO = {
+  all: '<svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
+  fav: '<svg viewBox="0 0 24 24"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.1L12 16.3l-4.6 2.4.9-5.1-3.8-3.6 5.2-.8z"/></svg>',
+  recent: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5M10 11v5.5M14 11v5.5"/></svg>',
+};
 function renderRail() {
   const { c, d } = sectionCounts();
   const favN = [...S.notes.values()].filter(n => n.pinned).length;
   const virt = (id, ico, n) => `<button class="sec virt" data-sec="${id}" aria-current="${S.section === id}"><span class="ico" aria-hidden="true">${ico}</span><span class="name">${VIRTUAL[id]}</span>${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
   const ed = !!(S.secSheet && S.secSheet.edit && S.canWrite);
-  const rows = [`<div class="sheet-head"><b>Разделы</b>${S.canWrite ? `<button class="btn ${ed ? 'primary' : ''}" type="button" id="secs-edit">${ed ? 'Готово' : 'Изменить'}</button>` : ''}<button class="btn" type="button" id="secs-close" aria-label="Закрыть">✕</button></div>`,
-    virt('all', '≡', S.notes.size), virt('fav', '★', favN), virt('recent', '◷', null), '<h4 data-drop-root="1" title="Перетащи сюда раздел, чтобы вынести его на верхний уровень">Разделы</h4>'];
+  const rows = [`<div class="sheet-head"><b>Разделы</b>${S.canWrite ? `<button class="btn ${ed ? 'primary' : ''}" type="button" id="secs-edit">${ed ? 'Готово' : 'Изменить'}</button>` : ''}<button class="btn" type="button" id="secs-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`,
+    virt('all', VICO.all, S.notes.size), virt('fav', VICO.fav, favN), virt('recent', VICO.recent, null), '<h4 data-drop-root="1" title="Перетащи сюда раздел, чтобы вынести его на верхний уровень">Разделы</h4>'];
   const hiddenUnder = new Set();
   for (const { s, depth } of tree().list) {
     const p = parentOf(s.id);
@@ -1346,7 +1359,7 @@ function renderRail() {
   rows.push(addingSection
     ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="Название раздела" aria-label="Название нового раздела"><button class="btn">OK</button></form>`
     : `<button class="ghost" id="add-sec" ${S.canWrite ? '' : 'hidden'}>+ Раздел</button>`);
-  rows.push(`<div class="trash-row">${virt('trash', '🗑', S.trash.size || null)}</div>`);
+  rows.push(`<div class="trash-row">${virt('trash', VICO.trash, S.trash.size || null)}</div>`);
   $('#rail').innerHTML = rows.join('');
   // phone: drill-down — the current level and its children
   const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
