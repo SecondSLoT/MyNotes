@@ -212,6 +212,11 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
+.meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.meter.warn .mb i{background:var(--hard)}.meter.warn .mv{color:var(--hard)}
 .sync-badge{font-size:12px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--hard-soft);color:var(--hard);white-space:nowrap;align-self:center}
 .item .when{margin-left:auto;font-size:12px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
 .item .snip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
@@ -664,6 +669,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
       <div class="chips-row" id="chips"></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
+      <div class="backup-bar" id="plan-bar" role="status" hidden></div>
       <div class="backup-bar" id="install-bar" role="status" hidden></div>
       <div class="tagbar" id="tagbar" hidden></div>
       <div class="scopebar" id="scopebar" hidden></div>
@@ -1018,6 +1024,7 @@ async function trashNotes(ids, undoable = true) {
   if (undoable) toast(msg, { label: 'Вернуть', fn: () => restoreNotes(done) }); else toast(msg);
 }
 async function restoreNotes(ids) {
+  if (planBlocks('notes', ids.filter(id => S.trash.has(id)).length)) return;
   const done = [];
   for (const id of ids) {
     const n = S.trash.get(id); if (!n) continue;
@@ -1259,14 +1266,16 @@ function insertUpload(file) {
   const job = (async () => {
     try {
       const blob = await compressImage(file);
+      if (planBlocks('bytes', blob.size)) throw new Error('не хватает места под картинки');
       let path;
-      if (window.NOTES_UPLOAD) path = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4));
+      if (window.NOTES_UPLOAD) { path = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4)); if (S.plan?.usage) S.plan.usage.bytes += blob.size; }
       else { path = newImgPath(blob); await ghPut(path, blob, `Add ${path} (MyNotes)`); }
       localImages[path] = localImages[key];
       replaceInEditor(key, path);
       toast('Картинка загружена');
     } catch (err) {
       replaceInEditor(`![](${key})`, ''); replaceInEditor(key, '');
+      if (err?.code === 'limit') showPlanDialog('bytes', err.message); else
       toast('Картинка не загрузилась: ' + (err?.message || err));
     }
   })();
@@ -1340,7 +1349,7 @@ function setMode(m) {
   for (const b of document.querySelectorAll('.modes button[data-mode]')) b.setAttribute('aria-pressed', String(b.dataset.mode === m));
   $('#lib').hidden = m !== 'lib'; $('#train').hidden = m !== 'train'; $('#prog').hidden = m !== 'prog';
   $('#search-box').style.visibility = m === 'lib' ? 'visible' : 'hidden';
-  if (m === 'train') renderTrain(); if (m === 'prog') renderProg(); if (m === 'lib') renderLib();
+  if (m === 'train') renderTrain(); if (m === 'prog') { renderProg(); loadPlan(); } if (m === 'lib') renderLib();
   sessionClass(); histSync();
 }
 document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
@@ -1476,7 +1485,7 @@ $('#rail').addEventListener('click', e => {
   const b = e.target.closest('[data-sec]');
   if (b && S.secSheet?.edit && !isVirtual(b.dataset.sec)) { openSecMenu(b.dataset.sec, b); return; }
   if (b) { if (b.dataset.sec === S.section && hasKids(b.dataset.sec) && collapsed.has(b.dataset.sec)) toggleFolder(b.dataset.sec, true); selectSection(b.dataset.sec); if (S.secSheet) closeSecSheet(); return; }
-  if (e.target.closest('#add-sec')) { addingSection = true; renderRail(); }
+  if (e.target.closest('#add-sec')) { if (planBlocks('sections')) return; addingSection = true; renderRail(); }
 });
 /* ---------- drag & drop: notes and folders onto the rail (desktop) ---------- */
 let dragFolder = null;
@@ -2033,6 +2042,21 @@ function importConfirmHtml(d, X) {
       + (nImg ? ` Картинок, которых здесь ещё нет: ${nImg} — загрузятся при импорте.` + (!uploadReady() ? ` <b>Сейчас не загрузятся</b> — нужна загрузка картинок (⚙ → «Картинки»), без неё в заметках останутся прежние ссылки.` : '') : '');
   const conflicts = X.notes.length + X.secs.length + X.srs.length;
   const box = 'margin-top:12px;background:var(--accent-soft);color:var(--ink);display:block';
+  return planImportHtml(d) + importConfirmBody(d, X, head, conflicts, box);
+}
+// импорт больше лимита Free: предложить Pro (14 дней бесплатно) — или импортировать только самые свежие, сколько влезает
+const importFresh = d => d.notes.filter(n => !S.notes.has(n.id) && !S.trash.has(n.id) && !n.deleted);
+const importRoom = () => planOn() && !S.plan.pro ? Math.max(0, planLimit('notes') - planUsed('notes')) : Infinity;
+function planImportHtml(d) {
+  const fresh = importFresh(d).length, room = importRoom();
+  if (fresh <= room) return '';
+  const P = S.plan;
+  return `<div class="confirm plan-imp" style="margin-top:12px;display:block"><p style="margin:0 0 8px"><b>В бесплатной версии — до ${P.limits.notes} заметок.</b>
+    Новых в файле: ${fresh}, места осталось: ${room}. С Pro импортируется всё.</p>
+    ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="imp-trial">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}
+    <p class="hint" style="margin:8px 0 0">${room ? `Или импортируй только ${room} самых свежих (по дате изменения) — кнопкой ниже, остальное подождёт Pro.` : 'Места для новых заметок нет: удали ненужные или оформи Pro.'}</p></div>`;
+}
+function importConfirmBody(d, X, head, conflicts, box) {
   if (!conflicts) {
     return `<div class="confirm" style="${box}"><p style="margin:0 0 10px">${head} Новых заметок: ${X.fresh}${X.same.length ? `, уже совпадают с сайтом: ${X.same.length}` : ''}. Ничего на сайте не перезапишется.</p>
       <div class="bar"><button class="btn primary" id="data-import-go" data-mode="replace">Импортировать</button><button class="btn" id="data-import-cancel">Отмена</button></div></div>`;
@@ -2419,9 +2443,20 @@ function wireDataPanel() {
     const keep = mode === 'keep';
     const same = new Set(X.same);
     // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
-    const secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
-    const notes = d.notes.filter(n => !(S.notes.has(n.id) || S.trash.has(n.id)) || (!keep && !same.has(n.id)));
-    const srs = Object.entries(d.srs || {}).filter(([id, v]) => !S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v)));
+    let secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
+    let notes = d.notes.filter(n => !(S.notes.has(n.id) || S.trash.has(n.id)) || (!keep && !same.has(n.id)));
+    // Free и новых больше, чем влезает: только самые свежие по дате изменения; разделы — те, где они лежат (с родителями), сколько бы ни было
+    let skipped = 0; const room = importRoom();
+    { const fresh = importFresh({ notes });
+      if (fresh.length > room) {
+        const keepIds = new Set(fresh.slice().sort((a, b) => (b.updated || b.created || '').localeCompare(a.updated || a.created || '')).slice(0, room).map(n => n.id));
+        skipped = fresh.length - room;
+        notes = notes.filter(n => !fresh.includes(n) || keepIds.has(n.id));
+        const need = new Set();
+        for (const n of notes) { let id = n.section; while (id && !need.has(id)) { need.add(id); id = (d.sections.find(x => x.id === id) || S.sections.get(id))?.parent; } }
+        secs = secs.filter(sc => S.sections.has(sc.id) || need.has(sc.id));
+      } }
+    const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(id) || S.trash.has(id) || notes.some(n => n.id === id)) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
     const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
     S.dataPanel = { status: 'Импортирую…' }; renderProg();
     // картинки из Evernote: загрузить туда же, куда обычные картинки заметок, и подставить ссылки
@@ -2452,7 +2487,8 @@ function wireDataPanel() {
     try {
       // по 50 записей за раз: хранилище может отправить их одной пачкой
       const inChunks = async (items, fn) => { for (let i = 0; i < items.length; i += 50) await Promise.all(items.slice(i, i + 50).map(x => fn(x).then(tick))); };
-      await inChunks(secs, sc => { const ref = S.db.collection('sections').doc(sc.id); return S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(strip(sc)); });
+      // imported: true — лимит разделов Free при импорте не действует (решение 23.10: «разделов не жалко»)
+      await inChunks(secs, sc => { const ref = S.db.collection('sections').doc(sc.id); return S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(Object.assign(strip(sc), { imported: true })); });
       await inChunks(notes, n => S.db.collection('notes').doc(n.id).set(strip(n)));
       if (S.uid) {
         await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
@@ -2467,10 +2503,12 @@ function wireDataPanel() {
       if (srs.length) parts.push(`прогресс по ${srs.length} карточкам`);
       if (upOk) parts.push(`картинок загружено: ${upOk}`);
       if (upFail) parts.push(`картинок не загрузилось: ${upFail}${fromEn ? '' : ' (в заметках остались прежние ссылки на них)'}`);
+      if (skipped) parts.push(`ещё ${skipped} ${plural(skipped, 'заметка', 'заметки', 'заметок')} — в Pro (в бесплатной версии до ${planLimit('notes')})`);
       S.dataPanel = { status: 'Готово: ' + parts.join(', ') + '.' };
     } catch (err) { S.dataPanel = { status: 'Импорт прервался: ' + (err?.message || err) + '. Можно выбрать файл и запустить ещё раз.' }; }
     renderProg();
   };
+  $('#imp-trial') && ($('#imp-trial').onclick = () => startTrial($('#imp-trial'), () => renderProg()));
   $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
   $('#data-import-keep') && ($('#data-import-keep').onclick = () => runImport('keep'));
 }
@@ -2991,6 +3029,7 @@ menuEl.addEventListener('submit', async e => {
   const name = ($('#sec-name')?.value || '').trim(); if (!name) return;
   closeMenu();
   if (M.mode === 'new' || M.mode === 'sub') {
+    if (planBlocks('sections')) return;
     const id = 's' + Date.now().toString(36);
     const parent = M.mode === 'sub' ? M.id : null;
     const order = Math.max(0, ...kids(parent).map(s => s.order ?? 0)) + 1;
@@ -3533,6 +3572,7 @@ function editHere(id, anchor) { if (!S.canWrite || !S.notes.has(id)) return; sta
 /* ---------- editor ---------- */
 document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
+  if (planBlocks('notes')) return;
   const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : lastFolder();
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
   const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
@@ -4345,6 +4385,95 @@ function visKeydown(e, vis) {
   if (act) { e.preventDefault(); visAction(act, vis); }
 }
 
+/* ---------- тарифы Free / Pro (только ReteNote и только когда на сервере включён plans_enabled) ---------- */
+const PRO_PRICE = '139\u00a0₽ в\u00a0месяц или 1\u00a0190\u00a0₽ в\u00a0год';
+const planOn = () => !!(S.plan && S.plan.enabled);
+const fmtBytes = b => b >= 1073741824 ? `${+(b / 1073741824).toFixed(1)} ГБ`.replace('.', ',') : `${Math.round(b / 1048576)} МБ`;
+const planLimit = kind => !planOn() ? Infinity : (S.plan.limits[kind] ?? Infinity);
+const planUsed = kind => kind === 'notes' ? S.notes.size : kind === 'sections' ? S.sections.size : (S.plan?.usage?.bytes || 0);
+async function loadPlan() {
+  if (!window.NOTES_PLAN) return;
+  try { S.plan = await window.NOTES_PLAN(); } catch { return; }
+  renderPlanBar(); if (S.mode === 'prog') renderProg();
+}
+// уткнулись в лимит Free: true — действие делать не надо (показано окно про Pro)
+function planBlocks(kind, add = 1) {
+  if (!planOn() || planUsed(kind) + add <= planLimit(kind)) {
+    // предупредить заранее: осталось 10% (один раз за открытие)
+    const lim = planLimit(kind), left = lim - planUsed(kind) - add;
+    if (planOn() && kind === 'notes' && isFinite(lim) && left < lim * 0.1 && !S.planWarned) { S.planWarned = true; setTimeout(() => toast(`В бесплатной версии осталось заметок: ${Math.max(0, left)} из ${lim}`), 1500); }
+    return false;
+  }
+  showPlanDialog(kind); return true;
+}
+const PLAN_WHAT = { notes: n => `до ${n} заметок`, sections: n => `до ${n} разделов`, bytes: n => `${fmtBytes(n)} под картинки` };
+function showPlanDialog(kind, msg) {
+  let ov = $('#plan-ov');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed;
+  const head = pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
+    <h2 id="plan-title">${esc(head)}</h2>
+    ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
+    ${pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки и все новые возможности. ${PRO_PRICE}.</p>`}
+    <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
+      : `<button class="btn primary" type="button" id="plan-no">Понятно</button>`}</div>
+    ${!pro && !canTrial && planOn() ? '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</p>' : ''}
+    <p class="hint" id="plan-status" aria-live="polite"></p>
+  </div>`;
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; };
+  $('#plan-no').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  $('#plan-trial') && ($('#plan-trial').onclick = () => startTrial($('#plan-trial'), close));
+  ($('#plan-trial') || $('#plan-no')).focus();
+}
+async function startTrial(btn, done) {
+  btn.disabled = true;
+  try { S.plan = await window.NOTES_TRIAL(); done?.(); toast(`Pro включён на ${S.plan.trialDays || 14} дней — без ограничений`); renderPlanBar(); if (S.mode === 'prog') renderProg(); }
+  catch (e) { btn.disabled = false; const st = $('#plan-status'); if (st) st.textContent = 'Не получилось: ' + (e?.message || e); else toast('Не получилось: ' + (e?.message || e)); }
+}
+const planDate = s => { const d = new Date(String(s).replace(' ', 'T')); return isNaN(d) ? '' : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }); };
+function planPanelHtml() {
+  if (!planOn()) return '';
+  const P = S.plan, pro = P.pro;
+  const meter = (label, used, lim, fmt = x => x) => {
+    const pct = isFinite(lim) && lim ? Math.min(100, Math.round(used * 100 / lim)) : 0;
+    return `<div class="meter ${pct >= 90 ? 'warn' : ''}"><span class="ml">${label}</span><span class="mv">${fmt(used)}${isFinite(lim) ? ` из ${fmt(lim)}` : ' · без ограничений'}</span>
+      ${isFinite(lim) ? `<span class="mb"><i style="width:${pct}%"></i></span>` : ''}</div>`;
+  };
+  const sub = pro ? (P.forever ? 'Pro навсегда' : `Pro до ${planDate(P.until)}`) : 'бесплатный';
+  return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
+    <summary>Тариф <span>· ${esc(sub)}</span></summary>
+    <div class="meters">${meter('Заметки', planUsed('notes'), planLimit('notes'))}${meter('Разделы', planUsed('sections'), planLimit('sections'))}${meter('Картинки', planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
+    ${pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>`)
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки и все новые возможности. ${PRO_PRICE}.</p>
+      <div class="bar">${!P.trialUsed ? `<button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button>` : '<span class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</span>'}</div>`}
+  </details>`;
+}
+function wirePlanPanel() {
+  const p = $('#plan-panel'); if (!p) return;
+  p.ontoggle = () => { S.planOpen = p.open; };
+  $('#plan-trial2') && ($('#plan-trial2').onclick = () => startTrial($('#plan-trial2')));
+}
+// пробный Pro заканчивается через 2 дня — одно напоминание (черновик текста, согласовать с Александром)
+function renderPlanBar() {
+  const bar = $('#plan-bar'); if (!bar) return;
+  const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.trialUsed && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
+  const key = 'planRemind.' + (S.uid || '');
+  if (!end || end - Date.now() > 2 * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.innerHTML = `<p><b>Пробный Pro закончится ${esc(planDate(P.until))}.</b> Потом вернутся ограничения бесплатной версии: до ${P.free.notes} заметок,
+    ${P.free.sections} разделов и ${fmtBytes(P.free.bytes)} под картинки. Всё, что уже есть, останется — просто новое сверх лимита создать не получится.</p>
+    <div class="bar"><button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`;
+  bar.hidden = false;
+  $('#plan-bar-ok').onclick = () => { store.set(key, P.until); renderPlanBar(); };
+}
+window.addEventListener('notes-sync', e => {
+  const d = e.detail || {};
+  if (d.held) toast(`Не сохранено на сервере: ${d.held} — ${d.limit || 'лимит бесплатной версии'} Эти правки остаются на этом устройстве.`);
+});
 /* правки без интернета (ReteNote): shim сообщает, есть ли связь и сколько правок ждут отправки */
 let syncWasOffline = false;
 window.addEventListener('notes-sync', e => {
@@ -4363,6 +4492,7 @@ async function write(fn, okMsg) {
   if (!S.db) { toast('Хранилище недоступно, изменения не сохранены'); return false; }
   try { await fn(); if (okMsg) toast(okMsg); return true; }
   catch (e) {
+    if (e && e.code === 'limit') { showPlanDialog((e.limit || '').replace('limit_', ''), e.message); return false; }
     if (e && e.code === 'invalid_argument') { S.canWrite = false; toast('Нет прав на изменение: открыт режим только для чтения'); renderLib(); }
     else if (e && e.code === 'quota_exceeded') toast('Хранилище заполнено: удали лишние заметки');
     else toast('Не получилось сохранить. Попробуй ещё раз.');
@@ -4610,11 +4740,11 @@ function renderProg() {
     </section>
     ${tagsPanelHtml()}
     ${window.NOTES_FEEDBACK ? `<section class="panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div></section>` : ''}
-    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? '' : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
+    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
   root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
-  if (window.NOTES_STANDALONE) { wireDataPanel(); wireAccountPanel(); wireGhPanel(); $('#install-go2') && ($('#install-go2').onclick = doInstall); }
+  if (window.NOTES_STANDALONE) { wirePlanPanel(); wireDataPanel(); wireAccountPanel(); wireGhPanel(); $('#install-go2') && ($('#install-go2').onclick = doInstall); }
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
@@ -4746,6 +4876,7 @@ async function boot() {
   try { S.uid = user ? await user.id() : null; } catch { S.uid = null; }
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
+  loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   db.collection('sections').onSnapshot(snap => {
     S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort, subSort: v.subSort }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
