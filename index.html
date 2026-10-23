@@ -768,6 +768,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
         <table class="keys-table"><tbody>
           <tr><td><kbd>/</kbd></td><td>перейти в поиск</td></tr>
           <tr><td><kbd>E</kbd></td><td>редактировать открытую заметку с текущего места</td></tr>
+          <tr><td><kbd>Delete</kbd></td><td>открытую заметку — в корзину (можно вернуть); на разделе в списке слева — удалить раздел (переспросим)</td></tr>
           <tr><td><kbd>MOD</kbd>+<kbd>S</kbd> · <kbd>Esc</kbd></td><td>в редакторе: сохранить · сохранить и закрыть</td></tr>
           <tr><td><kbd>?</kbd></td><td>открыть эту справку</td></tr>
           <tr><td><kbd>Пробел</kbd></td><td>показать ответ в тренировке</td></tr>
@@ -4452,6 +4453,14 @@ document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if (S.mode === 'lib' && !typing && !S.editing && !S.article && !S.menu && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.noteId && S.notes.has(S.noteId) && $('#md')) { e.preventDefault(); editHere(S.noteId); }
   if (S.mode === 'lib' && e.key === '/' && !typing) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  // Delete (на Mac — и Backspace): раздел в фокусе — спросить об удалении; отмеченные заметки — как кнопка «Удалить»;
+  // иначе открытая заметка — в корзину (с «Вернуть» в подсказке). В корзине и во время правки — ничего
+  if (S.mode === 'lib' && !typing && !S.editing && !S.menu && S.canWrite && (e.key === 'Delete' || e.key === 'Backspace') && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+    const secEl = document.activeElement?.closest?.('#rail .sec[data-sec]');
+    if (secEl && !isVirtual(secEl.dataset.sec) && S.sections.has(secEl.dataset.sec)) { e.preventDefault(); openSecMenu(secEl.dataset.sec, secEl, 'confirmDel'); }
+    else if (S.select) { const b = $('#bulkbar [data-bulk="del"]'); if (b && !b.disabled) { e.preventDefault(); b.click(); } }
+    else if (S.section !== 'trash' && S.noteId && S.notes.has(S.noteId)) { e.preventDefault(); trashNotes([S.noteId]); }
+  }
   if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
   if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.canWrite) { e.preventDefault(); startTrainEdit(); return; }
   if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing) {
