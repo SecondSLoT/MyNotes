@@ -1921,12 +1921,12 @@ function dataPanelHtml() {
   const D = S.dataPanel || {};
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
     <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
-    <p class="sub" style="margin-top:8px">Резервная копия — один файл со всеми разделами, заметками, тегами и прогрессом тренировок.
+    <p class="sub" style="margin-top:8px">Резервная копия — один файл (zip-архив) со всеми разделами, заметками, картинками, тегами и прогрессом тренировок.
       Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим.</p>
     <div class="bar">
       <button class="btn" id="data-export">Сохранить резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Загрузить резервную копию…</label>
-      <input type="file" id="data-file" accept=".json,application/json" hidden>
+      <input type="file" id="data-file" accept=".zip,.json,application/zip,application/json" hidden>
     </div>
     <h4 class="sub-h">Перенос из Evernote</h4>
     <p class="sub">В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → формат ENEX. Каждый блокнот — отдельный файл .enex;
@@ -1943,7 +1943,7 @@ function dataPanelHtml() {
       return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя резервная копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}.` : 'Резервных копий на этом устройстве ещё не было.'}</p>
     <div class="opt-row" style="margin-top:8px"><label for="backup-every">Напоминать о копии</label>
       <select id="backup-every" style="border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">${[['week', 'раз в неделю'], ['month', 'раз в месяц'], ['off', 'не напоминать']].map(([v, l]) => `<option value="${v}" ${c.every === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-    <p class="hint" style="margin-top:6px">Картинки в копию не входят — только ссылки на них.</p>`; })()}
+`; })()}
     ${D.pending ? importConfirmHtml(D.pending, D.diff) : ''}
     ${D.status ? `<p class="hint" style="margin-top:10px">${esc(D.status)}</p>` : ''}
   </details>`;
@@ -1991,7 +1991,8 @@ function importConfirmHtml(d, X) {
     ? `Из Evernote: ${d.notes.length} ${plural(d.notes.length, 'заметка', 'заметки', 'заметок')}, ${d.sections.length} ${plural(d.sections.length, 'раздел', 'раздела', 'разделов')}${nImg ? `, ${nImg} ${plural(nImg, 'картинка', 'картинки', 'картинок')}` : ''}.`
       + (nImg && !uploadReady() ? ` <b>Картинки не перенесутся</b> — для них нужна загрузка картинок (⚙ → «Картинки»). Можно импортировать сейчас и повторить позже.` : '')
       + (d.warn?.length ? ` Не прочитались: ${esc(d.warn.join(', '))}.` : '')
-    : `В файле: ${d.sections.length} разделов, ${d.notes.length} заметок${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}.`;
+    : `В файле: ${d.sections.length} ${plural(d.sections.length, 'раздел', 'раздела', 'разделов')}, ${d.notes.length} ${plural(d.notes.length, 'заметка', 'заметки', 'заметок')}${nSrs ? `, прогресс по ${nSrs} карточкам` : ''}${d.imgTotal ? `, картинок: ${d.imgTotal}` : ''}.`
+      + (nImg ? ` Картинок, которых здесь ещё нет: ${nImg} — загрузятся при импорте.` + (!uploadReady() ? ` <b>Сейчас не загрузятся</b> — нужна загрузка картинок (⚙ → «Картинки»), без неё в заметках останутся прежние ссылки.` : '') : '');
   const conflicts = X.notes.length + X.secs.length + X.srs.length;
   const box = 'margin-top:12px;background:var(--accent-soft);color:var(--ink);display:block';
   if (!conflicts) {
@@ -2028,18 +2029,104 @@ function importConfirmHtml(d, X) {
 const BACKUP_EVERY = { week: 7, month: 30, off: 0 };
 const backupConf = () => Object.assign({ last: '', snooze: '', every: 'month' }, store.get('backup.' + (S.uid || ''), {}));
 const backupSet = patch => store.set('backup.' + (S.uid || ''), Object.assign(backupConf(), patch));
-function saveBackup() {
-  const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
-  const data = { format: 'android-notes', version: 1, exportedAt: new Date().toISOString(),
-    sections: [...S.sections.values()], notes: [...S.notes.values(), ...S.trash.values()], srs, settings: S.settings };
-  const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `${window.NOTES_FLAVOR === 'public' ? 'retenote' : 'my-notes'}-${today()}.json`;
-  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  backupSet({ last: today(), snooze: '' });
-  const ev = backupConf().every;
-  toast('Копия сохранена в «Загрузки».' + (ev !== 'off' ? ` Следующее напоминание — через ${ev === 'week' ? 'неделю' : 'месяц'}.` : ''));
-  renderList(); if ($('#data-panel')) renderProg();
+/* zip без библиотек: сжатие — CompressionStream браузера (картинки и так сжаты — их кладём как есть) */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u8 => { let c = ~0; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return ~c >>> 0; };
+const pipeBytes = async (u8, tr) => new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(tr)).arrayBuffer());
+async function zipBlob(files) {   // [{ name, data: Uint8Array, deflate }]
+  const enc = new TextEncoder(), parts = [], central = [], now = new Date(); let off = 0;
+  const tm = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1), dt = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const f of files) {
+    const name = enc.encode(f.name), crc = crc32(f.data); let body = f.data, method = 0;
+    if (f.deflate && typeof CompressionStream === 'function') { try { const z = await pipeBytes(f.data, new CompressionStream('deflate-raw')); if (z.length < body.length) { body = z; method = 8; } } catch {} }
+    const h = new DataView(new ArrayBuffer(30));
+    [[0, 0x04034b50, 4], [4, 20], [6, 0x0800], [8, method], [10, tm], [12, dt], [14, crc, 4], [18, body.length, 4], [22, f.data.length, 4], [26, name.length]]
+      .forEach(([o, v, w]) => w === 4 ? h.setUint32(o, v, true) : h.setUint16(o, v, true));
+    const c = new DataView(new ArrayBuffer(46));
+    [[0, 0x02014b50, 4], [4, 20], [6, 20], [8, 0x0800], [10, method], [12, tm], [14, dt], [16, crc, 4], [20, body.length, 4], [24, f.data.length, 4], [28, name.length], [42, off, 4]]
+      .forEach(([o, v, w]) => w === 4 ? c.setUint32(o, v, true) : c.setUint16(o, v, true));
+    parts.push(h, name, body); central.push(c, name); off += 30 + name.length + body.length;
+  }
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+  e.setUint32(12, central.reduce((n, x) => n + x.byteLength, 0), true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...central, e], { type: 'application/zip' });
+}
+async function unzip(blob) {   // → Map(имя → Uint8Array); понимает и архивы, пересобранные архиватором (deflate)
+  const buf = new Uint8Array(await blob.arrayBuffer()), v = new DataView(buf.buffer), dec = new TextDecoder(), out = new Map();
+  let e = buf.length - 22; while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('это не zip-архив');
+  for (let i = 0, n = v.getUint16(e + 10, true), p = v.getUint32(e + 16, true); i < n; i++) {
+    if (v.getUint32(p, true) !== 0x02014b50) throw new Error('архив повреждён');
+    const method = v.getUint16(p + 10, true), size = v.getUint32(p + 20, true), nl = v.getUint16(p + 28, true), lo = v.getUint32(p + 42, true);
+    const name = dec.decode(buf.subarray(p + 46, p + 46 + nl)).normalize('NFC');
+    p += 46 + nl + v.getUint16(p + 30, true) + v.getUint16(p + 32, true);
+    if (name.endsWith('/') || /(^|\/)(__MACOSX|\.DS_Store)/.test(name)) continue;
+    const at = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true), raw = buf.subarray(at, at + size);
+    out.set(name, method === 0 ? raw : method === 8 ? await pipeBytes(raw, new DecompressionStream('deflate-raw')) : null);
+  }
+  return out;
+}
+/* картинки в копии: свои (загруженные через сайт) кладём в архив, внешние ссылки — нет */
+const IMG_MIME = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', svg: 'image/svg+xml', bmp: 'image/bmp' };
+const imgLinks = body => [...(body || '').matchAll(/!\[[^\]]*\]\(\s*<?([^)\s>]+)/g)].map(m => m[1]);
+const ownImg = u => window.NOTES_FLAVOR === 'public' ? /^\/api\/files\//.test(u) : /^img\//.test(u);
+async function fetchImg(u) {
+  const gh = ghConf(), tries = [u, /^img\//.test(u) && gh.repo && `https://raw.githubusercontent.com/${gh.repo}/${gh.branch}/${u}`, localImages[u]].filter(Boolean);   // локальная копия — последней: это может быть исходник до сжатия
+  for (const t of tries) { try { const r = await fetch(t); if (r.ok) return new Uint8Array(await r.arrayBuffer()); } catch {} }
+  return null;
+}
+async function saveBackup() {
+  if (S.backupBusy) return; S.backupBusy = true;
+  try {
+    const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
+    const notes = [...S.notes.values(), ...S.trash.values()];
+    const links = [...new Set(notes.flatMap(n => imgLinks(n.body)))], own = links.filter(ownImg);
+    const images = {}, files = [], used = new Set(); let k = 0, lost = 0;
+    for (const u of own) {
+      if (own.length > 3) toast(`Сохраняю картинки… ${++k} из ${own.length}`);
+      const bytes = await fetchImg(u); if (!bytes) { lost++; continue; }
+      let nm = decodeURIComponent(u.split('/').pop() || 'image').replace(/[\\/:*?"<>|]/g, '_'), i = 1;
+      while (used.has(nm)) nm = nm.replace(/(-\d+)?(\.\w+)?$/, (m, a, ext) => `-${++i}${ext || ''}`);
+      used.add(nm); images[u] = 'images/' + nm; files.push({ name: 'images/' + nm, data: bytes });
+    }
+    const data = { format: 'android-notes', version: 2, exportedAt: new Date().toISOString(),
+      sections: [...S.sections.values()], notes, srs, settings: S.settings, images };
+    files.unshift({ name: 'notes.json', data: new TextEncoder().encode(JSON.stringify(data, null, 1)), deflate: true });
+    const blob = await zipBlob(files);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `${window.NOTES_FLAVOR === 'public' ? 'retenote' : 'mynotes'}-${today()}.zip`;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    backupSet({ last: today(), snooze: '' });
+    const ev = backupConf().every;
+    toast('Копия сохранена в «Загрузки»' + (files.length > 1 ? ` (картинок: ${files.length - 1})` : '') + '.'
+      + (lost ? ` Не удалось скачать картинок: ${lost} — в копии остались только ссылки на них.` : '')
+      + (ev !== 'off' ? ` Следующее напоминание — через ${ev === 'week' ? 'неделю' : 'месяц'}.` : ''));
+    renderList(); if ($('#data-panel')) renderProg();
+  } catch (err) { toast('Копия не сохранилась: ' + (err?.message || err)); }
+  finally { S.backupBusy = false; }
+}
+// архив копии → данные для импорта: картинки, которых в этом аккаунте нет, — в d.images (загрузятся при импорте, как из Evernote)
+async function zipToBackup(file) {
+  const z = await unzip(file);
+  const jn = [...z.keys()].filter(n => /(^|\/)notes\.json$/.test(n)).sort((a, b) => a.length - b.length)[0];
+  if (!jn) throw new Error('format');
+  const dir = jn.slice(0, -'notes.json'.length), d = JSON.parse(new TextDecoder().decode(z.get(jn)));
+  if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
+  const map = d.images || {}; d.images = {}; d.imgTotal = 0;
+  const linked = new Set(d.notes.flatMap(n => imgLinks(n.body)));
+  const urls = Object.keys(map).filter(u => linked.has(u) && z.get(dir + map[u])); d.imgTotal = urls.length;
+  // своё и на месте — не трогаем: тот же аккаунт ReteNote или картинка уже лежит в репозитории MyNotes
+  const mine = window.NOTES_OWN_FILES ? await window.NOTES_OWN_FILES().catch(() => new Set()) : null;
+  const here = async u => mine ? mine.has(u) : /^img\//.test(u) && !!(await fetchImg(u));
+  const key = {};
+  for (const u of urls) {
+    if (await here(u)) continue;
+    const bytes = z.get(dir + map[u]), h = md5hex(bytes), ext = (map[u].split('.').pop() || '').toLowerCase();
+    d.images[h] = { bytes, mime: IMG_MIME[ext] || 'image/png', name: map[u].split('/').pop(), orig: u }; key[u] = h;
+  }
+  if (Object.keys(key).length) for (const n of d.notes) n.body = (n.body || '').replace(/(!\[[^\]]*\]\(\s*<?)([^)\s>]+)/g, (all, pre, u) => key[u] ? pre + 'enex:' + key[u] : all);
+  return d;
 }
 function backupDue() {
   if (!window.NOTES_STANDALONE || !S.loaded.notes || !S.canWrite) return null;
@@ -2057,7 +2144,7 @@ function renderBackupBar() {
   const due = backupDue();
   if (!due) { bar.hidden = true; bar.innerHTML = ''; return; }
   bar.innerHTML = (due.never
-    ? '<p><b>Сохрани резервную копию заметок у себя.</b> Один файл со всеми заметками, разделами и прогрессом тренировок.</p>'
+    ? '<p><b>Сохрани резервную копию заметок у себя.</b> Один файл со всеми заметками, картинками, разделами и прогрессом тренировок.</p>'
     : `<p><b>Последняя резервная копия заметок — ${due.ago} ${plural(due.ago, 'день', 'дня', 'дней')} назад.</b> Сохрани свежую, чтобы новые заметки тоже были в безопасности.</p>`) +
     '<div class="bar"><button class="btn primary" type="button" id="backup-save">Сохранить копию</button><button class="btn" type="button" id="backup-later">Позже</button></div>';
   bar.hidden = false;
@@ -2281,7 +2368,9 @@ function wireDataPanel() {
     const f = e.target.files[0]; if (!f) return;
     if ([...e.target.files].some(x => /\.enex$/i.test(x.name))) return enexImport(e.target.files, e);
     try {
-      const d = JSON.parse(await f.text());
+      let d;
+      if (/\.zip$/i.test(f.name) || /zip/.test(f.type)) { S.dataPanel = { status: 'Читаю архив…' }; renderProg(); d = await zipToBackup(f); }
+      else d = JSON.parse(await f.text());
       if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
       e.target.value = '';
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
@@ -2299,7 +2388,9 @@ function wireDataPanel() {
     const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
     S.dataPanel = { status: 'Импортирую…' }; renderProg();
     // картинки из Evernote: загрузить туда же, куда обычные картинки заметок, и подставить ссылки
+    // и картинки из архива копии, которых нет в этом аккаунте (zipToBackup)
     const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
+    const fromEn = d.source === 'evernote'; let upOk = 0, upFail = 0;
     if (need.length) {
       const url = {}; let k = 0;
       for (const h of need) {
@@ -2307,15 +2398,16 @@ function wireDataPanel() {
         if (uploadReady()) {
           S.dataPanel = { status: `Загружаю картинки… ${++k} из ${need.length}` }; renderProg();
           try {
-            const b = await compressImage(new File([m.bytes], m.name || 'image', { type: m.mime }));
+            const raw = new File([m.bytes], m.name || 'image', { type: m.mime });
+            const b = fromEn ? await compressImage(raw) : raw;   // из копии — уже сжатые, как были
             if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
-            else { url[h] = newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, импорт из Evernote)`); }
-            localImages[url[h]] = URL.createObjectURL(b);
-          } catch (err) { url[h] = null; }
-        } else url[h] = null;
+            else { url[h] = /^img\/[^/]+$/.test(m.orig || '') ? m.orig : newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, ${fromEn ? 'импорт из Evernote' : 'из резервной копии'})`); }
+            localImages[url[h]] = URL.createObjectURL(b); upOk++;
+          } catch (err) { url[h] = null; upFail++; }
+        } else { url[h] = null; upFail++; }
       }
       for (const n of notes) n.body = n.body.replace(/!\[([^\]]*)\]\(enex:([0-9a-f]{32})\)/g, (all, alt, h) => url[h] ? `![${alt}](${url[h]})`
-        : `*(картинка${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*`);
+        : fromEn ? `*(картинка${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*` : `![${alt}](${imgs[h]?.orig || ''})`);
     }
     const strip = o => { const c = { ...o }; delete c.id; return c; };
     let done = 0; const total = secs.length + notes.length + srs.length;
@@ -2336,6 +2428,8 @@ function wireDataPanel() {
       if (keep && X.notes.length) parts.push(`оставлено как на сайте: ${X.notes.length}`);
       if (secs.length) parts.push(`разделов записано: ${secs.length}`);
       if (srs.length) parts.push(`прогресс по ${srs.length} карточкам`);
+      if (upOk) parts.push(`картинок загружено: ${upOk}`);
+      if (upFail) parts.push(`картинок не загрузилось: ${upFail}${fromEn ? '' : ' (в заметках остались прежние ссылки на них)'}`);
       S.dataPanel = { status: 'Готово: ' + parts.join(', ') + '.' };
     } catch (err) { S.dataPanel = { status: 'Импорт прервался: ' + (err?.message || err) + '. Можно выбрать файл и запустить ещё раз.' }; }
     renderProg();
