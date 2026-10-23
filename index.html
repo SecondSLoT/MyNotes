@@ -586,6 +586,11 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .acc-methods .ok{color:var(--accent)}
 .acc-methods .warn{color:var(--hard,#a8641b);font-size:13px}
 .acc-methods .btn.small{padding:4px 12px;font-size:13px}
+.acc-methods .btn.small.link-like{padding:4px 6px;color:var(--muted)}
+.acc-methods .unlink-ask{display:block;text-align:left}
+.acc-methods .unlink-ask .nm{display:block}
+.acc-methods .unlink-ask .hint{display:block;margin:4px 0 8px}
+.acc-methods .unlink-ask .bar{display:flex;gap:8px;justify-content:flex-start}
 .acc-methods .acc-pass{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:8px 0}
 .acc-methods .acc-pass input{border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:8px 10px}
 .acc-methods .acc-msg{color:var(--accent)}.acc-methods .acc-msg.err{color:var(--again)}
@@ -2440,12 +2445,18 @@ function wireDataPanel() {
 function accMethodsHtml() {
   const I = S.accInfo, M = S.accMethods || {};
   if (!I) return `<p class="hint">${S.accInfoErr ? 'Не получилось загрузить способы входа: ' + esc(S.accInfoErr) : 'Загружаю способы входа…'}</p>`;
+  const nLinked = I.methods.filter(m => m.linked).length;
+  const UNLINK_WHY = { password: 'Входить по почте и паролю будет нельзя, на других устройствах придётся войти заново. Почта останется — через «Забыл пароль?» пароль можно задать снова.',
+    yandex: 'Входить через Яндекс ID в этот аккаунт будет нельзя.', vkid: 'Входить через VK ID в этот аккаунт будет нельзя.' };
   const rows = I.methods.filter(m => m.available || m.linked).map(m => {
+    if (M.unlink === m.kind) return `<li class="unlink-ask"><span class="nm">${m.kind === 'password' ? 'Отключить вход по почте и паролю?' : `Отвязать ${esc(m.name)}?`}</span><span class="hint">${UNLINK_WHY[m.kind] || ''}</span>
+      <span class="bar"><button class="btn small danger" type="button" id="unlink-yes">${m.kind === 'password' ? 'Отключить' : 'Отвязать'}</button><button class="btn small" type="button" id="unlink-no">Отмена</button></span></li>`;
     let right;
     if (m.kind === 'password') {
       if (m.linked) right = `<span class="ok">✓ ${esc(I.email)}</span>` + (!I.verified && I.email ? ` <span class="warn">· почта не подтверждена</span>${I.mail ? ` <button class="btn small" type="button" id="acc-resend">Прислать письмо</button>` : ''}` : '');
       else right = M.pass ? '' : `<button class="btn small" type="button" id="acc-setpass">${I.email ? 'Задать пароль' : 'Задать почту и пароль'}</button>`;
     } else right = m.linked ? '<span class="ok">✓ привязан</span>' : `<button class="btn small" type="button" data-link="${m.kind}">Привязать</button>`;
+    if (m.linked && nLinked > 1 && !M.pass) right += ` <button class="btn small link-like" type="button" data-unlink="${m.kind}">Отвязать</button>`;
     return `<li><span class="nm">${esc(m.name)}</span>${right}</li>`;
   }).join('');
   const passForm = M.pass ? `<form class="acc-pass" id="acc-pass-form">
@@ -2453,7 +2464,7 @@ function accMethodsHtml() {
       <input id="acc-pass" type="password" autocomplete="new-password" placeholder="Пароль (от 8 символов)" minlength="8" required>
       <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" id="acc-pass-no">Отмена</button></div></form>` : '';
   return `<h4>Способы входа</h4><ul class="methods">${rows}</ul>${passForm}
-    <p class="hint">Привязанные способы ведут в этот аккаунт. Войти непривязанным — получится новый, отдельный аккаунт.</p>
+    <p class="hint">Привязанные способы ведут в этот аккаунт. Войти непривязанным — получится новый, отдельный аккаунт.${nLinked === 1 && window.NOTES_UNLINK ? ' Единственный способ входа отвязать нельзя — сначала привяжи другой.' : ''}</p>
     ${M.msg ? `<p class="hint acc-msg ${M.err ? 'err' : ''}">${esc(M.msg)}</p>` : ''}`;
 }
 function loadAccInfo(force) {
@@ -2469,6 +2480,14 @@ function wireAccMethods() {
   box.querySelectorAll('[data-link]').forEach(b => b.onclick = () => {
     b.disabled = true;
     window.NOTES_LINK(b.dataset.link).then(() => { M.msg = ''; S.accInfo = null; loadAccInfo(true); say('Готово: способ входа привязан.'); }, e => say(e.message, true));
+  });
+  box.querySelectorAll('[data-unlink]').forEach(b => b.onclick = () => { M.unlink = b.dataset.unlink; M.msg = ''; redraw(); });
+  $('#unlink-no') && ($('#unlink-no').onclick = () => { M.unlink = null; redraw(); });
+  $('#unlink-yes') && ($('#unlink-yes').onclick = () => {
+    const kind = M.unlink, name = S.accInfo.methods.find(m => m.kind === kind)?.name || '';
+    $('#unlink-yes').disabled = true;
+    window.NOTES_UNLINK(kind).then(() => { M.unlink = null; S.accInfo = null; loadAccInfo(true); say(kind === 'password' ? 'Вход по почте и паролю отключён.' : `${name} отвязан.`); },
+      e => { M.unlink = null; say(e.message, true); });
   });
   $('#acc-setpass') && ($('#acc-setpass').onclick = () => { M.pass = true; M.msg = ''; redraw(); ($('#acc-email') || $('#acc-pass')).focus(); });
   $('#acc-pass-no') && ($('#acc-pass-no').onclick = () => { M.pass = false; redraw(); });
