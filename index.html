@@ -2342,7 +2342,6 @@ function enexToBackup(files) {
   }
   return { format: 'android-notes', version: 1, sections: [...sections.values()], notes, srs: {}, images, source: 'evernote', warn };
 }
-window.NOTES_ENEX = { md5hex, enmlToMd: (enml, media) => enmlToMd(enml, media || {}), toBackup: enexToBackup };   // для тестов
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
   p.ontoggle = () => { S.dataOpen = p.open; };
@@ -4699,6 +4698,9 @@ window.addEventListener('popstate', e => {
     if (e.key === '?' && !typing && ov.hidden) { e.preventDefault(); open(); }
   });
 })();
+// для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
+if (window.NOTES_TEST) window.T = { S, store, setMode, selectSection, openNote, renderProg, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
 </script>
