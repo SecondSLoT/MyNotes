@@ -2823,11 +2823,19 @@ function renderSecMenu() {
       <button data-act="sec-move-to" data-to="" role="menuitem" ${!parentOf(sec.id) ? 'disabled' : ''}><span class="ico">${!parentOf(sec.id) ? '✓' : ''}</span>Верхний уровень</button>
       ${menuFolderButtons('sec-move-to', parentOf(sec.id), sub, 'data-to')}</div>
       <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem"><span class="ico">←</span>Назад</button>`;
+  } else if (M.mode === 'confirmDelAll') {
+    // переспросить: раздел (с подразделами) удаляется, заметки — в корзину, их можно вернуть
+    const subs = sub.size - 1;
+    menuEl.innerHTML = `<div class="ask">Удалить раздел «${esc(sec.title)}»${subs ? ` с подразделами (${subs})` : ''}${count ? ` и ${count} ${plural(count, 'заметку', 'заметки', 'заметок')}` : ''}?
+      ${count ? `Заметки попадут в корзину — их можно вернуть в течение ${TRASH_DAYS} дней.` : ''}</div>
+      <div class="ask-row"><button class="yes" data-act="sec-del-all-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
   } else if (M.mode === 'confirmDel' && sub.size > 1) {
-    menuEl.innerHTML = `<div class="ask">Внутри «${esc(sec.title)}» есть подразделы. Сначала перенеси или удали их.</div><div class="ask-row"><button data-act="sec-back">Понятно</button></div>`;
+    menuEl.innerHTML = `<div class="ask">Внутри «${esc(sec.title)}» есть подразделы. Сначала перенеси или удали их — или удали всё вместе.</div>
+      <div class="ask-row"><button data-act="sec-back">Понятно</button><button class="danger" data-act="sec-del-all">Удалить вместе с ${count ? 'заметками' : 'подразделами'}</button></div>`;
   } else if (M.mode === 'confirmDel') {
     menuEl.innerHTML = count
-      ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали.</div><div class="ask-row"><button data-act="sec-back">Понятно</button></div>`
+      ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали.</div>
+        <div class="ask-row"><button data-act="sec-back">Понятно</button><button class="danger" data-act="sec-del-all">Удалить вместе с заметками</button></div>`
       : `<div class="ask">Удалить пустой раздел «${esc(sec.title)}»?</div><div class="ask-row"><button class="yes" data-act="sec-del-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
   } else {
     const owner = trainOwner(sec.id);
@@ -2850,6 +2858,21 @@ function renderSecMenu() {
     || (M.anchor?.isConnected ? M.anchor : null) || $('#chip-add') || $('#list-title');
   placeMenu(anchor);
   const inp = $('#sec-name'); if (inp) { inp.focus(); inp.select(); } else menuEl.querySelector('button:not([disabled])')?.focus();
+}
+// удалить раздел вместе с подразделами; заметки — в корзину (вернуть можно, вернутся в последний открытый раздел)
+async function deleteFolderWithNotes(id) {
+  const sub = subtree(id);
+  const ids = [...S.notes.values()].filter(n => sub.has(n.section)).map(n => n.id);
+  if (ids.length) await trashNotes(ids, false);
+  // сначала самые глубокие, чтобы ни на миг не остался подраздел без родителя
+  const T = tree(), depth = sid => (T.list[T.idx.get(sid)]?.depth ?? 0);
+  const order = [...sub].sort((a, b) => depth(b) - depth(a));
+  let ok = true;
+  for (const sid of order) ok = (await write(() => S.db.collection('sections').doc(sid).delete(), null)) && ok;
+  for (const sid of order) S.sections.delete(sid);
+  if (sub.has(S.section)) selectSection('all'); else { renderRail(); renderList(); }
+  updateBadge();
+  toast(!ok ? 'Не всё удалось удалить — попробуй ещё раз' : ids.length ? `Раздел удалён, заметки в корзине: ${ids.length}` : 'Раздел удалён');
 }
 async function swapSections(id, dir) {
   const list = kids(parentOf(id)); const i = list.findIndex(x => x.id === id); const j = i + dir;
@@ -2972,6 +2995,8 @@ menuEl.addEventListener('click', async e => {
     else if (act === 'sec-move') { S.menu.mode = 'moveTo'; renderMenu(); }
     else if (act === 'sec-move-to') { closeMenu(); moveFolder(id, b.dataset.to || null); }
     else if (act === 'sec-train') { closeMenu(); setFolderTrain(id, !S.sections.get(id)?.train); }
+    else if (act === 'sec-del-all') { S.menu.mode = 'confirmDelAll'; renderMenu(); }
+    else if (act === 'sec-del-all-yes') { closeMenu(); deleteFolderWithNotes(id); }
     else if (act === 'sec-del-yes') {
       closeMenu();
       const ok = await write(() => S.db.collection('sections').doc(id).delete(), 'Раздел удалён');
