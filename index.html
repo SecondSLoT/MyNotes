@@ -212,6 +212,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.sync-badge{font-size:12px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--hard-soft);color:var(--hard);white-space:nowrap;align-self:center}
 .item .when{margin-left:auto;font-size:12px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
 .item .snip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
 .row-item{position:relative;border-bottom:1px solid var(--line)}
@@ -638,6 +639,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 <div class="app">
   <header class="top">
     <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span></div>
+    <span class="sync-badge" id="sync-badge" role="status" hidden></span>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
       <button id="m-train" data-mode="train" aria-pressed="false" title="Тренировка"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="12" rx="2"/><path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/><path d="M8 13.5l1.8 1.8L13 12"/></svg><span class="ml">Тренировка</span><span class="badge" id="due-badge" hidden>0</span></button>
@@ -2536,7 +2538,12 @@ function wireAccountPanel() {
   p.ontoggle = () => { S.accOpen = p.open; if (p.open) loadAccInfo(); };
   if (p.open) loadAccInfo();
   wireAccMethods();
-  $('#data-signout') && ($('#data-signout').onclick = () => window.NOTES_SIGN_OUT());
+  $('#data-signout') && ($('#data-signout').onclick = () => {
+    // неотправленные правки (не было связи) при выходе пропадут — предупредить, выйти по второму нажатию
+    const n = window.NOTES_PENDING ? window.NOTES_PENDING() : 0;
+    if (n && !S.signoutAnyway) { S.signoutAnyway = true; toast(`Есть неотправленные изменения (${n}) — при выходе они пропадут. Нажми «Выйти» ещё раз, чтобы выйти всё равно.`); return; }
+    window.NOTES_SIGN_OUT();
+  });
   $('#del-ask') && ($('#del-ask').onclick = () => { S.accPanel = { delAsk: true }; renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
   $('#del-no') && ($('#del-no').onclick = () => { S.accPanel = {}; renderProg(); });
   $('#del-confirm') && ($('#del-confirm').oninput = e => { $('#del-yes').disabled = e.target.value.trim().toLowerCase() !== 'удалить'; });
@@ -4338,6 +4345,20 @@ function visKeydown(e, vis) {
   if (act) { e.preventDefault(); visAction(act, vis); }
 }
 
+/* правки без интернета (ReteNote): shim сообщает, есть ли связь и сколько правок ждут отправки */
+let syncWasOffline = false;
+window.addEventListener('notes-sync', e => {
+  const d = e.detail || {}, b = $('#sync-badge'); if (!b) return;
+  if (d.offline) {
+    syncWasOffline = true; b.hidden = false;
+    b.textContent = 'Нет связи' + (d.pending ? ` · ${d.pending} ${plural(d.pending, 'изменение', 'изменения', 'изменений')}` : '');
+    b.title = 'Изменения сохранены на этом устройстве и отправятся сами, когда появится интернет';
+  } else if (!d.pending) {
+    b.hidden = true;
+    if (syncWasOffline) { syncWasOffline = false; toast('Связь есть — изменения отправлены'); }
+  }
+  for (const t of d.conflicts || []) toast(`Заметку «${t}» за это время изменили на другом устройстве — там осталась та версия, а твоя сохранена рядом копией`);
+});
 async function write(fn, okMsg) {
   if (!S.db) { toast('Хранилище недоступно, изменения не сохранены'); return false; }
   try { await fn(); if (okMsg) toast(okMsg); return true; }
