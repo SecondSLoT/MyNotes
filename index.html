@@ -2331,7 +2331,7 @@ function enexToBackup(files) {
       // у заметок без заголовка Evernote пишет «Заметка без названия» — берём первую строку текста
       let title = (n.querySelector('title')?.textContent || '').trim();
       if (!title || /^(заметка без названия|без названия|untitled( note)?)$/i.test(title)) {
-        const line = body.split('\n').map(l => l.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^[\s#>*\-+\d.\[\]x|]+/, '').replace(/[*_`~|]/g, '').trim()).find(Boolean) || '';
+        const line = body.split('\n').map(l => l.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/^\s*(?:(?:#{1,6}|>|[-*+]|\d+[.)])\s+|\[[ xX]\]\s+|\|\s*)*/, '').replace(/[*_`~|]/g, '').replace(/\s+/g, ' ').trim()).find(Boolean) || '';   // разметку в начале строки (#, >, -, «1.», [ ]) — прочь, сами цифры — нет
         title = line ? (line.length > 80 ? line.slice(0, 79).replace(/\s+\S*$/, '') + '…' : line) : (title || 'Без названия');
       }
       for (const m of Object.values(media)) if (body.includes('enex:' + m.hash)) images[m.hash] = m;
