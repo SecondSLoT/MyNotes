@@ -456,6 +456,7 @@ button.tag{border:0;background:none;padding:0}
 .card{background:var(--raised);border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,32px)}
 .card .q{font:600 clamp(19px,2.6vw,24px)/1.3 var(--f-display);margin:10px 0 0;text-wrap:balance;overflow-wrap:anywhere;hyphens:auto}
 .reader h1,.item .t,.art-note h2{overflow-wrap:anywhere}
+.title-input{display:block;width:100%;font:inherit;color:inherit;letter-spacing:inherit;line-height:inherit;background:var(--bg);border:1px solid var(--accent);border-radius:8px;padding:0 6px;margin:-1px -7px;resize:none;overflow:hidden;box-sizing:content-box}
 @media (max-width:760px){body:not(.mode-lib) .search{display:none}}
 .card .ans{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line-strong)}
 .reveal{width:100%;margin-top:24px}
@@ -887,11 +888,13 @@ let treeCache = { sig: null };
 function parentOf(id) { const p = S.sections.get(id)?.parent; return p && p !== id && S.sections.has(p) ? p : null; }
 function tree() {
   const all = [...S.sections.values()];
-  const sig = all.map(x => `${x.id}/${x.parent || ''}/${x.order}/${x.title}`).join('|');
+  const sig = all.map(x => `${x.id}/${x.parent || ''}/${x.order}/${x.title}/${x.subSort || ''}`).join('|');
   if (treeCache.sig === sig) return treeCache;
   const by = new Map();
   for (const x of all) { const p = parentOf(x.id); if (!by.has(p)) by.set(p, []); by.get(p).push(x); }
-  for (const l of by.values()) l.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.title.localeCompare(b.title, 'ru'));
+  // подразделы раздела с subSort: 'title' — по алфавиту (с числами по-человечески: «2» раньше «10»), иначе — ручной порядок
+  const byTitle = (a, b) => a.title.localeCompare(b.title, 'ru', { numeric: true, sensitivity: 'base' });
+  for (const [p, l] of by) l.sort(p && S.sections.get(p)?.subSort === 'title' ? byTitle : (a, b) => (a.order ?? 0) - (b.order ?? 0) || byTitle(a, b));
   const list = [], seen = new Set();
   const walk = (pid, depth) => { for (const x of by.get(pid) || []) { if (seen.has(x.id)) continue; seen.add(x.id); list.push({ s: x, depth }); walk(x.id, depth + 1); } };
   walk(null, 0);
@@ -901,6 +904,13 @@ function tree() {
   return treeCache;
 }
 function kids(pid) { return tree().by.get(pid || null) || []; }
+const alphaKids = pid => !!pid && S.sections.get(pid)?.subSort === 'title';   // подразделы по алфавиту — ручной порядок не действует
+async function setSubSort(id, mode) {
+  const f = S.sections.get(id); if (!f) return;
+  const was = f.subSort; f.subSort = mode === 'title' ? 'title' : null; renderRail();
+  const ok = await write(() => S.db.collection('sections').doc(id).update({ subSort: f.subSort }), f.subSort ? 'Подразделы — по алфавиту' : 'Подразделы — в ручном порядке');
+  if (!ok) { f.subSort = was; renderRail(); }
+}
 function hasKids(id) { return kids(id).length > 0; }
 function subtree(id) {
   const T = tree(); const i = T.idx.get(id); if (i == null) return new Set([id]);
@@ -1373,7 +1383,7 @@ function renderRail() {
       + `${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span>`
       + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}`
       + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
-          return `<span class="tools"><span role="button" data-sec-act="up" aria-label="Выше" aria-disabled="${i <= 0}">↑</span><span role="button" data-sec-act="down" aria-label="Ниже" aria-disabled="${i >= sib.length - 1}">↓</span><span role="button" data-sec-act="menu" aria-label="Меню раздела">⋯</span></span>`; })()
+          return `<span class="tools"><span role="button" data-sec-act="up" aria-label="Выше" aria-disabled="${i <= 0 || alphaKids(p)}">↑</span><span role="button" data-sec-act="down" aria-label="Ниже" aria-disabled="${i >= sib.length - 1 || alphaKids(p)}">↓</span><span role="button" data-sec-act="menu" aria-label="Меню раздела">⋯</span></span>`; })()
         : `<span class="n">${c.get(s.id) || 0}</span>`) + `</button>`);
   }
   rows.push(addingSection
@@ -2846,8 +2856,9 @@ function renderSecMenu() {
     menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">${esc(sec.title)} · ${count}</div>
       <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
       <button data-act="sec-sub" role="menuitem"><span class="ico">+</span>Новый подраздел</button>
-      <button data-act="sec-up" role="menuitem" ${idx <= 0 ? 'disabled' : ''}><span class="ico">↑</span>Выше</button>
-      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 ? 'disabled' : ''}><span class="ico">↓</span>Ниже</button>
+      <button data-act="sec-up" role="menuitem" ${idx <= 0 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? 'title="Подразделы здесь сортируются по алфавиту"' : ''}><span class="ico">↑</span>Выше</button>
+      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? 'title="Подразделы здесь сортируются по алфавиту"' : ''}><span class="ico">↓</span>Ниже</button>
+      ${hasKids(sec.id) ? `<button data-act="sec-subsort" role="menuitem" title="Нажми, чтобы переключить"><span class="ico">⇅</span>Подразделы: ${sec.subSort === 'title' ? 'по алфавиту' : 'вручную'}</button>` : ''}
       <button data-act="sec-move" role="menuitem"><span class="ico">⇄</span>Переместить в…</button>
       <div class="sep" role="separator"></div>
       ${trainBtn}
@@ -2996,6 +3007,7 @@ menuEl.addEventListener('click', async e => {
     else if (act === 'sec-move') { S.menu.mode = 'moveTo'; renderMenu(); }
     else if (act === 'sec-move-to') { closeMenu(); moveFolder(id, b.dataset.to || null); }
     else if (act === 'sec-train') { closeMenu(); setFolderTrain(id, !S.sections.get(id)?.train); }
+    else if (act === 'sec-subsort') { closeMenu(); setSubSort(id, S.sections.get(id)?.subSort === 'title' ? 'manual' : 'title'); }
     else if (act === 'sec-del-all') { S.menu.mode = 'confirmDelAll'; renderMenu(); }
     else if (act === 'sec-del-all-yes') { closeMenu(); deleteFolderWithNotes(id); }
     else if (act === 'sec-del-yes') {
@@ -3070,6 +3082,31 @@ document.addEventListener('click', e => {
   if (!S.renaming || !window.matchMedia('(max-width:760px)').matches || e.target.closest('.rename-form')) return;
   e.preventDefault(); e.stopPropagation(); S.renaming = null; renderList();
 }, true);
+// двойной клик по заметке в списке — переименовать (первый клик её уже открыл)
+$('#items').addEventListener('dblclick', e => {
+  const b = e.target.closest('.item'); if (!b || S.select || !S.canWrite || S.renaming || e.target.closest('[data-more], [data-goto], .grp-h')) return;
+  const n = S.notes.get(b.dataset.id); if (!n) return;
+  getSelection().removeAllRanges(); S.renaming = { id: n.id, draft: n.title || '', fresh: true }; renderList();
+});
+// двойной клик по заголовку открытой заметки — поле с названием прямо в заголовке: Enter или клик мимо — сохранить, Esc — отмена
+function editTitleInReader(id) {
+  const n = S.notes.get(id); const h1 = $('#reader h1'); if (!n || !h1 || S.editing || $('#title-input')) return;
+  h1.innerHTML = `<textarea id="title-input" class="title-input" rows="1" autocomplete="off" enterkeyhint="done" aria-label="Название заметки">${esc(n.title || '')}</textarea>`;
+  const ta = $('#title-input'); const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+  fit(); ta.oninput = fit; ta.focus(); ta.select();
+  let done = false;
+  const finish = save => {
+    if (done) return; done = true;
+    const title = ta.value.replace(/\s*\n\s*/g, ' ').trim();
+    if (!save || !title || title === n.title) { renderReader(); return; }
+    S.renaming = { id, draft: title }; saveRename();
+  };
+  ta.onkeydown = e => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+    else if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); finish(true); }
+  };
+  ta.onblur = () => finish(true);
+}
 $('#items').addEventListener('input', e => { if (e.target.id === 'rename-input' && S.renaming) S.renaming.draft = e.target.value.replace(/\s*\n\s*/g, ' '); });
 $('#items').addEventListener('submit', e => { e.preventDefault(); saveRename(); });
 $('#items').addEventListener('keydown', e => {
@@ -3231,6 +3268,7 @@ function renderReader(scrollTop) {
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
   setupHits(box);
   $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
+  if (S.canWrite) box.querySelector('h1').ondblclick = e => { if (e.target.closest('button, textarea')) return; getSelection().removeAllRanges(); editTitleInReader(n.id); };
   $('#link-back') && ($('#link-back').onclick = () => { const b = S.linkBack; S.linkBack = null; openNote(b); });
   { const bl = backlinks(n.id); if (bl.length) { const d = document.createElement('div'); d.className = 'backlinks'; d.innerHTML = `<h4>Ссылаются на эту заметку · ${bl.length}</h4>` + bl.map(x => `<button type="button" data-bl="${esc(x.id)}">${esc(x.title)} <small>${esc(secPath(x.section))}</small></button>`).join(''); $('#md').after(d); d.onclick = e => { const b = e.target.closest('[data-bl]'); if (b) followNoteLink(b.dataset.bl, n.id); }; } }
   if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = 'Отметить'; cb.onchange = () => toggleTask(n.id, i, cb.checked); });
@@ -4670,7 +4708,7 @@ async function boot() {
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
   db.collection('sections').onSnapshot(snap => {
-    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort }]; }));
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort, subSort: v.subSort }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
