@@ -1970,6 +1970,8 @@ function accountPanelHtml() {
       <div class="bar"><input id="del-confirm" autocomplete="off" style="max-width:180px"><button class="btn danger" id="del-yes" disabled>Удалить навсегда</button><button class="btn" id="del-no">Отмена</button></div>
     </div>` : ''}
     ${A.status ? `<p class="hint" style="margin-top:10px">${esc(A.status)}</p>` : ''}
+    ${window.NOTES_LEGAL ? `<p class="hint legal-links" style="margin-top:12px">Документы: <a href="${window.NOTES_LEGAL.privacy}" target="_blank" rel="noopener">Политика конфиденциальности</a> ·
+      <a href="${window.NOTES_LEGAL.consent}" target="_blank" rel="noopener">Согласие на обработку персональных данных</a></p>` : ''}
   </details>`;
 }
 // картинки при импорте из Evernote меняют вид ссылки (enex:… → адрес загруженной картинки или пометка) — при сравнении не в счёт
