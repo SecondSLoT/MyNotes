@@ -3024,7 +3024,7 @@ function renderMenu() {
        <button data-act="move" role="menuitem"><span class="ico">⇄</span>Перенести в раздел…</button>
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
        ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
-       ${window.NOTES_VERSIONS ? '<button data-act="history" role="menuitem"><span class="ico">🕘</span>История версий</button>' : ''}
+       ${window.NOTES_VERSIONS && planOn() ? '<button data-act="history" role="menuitem"><span class="ico">🕘</span>История версий</button>' : ''}
        <div class="sep" role="separator"></div>
        <button class="danger" data-act="delete" role="menuitem"><span class="ico">🗑</span>В корзину</button>`;
   menuEl.hidden = false;
