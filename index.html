@@ -229,6 +229,10 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .ver-diff ins{background:color-mix(in srgb,#2f9e5b 30%,transparent);text-decoration:none;border-radius:3px}.ver-diff del{background:color-mix(in srgb,#d0473a 28%,transparent);border-radius:3px}.ver-diff .skip{display:block;color:var(--muted);font-family:var(--f-body);font-size:13px;padding:2px 6px}
 .ver-title{font-size:14px}.ver-title del{color:var(--muted)}.ver-back{display:none}
 @media (max-width:700px){.ver-sheet{height:calc(100vh - 32px)}.ver-body{grid-template-columns:1fr}.ver-list{border-right:0}.ver-view{display:none}.ver-sheet.show-view .ver-list{display:none}.ver-sheet.show-view .ver-view{display:flex}.ver-back{display:inline-flex}}
+.help-sheet.share-sheet{max-width:480px;padding:20px 20px 16px;gap:12px;margin-top:min(12vh,120px)}.share-sheet h2{margin:0;font:600 19px/1.3 var(--f-display)}
+.share-tog{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}.share-tog input{width:20px;height:20px;margin:0;accent-color:var(--accent)}
+.share-link{display:flex;gap:8px}.share-link input{flex:1;min-width:0;font:14px var(--f-mono);padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}
+.share-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -2939,6 +2943,7 @@ function renderSecMenu() {
       <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? 'title="Подразделы здесь сортируются по алфавиту"' : ''}><span class="ico">↓</span>Ниже</button>
       ${hasKids(sec.id) ? `<button data-act="sec-subsort" role="menuitem" title="Нажми, чтобы переключить"><span class="ico">⇅</span>Подразделы: ${sec.subSort === 'title' ? 'по алфавиту' : 'вручную'}</button>` : ''}
       <button data-act="sec-move" role="menuitem"><span class="ico">⇄</span>Переместить в…</button>
+      ${window.NOTES_SHARE ? '<button data-act="sec-share" role="menuitem"><span class="ico">🔗</span>Поделиться…</button>' : ''}
       <div class="sep" role="separator"></div>
       ${trainBtn}
       <div class="sep" role="separator"></div>
@@ -3024,6 +3029,7 @@ function renderMenu() {
        <button data-act="move" role="menuitem"><span class="ico">⇄</span>Перенести в раздел…</button>
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
        ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
+       ${window.NOTES_SHARE ? '<button data-act="share" role="menuitem"><span class="ico">🔗</span>Поделиться…</button>' : ''}
        ${window.NOTES_VERSIONS && planOn() ? '<button data-act="history" role="menuitem"><span class="ico">🕘</span>История версий</button>' : ''}
        <div class="sep" role="separator"></div>
        <button class="danger" data-act="delete" role="menuitem"><span class="ico">🗑</span>В корзину</button>`;
@@ -3087,6 +3093,7 @@ menuEl.addEventListener('click', async e => {
     else if (act === 'sec-sub') { S.menu.mode = 'sub'; renderMenu(); }
     else if (act === 'sec-move') { S.menu.mode = 'moveTo'; renderMenu(); }
     else if (act === 'sec-move-to') { closeMenu(); moveFolder(id, b.dataset.to || null); }
+    else if (act === 'sec-share') { closeMenu(); openShare('section', id); }
     else if (act === 'sec-train') { closeMenu(); setFolderTrain(id, !S.sections.get(id)?.train); }
     else if (act === 'sec-subsort') { closeMenu(); setSubSort(id, S.sections.get(id)?.subSort === 'title' ? 'manual' : 'title'); }
     else if (act === 'sec-del-all') { S.menu.mode = 'confirmDelAll'; renderMenu(); }
@@ -3100,6 +3107,7 @@ menuEl.addEventListener('click', async e => {
   }
   if (act === 'relearn') { closeMenu(); relearn([id]); return; }
   if (act === 'history') { closeMenu(); openHistory(id); return; }
+  if (act === 'share') { closeMenu(); openShare('note', id); return; }
   if (act === 'tags') { S.menu.tags = true; renderMenu(); return; }
   if (act === 'tags-back') { S.menu.tags = false; renderMenu(); return; }
   if (act === 'goto') { closeMenu(); gotoInSection(id); return; }
@@ -4516,6 +4524,42 @@ function planPanelHtml() {
       : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
+}
+/* ---------- ссылка на чтение (ReteNote, бесплатно): заметка или раздел с подразделами, без входа ---------- */
+async function openShare(kind, id) {
+  const item = kind === 'note' ? (S.notes.get(id)) : S.sections.get(id); if (!item || !window.NOTES_SHARE) return;
+  let ov = $('#share-ov');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'share-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; };
+  let share = null, busy = false, loaded = false;
+  const url = () => share ? `${location.origin}/s.html#${share.token}` : '';
+  const draw = (status) => {
+    if (!loaded) {   // пока не знаем, есть ли ссылка, — не показываем галочку «выключено»
+      ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true"><h2>Поделиться ${kind === 'note' ? 'заметкой' : 'разделом'} «${esc(item.title || 'Без названия')}»</h2><p class="hint" id="share-status" style="margin:0">${esc(status || 'Загружаю…')}</p><div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
+      $('#share-done').onclick = close; return;
+    }
+    ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-title">
+      <h2 id="share-title">Поделиться ${kind === 'note' ? 'заметкой' : 'разделом'} «${esc(item.title || 'Без названия')}»</h2>
+      <label class="share-tog"><input type="checkbox" id="share-on" ${share ? 'checked' : ''} ${busy ? 'disabled' : ''}>Ссылка для чтения</label>
+      <p class="hint" style="margin:0">Кто угодно со ссылкой может читать — без входа и без аккаунта${kind === 'section' ? '. Видны все заметки раздела и его подразделов, кроме корзины' : ''}. Отключишь — ссылка перестанет работать.</p>
+      ${share ? `<div class="share-link"><input id="share-url" readonly value="${esc(url())}" aria-label="Ссылка"><button class="btn primary" type="button" id="share-copy">Скопировать</button></div>
+        <p class="hint" style="margin:0"><a href="${esc(url())}" target="_blank" rel="noopener">Открыть, как увидят другие</a></p>` : ''}
+      <p class="hint" id="share-status" aria-live="polite" style="margin:0">${esc(status || '')}</p>
+      <div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
+    $('#share-done').onclick = close;
+    $('#share-on').onchange = async e => {
+      busy = true; const on = e.target.checked; draw(on ? 'Включаю…' : 'Отключаю…');
+      try { share = (on ? await window.NOTES_SHARE.on(kind, id) : await window.NOTES_SHARE.off(kind, id)).share; busy = false; draw(on ? '' : 'Ссылка отключена.'); if (on) copy(); }
+      catch (err) { busy = false; draw('Не получилось: ' + (err?.message || err)); }
+    };
+    const copy = async () => { try { await navigator.clipboard.writeText(url()); toast('Ссылка скопирована'); } catch { $('#share-url')?.select(); } };
+    $('#share-copy') && ($('#share-copy').onclick = copy);
+  };
+  ov.hidden = false; busy = true; draw('Загружаю…');
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  try { share = (await window.NOTES_SHARE.get(kind, id)).share; busy = false; loaded = true; draw(); } catch (err) { busy = false; draw('Не получилось: ' + (err?.message || err)); }
+  $('#share-on')?.focus();
 }
 /* ---------- история версий заметки (ReteNote): сервер хранит прежний текст перед правкой ---------- */
 // сравнение по строкам (LCS), внутри изменённой строки — по словам; без библиотек
