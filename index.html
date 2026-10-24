@@ -213,7 +213,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -4388,14 +4388,15 @@ function visKeydown(e, vis) {
 
 /* ---------- тарифы Free / Pro (только ReteNote и только когда на сервере включён plans_enabled) ---------- */
 const rub = n => `${Number(n).toLocaleString('ru-RU').replace(/\s/g, '\u00a0')}\u00a0₽`;
-const PRO_PRICE = () => { const p = S.plan?.prices || { month: 139, year: 1190 }; return `${rub(p.month)} в\u00a0месяц или ${rub(p.year)} в\u00a0год`; };
+const yearSave = p => Math.round((1 - p.year / (12 * p.month)) * 100);   // выгода годовой оплаты, %
+const PRO_PRICE = () => { const p = S.plan?.prices || { month: 139, year: 1190 }; return `${rub(p.month)} в\u00a0месяц или ${rub(p.year)} в\u00a0год (выгоднее на\u00a0${yearSave(p)}%)`; };
 // кнопки оплаты (разовая оплата через Robokassa); пока оплата не подключена — подсказка
 function payHtml(primary) {
   const P = S.plan || {};
   if (!P.payReady) return P.pro || !P.trialUsed ? '' : '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</p>';
   const p = P.prices || {};
   return `<div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
-    <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${P.pro ? 'Продлить' : 'Pro'} на год — ${rub(p.year)}</button></div>
+    <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${P.pro ? 'Продлить' : 'Pro'} на год — ${rub(p.year)} <span class="save">−${yearSave(p)}%</span></button></div>
     <p class="hint">Разовая оплата через Robokassa, без автоматических списаний. Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>.</p>`;
 }
 function wirePay(root) {
