@@ -215,6 +215,20 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
 .help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
 .dbg-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.dbg-row .btn{font-size:13px}.dbg-tog{display:flex;gap:10px;align-items:flex-start;margin:6px 0;cursor:pointer}.dbg-tog input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--accent)}.dbg-tog small{display:block;color:var(--muted)}.dbg-lim{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.dbg-lim input{width:84px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}.dbg-now{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:14px}
+.ver-sheet{max-width:1000px;height:min(760px,calc(100vh - 48px));overflow:hidden}
+.ver-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.ver-head h2{margin:0;font:600 18px/1.25 var(--f-display)}.ver-head .sub{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.ver-body{display:grid;grid-template-columns:240px 1fr;min-height:0;flex:1}
+.ver-list{border-right:1px solid var(--line);overflow:auto;padding:8px}.ver-list .day{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 8px 4px}
+.ver-list button{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:8px 10px;border-radius:8px;cursor:pointer}
+.ver-list button:hover{background:var(--hover,var(--accent-soft))}.ver-list button[aria-current="true"]{background:var(--accent-soft)}.ver-list button .t{font-variant-numeric:tabular-nums;font-weight:500}.ver-list button .r{color:var(--muted);font-size:13px}
+.ver-list button.locked{color:var(--muted)}.ver-list .empty,.ver-list .ver-more{color:var(--muted);font-size:13px;padding:8px 10px;line-height:1.45}
+.ver-view{overflow:auto;padding:14px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}.ver-view .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ver-tabs{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px}.ver-tabs button{border:0;background:none;color:inherit;font:inherit;font-size:14px;padding:5px 12px;border-radius:999px;cursor:pointer}.ver-tabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ver-diff{font:14px/1.6 var(--f-mono);white-space:pre-wrap;word-break:break-word;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--raised)}
+.ver-diff .l{display:block;padding:0 6px;border-radius:4px}.ver-diff .l.add{background:color-mix(in srgb,#2f9e5b 16%,transparent)}.ver-diff .l.del{background:color-mix(in srgb,#d0473a 14%,transparent);text-decoration:line-through;text-decoration-color:color-mix(in srgb,#d0473a 60%,transparent)}
+.ver-diff ins{background:color-mix(in srgb,#2f9e5b 30%,transparent);text-decoration:none;border-radius:3px}.ver-diff del{background:color-mix(in srgb,#d0473a 28%,transparent);border-radius:3px}.ver-diff .skip{display:block;color:var(--muted);font-family:var(--f-body);font-size:13px;padding:2px 6px}
+.ver-title{font-size:14px}.ver-title del{color:var(--muted)}.ver-back{display:none}
+@media (max-width:700px){.ver-sheet{height:calc(100vh - 32px)}.ver-body{grid-template-columns:1fr}.ver-list{border-right:0}.ver-view{display:none}.ver-sheet.show-view .ver-list{display:none}.ver-sheet.show-view .ver-view{display:flex}.ver-back{display:inline-flex}}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -3010,6 +3024,7 @@ function renderMenu() {
        <button data-act="move" role="menuitem"><span class="ico">⇄</span>Перенести в раздел…</button>
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem"><span class="ico">⟲</span>Снова учить (сбросить прогресс)</button>` : ''}
        ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem"><span class="ico">${n.ref ? '↺' : '⊘'}</span>${n.ref ? 'Вернуть в тренировку' : 'Убрать из тренировки'}</button>` : ''}
+       ${window.NOTES_VERSIONS ? '<button data-act="history" role="menuitem"><span class="ico">🕘</span>История версий</button>' : ''}
        <div class="sep" role="separator"></div>
        <button class="danger" data-act="delete" role="menuitem"><span class="ico">🗑</span>В корзину</button>`;
   menuEl.hidden = false;
@@ -3084,6 +3099,7 @@ menuEl.addEventListener('click', async e => {
     return;
   }
   if (act === 'relearn') { closeMenu(); relearn([id]); return; }
+  if (act === 'history') { closeMenu(); openHistory(id); return; }
   if (act === 'tags') { S.menu.tags = true; renderMenu(); return; }
   if (act === 'tags-back') { S.menu.tags = false; renderMenu(); return; }
   if (act === 'goto') { closeMenu(); gotoInSection(id); return; }
@@ -4450,7 +4466,7 @@ function planBlocks(kind, add = 1) {
   }
   showPlanDialog(kind); return true;
 }
-const PLAN_WHAT = { notes: n => `до ${n} заметок`, sections: n => `до ${n} разделов`, bytes: n => `${fmtBytes(n)} под картинки` };
+const PLAN_WHAT = { history: () => 'история версий за последние сутки', notes: n => `до ${n} заметок`, sections: n => `до ${n} разделов`, bytes: n => `${fmtBytes(n)} под картинки` };
 function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
@@ -4461,7 +4477,7 @@ function showPlanDialog(kind, msg) {
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
     ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки. ${PRO_PRICE()}.</p>`}
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий. ${PRO_PRICE()}.</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -4497,9 +4513,134 @@ function planPanelHtml() {
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
     : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
+}
+/* ---------- история версий заметки (ReteNote): сервер хранит прежний текст перед правкой ---------- */
+// сравнение по строкам (LCS), внутри изменённой строки — по словам; без библиотек
+function lcsOps(a, b) {
+  const n = a.length, m = b.length;
+  if (n * m > 4e6) return [...a.map(s => ['-', s]), ...b.map(s => ['+', s])];   // огромное — без тонкостей
+  const L = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < n && j < m) { if (a[i] === b[j]) { out.push(['=', a[i]]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) out.push(['-', a[i++]]); else out.push(['+', b[j++]]); }
+  while (i < n) out.push(['-', a[i++]]); while (j < m) out.push(['+', b[j++]]);
+  return out;
+}
+function wordDiff(a, b) {
+  const tok = s => s.split(/(\s+|[.,;:!?()«»"])/).filter(Boolean);
+  // подряд идущие удалённые / добавленные слова — одним куском (пробел между ними — туда же)
+  const ops = lcsOps(tok(a), tok(b)), out = [];
+  for (let k = 0; k < ops.length; k++) {
+    const [t, w] = ops[k];
+    if (t === '=') { out.push(esc(w)); continue; }
+    let txt = w; while (ops[k + 1] && (ops[k + 1][0] === t || (ops[k + 1][0] === '=' && /^\s+$/.test(ops[k + 1][1]) && ops[k + 2]?.[0] === t))) txt += ops[++k][1];
+    out.push(t === '-' ? `<del>${esc(txt)}</del>` : `<ins>${esc(txt)}</ins>`);
+  }
+  return out.join('');
+}
+// было (a) → стало (b): строки целиком, длинные неизменные куски свёрнуты
+function diffHtml(a, b) {
+  const ops = lcsOps((a || '').split('\n'), (b || '').split('\n')), out = [];
+  for (let k = 0; k < ops.length; k++) {
+    const [t, s] = ops[k];
+    if (t === '-' && ops[k + 1]?.[0] === '+' && ops[k + 2]?.[0] !== '+' && ops[k - 1]?.[0] !== '-') { out.push(`<span class="l chg">${wordDiff(s, ops[k + 1][1]) || ' '}</span>`); k++; continue; }
+    out.push(t === '=' ? ['=', s] : `<span class="l ${t === '+' ? 'add' : 'del'}">${esc(s) || ' '}</span>`);
+  }
+  // неизменные куски длиннее 5 строк сворачиваем: у изменений оставляем по 2 строки вокруг
+  const html = [], line = x => `<span class="l">${esc(x) || ' '}</span>`;
+  for (let k = 0; k < out.length;) {
+    if (!Array.isArray(out[k])) { html.push(out[k++]); continue; }
+    const run = []; while (k < out.length && Array.isArray(out[k])) run.push(out[k++][1]);
+    const atStart = html.length === 0, atEnd = k >= out.length;
+    const head = atStart ? 0 : 2, tail = atEnd ? 0 : 2;
+    if (run.length - head - tail > 3) html.push(...run.slice(0, head).map(line), `<span class="skip">… ${run.length - head - tail} ${plural(run.length - head - tail, 'строка', 'строки', 'строк')} без изменений …</span>`, ...run.slice(run.length - tail).map(line));
+    else html.push(...run.map(line));
+  }
+  return html.join('');
+}
+const verTime = s => new Date(String(s).replace(' ', 'T')).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+function verDay(s) {
+  const d = new Date(String(s).replace(' ', 'T')), t = new Date(); const day = x => x.toDateString();
+  if (day(d) === day(t)) return 'Сегодня';
+  if (day(d) === day(new Date(t - 864e5))) return 'Вчера';
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', ...(d.getFullYear() !== t.getFullYear() ? { year: 'numeric' } : {}) });
+}
+async function openHistory(noteId) {
+  const n = S.notes.get(noteId) || S.trash.get(noteId); if (!n || !window.NOTES_VERSIONS) return;
+  let ov = $('#ver-ov');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'ver-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  const H = S.history = { id: noteId, items: null, sel: null, tab: 'diff', data: null };
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; S.history = null; };
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet ver-sheet" role="dialog" aria-modal="true" aria-labelledby="ver-title">
+    <header class="ver-head"><h2 id="ver-title">История версий</h2><span class="sub">${esc(n.title || 'Без названия')}</span><button class="btn" type="button" id="ver-close" aria-label="Закрыть">✕</button></header>
+    <div class="ver-body"><nav class="ver-list" aria-label="Версии"><p class="empty">Загружаю…</p></nav><section class="ver-view"></section></div></div>`;
+  $('#ver-close').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  $('#ver-close').focus();
+  try { H.items = await window.NOTES_VERSIONS(noteId); } catch (e) { ov.querySelector('.ver-list').innerHTML = `<p class="empty">Не получилось загрузить: ${esc(e?.message || e)}</p>`; return; }
+  if (S.history !== H) return;
+  renderHistory();
+  const first = H.items.find(v => !v.locked); if (first && innerWidth > 700) pickVersion(first.id);
+}
+function renderHistory() {
+  const H = S.history, ov = $('#ver-ov'); if (!H || !ov) return;
+  const list = ov.querySelector('.ver-list'), locked = H.items.filter(v => v.locked).length;
+  if (!H.items.length) { list.innerHTML = '<p class="empty">Версий пока нет. Когда заметку правят, прежний текст сохраняется сюда — не чаще раза в 10 минут.</p>'; return; }
+  let day = '', html = '';
+  for (const v of H.items) {
+    const d = verDay(v.created); if (d !== day) { html += `<div class="day">${esc(d)}</div>`; day = d; }
+    html += `<button type="button" data-ver="${esc(v.id)}" class="${v.locked ? 'locked' : ''}" aria-current="${H.sel === v.id}"><span class="t">${verTime(v.created)}</span>
+      <span class="r">${v.locked ? '🔒 в Pro' : v.reason === 'restore' ? 'до восстановления' : ''}</span></button>`;
+  }
+  if (locked) html += `<p class="ver-more">Версии старше суток — в Pro (ещё ${locked}).</p>`;
+  list.innerHTML = html;
+  list.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => {
+    const v = H.items.find(x => x.id === b.dataset.ver);
+    if (v?.locked) { showPlanDialog('history'); return; }
+    pickVersion(b.dataset.ver);
+  });
+}
+async function pickVersion(id) {
+  const H = S.history, ov = $('#ver-ov'); if (!H || !ov) return;
+  H.sel = id; H.data = null; renderHistory();
+  const view = ov.querySelector('.ver-view'); ov.querySelector('.ver-sheet').classList.add('show-view');
+  const back = '<div class="bar"><button class="btn ver-back" type="button" id="ver-back">← Версии</button></div>';
+  const wireBack = () => { $('#ver-back').onclick = () => ov.querySelector('.ver-sheet').classList.remove('show-view'); };
+  view.innerHTML = back + '<p class="hint">Загружаю…</p>'; wireBack();   // «назад» есть и пока грузится
+  try { H.data = await window.NOTES_VERSION(id); } catch (e) { view.innerHTML = back + `<p class="hint">Не получилось: ${esc(e?.message || e)}</p>`; wireBack(); return; }
+  if (S.history !== H || H.sel !== id) return;
+  renderVersion();
+}
+function renderVersion() {
+  const H = S.history, ov = $('#ver-ov'), v = H?.data; if (!v || !ov) return;
+  const n = S.notes.get(H.id) || S.trash.get(H.id) || {}, d = v.data || {};
+  const same = (d.title || '') === (n.title || '') && (d.body || '') === (n.body || '');
+  const view = ov.querySelector('.ver-view');
+  view.innerHTML = `<div class="bar"><button class="btn ver-back" type="button" id="ver-back">← Версии</button>
+      <span class="ver-tabs" role="group" aria-label="Вид"><button type="button" data-tab="diff" aria-pressed="${H.tab === 'diff'}">Изменения</button><button type="button" data-tab="view" aria-pressed="${H.tab === 'view'}">Как выглядела</button></span></div>
+    <p class="hint" style="margin:0">${esc(verDay(v.created))}, ${verTime(v.created)}${v.reason === 'restore' ? ' · сохранена перед восстановлением' : ''}${H.tab === 'diff' ? ' — что изменилось с тех пор (было → сейчас)' : ''}</p>
+    ${H.tab === 'diff'
+      ? `${(d.title || '') !== (n.title || '') ? `<p class="ver-title">Заголовок: <del>${esc(d.title || 'Без названия')}</del> → <b>${esc(n.title || 'Без названия')}</b></p>` : ''}
+         ${same ? '<p class="hint">Совпадает с текущей версией заметки.</p>' : (d.body || '') === (n.body || '') ? '<p class="hint">Текст не менялся.</p>' : `<div class="ver-diff">${diffHtml(d.body || '', n.body || '')}</div>`}`
+      : `<h1 class="ver-h1" style="margin:0;font:600 22px/1.3 var(--f-display)">${esc(d.title || 'Без названия')}</h1><div class="md ver-md">${renderMd(d.body || '')}</div>`}
+    <div class="bar"><button class="btn primary" type="button" id="ver-restore" ${same ? 'disabled' : ''}>Восстановить эту версию</button><button class="btn" type="button" id="ver-copy">Скопировать текст</button></div>`;
+  if (H.tab === 'view') { const md = view.querySelector('.ver-md'); try { enhance(md, null); } catch {} try { fixImgs(md); } catch {} }
+  view.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { H.tab = b.dataset.tab; renderVersion(); });
+  $('#ver-back').onclick = () => { ov.querySelector('.ver-sheet').classList.remove('show-view'); };
+  $('#ver-copy').onclick = async () => { try { await navigator.clipboard.writeText(d.body || ''); toast('Текст версии скопирован'); } catch { toast('Не получилось скопировать'); } };
+  $('#ver-restore').onclick = async e => {
+    e.target.disabled = true;
+    try {
+      await window.NOTES_VERSION_RESTORE(v.id);
+      $('#ver-ov').hidden = true; $('#ver-ov').innerHTML = ''; S.history = null;
+      toast('Версия восстановлена. Вернуть как было — в «История версий»');
+    } catch (err) { e.target.disabled = false; toast('Не получилось: ' + (err?.message || err)); }
+  };
 }
 /* «Отладка» — только для тестировщика (users.tester в админке): свои переключатели тарифов и смена своего Pro */
 function debugPanelHtml() {
