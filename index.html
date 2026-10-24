@@ -213,7 +213,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:2px 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -4395,15 +4395,18 @@ function payHtml(primary) {
   const P = S.plan || {};
   if (!P.payReady) return P.pro || !P.trialUsed ? '' : '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</p>';
   const p = P.prices || {};
-  return `<div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
+  return `${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span><b>Продлевать автоматически.</b> Даю согласие списывать
+      ${rub(p.month)} раз в месяц или ${rub(p.year)} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.
+      Напомним письмом за 3 дня; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>.</span></label>` : ''}
+    <div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
     <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${P.pro ? 'Продлить' : 'Pro'} на год — ${rub(p.year)} <span class="save">−${yearSave(p)}%</span></button></div>
-    <p class="hint">Разовая оплата через Robokassa, без автоматических списаний. Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>.</p>`;
+    <p class="hint">${P.recurringReady ? 'Оплата через Robokassa.' : 'Разовая оплата через Robokassa, без автоматических списаний.'} Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>.</p>`;
 }
 function wirePay(root) {
   root.querySelectorAll('[data-pay]').forEach(b => b.onclick = async () => {
     root.querySelectorAll('[data-pay]').forEach(x => x.disabled = true);
     try {
-      const r = await window.NOTES_PAY(b.dataset.pay);
+      const r = await window.NOTES_PAY(b.dataset.pay, !!root.querySelector('#pay-auto')?.checked);
       store.set('payStart', { until: S.plan?.until || '', at: Date.now() });   // вернёмся с оплаты — ждём, пока срок сдвинется
       location.href = r.url;
     } catch (e) { root.querySelectorAll('[data-pay]').forEach(x => x.disabled = false); toast('Не получилось: ' + (e?.message || e)); }
@@ -4489,7 +4492,10 @@ function planPanelHtml() {
   return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
     <summary>Тариф <span>· ${esc(sub)}</span></summary>
     <div class="meters">${meter('Заметки', planUsed('notes'), planLimit('notes'))}${meter('Разделы', planUsed('sections'), planLimit('sections'))}${meter('Картинки', planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
-    ${pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}`)
+    ${pro && P.autorenew && !P.forever ? `<p class="sub"><b>Автопродление включено:</b> ${esc(planDate(P.until))} спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'} с карты, которой ты оплачивал Pro. Напомним письмом за 3 дня.</p>
+      <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
+    : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
+      ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
       : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
@@ -4499,13 +4505,20 @@ function wirePlanPanel() {
   p.ontoggle = () => { S.planOpen = p.open; };
   $('#plan-trial2') && ($('#plan-trial2').onclick = () => startTrial($('#plan-trial2')));
   wirePay(p);
+  const flip = on => async ev => {
+    ev.target.disabled = true;
+    try { S.plan = await window.NOTES_AUTORENEW(on); toast(on ? 'Автопродление включено' : `Автопродление отключено. Pro действует до ${planDate(S.plan.until)}, больше ничего не спишем.`); renderPlanBar(); renderProg(); }
+    catch (e) { ev.target.disabled = false; toast('Не получилось: ' + (e?.message || e)); }
+  };
+  $('#renew-off') && ($('#renew-off').onclick = flip(false));
+  $('#renew-on') && ($('#renew-on').onclick = flip(true));
 }
 // пробный Pro заканчивается через 2 дня — одно напоминание (черновик текста, согласовать с Александром)
 function renderPlanBar() {
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
-  if (!end || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
+  if (!end || P.autorenew || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
   bar.innerHTML = `<p><b>${paid ? 'Pro' : 'Пробный Pro'} закончится ${esc(planDate(P.until))}.</b> Потом вернутся ограничения бесплатной версии: до ${P.free.notes} заметок,
     ${P.free.sections} разделов и ${fmtBytes(P.free.bytes)} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится.</p>
     <div class="bar">${P.payReady ? `<button class="btn primary" type="button" id="plan-bar-pay">${paid ? 'Продлить' : 'Оформить Pro'}</button>` : ''}<button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`;
