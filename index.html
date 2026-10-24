@@ -438,7 +438,17 @@ button.tag{border:0;background:none;padding:0}
 .lib.wide-edit .rail,.lib.wide-edit .list{display:none}
 .lib.wide-edit .doc{max-width:1600px}
 .lib.wide-edit .back{display:inline-block}
-.ed-panes{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.ed-panes{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);position:relative}
+/* совместная правка: курсоры соавторов (Markdown), их абзацы (Визуально), строка состояния */
+.peer-layer{position:absolute;pointer-events:none;overflow:hidden;z-index:2}
+.peer-caret{position:absolute;width:2px;margin-left:-1px;background:var(--pc)}
+.peer-caret b,.peer-block b{position:absolute;left:0;bottom:100%;font:600 11px/1.5 inherit;color:var(--raised);background:var(--pc);padding:0 5px;border-radius:4px 4px 4px 0;white-space:nowrap}
+.peer-block{position:absolute;left:-10px;right:0;border-left:3px solid var(--pc);border-radius:2px}
+.peer-block b{bottom:auto;top:-15px;left:auto;right:0;border-radius:4px;font-size:10px;line-height:14px;opacity:.9}
+.peer-caret.below b{bottom:auto;top:100%;border-radius:0 4px 4px 4px}
+.peer-blocks{overflow:visible}
+.live-st{font-size:13px;color:var(--muted);min-width:0}
+.live-st .st.offline{color:var(--tc-orange)}
 .ed-panes.split{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));align-items:start}
 .ed-panes.split .preview{position:sticky;top:48px;max-height:calc(100vh - 140px);overflow:auto}
 .field textarea#ed-body{overflow:hidden}
@@ -3605,6 +3615,189 @@ function editorAnchor(E) {
 }
 function editHere(id, anchor) { if (!S.canWrite || !S.notes.has(id)) return; startEdit(id, anchor || readerAnchor()); }
 
+/* ---------- живая совместная правка (ReteNote: заметка в общем разделе, Pro владельца, под переключателем тарифов) ----------
+   Редактор без «Сохранить / Отмена»: каждые ~0,4 с (если что-то набрано; иначе раз в 1–3 с) отправляем правку серверу
+   (vendor/collab.js — OT, как на сервере) и получаем чужие. Кнопка «Готово» — закрыть. Курсоры соавторов — в Markdown,
+   подсветка абзаца — в «Визуально». Отмена (Ctrl+Z) — своя: откатывает только свои правки, поверх чужих (слиянием).
+   В «Визуально» чужие правки приходят в паузе набора (страница перерисовывает текст и ставит курсор на то же место). */
+const liveFor = n => {
+  if (!n || !window.NOTES_COLLAB || !window.RNCollab || !planOn()) return false;
+  const sp = spaceOfNote(n); return !!(sp && canEditIn(sp) && sp.active);
+};
+const LIVE_COLORS = ['blue', 'green', 'purple', 'orange', 'red', 'gray'];
+const liveColor = uid => { let h = 0; for (const ch of String(uid)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return LIVE_COLORS[h % LIVE_COLORS.length]; };
+const liveTags = () => ($('#ed-tags')?.value || '').split(/[\s,]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
+function liveStart(E, n) {
+  E.live = true;
+  E.L = { c: new RNCollab.Client('w' + Math.random().toString(36).slice(2, 10), { title: n.title || '', body: n.body || '' }), sentTags: JSON.stringify(n.tags || []),
+    peers: [], busy: false, sentAt: 0, typedAt: 0, undo: [], redo: [], undoAt: 0, last: n.body || '', fails: 0, state: 'ok' };
+  liveLoop(E);
+}
+const liveCur = E => ({ title: $('#ed-title') ? $('#ed-title').value : E.draft.title, body: E.draft.body });
+function liveLoop(E) {
+  clearTimeout(E.L.t);
+  E.L.t = setTimeout(() => {
+    if (S.editing !== E || !E.live) { if (E.live && !E.L.done) liveFinish(E); return; }   // ушли из редактора не через «Готово» — досылаем
+    liveTick(E); liveLoop(E);
+  }, 200);
+}
+function liveTick(E, force) {
+  const L = E.L, now = Date.now(); if (L.busy || L.done) return;
+  const cur = liveCur(E), tags = liveTags(), tagsDirty = JSON.stringify(tags) !== L.sentTags, dirty = L.c.dirty(cur) || tagsDirty;
+  const wait = L.fails ? Math.min(30000, 1000 * 2 ** L.fails) : dirty ? 400 : L.peers.length ? 1000 : 3000;
+  if (!force && now - L.sentAt < wait) return;
+  if (!force && E.pane === 'vis' && $('#ed-prev') && now - L.typedAt < 500) return;   // «Визуально» — в паузе набора
+  const req = Object.assign({}, L.c.request(cur, tagsDirty ? tags : null), { cursor: liveCursor(E) });
+  if (tagsDirty) L.sentTags = JSON.stringify(tags);
+  L.busy = true; L.sentAt = now;
+  return window.NOTES_COLLAB.sync(E.id, req).then(res => {
+    L.busy = false; L.fails = 0;
+    if (res.off) { liveOff(E); return; }
+    liveApply(E, res);
+  }, err => {
+    L.busy = false; L.fails = Math.min(5, L.fails + 1);
+    if (req.tags) L.sentTags = '';   // теги — отправить ещё раз
+    if (err.status === 404) { liveOff(E); return; }
+    L.state = 'offline'; liveStatus(E);
+  });
+}
+// где мой курсор (позиция в Markdown): в «Визуально» — начало абзаца с курсором
+function liveCursor(E) {
+  const ta = $('#ed-body'), vis = $('#ed-prev'), ti = $('#ed-title');
+  if (ti && document.activeElement === ti) return { f: 'title', i: ti.selectionStart };
+  if (E.pane === 'vis' && vis) {
+    const s = getSelection(), k = s.rangeCount ? blockIndexOf(vis, s.getRangeAt(0).startContainer) : -1;
+    const b = k >= 0 ? blockOffsets(E.draft.body)[k] : null; return b ? { f: 'body', i: b.start } : null;
+  }
+  return ta ? { f: 'body', i: ta.selectionStart } : null;
+}
+function liveApply(E, res) {
+  const L = E.L, before = liveCur(E), out = L.c.response(res, before);
+  const ti = $('#ed-title');
+  if (out.title !== before.title && ti) {
+    const a = ti.selectionStart, b = ti.selectionEnd; ti.value = out.title; E.draft.title = out.title;
+    if (document.activeElement === ti) ti.setSelectionRange(RNCollab.mapIndex(before.title, out.title, a), RNCollab.mapIndex(before.title, out.title, b));
+  }
+  if (out.body !== before.body) liveSetBody(E, before.body, out.body, null);
+  const tg = $('#ed-tags');
+  if (res.tags && tg && document.activeElement !== tg && JSON.stringify(res.tags) !== JSON.stringify(liveTags())) { tg.value = res.tags.join(' '); E.draft.tags = res.tags.slice(); }
+  if (res.tags && document.activeElement !== tg) L.sentTags = JSON.stringify(res.tags);   // поле тегов в фокусе — набранное отправится следующим запросом
+  L.peers = res.peers || []; L.state = L.c.dirty(liveCur(E)) ? 'saving' : 'ok';
+  livePeers(E); liveStatus(E);
+}
+// новый текст в редакторе; курсор — на том же месте текста (или at — после отмены)
+function liveSetBody(E, from, to, at) {
+  const L = E.L, d = E.draft, ta = $('#ed-body'), vis = $('#ed-prev');
+  // чужая правка — и в свою историю отмены: шаги отмены остаются «моими правками» поверх нового текста
+  if (at == null && from !== to) for (const st of [L.undo, L.redo]) for (const e of st) { e.before = RNCollab.merge(from, to, e.before); e.after = RNCollab.merge(from, to, e.after); }
+  d.body = to; L.last = to;
+  if (ta) {
+    const a = ta.selectionStart, b = ta.selectionEnd, focused = document.activeElement === ta;
+    ta.value = to; E.ui?.grow();
+    if (focused || at != null) { const p = at != null ? at : RNCollab.mapIndex(from, to, a); ta.setSelectionRange(p, at != null ? p : RNCollab.mapIndex(from, to, b)); }
+  }
+  if (vis) {
+    const focused = document.activeElement === vis, s = getSelection();
+    const off = focused && s.rangeCount ? textOffsetIn(vis, s.getRangeAt(0).startContainer, s.getRangeAt(0).startOffset) : null, oldPlain = vis.textContent;
+    vis.innerHTML = renderMd(to); enhance(vis);
+    if (off != null) placeCaretInText(vis, RNCollab.mapIndex(oldPlain, vis.textContent, off));
+  }
+}
+// своя правка текста (из textarea или «Визуально») — в свою историю отмены: подряд набранное (меньше 1 с) — один шаг
+function liveOwn(E) {
+  const L = E.L; if (!L) return;
+  const now = Date.now(), nb = E.draft.body; L.typedAt = now;
+  if (nb === L.last) return;
+  const top = L.undo[L.undo.length - 1];
+  if (top && now - L.undoAt < 1000) top.after = nb; else { L.undo.push({ before: L.last, after: nb }); if (L.undo.length > 50) L.undo.shift(); }
+  L.redo = []; L.undoAt = now; L.last = nb;
+  if (L.state === 'ok') { L.state = 'saving'; liveStatus(E); }
+}
+// отменить / повторить свою правку поверх того, что успели сделать другие
+function liveUndo(E, dir) {
+  const L = E.L, st = dir < 0 ? L.undo : L.redo, e = st.pop(); if (!e) return;
+  (dir < 0 ? L.redo : L.undo).push(e); L.undoAt = 0;
+  const cur = E.draft.body, from = dir < 0 ? e.after : e.before, to = dir < 0 ? e.before : e.after;
+  const next = RNCollab.merge(from, cur, to);
+  // курсор — туда, где изменение
+  let p = 0; while (p < cur.length && p < next.length && cur[p] === next[p]) p++;
+  let q = 0; while (q < cur.length - p && q < next.length - p && cur[cur.length - 1 - q] === next[next.length - 1 - q]) q++;
+  liveSetBody(E, cur, next, next.length - q);
+  const ta = $('#ed-body'); if (ta && E.pane !== 'vis') ta.focus();
+  L.typedAt = 0; liveTick(E, true);
+}
+function livePeers(E) {
+  const L = E.L, panes = document.querySelector('#ed .ed-panes'); if (!panes) return;
+  panes.querySelectorAll('.peer-layer').forEach(x => x.remove());
+  const ta = $('#ed-body'), vis = $('#ed-prev'), base = L.c.base.body, body = E.draft.body;
+  const here = L.peers.filter(p => p.f === 'body' && typeof p.i === 'number').map(p => Object.assign({}, p, { i: Math.min(body.length, RNCollab.mapIndex(base, body, p.i)) }));
+  if (ta && ta.offsetParent && here.length) {
+    const layer = document.createElement('div'); layer.className = 'peer-layer';
+    Object.assign(layer.style, { left: ta.offsetLeft + 'px', top: ta.offsetTop + 'px', width: ta.offsetWidth + 'px', height: ta.offsetHeight + 'px' });
+    for (const p of here) {
+      const xy = caretXY(ta, p.i), c = document.createElement('span');
+      c.className = 'peer-caret' + (xy.y < 18 ? ' below' : ''); c.style.cssText = `left:${xy.x}px;top:${xy.y}px;height:${xy.h}px;--pc:var(--tc-${liveColor(p.uid)})`;
+      c.innerHTML = `<b>${esc(p.name)}</b>`; c.title = p.name; layer.appendChild(c);
+    }
+    panes.appendChild(layer);
+  }
+  if (vis && vis.offsetParent && here.length) {
+    const layer = document.createElement('div'); layer.className = 'peer-layer peer-blocks';
+    Object.assign(layer.style, { left: vis.offsetLeft + 'px', top: vis.offsetTop + 'px', width: vis.offsetWidth + 'px', height: vis.offsetHeight + 'px' });
+    const offs = blockOffsets(body), byBlock = new Map();
+    for (const p of here) { let k = 0; offs.forEach((o, j) => { if (o.start <= p.i) k = j; }); if (!byBlock.has(k)) byBlock.set(k, []); byBlock.get(k).push(p); }
+    for (const [k, ps] of byBlock) {
+      const el = vis.children[k]; if (!el) continue;
+      const m = document.createElement('span'); m.className = 'peer-block';
+      m.style.cssText = `top:${el.offsetTop - vis.scrollTop}px;height:${el.offsetHeight}px;--pc:var(--tc-${liveColor(ps[0].uid)})`;
+      m.innerHTML = `<b>${esc(ps.map(p => p.name).join(', '))}</b>`; layer.appendChild(m);
+    }
+    panes.appendChild(layer);
+  }
+}
+function caretXY(ta, pos) {   // позиция символа в textarea (зеркало) — для курсоров соавторов
+  const cs = getComputedStyle(ta), m = document.createElement('div');
+  for (const k of ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'paddingTop', 'paddingLeft', 'paddingRight', 'borderTopWidth', 'borderLeftWidth', 'boxSizing', 'tabSize']) m.style[k] = cs[k];
+  m.style.position = 'absolute'; m.style.visibility = 'hidden'; m.style.whiteSpace = 'pre-wrap'; m.style.wordWrap = 'break-word'; m.style.width = ta.offsetWidth + 'px';
+  m.textContent = ta.value.slice(0, pos); const mk = document.createElement('span'); mk.textContent = '​'; m.appendChild(mk);
+  document.body.appendChild(m); const r = { x: mk.offsetLeft, y: mk.offsetTop - ta.scrollTop, h: mk.offsetHeight || parseFloat(cs.lineHeight) || 20 }; m.remove(); return r;
+}
+function liveStatus(E) {
+  const el = $('#live-st'); if (!el) return;
+  const L = E.L, names = [...new Set(L.peers.map(p => p.name))];
+  const who = names.length ? `${names.length > 2 ? names.slice(0, 2).join(', ') + ` и ещё ${names.length - 2}` : names.join(' и ')} тоже здесь` : '';
+  const st = L.state === 'offline' ? 'Нет связи — правки отправятся, когда она появится' : L.state === 'saving' ? 'Сохраняется…' : 'Сохранено';
+  el.innerHTML = `${who ? `<span class="who">👥 ${esc(who)}</span> · ` : ''}<span class="st ${L.state}">${st}</span>`;
+}
+// живой режим недоступен (Pro у владельца закончился, раздел перестал быть общим) — обычный редактор с тем, что набрано
+function liveOff(E) {
+  if (!E.live) return;
+  clearTimeout(E.L.t); E.live = false; E.L.done = true;
+  if (S.editing === E) { const box = $('#reader'); if (box) { E.draft.title = $('#ed-title')?.value ?? E.draft.title; renderEditor(box); } toast('Совместная правка сейчас недоступна — сохрани заметку как обычно.'); }
+}
+// «Готово» (или ушли из редактора): досылаем своё и выходим из заметки; без связи — обычная запись (уйдёт с очередью правок)
+// закрыли вкладку посреди правки — последнее отправляем «в фоне» (fetch keepalive)
+window.addEventListener('pagehide', () => {
+  const E = S.editing; if (!E?.live || !E.L || E.L.done || !window.NOTES_COLLAB?.beacon) return;
+  const cur = liveCur(E); if (E.L.c.dirty(cur)) window.NOTES_COLLAB.beacon(E.id, Object.assign({}, E.L.c.request(cur, null), { done: true }));
+});
+async function liveFinish(E) {
+  const L = E.L; if (L.done) return true; L.done = true; clearTimeout(L.t);
+  for (let i = 0; i < 50 && L.busy; i++) await new Promise(r => setTimeout(r, 100));
+  const cur = liveCur(E), tags = liveTags(), tagsDirty = JSON.stringify(tags) !== L.sentTags;
+  for (let i = 0; i < 2; i++) {
+    try {
+      const res = await window.NOTES_COLLAB.sync(E.id, Object.assign({}, L.c.request(cur, tagsDirty ? tags : null), { done: true }));
+      if (res.off) break;
+      const out = L.c.response(res, cur); E.draft.title = out.title; E.draft.body = out.body; if (res.tags) E.draft.tags = res.tags.slice();
+      if (!L.c.dirty(out)) return true;
+    } catch (e) { if (e.status === 404) return false; }
+  }
+  const n = S.notes.get(E.id); if (!n) return false;
+  E.draft.title = cur.title; E.draft.body = cur.body; E.draft.tags = tags;
+  return write(() => S.db.collection('notes').doc(E.id).update({ title: cur.title.trim() || n.title, body: cur.body, tags, updated: new Date().toISOString() }), null);
+}
+
 /* ---------- editor ---------- */
 document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
@@ -3619,6 +3812,7 @@ function startEdit(id, anchor, restore, overlay) {
   const n = S.notes.get(id);
   if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
   S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay };
+  if (liveFor(n)) { liveStart(S.editing, n); renderReader(!anchor); return; }   // общая заметка: живая правка, без черновиков
   const dr = getDraft(id);
   if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
   renderReader(!anchor);
@@ -3628,15 +3822,15 @@ function renderEditor(box) {
   box.dataset.artSig = '';
   box.innerHTML = `
     <button class="back" id="back">${E.tab === 'split' ? '← Показать список заметок' : '← К списку'}</button>
-    <div class="eyebrow">${E.id ? 'Редактирование' : 'Новая заметка'}</div>
+    <div class="eyebrow">${E.live ? 'Совместная правка' : E.id ? 'Редактирование' : 'Новая заметка'}</div>
     ${E.draftOffer ? `<div class="draft-note" style="margin-top:10px"><span>Есть несохранённый черновик${E.id ? ' этой заметки' : ' новой заметки'} от ${hhmm(E.draftOffer.ts)}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}.</span><button class="btn primary" type="button" id="dr-restore">Восстановить</button><button class="btn" type="button" id="dr-drop">Удалить черновик</button></div>` : ''}
     <form class="editor" id="ed" style="margin-top:14px">
       <div class="field"><label for="ed-title">Вопрос / заголовок</label><input id="ed-title" required value="${esc(d.title)}" placeholder="Например: Чем launch отличается от async?"></div>
       <div class="grid2">
-        <div class="field"><label for="ed-sec">Раздел</label><select id="ed-sec">${folderOptions(d.section)}</select></div>
+        <div class="field"><label for="ed-sec">Раздел</label><select id="ed-sec" ${E.live ? 'disabled title="Перенести заметку можно из списка заметок"' : ''}>${folderOptions(d.section)}</select></div>
         <div class="field"><label for="ed-tags">Теги через пробел</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="часто_спрашивают senior" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
       </div>
-      <label class="check" id="ed-ref-wrap" ${isTrainFolder(d.section) ? '' : 'hidden'}><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>Не тренировать: заметка остаётся в разделе, но не попадает в тренировку</span></label>
+      <label class="check" id="ed-ref-wrap" ${isTrainFolder(d.section) && !E.live ? '' : 'hidden'}><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>Не тренировать: заметка остаётся в разделе, но не попадает в тренировку</span></label>
       <div class="field">
         <div class="bar"><span class="lbl">Ответ</span><span class="spacer"></span>
           <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">Рядом</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">Визуально</button></div></div>
@@ -3646,11 +3840,11 @@ function renderEditor(box) {
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="Ответ в Markdown" placeholder="Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Ответ, визуальный редактор" data-empty="Пиши ответ прямо здесь">${renderMd(d.body)}</div>` : ''}
         </div>
-        <span class="hint">${E.tab === 'edit' ? '' : 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам. '}${MOD}+B жирный · ${MOD}+I курсив · ${MOD}+E код · ${MOD}+K ссылка · ${MOD}+S — сохранить · Esc или ${MOD}+Enter — сохранить и закрыть</span>
+        <span class="hint">${E.tab === 'edit' ? '' : 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам. '}${MOD}+B жирный · ${MOD}+I курсив · ${MOD}+E код · ${MOD}+K ссылка · ${E.live ? `правки сохраняются сами и сразу видны остальным · ${MOD}+Z — отменить свою правку · Esc — готово` : `${MOD}+S — сохранить · Esc или ${MOD}+Enter — сохранить и закрыть`}</span>
       </div>
       <div class="bar">
-        <button class="btn primary" type="submit">Сохранить</button>
-        <button class="btn" type="button" id="ed-cancel">Отмена</button>
+        ${E.live ? `<button class="btn primary" type="submit">Готово</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary" type="submit">Сохранить</button>
+        <button class="btn" type="button" id="ed-cancel">Отмена</button>`}
         <span class="spacer"></span>
         ${E.id ? (E.confirmDel ? `<span class="confirm">Переместить заметку в корзину? <button class="btn danger" type="button" id="ed-del-yes">В корзину</button><button class="btn" type="button" id="ed-del-no">Нет</button></span>` : `<button class="btn danger" type="button" id="ed-del">В корзину</button>`) : ''}
       </div>
@@ -3661,12 +3855,18 @@ function renderEditor(box) {
   const grow = () => { if (!ta) return; keepScroll(() => { ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; }); };
   let pT, visDirty = false;
   const renderVis = () => { if (vis) { vis.innerHTML = renderMd(d.body); enhance(vis); } };
+  E.ui = { grow };
   if (ta) {
     ta.addEventListener('input', () => {
       d.body = ta.value; grow();
+      if (E.live) { liveOwn(E); livePeers(E); }
       if (vis) { clearTimeout(pT); pT = setTimeout(renderVis, 160); }
     });
-    ta.addEventListener('keydown', e => mdKeydown(e, ta));
+    ta.addEventListener('keydown', e => {
+      if (E.live && (e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyZ' || e.code === 'KeyY')) { e.preventDefault(); liveUndo(E, e.code === 'KeyY' || e.shiftKey ? 1 : -1); return; }
+      mdKeydown(e, ta);
+    });
+    ta.addEventListener('beforeinput', e => { if (E.live && (e.inputType === 'historyUndo' || e.inputType === 'historyRedo')) { e.preventDefault(); liveUndo(E, e.inputType === 'historyUndo' ? -1 : 1); } });
     ta.addEventListener('input', e => {
       const p = ta.selectionStart;
       if (e.inputType === 'insertText' && ta.value.slice(p - 2, p) === '[[') pickForMd(ta, p - 2, p);
@@ -3687,7 +3887,7 @@ function renderEditor(box) {
   }
   if (vis) {
     try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
-    const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); if (ta) { ta.value = d.body; grow(); } };
+    const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); if (ta) { ta.value = d.body; grow(); } if (E.live) liveOwn(E); };
     vis.addEventListener('input', e => {
       if (e.inputType !== 'insertParagraph') return;
       const li = closestIn(vis, 'li'); const prevLi = li?.previousElementSibling;
@@ -3776,7 +3976,7 @@ function renderEditor(box) {
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader(); });
   $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else $('#lib').classList.remove('reading'); };
   const closeEditor = () => { const A = E.id ? editorAnchor(E) : null; S.editing = null; if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else { if (A) S.readAnchor = Object.assign({ id: E.id }, A); renderReader(); } };
-  $('#ed-cancel').onclick = () => { dropDraft(E.id); closeEditor(); };
+  $('#ed-cancel') && ($('#ed-cancel').onclick = () => { dropDraft(E.id); closeEditor(); });
   $('#ed-del') && ($('#ed-del').onclick = () => { sync(); E.confirmDel = true; renderEditor(box); });
   $('#ed-del-no') && ($('#ed-del-no').onclick = () => { E.confirmDel = false; renderEditor(box); });
   $('#ed-del-yes') && ($('#ed-del-yes').onclick = async () => {
@@ -3787,16 +3987,25 @@ function renderEditor(box) {
   form.addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); }
     else if ((e.key === 's' || e.key === 'ы' || e.code === 'KeyS') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); E.stay = true; form.requestSubmit(); }
-    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
+    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (E.live || draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
   });
-  let drT; form.addEventListener('input', () => { clearTimeout(drT); drT = setTimeout(() => { if (S.editing !== E) return; sync(); saveDraft(E); }, 500); });
+  let drT; form.addEventListener('input', () => { if (E.live) return; clearTimeout(drT); drT = setTimeout(() => { if (S.editing !== E) return; sync(); saveDraft(E); }, 500); });
   $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); renderReader(); });
   $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
   if (E.anchor) requestAnimationFrame(() => applyEditAnchor(E));
+  if (E.live) { liveStatus(E); requestAnimationFrame(() => livePeers(E)); }
   form.addEventListener('submit', async e => {
     e.preventDefault();
     if (uploads.size) { toast('Жду, пока загрузится картинка…'); await Promise.allSettled([...uploads]); }
     sync();
+    if (E.live) {   // совместная правка: всё уже у сервера — досылаем последнее и выходим
+      const A = editorAnchor(E), id = E.id;
+      await liveFinish(E);
+      const prev = S.notes.get(id); if (prev) S.notes.set(id, Object.assign({}, prev, { title: d.title || prev.title, body: d.body, tags: d.tags }));
+      S.editing = null; S.artJumpToCurrent = true; renderList();
+      if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
+      return;
+    }
     if (!d.title.trim()) return;
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
@@ -3937,8 +4146,8 @@ function mdAction(act, ta) {
     case 'note': return pickForMd(ta, s, e);
     case 'table': return insertBlock(ta, '| Колонка 1 | Колонка 2 |\n| --- | --- |\n| значение | значение |', 2, 9);
     case 'hr': return insertBlock(ta, '---', 3);
-    case 'undo': ta.focus(); try { document.execCommand('undo'); } catch {} return;
-    case 'redo': ta.focus(); try { document.execCommand('redo'); } catch {} return;
+    case 'undo': if (S.editing?.live) return liveUndo(S.editing, -1); ta.focus(); try { document.execCommand('undo'); } catch {} return;
+    case 'redo': if (S.editing?.live) return liveUndo(S.editing, 1); ta.focus(); try { document.execCommand('redo'); } catch {} return;
   }
 }
 function mdKeydown(e, ta) {
@@ -4178,6 +4387,7 @@ function histRecord(vis) {   // save the current state if it changed since the l
 }
 function histSoon(vis) { const h = visHist(vis); if (h.applying) return; clearTimeout(h.t); h.t = setTimeout(() => histRecord(vis), 700); }
 function histStep(vis, d) {
+  if (S.editing?.live) return liveUndo(S.editing, d);   // совместная правка: отменяются только свои правки
   const h = visHist(vis); histRecord(vis);
   const j = h.i + d; if (j < 0 || j >= h.stack.length) return;
   // the caret goes where the change happened: for undo, where it was after the step being undone
