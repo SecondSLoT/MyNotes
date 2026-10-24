@@ -1572,6 +1572,7 @@ $('#rail').addEventListener('drop', e => {
 async function placeFolder(id, target, where) {
   const f = S.sections.get(id), tg = S.sections.get(target); if (!f || !tg || id === target) return;
   const parent = parentOf(target);
+  if (parent !== parentOf(id) && moveToSpace(id, parent, true)) return;
   let sibs = kids(parent).filter(x => x.id !== id);
   const ord = x => x.order ?? 0;
   if (new Set(sibs.map(ord)).size !== sibs.length) { // duplicate orders: renumber the siblings first
@@ -3008,6 +3009,7 @@ async function swapSections(id, dir) {
 }
 async function moveFolder(id, to) {
   const f = S.sections.get(id); if (!f || (to && subtree(id).has(to)) || parentOf(id) === (to || null)) return;
+  if (moveToSpace(id, to, true)) return;
   const order = Math.max(0, ...kids(to).map(s => s.order ?? 0)) + 1;
   const was = { parent: f.parent, order: f.order };
   f.parent = to; f.order = order; if (to) { collapsed.delete(to); store.set('collapsed', [...collapsed]); }
@@ -4870,24 +4872,32 @@ function spaceMoveTarget(n, sec) {
   if (!tsp || tsp.role === 'owner' || (from && from.id === tsp.id) || (from && from.role !== 'owner')) return null;
   return tsp;
 }
-function moveToSpace(id, sec) {
-  const n = S.notes.get(id), tsp = n && spaceMoveTarget(n, sec); if (!tsp) return false;
+// свой раздел (не общий и без общих внутри) → в чужой общий раздел
+function folderMoveTarget(id, to) {
+  const tsp = to ? spaceOfSection(to) : null;
+  if (!tsp || tsp.role === 'owner' || spaceOfSection(id)) return null;
+  return tsp;
+}
+function moveToSpace(id, sec, folder) {
+  const n = folder ? S.sections.get(id) : S.notes.get(id), tsp = n && (folder ? folderMoveTarget(id, sec) : spaceMoveTarget(n, sec)); if (!tsp) return false;
   if (!canEditIn(tsp)) { roRefuse(tsp); return true; }
+  if (folder && spacesList().some(x => x.role === 'owner' && subtree(id).has(x.root))) { toast('Внутри этого раздела есть общий раздел — перенести его в чужой общий нельзя.'); return true; }
   let ov = $('#move-ov'); if (!ov) { ov = document.createElement('div'); ov.id = 'move-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const close = () => { ov.hidden = true; ov.innerHTML = ''; }, title = S.sections.get(sec)?.title || '';
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="move-title">
     <h2 id="move-title">Перенести в общий раздел?</h2>
-    <p style="margin:0">Заметка «${esc(n.title || 'Без названия')}» перейдёт в раздел «${esc(title)}» — его владелец <b>${esc(tsp.owner.name)}</b>.</p>
-    <p class="hint" style="margin:0">Её увидят все участники раздела. Удалить навсегда сможет только владелец, забрать обратно — только копией. Картинки скопируются к владельцу, история версий перейдёт вместе с заметкой, ссылка на чтение этой заметки (если была) отключится.</p>
+    <p style="margin:0">${folder ? `Раздел «${esc(n.title || 'Без названия')}» со всеми подразделами и заметками перейдёт` : `Заметка «${esc(n.title || 'Без названия')}» перейдёт`} в раздел «${esc(title)}» — его владелец <b>${esc(tsp.owner.name)}</b>.</p>
+    <p class="hint" style="margin:0">${folder ? 'Их' : 'Её'} увидят все участники раздела. Удалить навсегда сможет только владелец, забрать обратно — только копией. Картинки скопируются к владельцу, история версий перейдёт вместе с ${folder ? 'заметками' : 'заметкой'}, ссылки на чтение (если были) отключатся.${folder ? ' Заметки из корзины останутся у тебя.' : ''}</p>
     <p class="hint" id="move-status" style="margin:0"></p>
     <div class="bar"><button class="btn primary" type="button" id="move-yes">Перенести</button><button class="btn" type="button" id="move-no">Отмена</button></div></div>`;
   $('#move-no').onclick = () => { close(); rerender(); };
   $('#move-yes').onclick = async e => {
     e.target.disabled = true; $('#move-status').textContent = 'Переношу…';
     try {
-      const r = await window.NOTES_SPACES.moveNote(id, sec); close();
+      const r = folder ? await window.NOTES_SPACES.moveFolder(id, sec) : await window.NOTES_SPACES.moveNote(id, sec); close();
       toast(`Перенесено в общий раздел «${title}»`);
+      if (folder) { if (S.section === id || subtree(id).has(S.section)) { S.section = sec; store.set('section', sec); } rerender(); return; }
       for (let i = 0; i < 40 && !S.notes.has(r.key); i++) await new Promise(res => setTimeout(res, 250));
       if (S.noteId === id || !S.notes.has(S.noteId)) { S.noteId = S.notes.has(r.key) ? r.key : null; store.set('note', S.noteId); S.flash = r.key; }
       rerender(); if (!S.editing) renderReader();
