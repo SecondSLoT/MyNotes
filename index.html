@@ -213,7 +213,8 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:2px 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.dbg-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.dbg-row .btn{font-size:13px}.dbg-tog{display:flex;gap:10px;align-items:flex-start;margin:6px 0;cursor:pointer}.dbg-tog input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--accent)}.dbg-tog small{display:block;color:var(--muted)}.dbg-lim{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.dbg-lim input{width:84px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}.dbg-now{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:14px}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -4395,11 +4396,11 @@ function payHtml(primary) {
   const P = S.plan || {};
   if (!P.payReady) return P.pro || !P.trialUsed ? '' : '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</p>';
   const p = P.prices || {};
-  return `${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span><b>Продлевать автоматически.</b> Даю согласие списывать
-      ${rub(p.month)} раз в месяц или ${rub(p.year)} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.
-      Напомним письмом за 3 дня; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>.</span></label>` : ''}
-    <div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
+  return `<div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
     <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${P.pro ? 'Продлить' : 'Pro'} на год — ${rub(p.year)} <span class="save">−${yearSave(p)}%</span></button></div>
+    ${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span><b>Продлевать автоматически.</b> Даю согласие списывать
+      ${rub(p.month)} раз в месяц или ${rub(p.year)} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.
+      За 3 дня до списания напомним в приложении; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>.</span></label>` : ''}
     <p class="hint">${P.recurringReady ? 'Оплата через Robokassa.' : 'Разовая оплата через Robokassa, без автоматических списаний.'} Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>.</p>`;
 }
 function wirePay(root) {
@@ -4492,13 +4493,53 @@ function planPanelHtml() {
   return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
     <summary>Тариф <span>· ${esc(sub)}</span></summary>
     <div class="meters">${meter('Заметки', planUsed('notes'), planLimit('notes'))}${meter('Разделы', planUsed('sections'), planLimit('sections'))}${meter('Картинки', planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
-    ${pro && P.autorenew && !P.forever ? `<p class="sub"><b>Автопродление включено:</b> ${esc(planDate(P.until))} спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'} с карты, которой ты оплачивал Pro. Напомним письмом за 3 дня.</p>
+    ${pro && P.autorenew && !P.forever ? `<p class="sub"><b>Автопродление включено:</b> ${esc(planDate(P.until))} спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'} с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же.</p>
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
     : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
       : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
+}
+/* «Отладка» — только для тестировщика (users.tester в админке): свои переключатели тарифов и смена своего Pro */
+function debugPanelHtml() {
+  const P = S.plan; if (!P?.tester) return '';
+  const d = P.debug || {}, tog = (k, label, hint) => `<label class="dbg-tog"><input type="checkbox" data-dbg="${k}" ${d[k] ? 'checked' : ''}><span>${label}${hint ? `<small>${hint}</small>` : ''}</span></label>`;
+  const now = !P.pro ? 'Free' : P.forever ? 'Pro навсегда' : `Pro (${P.source === 'trial' ? 'пробный' : P.source === 'paid' ? 'оплачен' : '?'}) до ${planDate(P.until)}`;
+  const btn = (a, t, extra = '') => `<button class="btn" type="button" data-dbg-act="${a}" ${extra}>${t}</button>`;
+  return `<details class="panel" id="debug-panel" ${S.debugOpen ? 'open' : ''}>
+    <summary>Отладка <span>· только для тебя</span></summary>
+    <p class="sub">Всё здесь действует только на этот аккаунт — остальные пользователи ничего не замечают.</p>
+    <p class="dbg-now">Сейчас: <b>${esc(now)}</b> · пробный ${P.trialUsed ? 'был' : 'не был'} · автопродление ${P.autorenew ? 'включено' : 'выключено'} · тарифы ${P.enabled ? 'включены' : 'выключены'}</p>
+    ${tog('plans', 'Тарифы Free / Pro', d.plans ? '' : P.enabled ? 'сейчас включены для всех' : 'для всех выключены — включить только мне')}
+    ${tog('recurring', 'Автопродление', P.recurringReady && !d.recurring ? 'сейчас включено для всех' : 'галочка «Продлевать автоматически» при оплате')}
+    ${tog('pay_test', 'Тестовая оплата Robokassa', P.payTest ? 'платежи — в тестовом режиме, деньги не списываются' : d.pay_test ? 'не работает: в app_config нет robokassa_test_pass1 / robokassa_test_pass2' : 'IsTest=1 и тестовые пароли из app_config')}
+    <div class="dbg-lim">Лимиты Free для меня:
+      <input type="number" min="0" id="dbg-notes" placeholder="${P.free.notes}" value="${d.free_notes ?? ''}" aria-label="Заметок"> заметок
+      <input type="number" min="0" id="dbg-secs" placeholder="${P.free.sections}" value="${d.free_sections ?? ''}" aria-label="Разделов"> разделов
+      <input type="number" min="0" step="0.1" id="dbg-mb" placeholder="${Math.round(P.free.bytes / 1048576)}" value="${d.free_mb ?? ''}" aria-label="МБ"> МБ
+      <button class="btn" type="button" id="dbg-lim-go">Применить</button><button class="btn" type="button" id="dbg-lim-reset">Как у всех</button></div>
+    <div class="dbg-row">${btn('free', 'Сделать Free')}${btn('trial', 'Пробный Pro 14 дней')}${btn('paid', 'Pro оплачен на 30 дней')}${btn('ending', 'Заканчивается через 2 дня')}${btn('expired', 'Pro истёк вчера')}
+      ${btn('forever', P.forever ? 'Снять Pro навсегда' : 'Pro навсегда')}${btn('trial_reset', 'Сбросить «пробный был»')}${P.autorenew ? btn('renew_sim', 'Имитировать автосписание') : ''}${btn('remind', 'Письмо-напоминание себе')}</div>
+    <p class="hint" id="dbg-status" aria-live="polite"></p>
+  </details>`;
+}
+function wireDebugPanel() {
+  const p = $('#debug-panel'); if (!p) return;
+  p.ontoggle = () => { S.debugOpen = p.open; };
+  const go = async (body, msg) => {
+    p.querySelectorAll('button, input').forEach(x => x.disabled = true);
+    try {
+      S.plan = await window.NOTES_DEBUG(body);
+      store.set('planRemind.' + (S.uid || ''), '');   // напоминание показать снова
+      S.planWarned = false; renderPlanBar(); renderProg(); toast(msg || 'Готово');
+    } catch (e) { p.querySelectorAll('button, input').forEach(x => x.disabled = false); const st = $('#dbg-status'); if (st) st.textContent = 'Не получилось: ' + (e?.message || e); }
+  };
+  p.querySelectorAll('[data-dbg]').forEach(c => c.onchange = () => go({ set: { [c.dataset.dbg]: c.checked } }));
+  p.querySelectorAll('[data-dbg-act]').forEach(b => b.onclick = () => go({ action: b.dataset.dbgAct }, b.dataset.dbgAct === 'remind' ? 'Письмо отправлено' : 'Готово: ' + b.textContent));
+  const val = id => { const v = $(id).value.trim(); return v === '' ? null : Number(v); };
+  $('#dbg-lim-go').onclick = () => go({ set: { free_notes: val('#dbg-notes'), free_sections: val('#dbg-secs'), free_mb: val('#dbg-mb') } }, 'Лимиты для тебя изменены');
+  $('#dbg-lim-reset').onclick = () => go({ set: { free_notes: null, free_sections: null, free_mb: null } }, 'Лимиты — как у всех');
 }
 function wirePlanPanel() {
   const p = $('#plan-panel'); if (!p) return;
@@ -4518,13 +4559,20 @@ function renderPlanBar() {
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
-  if (!end || P.autorenew || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
-  bar.innerHTML = `<p><b>${paid ? 'Pro' : 'Пробный Pro'} закончится ${esc(planDate(P.until))}.</b> Потом вернутся ограничения бесплатной версии: до ${P.free.notes} заметок,
+  if (!end || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.innerHTML = P.autorenew ? `<p><b>Pro продлится автоматически ${esc(planDate(P.until))}:</b> спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'}
+    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется.</p>
+    <div class="bar"><button class="btn" type="button" id="plan-bar-off">Отключить автопродление</button><button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`
+  : `<p><b>${paid ? 'Pro' : 'Пробный Pro'} закончится ${esc(planDate(P.until))}.</b> Потом вернутся ограничения бесплатной версии: до ${P.free.notes} заметок,
     ${P.free.sections} разделов и ${fmtBytes(P.free.bytes)} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится.</p>
     <div class="bar">${P.payReady ? `<button class="btn primary" type="button" id="plan-bar-pay">${paid ? 'Продлить' : 'Оформить Pro'}</button>` : ''}<button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`;
   bar.hidden = false;
   $('#plan-bar-ok').onclick = () => { store.set(key, P.until); renderPlanBar(); };
   $('#plan-bar-pay') && ($('#plan-bar-pay').onclick = () => showPlanDialog('renew'));
+  $('#plan-bar-off') && ($('#plan-bar-off').onclick = async () => {
+    try { S.plan = await window.NOTES_AUTORENEW(false); store.set(key, P.until); renderPlanBar(); if (S.mode === 'prog') renderProg(); toast(`Автопродление отключено. Pro действует до ${planDate(S.plan.until)}, больше ничего не спишем.`); }
+    catch (e) { toast('Не получилось: ' + (e?.message || e)); }
+  });
 }
 window.addEventListener('notes-sync', e => {
   const d = e.detail || {};
@@ -4796,11 +4844,11 @@ function renderProg() {
     </section>
     ${tagsPanelHtml()}
     ${window.NOTES_FEEDBACK ? `<section class="panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div></section>` : ''}
-    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
+    ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() + debugPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
   root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
-  if (window.NOTES_STANDALONE) { wirePlanPanel(); wireDataPanel(); wireAccountPanel(); wireGhPanel(); $('#install-go2') && ($('#install-go2').onclick = doInstall); }
+  if (window.NOTES_STANDALONE) { wirePlanPanel(); wireDebugPanel(); wireDataPanel(); wireAccountPanel(); wireGhPanel(); $('#install-go2') && ($('#install-go2').onclick = doInstall); }
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
