@@ -233,6 +233,12 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .share-tog{display:flex;gap:10px;align-items:center;font-weight:600;cursor:pointer}.share-tog input{width:20px;height:20px;margin:0;accent-color:var(--accent)}
 .share-link{display:flex;gap:8px}.share-link input{flex:1;min-width:0;font:14px var(--f-mono);padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}
 .share-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.shr{font-size:12px;margin-left:4px;opacity:.85}
+.collab{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}.collab h3{margin:0;font:600 16px/1.3 var(--f-display);display:flex;align-items:center;gap:8px}
+.collab .pro{font:600 11px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 7px}
+.collab .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.collab select{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}
+.collab .who{display:flex;flex-direction:column;gap:6px}.collab .who>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.collab .who .nm{flex:1;min-width:120px}
+.collab .inv{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}.collab .inv input{flex:1;min-width:160px;font:13px var(--f-mono);padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -1029,6 +1035,9 @@ async function togglePin(id) {
   if (!ok) { n.pinned = !val; rerender(); }
 }
 async function trashNotes(ids, undoable = true) {
+  // в общем разделе удаляет только владелец
+  const foreign = ids.filter(id => { const sp = spaceOfNote(S.notes.get(id)); return sp && sp.role !== 'owner'; });
+  if (foreign.length) { delRefuse({ role: 'read' }); ids = ids.filter(id => !foreign.includes(id)); if (!ids.length) return; }
   const now = new Date().toISOString(); const done = [];
   for (const id of ids) {
     const n = S.notes.get(id); if (!n) continue;
@@ -1431,6 +1440,7 @@ function renderRail() {
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${collapsed.has(s.id) ? 'Развернуть' : 'Свернуть'}"` : ''}>▶</span>`
       + `${d.get(s.id) ? '<span class="due" title="Есть карточки к повторению"></span>' : ''}<span class="name">${esc(s.title)}</span>`
       + `${s.train ? '<span class="trn" title="Тренировка включена для всего раздела">◎</span>' : ''}`
+      + (() => { const sp = spacesList().find(x => x.root === s.id); return sp ? `<span class="shr" title="${esc(sp.role === 'owner' ? 'Общий раздел: ' + (sp.members.length ? sp.members.map(m => m.name).join(', ') : 'пока никого') : 'Общий раздел · владелец ' + sp.owner.name)}">👥</span>` : ''; })()
       + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
           return `<span class="tools"><span role="button" data-sec-act="up" aria-label="Выше" aria-disabled="${i <= 0 || alphaKids(p)}">↑</span><span role="button" data-sec-act="down" aria-label="Ниже" aria-disabled="${i >= sib.length - 1 || alphaKids(p)}">↓</span><span role="button" data-sec-act="menu" aria-label="Меню раздела">⋯</span></span>`; })()
         : `<span class="n">${c.get(s.id) || 0}</span>`) + `</button>`);
@@ -1442,7 +1452,7 @@ function renderRail() {
   $('#rail').innerHTML = rows.join('');
   // phone: drill-down — the current level and its children
   const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
-  const chip = x => `<button class="chip" data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
+  const chip = x => `<button class="chip" data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${spacesList().some(z => z.root === x.id) ? ' 👥' : ''}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
   const chips = (ctx
     ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="На уровень выше">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : 'Все')}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
     : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">Все</button>`, `<button class="chip" data-sec="fav" aria-pressed="${S.section === 'fav'}">★</button>`, `<button class="chip" data-sec="recent" aria-pressed="${S.section === 'recent'}">Недавние</button>`].concat(kids(null).map(chip), [`<button class="chip" data-sec="trash" aria-pressed="${S.section === 'trash'}">Корзина${S.trash.size ? ' ' + S.trash.size : ''}</button>`]))
@@ -3600,12 +3610,14 @@ document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const
 $('#new-note').addEventListener('click', () => {
   if (planBlocks('notes')) return;
   const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : lastFolder();
+  if (roRefuse(spaceOfSection(sec))) return;
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
   const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
   $('#lib').classList.add('reading'); renderReader(true);
 });
 function startEdit(id, anchor, restore, overlay) {
   const n = S.notes.get(id);
+  if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
   S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay };
   const dr = getDraft(id);
   if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
@@ -4457,7 +4469,9 @@ async function payReturn() {
 const planOn = () => !!(S.plan && S.plan.enabled);
 const fmtBytes = b => b >= 1073741824 ? `${+(b / 1073741824).toFixed(1)} ГБ`.replace('.', ',') : `${Math.round(b / 1048576)} МБ`;
 const planLimit = kind => !planOn() ? Infinity : (S.plan.limits[kind] ?? Infinity);
-const planUsed = kind => kind === 'notes' ? S.notes.size : kind === 'sections' ? S.sections.size : (S.plan?.usage?.bytes || 0);
+// в лимиты идут только свои заметки и разделы (общие разделы чужих — в лимитах их владельцев)
+const ownCount = m => { let k = 0; for (const x of m.values()) { const sp = m === S.notes ? spaceOfNote(x) : spaceOfSection(x.id); if (!sp || sp.role === 'owner') k++; } return k; };
+const planUsed = kind => kind === 'notes' ? ownCount(S.notes) : kind === 'sections' ? ownCount(S.sections) : (S.plan?.usage?.bytes || 0);
 async function loadPlan() {
   if (!window.NOTES_PLAN) return;
   try { S.plan = await window.NOTES_PLAN(); } catch { return; }
@@ -4479,13 +4493,13 @@ function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed, renew = kind === 'renew';
-  const head = renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
+  const head = kind === 'spaces' ? 'Общие разделы — в Pro' : renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
     ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий. ${PRO_PRICE()}.</p>`}
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы. ${PRO_PRICE()}.</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -4521,19 +4535,109 @@ function planPanelHtml() {
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
     : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
+/* ---------- общие разделы (Pro владельца, под переключателем тарифов): участники читают или правят ---------- */
+const spacesList = () => window.NOTES_SPACES ? window.NOTES_SPACES.list() : [];
+function spaceOfSection(id) {   // общий раздел, в котором лежит раздел (сам или его предок)
+  const roots = new Map(spacesList().map(x => [x.root, x])); if (!roots.size) return null;
+  for (let cur = id, i = 0; cur && i < 64; i++) { if (roots.has(cur)) return roots.get(cur); cur = S.sections.get(cur)?.parent || null; }
+  return null;
+}
+const spaceOfNote = n => n ? spaceOfSection(n.section) : null;
+const canEditIn = sp => !sp || sp.role === 'owner' || (sp.role === 'edit' && sp.active);
+function roRefuse(sp) { if (canEditIn(sp)) return false; toast(sp.role === 'edit' ? 'Pro у владельца раздела закончился — пока можно только читать.' : 'В этом общем разделе ты только читаешь.'); return true; }
+function delRefuse(sp) { if (!sp || sp.role === 'owner') return false; toast('Удалять в общем разделе может только его владелец.'); return true; }
+const ROLE = { read: 'читает', edit: 'редактирует' };
+const joinUrl = t => `${location.origin}/?join=${t}`;
+function collabHtml(sp) {
+  if (!window.NOTES_SPACES) return '';
+  if (!sp && !planOn()) return '';   // общие разделы — в Pro: пока тарифы выключены, их не видно
+  const head = `<h3>Совместная работа <span class="pro">Pro</span></h3>`;
+  if (!sp) return `<div class="collab">${head}<p class="hint" style="margin:0">Пригласи людей читать или редактировать этот раздел вместе с тобой — до 10 участников. Удалять заметки может только владелец.</p>
+    <div class="row"><button class="btn primary" type="button" id="sp-make">Сделать раздел общим</button></div></div>`;
+  if (sp.role !== 'owner') return `<div class="collab">${head}<p style="margin:0">Владелец — <b>${esc(sp.owner.name)}</b>. Ты ${sp.role === 'edit' ? (sp.active ? 'редактируешь' : 'читаешь (у владельца закончился Pro)') : 'читаешь'}.</p>
+    ${sp.members.length ? `<p class="hint" style="margin:0">Участники: ${sp.members.map(m => esc(m.name)).join(', ')}</p>` : ''}
+    <div class="row"><button class="btn" type="button" id="sp-leave">Выйти из раздела</button></div></div>`;
+  const full = sp.members.length >= 10;
+  return `<div class="collab">${head}
+    ${!sp.active ? '<p class="hint" style="margin:0">Pro закончился — участники сейчас только читают, приглашать нельзя.</p>' : ''}
+    <div class="who">${sp.members.length ? sp.members.map(m => `<div><span class="nm">${esc(m.name)}</span>
+        <select data-sp-role="${esc(m.id)}" aria-label="Роль: ${esc(m.name)}"><option value="read" ${m.role === 'read' ? 'selected' : ''}>читает</option><option value="edit" ${m.role === 'edit' ? 'selected' : ''}>редактирует</option></select>
+        <button class="btn" type="button" data-sp-kick="${esc(m.id)}">Убрать</button></div>`).join('') : '<p class="hint" style="margin:0">Пока никого — пригласи по ссылке.</p>'}</div>
+    ${sp.active && !full ? `<div class="row"><select id="sp-inv-role" aria-label="Роль приглашённого"><option value="edit">Редактировать</option><option value="read">Только читать</option></select>
+      <button class="btn primary" type="button" id="sp-invite">Ссылка-приглашение</button></div>` : full ? '<p class="hint" style="margin:0">Участников уже 10 — больше нельзя.</p>' : ''}
+    ${(sp.invites || []).map(i => `<div class="inv"><input readonly value="${esc(joinUrl(i.token))}" aria-label="Приглашение"><span>${ROLE[i.role]} · до ${esc(planDate(i.expires))}</span>
+        <button class="btn" type="button" data-sp-copy="${esc(i.token)}">Скопировать</button><button class="btn" type="button" data-sp-revoke="${esc(i.id)}">Отозвать</button></div>`).join('')}
+    <p class="hint" style="margin:0">Приглашение действует 7 дней. Принять его можно, войдя в ReteNote.</p>
+    <div class="row"><button class="btn" type="button" id="sp-stop">${S.spStop ? 'Точно? Участники потеряют доступ' : 'Перестать делиться'}</button></div></div>`;
+}
+function wireCollab(sp, redraw) {
+  const S2 = window.NOTES_SPACES; if (!S2) return;
+  const run = async (fn, msg) => {
+    const st = $('#share-status'); if (st) st.textContent = '…';
+    try { await fn(); S.spStop = false; redraw(msg || ''); if (msg) toast(msg); } catch (e) { redraw('Не получилось: ' + (e?.message || e)); }
+  };
+  $('#sp-make') && ($('#sp-make').onclick = () => {
+    if (!S.plan?.pro) { showPlanDialog('spaces'); return; }
+    const id = S.shareSection; run(() => S2.create(id), 'Раздел стал общим — теперь пригласи участников');
+  });
+  $('#sp-invite') && ($('#sp-invite').onclick = () => run(async () => { const r = await S2.invite(sp.id, $('#sp-inv-role').value); try { await navigator.clipboard.writeText(joinUrl(r.token)); } catch {} }, 'Приглашение скопировано'));
+  document.querySelectorAll('[data-sp-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(joinUrl(b.dataset.spCopy)); toast('Приглашение скопировано'); } catch {} });
+  document.querySelectorAll('[data-sp-revoke]').forEach(b => b.onclick = () => run(() => S2.revoke(sp.id, b.dataset.spRevoke), 'Приглашение отозвано'));
+  document.querySelectorAll('[data-sp-role]').forEach(c => c.onchange = () => run(() => S2.setRole(sp.id, c.dataset.spRole, c.value), 'Роль изменена'));
+  document.querySelectorAll('[data-sp-kick]').forEach(b => b.onclick = () => run(() => S2.leave(sp.id, b.dataset.spKick), 'Участник убран'));
+  $('#sp-stop') && ($('#sp-stop').onclick = () => { if (!S.spStop) { S.spStop = true; redraw(); return; } run(() => S2.remove(sp.id), 'Раздел больше не общий'); });
+  $('#sp-leave') && ($('#sp-leave').onclick = () => { if (!S.spStop) { S.spStop = true; $('#sp-leave').textContent = 'Точно выйти?'; return; } run(() => S2.leave(sp.id), 'Ты вышел из общего раздела'); });
+}
+// пришёл по ссылке-приглашению (?join=…): спросить, принять ли
+async function joinCheck() {
+  const t = window.NOTES_PENDING_JOIN?.(); if (!t || !window.NOTES_SPACES || !S.uid) return;
+  let info; try { info = await window.NOTES_SPACES.joinInfo(t); } catch (e) { window.NOTES_PENDING_JOIN(true); toast(e?.message || 'Приглашение не работает'); return; }
+  let ov = $('#join-ov'); if (!ov) { ov = document.createElement('div'); ov.id = 'join-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; window.NOTES_PENDING_JOIN(true); };
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="join-title">
+    <h2 id="join-title">Приглашение в общий раздел</h2>
+    <p style="margin:0"><b>${esc(info.owner)}</b> приглашает тебя ${info.role === 'edit' ? 'читать и редактировать' : 'читать'} раздел «${esc(info.title)}».</p>
+    ${info.already ? `<p class="hint" style="margin:0">Ты уже участник этого раздела${info.already === 'owner' ? ' (это твой раздел)' : ''}.</p>` : '<p class="hint" style="margin:0">Раздел появится у тебя в списке разделов со значком 👥. Участники увидят твоё имя.</p>'}
+    <p class="hint" id="join-status" style="margin:0"></p>
+    <div class="bar">${info.already === 'owner' ? '' : `<button class="btn primary" type="button" id="join-yes">${info.already ? 'Обновить роль' : 'Принять'}</button>`}<button class="btn" type="button" id="join-no">${info.already ? 'Закрыть' : 'Отказаться'}</button></div></div>`;
+  $('#join-no').onclick = close;
+  $('#join-yes') && ($('#join-yes').onclick = async e => {
+    e.target.disabled = true;
+    try {
+      const sp = await window.NOTES_SPACES.join(t); close();
+      toast(`Раздел «${info.title}» теперь у тебя в списке`);
+      for (let i = 0; i < 40 && !S.sections.has(sp.root); i++) await new Promise(r => setTimeout(r, 250));
+      if (S.sections.has(sp.root)) { if (S.mode !== 'lib') setMode('lib'); selectSection(sp.root); $('#lib').classList.remove('reading'); }   // на телефоне — сразу список раздела
+    } catch (err) { e.target.disabled = false; $('#join-status').textContent = 'Не получилось: ' + (err?.message || err); }
+  });
+}
+window.addEventListener('notes-spaces', () => { if (S.mode === 'lib') renderRail(); });
 /* ---------- ссылка на чтение (ReteNote, бесплатно): заметка или раздел с подразделами, без входа ---------- */
 async function openShare(kind, id) {
+  S.shareSection = kind === 'section' ? id : null; S.spStop = false;
   const item = kind === 'note' ? (S.notes.get(id)) : S.sections.get(id); if (!item || !window.NOTES_SHARE) return;
   let ov = $('#share-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'share-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const close = () => { ov.hidden = true; ov.innerHTML = ''; };
   let share = null, busy = false, loaded = false;
   const url = () => share ? `${location.origin}/s.html#${share.token}` : '';
+  const sp0 = () => kind === 'note' ? spaceOfNote(item) : spaceOfSection(id);
+  const foreign = () => { const x = sp0(); return !!x && x.role !== 'owner'; };
   const draw = (status) => {
+    if (foreign()) {   // чужой общий раздел: ссылкой на чтение делится владелец; для раздела — участники и «Выйти»
+      ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-title">
+        <h2 id="share-title">${kind === 'note' ? 'Заметка' : 'Раздел'} «${esc(item.title || 'Без названия')}»</h2>
+        <p class="hint" style="margin:0">Это общий раздел владельца — ${esc(sp0().owner.name)}. Делиться ссылкой может только он.</p>
+        ${kind === 'section' && sp0().root === id ? collabHtml(sp0()) : ''}
+        <p class="hint" id="share-status" aria-live="polite" style="margin:0">${esc(status || '')}</p>
+        <div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
+      $('#share-done').onclick = close; wireCollab(sp0(), draw); return;
+    }
     if (!loaded) {   // пока не знаем, есть ли ссылка, — не показываем галочку «выключено»
       ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true"><h2>Поделиться ${kind === 'note' ? 'заметкой' : 'разделом'} «${esc(item.title || 'Без названия')}»</h2><p class="hint" id="share-status" style="margin:0">${esc(status || 'Загружаю…')}</p><div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
       $('#share-done').onclick = close; return;
@@ -4544,9 +4648,11 @@ async function openShare(kind, id) {
       <p class="hint" style="margin:0">Кто угодно со ссылкой может читать — без входа и без аккаунта${kind === 'section' ? '. Видны все заметки раздела и его подразделов, кроме корзины' : ''}. Отключишь — ссылка перестанет работать.</p>
       ${share ? `<div class="share-link"><input id="share-url" readonly value="${esc(url())}" aria-label="Ссылка"><button class="btn primary" type="button" id="share-copy">Скопировать</button></div>
         <p class="hint" style="margin:0"><a href="${esc(url())}" target="_blank" rel="noopener">Открыть, как увидят другие</a></p>` : ''}
+      ${kind === 'section' ? collabHtml(sp0()) : ''}
       <p class="hint" id="share-status" aria-live="polite" style="margin:0">${esc(status || '')}</p>
       <div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
     $('#share-done').onclick = close;
+    if (kind === 'section') wireCollab(sp0(), draw);
     $('#share-on').onchange = async e => {
       busy = true; const on = e.target.checked; draw(on ? 'Включаю…' : 'Отключаю…');
       try { share = (on ? await window.NOTES_SHARE.on(kind, id) : await window.NOTES_SHARE.off(kind, id)).share; busy = false; draw(on ? '' : 'Ссылка отключена.'); if (on) copy(); }
@@ -4558,6 +4664,7 @@ async function openShare(kind, id) {
   ov.hidden = false; busy = true; draw('Загружаю…');
   ov.onclick = e => { if (e.target === ov) close(); };
   ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  if (foreign()) { loaded = true; busy = false; draw(); return; }
   try { share = (await window.NOTES_SHARE.get(kind, id)).share; busy = false; loaded = true; draw(); } catch (err) { busy = false; draw('Не получилось: ' + (err?.message || err)); }
   $('#share-on')?.focus();
 }
@@ -4784,6 +4891,7 @@ async function write(fn, okMsg) {
     if (e && e.code === 'limit') { showPlanDialog((e.limit || '').replace('limit_', ''), e.message); return false; }
     if (e && e.code === 'invalid_argument') { S.canWrite = false; toast('Нет прав на изменение: открыт режим только для чтения'); renderLib(); }
     else if (e && e.code === 'quota_exceeded') toast('Хранилище заполнено: удали лишние заметки');
+    else if (e && (e.status === 403 || e.status === 400) && e.response?.message) toast(e.response.message);   // понятный текст сервера (общий раздел, лимит…)
     else toast('Не получилось сохранить. Попробуй ещё раз.');
     return false;
   }
@@ -5166,6 +5274,7 @@ async function boot() {
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
   loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
+  setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
     S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort, subSort: v.subSort }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
