@@ -4457,7 +4457,7 @@ function showPlanDialog(kind, msg) {
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
     ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки и все новые возможности. ${PRO_PRICE()}.</p>`}
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки. ${PRO_PRICE()}.</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -4490,7 +4490,7 @@ function planPanelHtml() {
     <summary>Тариф <span>· ${esc(sub)}</span></summary>
     <div class="meters">${meter('Заметки', planUsed('notes'), planLimit('notes'))}${meter('Разделы', planUsed('sections'), planLimit('sections'))}${meter('Картинки', planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
     ${pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки и все новые возможности. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
