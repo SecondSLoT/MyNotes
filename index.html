@@ -706,6 +706,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
+      <div class="backup-bar" id="space-bar" role="status" hidden></div>
       <div class="backup-bar" id="install-bar" role="status" hidden></div>
       <div class="tagbar" id="tagbar" hidden></div>
       <div class="scopebar" id="scopebar" hidden></div>
@@ -1045,13 +1046,13 @@ async function togglePin(id) {
   if (!ok) { n.pinned = !val; rerender(); }
 }
 async function trashNotes(ids, undoable = true) {
-  // в общем разделе удаляет только владелец
-  const foreign = ids.filter(id => { const sp = spaceOfNote(S.notes.get(id)); return sp && sp.role !== 'owner'; });
-  if (foreign.length) { delRefuse({ role: 'read' }); ids = ids.filter(id => !foreign.includes(id)); if (!ids.length) return; }
+  // общий раздел: в корзину отправляют владелец и редакторы (видно, кто удалил), читатели — нет
+  const ro = ids.filter(id => !canEditIn(spaceOfNote(S.notes.get(id))));
+  if (ro.length) { roRefuse(spaceOfNote(S.notes.get(ro[0]))); ids = ids.filter(id => !ro.includes(id)); if (!ids.length) return; }
   const now = new Date().toISOString(); const done = [];
   for (const id of ids) {
     const n = S.notes.get(id); if (!n) continue;
-    S.notes.delete(id); n.deleted = now; S.trash.set(id, n); S.select?.delete(id); done.push(id);
+    S.notes.delete(id); n.deleted = now; if (spaceOfNote(n)) n.deletedBy = S.uid; S.trash.set(id, n); S.select?.delete(id); done.push(id);
   }
   if (!done.length) return;
   if (done.includes(S.noteId) && S.section !== 'trash') { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); }
@@ -1063,11 +1064,13 @@ async function trashNotes(ids, undoable = true) {
   if (undoable) toast(msg, { label: 'Вернуть', fn: () => restoreNotes(done) }); else toast(msg);
 }
 async function restoreNotes(ids) {
+  const ro = ids.filter(id => S.trash.has(id) && !canEditIn(spaceOfNote(S.trash.get(id))));
+  if (ro.length) { roRefuse(spaceOfNote(S.trash.get(ro[0]))); ids = ids.filter(id => !ro.includes(id)); if (!ids.length) return; }
   if (planBlocks('notes', ids.filter(id => S.trash.has(id)).length)) return;
   const done = [];
   for (const id of ids) {
     const n = S.trash.get(id); if (!n) continue;
-    S.trash.delete(id); delete n.deleted;
+    S.trash.delete(id); delete n.deleted; delete n.deletedBy;
     if (!S.sections.has(n.section)) n.section = lastFolder();
     S.notes.set(id, n); done.push(id);
   }
@@ -1077,6 +1080,8 @@ async function restoreNotes(ids) {
   toast(done.length > 1 ? `Восстановлено: ${done.length}` : `Восстановлено в «${S.sections.get(S.notes.get(done[0])?.section)?.title || ''}»`);
 }
 async function purgeNotes(ids, quiet) {
+  const foreign = ids.filter(id => !canPurge(S.trash.get(id)));   // общий раздел: навсегда удаляет только владелец
+  if (foreign.length) { if (!quiet) toast('Удалить навсегда заметку общего раздела может только его владелец.'); ids = ids.filter(id => !foreign.includes(id)); if (!ids.length) return; }
   for (const id of ids) {
     S.trash.delete(id);
     await write(() => S.db.collection('notes').doc(id).delete(), null);
@@ -1090,7 +1095,7 @@ let purgedOnce = false;
 function autoPurge() {
   if (purgedOnce || !S.canWrite || !S.db) return; purgedOnce = true;
   const lim = Date.now() - TRASH_DAYS * 864e5;
-  const old = [...S.trash.values()].filter(n => Date.parse(n.deleted) < lim).map(n => n.id);
+  const old = [...S.trash.values()].filter(n => Date.parse(n.deleted) < lim && canPurge(n)).map(n => n.id);
   if (old.length) purgeNotes(old, true);
 }
 const daysLeft = n => Math.max(0, TRASH_DAYS - Math.floor((Date.now() - Date.parse(n.deleted)) / 864e5));
@@ -1739,20 +1744,21 @@ function renderList() {
 
 function renderTrashList(list) {
   renderBulkBar([]);
-  const head = `<div class="trash-tools"><span>Удалённые заметки хранятся ${TRASH_DAYS} дней, потом исчезают насовсем.</span><span class="spacer"></span>${list.length && S.canWrite ? (S.emptyAsk
-    ? `<span>Удалить все ${list.length} навсегда?</span><button class="btn danger" id="trash-empty-yes">Удалить</button><button class="btn" id="trash-empty-no">Отмена</button>`
+  const purgeable = list.filter(canPurge), shared = list.some(n => spaceOfNote(n));
+  const head = `<div class="trash-tools"><span>Удалённые заметки хранятся ${TRASH_DAYS} дней, потом исчезают насовсем.${shared ? ' Заметки общих разделов удаляет навсегда только их владелец.' : ''}</span><span class="spacer"></span>${purgeable.length && S.canWrite ? (S.emptyAsk
+    ? `<span>Удалить ${purgeable.length === list.length ? 'все ' : ''}${purgeable.length} навсегда?</span><button class="btn danger" id="trash-empty-yes">Удалить</button><button class="btn" id="trash-empty-no">Отмена</button>`
     : `<button class="btn" id="trash-empty">Очистить корзину</button>`) : ''}</div>`;
   $('#items').innerHTML = head + (list.length ? list.map(n => `
     <div class="row-item" data-id="${esc(n.id)}">
       <button class="item" data-id="${esc(n.id)}" aria-current="${n.id === S.noteId}">
         <span class="t">${esc(n.title)}</span>
-        <span class="meta"><span class="pill">${esc(S.sections.get(n.section)?.title || 'раздел удалён')}</span><span class="hint">ещё ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}</span></span>
+        <span class="meta"><span class="pill">${esc(S.sections.get(n.section)?.title || 'раздел удалён')}</span>${n.deletedBy && spaceOfNote(n) ? `<span class="hint">удалил(а): ${esc(personName(n.deletedBy) || 'участник')}</span>` : ''}<span class="hint">ещё ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}</span></span>
       </button>
-      ${S.canWrite ? `<div class="tr-acts"><button class="btn" data-restore="${esc(n.id)}">Восстановить</button><button class="btn danger" data-purge="${esc(n.id)}">Удалить навсегда</button></div>` : ''}
+      ${S.canWrite && canEditIn(spaceOfNote(n)) ? `<div class="tr-acts"><button class="btn" data-restore="${esc(n.id)}">Восстановить</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">Удалить навсегда</button>` : ''}</div>` : ''}
     </div>`).join('') : '<div class="empty-state">Корзина пуста.</div>');
   $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
   $('#trash-empty-no') && ($('#trash-empty-no').onclick = () => { S.emptyAsk = false; renderList(); });
-  $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.keys()]); });
+  $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.values()].filter(canPurge).map(n => n.id)); });
 }
 $('#items').addEventListener('click', e => {
   const r = e.target.closest('[data-restore]'); if (r) { e.stopPropagation(); restoreNotes([r.dataset.restore]); return; }
@@ -1808,6 +1814,7 @@ function moveBy(id, delta) {
 }
 async function moveToSection(id, sec) {
   const n = S.notes.get(id); if (!n || n.section === sec) return;
+  if (moveToSpace(id, sec)) return;
   const order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0)) + 1;
   n.section = sec; n.order = order; renderRail(); renderList();
   const ok = await write(() => S.db.collection('notes').doc(id).update({ section: sec, order, updated: new Date().toISOString() }), `Перенесено в «${S.sections.get(sec)?.title || ''}»`);
@@ -1862,6 +1869,7 @@ function endDrag(commit) {
 }
 async function dropNote(id, t) {
   const n = S.notes.get(id); if (!n || !t.sec) return;
+  if (t.sec !== n.section && moveToSpace(id, t.sec)) { rerender(); return; }
   const list = sectionList(t.sec).filter(x => x.id !== id);
   let i = t.before ? list.findIndex(x => x.id === t.before) : t.after ? list.findIndex(x => x.id === t.after) + 1 : 0;
   if (i < 0) i = list.length;
@@ -2840,6 +2848,7 @@ async function bulkMenuAct(act, b) {
   if (act === 'bulk-cancel' || act === 'bulk-back') { closeMenu(); return; }
   if (act === 'bulk-move') {
     closeMenu(); const sec = b.dataset.sec; let order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0));
+    if (ids.some(id => S.notes.has(id) && spaceMoveTarget(S.notes.get(id), sec))) { toast('В чужой общий раздел заметки переносятся по одной: «⋮ → Перенести в…» — каждая перейдёт владельцу раздела.'); return; }
     let okAll = true;
     for (const id of ids) { const n = S.notes.get(id); if (!n || n.section === sec) continue; order += 1; n.section = sec; n.order = order; const o = order; okAll = (await write(() => S.db.collection('notes').doc(id).update({ section: sec, order: o, updated: new Date().toISOString() }), null)) && okAll; }
     toast(okAll ? `Перенесено в «${S.sections.get(sec)?.title || ''}»: ${ids.length}` : 'Часть заметок не перенеслась'); renderRail(); renderList(); return;
@@ -3325,7 +3334,7 @@ function renderTrashed(box, n) {
     <div class="mbar"><button class="back" id="back">← К списку</button></div>
     <div class="eyebrow">Корзина · был в «${esc(secPath(n.section) || 'раздел удалён')}»</div>
     <h1>${esc(n.title)}</h1>
-    ${S.canWrite ? `<div class="trash-banner"><span>Заметка в корзине: исчезнет насовсем через ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}.</span><button class="btn primary" id="tr-restore">Восстановить</button><button class="btn danger" id="tr-purge">Удалить навсегда</button></div>` : ''}
+    ${S.canWrite ? `<div class="trash-banner"><span>Заметка в корзине: исчезнет насовсем через ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}.${n.deletedBy && spaceOfNote(n) ? ` Удалил(а): ${esc(personName(n.deletedBy) || 'участник')}.` : ''}</span>${canEditIn(spaceOfNote(n)) ? '<button class="btn primary" id="tr-restore">Восстановить</button>' : ''}${canPurge(n) ? '<button class="btn danger" id="tr-purge">Удалить навсегда</button>' : ''}</div>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Пустая заметка.</p>'}</div>`;
   enhance($('#md'), null);
   $('#back').onclick = () => $('#lib').classList.remove('reading');
@@ -4010,6 +4019,9 @@ function renderEditor(box) {
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const prev = S.notes.get(id);
+    // своя заметка → в чужой общий раздел: сначала сохраняем на месте, потом спрашиваем про перенос (она перейдёт владельцу раздела)
+    let spaceTarget = null;
+    if (prev && d.section !== prev.section && spaceMoveTarget(prev, d.section)) { spaceTarget = d.section; d.section = prev.section; }
     const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
     if (prev?.pinned) doc.pinned = true;
@@ -4024,6 +4036,7 @@ function renderEditor(box) {
     if (stay) { E.id = id; S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = 'Редактирование'; renderList(); return; }
     S.editing = null; S.artJumpToCurrent = true; renderList();
     if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
+    if (spaceTarget) moveToSpace(id, spaceTarget);
   });
   if (!E.id) $('#ed-title').focus();
 }
@@ -4760,17 +4773,27 @@ const spaceOfNote = n => n ? spaceOfSection(n.section) : null;
 const canEditIn = sp => !sp || sp.role === 'owner' || (sp.role === 'edit' && sp.active);
 function roRefuse(sp) { if (canEditIn(sp)) return false; toast(sp.role === 'edit' ? 'Pro у владельца раздела закончился — пока можно только читать.' : 'В этом общем разделе ты только читаешь.'); return true; }
 function delRefuse(sp) { if (!sp || sp.role === 'owner') return false; toast('Удалять в общем разделе может только его владелец.'); return true; }
+const canPurge = n => { const sp = n ? spaceOfNote(n) : null; return !sp || sp.role === 'owner'; };   // навсегда — только своё
+function personName(uid) {
+  if (uid === S.uid) return 'ты';
+  for (const sp of spacesList()) { if (sp.owner?.id === uid) return sp.owner.name; const m = (sp.members || []).find(x => x.id === uid); if (m) return m.name; }
+  return '';
+}
 const ROLE = { read: 'читает', edit: 'редактирует' };
 const joinUrl = t => `${location.origin}/?join=${t}`;
 function collabHtml(sp) {
   if (!window.NOTES_SPACES) return '';
   if (!sp && !planOn()) return '';   // общие разделы — в Pro: пока тарифы выключены, их не видно
   const head = `<h3>Совместная работа <span class="pro">Pro</span></h3>`;
-  if (!sp) return `<div class="collab">${head}<p class="hint" style="margin:0">Пригласи людей читать или редактировать этот раздел вместе с тобой — до 10 участников. Удалять заметки может только владелец.</p>
+  if (!sp) return `<div class="collab">${head}<p class="hint" style="margin:0">Пригласи людей читать или редактировать этот раздел вместе с тобой — до 10 участников. Редакторы могут отправлять заметки в корзину, удалить навсегда — только ты.</p>
     <div class="row"><button class="btn primary" type="button" id="sp-make">Сделать раздел общим</button></div></div>`;
-  if (sp.role !== 'owner') return `<div class="collab">${head}<p style="margin:0">Владелец — <b>${esc(sp.owner.name)}</b>. Ты ${sp.role === 'edit' ? (sp.active ? 'редактируешь' : 'читаешь (у владельца закончился Pro)') : 'читаешь'}.</p>
+  if (sp.role !== 'owner') return `<div class="collab">${head}<p style="margin:0">Владелец — <b>${esc(sp.owner.name)}</b>. Ты ${sp.closing ? 'читаешь' : sp.role === 'edit' ? (sp.active ? 'редактируешь' : 'читаешь (у владельца закончился Pro)') : 'читаешь'}.</p>
+    ${sp.closing ? `<p class="hint" style="margin:0">Владелец перестал делиться этим разделом: до ${esc(planDate(sp.closing))} он у тебя только для чтения, потом пропадёт. Сохрани копию себе, если она нужна.</p>` : ''}
     ${sp.members.length ? `<p class="hint" style="margin:0">Участники: ${sp.members.map(m => esc(m.name)).join(', ')}</p>` : ''}
-    <div class="row"><button class="btn" type="button" id="sp-leave">Выйти из раздела</button></div></div>`;
+    <div class="row"><button class="btn${sp.closing ? ' primary' : ''}" type="button" id="sp-copy">Сохранить копию себе</button><button class="btn" type="button" id="sp-leave">Выйти из раздела</button></div>
+    <p class="hint" style="margin:0">Копия — твой личный раздел с теми же заметками и картинками; дальше они живут отдельно от общего.</p></div>`;
+  if (sp.closing) return `<div class="collab">${head}<p style="margin:0">Ты перестал делиться этим разделом. До ${esc(planDate(sp.closing))} участники только читают и могут сохранить копию себе, потом раздел станет снова только твоим.</p>
+    <div class="row"><button class="btn primary" type="button" id="sp-reopen">Снова делиться</button></div></div>`;
   const full = sp.members.length >= 10;
   return `<div class="collab">${head}
     ${!sp.active ? '<p class="hint" style="margin:0">Pro закончился — участники сейчас только читают, приглашать нельзя.</p>' : ''}
@@ -4782,7 +4805,8 @@ function collabHtml(sp) {
     ${(sp.invites || []).map(i => `<div class="inv"><input readonly value="${esc(joinUrl(i.token))}" aria-label="Приглашение"><span>${ROLE[i.role]} · до ${esc(planDate(i.expires))}</span>
         <button class="btn" type="button" data-sp-copy="${esc(i.token)}">Скопировать</button><button class="btn" type="button" data-sp-revoke="${esc(i.id)}">Отозвать</button></div>`).join('')}
     <p class="hint" style="margin:0">Приглашение действует 7 дней. Принять его можно, войдя в ReteNote.</p>
-    <div class="row"><button class="btn" type="button" id="sp-stop">${S.spStop ? 'Точно? Участники потеряют доступ' : 'Перестать делиться'}</button></div></div>`;
+    <div class="row"><button class="btn" type="button" id="sp-stop">${S.spStop ? 'Точно перестать делиться?' : 'Перестать делиться'}</button></div>
+    ${S.spStop && sp.members.length ? '<p class="hint" style="margin:0">Участники ещё неделю смогут читать раздел и сохранить копию себе, потом он у них пропадёт.</p>' : ''}</div>`;
 }
 function wireCollab(sp, redraw) {
   const S2 = window.NOTES_SPACES; if (!S2) return;
@@ -4799,8 +4823,77 @@ function wireCollab(sp, redraw) {
   document.querySelectorAll('[data-sp-revoke]').forEach(b => b.onclick = () => run(() => S2.revoke(sp.id, b.dataset.spRevoke), 'Приглашение отозвано'));
   document.querySelectorAll('[data-sp-role]').forEach(c => c.onchange = () => run(() => S2.setRole(sp.id, c.dataset.spRole, c.value), 'Роль изменена'));
   document.querySelectorAll('[data-sp-kick]').forEach(b => b.onclick = () => run(() => S2.leave(sp.id, b.dataset.spKick), 'Участник убран'));
-  $('#sp-stop') && ($('#sp-stop').onclick = () => { if (!S.spStop) { S.spStop = true; redraw(); return; } run(() => S2.remove(sp.id), 'Раздел больше не общий'); });
+  $('#sp-stop') && ($('#sp-stop').onclick = () => { if (!S.spStop) { S.spStop = true; redraw(); return; } run(() => S2.remove(sp.id), sp.members.length ? 'Участники неделю смогут читать раздел и сохранить копию себе' : 'Раздел больше не общий'); });
+  $('#sp-reopen') && ($('#sp-reopen').onclick = () => run(() => S2.reopen(sp.id), 'Раздел снова общий'));
+  $('#sp-copy') && ($('#sp-copy').onclick = e => spaceCopy(sp, e.target, () => $('#share-done')?.click()));
   $('#sp-leave') && ($('#sp-leave').onclick = () => { if (!S.spStop) { S.spStop = true; $('#sp-leave').textContent = 'Точно выйти?'; return; } run(() => S2.leave(sp.id), 'Ты вышел из общего раздела'); });
+}
+// копия общего раздела себе (участник): новый личный раздел с заметками и картинками
+async function spaceCopy(sp, btn, done) {
+  if (btn) btn.disabled = true;
+  try {
+    const r = await window.NOTES_SPACES.copy(sp.id);
+    done?.();
+    toast(`Копия сохранена: раздел «${r.title}», ${r.notes} ${plural(r.notes, 'заметка', 'заметки', 'заметок')}`);
+    for (let i = 0; i < 40 && !S.sections.has(r.root); i++) await new Promise(res => setTimeout(res, 250));
+    if (S.sections.has(r.root)) { if (S.mode !== 'lib') setMode('lib'); selectSection(r.root); }
+  } catch (e) { if (btn) btn.disabled = false; toast('Не получилось сохранить копию: ' + (e?.message || e)); }
+}
+// общие разделы: участнику — «владелец перестал делиться» (можно сохранить копию), владельцу — «Иван удалил 3 заметки»
+function renderSpaceBar() {
+  const bar = $('#space-bar'); if (!bar) return;
+  const sps = spacesList(), uid = S.uid || '';
+  const hide = () => { bar.hidden = true; bar.innerHTML = ''; };
+  const cl = sps.find(sp => sp.role !== 'owner' && sp.closing && store.get('spClose.' + sp.id, '') !== sp.closing);
+  if (cl) {
+    const ok = () => { store.set('spClose.' + cl.id, cl.closing); renderSpaceBar(); };
+    bar.innerHTML = `<p><b>${esc(cl.owner.name)} больше не делится разделом «${esc(cl.title)}».</b> До ${esc(planDate(cl.closing))} он у тебя только для чтения, потом пропадёт. Можно сохранить копию себе — со всеми заметками и картинками.</p>
+      <div class="bar"><button class="btn primary" type="button" id="space-bar-copy">Сохранить копию себе</button><button class="btn" type="button" id="space-bar-ok">Понятно</button></div>`;
+    bar.hidden = false;
+    $('#space-bar-ok').onclick = ok;
+    $('#space-bar-copy').onclick = e => spaceCopy(cl, e.target, ok);
+    return;
+  }
+  const key = 'spDelSeen.' + uid, seen = store.get(key, ''), own = new Set(sps.filter(sp => sp.role === 'owner').map(sp => sp.id));
+  const del = [...S.trash.values()].filter(n => n.deletedBy && n.deletedBy !== uid && (n.deleted || '') > seen && own.has(spaceOfNote(n)?.id));
+  if (!del.length) return hide();
+  const names = [...new Set(del.map(n => personName(n.deletedBy) || 'Участник'))], last = del.map(n => n.deleted).sort().pop();
+  bar.innerHTML = `<p><b>${esc(names.join(', '))} ${names.length > 1 ? 'удалили' : 'удалил(а)'} ${del.length} ${plural(del.length, 'заметку', 'заметки', 'заметок')} в общих разделах.</b> Они в корзине — можно посмотреть и вернуть.</p>
+    <div class="bar"><button class="btn" type="button" id="space-bar-see">Посмотреть</button><button class="btn" type="button" id="space-bar-ok">Понятно</button></div>`;
+  bar.hidden = false;
+  $('#space-bar-ok').onclick = () => { store.set(key, last); renderSpaceBar(); };
+  $('#space-bar-see').onclick = () => { store.set(key, last); renderSpaceBar(); if (S.mode !== 'lib') setMode('lib'); selectSection('trash'); };
+}
+// своя заметка → в чужой общий раздел: она переходит владельцу раздела (сервер: move-to-space). true — перенос взят на себя здесь
+function spaceMoveTarget(n, sec) {
+  const tsp = spaceOfSection(sec), from = spaceOfNote(n);
+  if (!tsp || tsp.role === 'owner' || (from && from.id === tsp.id) || (from && from.role !== 'owner')) return null;
+  return tsp;
+}
+function moveToSpace(id, sec) {
+  const n = S.notes.get(id), tsp = n && spaceMoveTarget(n, sec); if (!tsp) return false;
+  if (!canEditIn(tsp)) { roRefuse(tsp); return true; }
+  let ov = $('#move-ov'); if (!ov) { ov = document.createElement('div'); ov.id = 'move-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; }, title = S.sections.get(sec)?.title || '';
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="move-title">
+    <h2 id="move-title">Перенести в общий раздел?</h2>
+    <p style="margin:0">Заметка «${esc(n.title || 'Без названия')}» перейдёт в раздел «${esc(title)}» — его владелец <b>${esc(tsp.owner.name)}</b>.</p>
+    <p class="hint" style="margin:0">Её увидят все участники раздела. Удалить навсегда сможет только владелец, забрать обратно — только копией. Картинки скопируются к владельцу, история версий перейдёт вместе с заметкой, ссылка на чтение этой заметки (если была) отключится.</p>
+    <p class="hint" id="move-status" style="margin:0"></p>
+    <div class="bar"><button class="btn primary" type="button" id="move-yes">Перенести</button><button class="btn" type="button" id="move-no">Отмена</button></div></div>`;
+  $('#move-no').onclick = () => { close(); rerender(); };
+  $('#move-yes').onclick = async e => {
+    e.target.disabled = true; $('#move-status').textContent = 'Переношу…';
+    try {
+      const r = await window.NOTES_SPACES.moveNote(id, sec); close();
+      toast(`Перенесено в общий раздел «${title}»`);
+      for (let i = 0; i < 40 && !S.notes.has(r.key); i++) await new Promise(res => setTimeout(res, 250));
+      if (S.noteId === id || !S.notes.has(S.noteId)) { S.noteId = S.notes.has(r.key) ? r.key : null; store.set('note', S.noteId); S.flash = r.key; }
+      rerender(); if (!S.editing) renderReader();
+    } catch (err) { e.target.disabled = false; $('#move-status').textContent = 'Не получилось: ' + (err?.message || err); }
+  };
+  return true;
 }
 // пришёл по ссылке-приглашению (?join=…): спросить, принять ли
 async function joinCheck() {
@@ -4826,7 +4919,7 @@ async function joinCheck() {
     } catch (err) { e.target.disabled = false; $('#join-status').textContent = 'Не получилось: ' + (err?.message || err); }
   });
 }
-window.addEventListener('notes-spaces', () => { if (S.mode === 'lib') renderRail(); });
+window.addEventListener('notes-spaces', () => { if (S.mode === 'lib') renderRail(); renderSpaceBar(); });
 /* ---------- ссылка на чтение (ReteNote, бесплатно): заметка или раздел с подразделами, без входа ---------- */
 async function openShare(kind, id) {
   S.shareSection = kind === 'section' ? id : null; S.spStop = false;
@@ -5493,7 +5586,7 @@ async function boot() {
     const act = new Map(), tr = new Map();
     for (const d of snap.docs) { const v = Object.assign({ id: d.id }, d.data()); (v.deleted ? tr : act).set(d.id, v); }
     S.notes = act; S.trash = tr;
-    S.loaded.notes = true; rerender(); autoPurge();
+    S.loaded.notes = true; rerender(); autoPurge(); renderSpaceBar();
   }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
