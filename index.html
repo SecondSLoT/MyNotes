@@ -484,6 +484,7 @@ button.tag{border:0;background:none;padding:0}
 .bignum{font:600 54px/1 var(--f-display);color:var(--kt);font-variant-numeric:tabular-nums}
 .today .split{color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
 .today .split b{color:var(--ink);font-weight:600}
+.today .ahead{margin-top:4px}
 .opts{display:flex;flex-direction:column;gap:14px}
 .opt-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -788,18 +789,20 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
           <li><b>Повторение на сегодня</b> — карточки, у которых подошёл срок, плюс порция новых (по умолчанию 10 в день, меняется в «Настройках» ⚙). Число на вкладке «Тренировка» — сколько ждёт сегодня.</li>
           <li>Сначала вспоминаешь ответ сам, потом «Показать ответ» и честная оценка:
             <ul>
-              <li><b>Знаю</b> — интервал растёт: через 2 дня → 5 дней → ~12 дней → ~месяц → дальше примерно в 2,5 раза. Если в этот день уже был «Не знаю» по этой карточке — завтра.</li>
-              <li><b>Плаваю</b> — новая карточка вернётся завтра; при интервале до недели он повторяется тот же; длинный интервал сокращается вдвое, но не меньше недели (например, 43 дня → 22). Рост следующих интервалов немного замедляется.</li>
-              <li><b>Не знаю</b> — прогресс сбрасывается: карточка повторится в конце этой же сессии и завтра.</li>
+              <li><b>Знаю</b> — интервал растёт, например: через 4 дня → ~2 недели → ~1,5 месяца → ~5 месяцев. Лёгкие карточки уходят дальше, трудные — ближе. Если в этот день уже был «Не знаю» по этой карточке — завтра.</li>
+              <li><b>Плаваю</b> — вспомнил с трудом: новая карточка вернётся завтра, у остальных интервал растёт гораздо медленнее, чем после «Знаю», и карточка считается трудной.</li>
+              <li><b>Не знаю</b> — карточка повторится в конце этой же сессии и завтра, дальше интервалы начнутся почти заново.</li>
             </ul></li>
-          <li>Подпись под кнопкой оценки — когда карточка снова попадёт в повторение. Для новой карточки: «Знаю» — через 2 дня, «Плаваю» и «Не знаю» — завтра.</li>
+          <li>Расписание считает алгоритм FSRS: он помнит, насколько прочно ты знаешь каждую карточку и насколько она трудная, и зовёт повторить, когда вероятность вспомнить опускается примерно до 90%. Так повторений меньше, а забывается не больше.</li>
+          <li>Подпись под кнопкой оценки — когда карточка снова попадёт в повторение. Для новой карточки: «Знаю» — через 4 дня, «Плаваю» и «Не знаю» — завтра.</li>
+          <li>Под числом на сегодня — сколько карточек подойдёт <b>завтра</b> и <b>за неделю</b>: можно заранее понять, будет ли завал.</li>
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
           <li><b>«✎ Править»</b> рядом с вопросом (или клавиша <kbd>E</kbd>, или двойной клик по ответу) — дополнить или исправить карточку прямо в тренировке, пока помнишь. Открывается обычный редактор (Markdown, Рядом, Визуально) поверх сессии; после сохранения сессия продолжается с той же карточки.</li>
           <li><b>«Убрать из тренировки»</b> на карточке — она перестаёт попадать в любые тренировки, но остаётся в заметках. Вернуть: в итоге сессии, внизу вкладки «Тренировка» → «Вне тренировки», в самой заметке или через «⋮».</li>
           <li>В итоге сессии есть кнопка «Прогнать ещё раз то, что не знал».</li>
-          <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам заново (завтра → 5 дней → ~12 дней…), а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
+          <li><b>«Снова учить»</b> — если карточка числится как «знаю», а на деле поплыл (например, на собесе): кнопка в заметке, пункт в «⋮» или «Выбрать → Тренировка» для нескольких сразу. Прогресс сбрасывается, карточка попадает в сегодняшнее повторение и дальше идёт по интервалам почти заново, а «Сначала слабые» поднимает её наверх. Сразу после сброса можно нажать «Отменить».</li>
           <li>Заметки без текста ответа в тренировку не попадают.</li>
         </ul></section>
       <section id="h-prog"><h3>Прогресс и настройки</h3>
@@ -852,7 +855,7 @@ const store = {
 /* ---------- state ---------- */
 const S = {
   db: null, uid: null, canWrite: true,
-  sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), settings: { newPerDay: 10 },
+  sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), srsLog: new Map(), settings: { newPerDay: 10 },
   loaded: { sections: false, notes: false, settings: false },
   searchHere: store.get('searchHere', false),
   mode: window.BOOT_MODE || 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
@@ -870,26 +873,46 @@ const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [
 const trainable = n => n && !n.ref && (n.body || '').trim().length > 0 && isTrainFolder(n.section);
 const isDue = id => { const s = S.srs.get(id); return s && s.due && s.due <= today(); };
 
+/* Расписание — FSRS-4.5 (решено 25.10: для всех, бесплатно). Память о карточке: s — прочность (через сколько дней вероятность вспомнить
+   упадёт до 90%), d — трудность 1…10. Наши оценки: 1 «не знаю» = Again, 2 «плаваю» = Hard, 3 «знаю» = Good.
+   Старые карточки (до FSRS) переводятся при первой оценке: s ≈ прежний интервал, d — из прежней «лёгкости» ease.
+   Остальные поля прежние (reps, ivl, ease, lapses, due…) — их читают прогресс, «слабые», бейдж. */
+const FSRS_W = [0.4872, 1.4003, 3.7145, 13.8206, 5.1618, 1.2298, 0.8975, 0.031, 1.6474, 0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755];
+const FSRS_DECAY = -0.5, FSRS_FACTOR = 19 / 81;
+const fsrsClampD = d => Math.min(10, Math.max(1, d));
+const fsrsD0 = g => fsrsClampD(FSRS_W[4] - (g - 3) * FSRS_W[5]);
+const fsrsR = (t, st) => Math.pow(1 + FSRS_FACTOR * t / st, FSRS_DECAY);   // вероятность вспомнить через t дней
+// интервал для желаемой вероятности вспомнить (по умолчанию 90%: интервал = прочности)
+const fsrsIvl = (st, want) => Math.max(1, Math.min(S.settings.maxIvl || 36500, Math.round(st / FSRS_FACTOR * (Math.pow(want || S.settings.retention || 0.9, 1 / FSRS_DECAY) - 1))));
+function fsrsState(s) {   // s, d карточки; старая (без FSRS) — из ivl / ease
+  if (typeof s.s === 'number' && typeof s.d === 'number') return { st: s.s, d: s.d };
+  if (!s.reps && !s.ivl) return null;   // ещё не отвечали «знаю» — как новая
+  return { st: Math.max(1, s.ivl || 1), d: fsrsClampD(10 - ((s.ease || 2.3) - 1.3) * 9 / 1.7) };
+}
+function fsrsNext(prev, g, t) {   // → { st, d } после ответа g
+  const p = prev ? fsrsState(prev) : null;
+  if (!p) return { st: FSRS_W[g - 1], d: fsrsD0(g) };
+  const elapsed = Math.max(0, prev.last ? daysBetween(prev.last, t) : 0), r = fsrsR(elapsed, p.st);
+  const d = fsrsClampD(FSRS_W[7] * fsrsD0(3) + (1 - FSRS_W[7]) * (p.d - FSRS_W[6] * (g - 3)));
+  let st;
+  if (g === 1) st = Math.min(p.st, FSRS_W[11] * Math.pow(p.d, -FSRS_W[12]) * (Math.pow(p.st + 1, FSRS_W[13]) - 1) * Math.exp(FSRS_W[14] * (1 - r)));
+  else st = p.st * (Math.exp(FSRS_W[8]) * (11 - p.d) * Math.pow(p.st, -FSRS_W[9]) * (Math.exp(FSRS_W[10] * (1 - r)) - 1) * (g === 2 ? FSRS_W[15] : 1) + 1);
+  return { st: Math.max(0.1, +st.toFixed(3)), d: +d.toFixed(3) };
+}
 function schedule(prev, g, free) {
   const t = today();
   const s = Object.assign({ reps: 0, ivl: 0, ease: 2.3, lapses: 0 }, prev || {});
   const n = Object.assign({}, s, { last: t, lastGrade: g, seen: (s.seen || 0) + 1 });
   if (!n.introduced) n.introduced = t;
   const notDue = free && prev && prev.due && prev.due > t;
-  if (g === 1) {
-    n.lapses = s.lapses + (s.reps > 0 ? 1 : 0); n.reps = 0; n.ivl = 1;
-    n.ease = Math.max(1.3, +(s.ease - 0.2).toFixed(2)); n.failedOn = t;
-  } else if (g === 2) {
-    // «плаваю»: new card -> tomorrow; short interval (up to a week) -> same interval again; long one -> halved, but not below a week
-    n.ivl = s.reps === 0 ? 1 : s.ivl <= 7 ? Math.max(1, s.ivl) : Math.max(7, Math.round(s.ivl / 2));
-    n.ease = Math.max(1.3, +(s.ease - 0.15).toFixed(2)); n.reps = s.reps + 1;
-  } else {
-    if (notDue) return Object.assign({}, s, { last: t, lastGrade: 3, seen: (s.seen || 0) + 1 });
-    if (s.failedOn === t) n.ivl = 1;
-    else if (s.reps === 0) n.ivl = 2;
-    else if (s.reps === 1) n.ivl = 5;
-    else n.ivl = Math.max(s.ivl + 1, Math.round(s.ivl * s.ease));
-    n.ease = Math.min(3, +(s.ease + 0.05).toFixed(2)); n.reps = s.reps + 1;
+  if (notDue && g === 3) return Object.assign({}, s, { last: s.last, lastGrade: 3, seen: (s.seen || 0) + 1 });   // свободная тренировка: «знаю» раньше срока — срок не меняется
+  const f = fsrsNext(prev && prev.introduced ? s : null, g, t);
+  n.s = f.st; n.d = f.d;
+  n.ease = +(1.3 + (10 - f.d) * 1.7 / 9).toFixed(2);   // для «сначала слабые» и прежнего кода
+  if (g === 1) { n.lapses = s.lapses + (s.reps > 0 ? 1 : 0); n.reps = 0; n.ivl = 1; n.failedOn = t; }
+  else {
+    n.reps = s.reps + 1;
+    n.ivl = g === 3 && s.failedOn === t ? 1 : fsrsIvl(f.st);   // «знаю» в день ошибки — проверим завтра
   }
   n.due = addDays(t, n.ivl);
   return n;
@@ -915,6 +938,17 @@ function srsPill(id) {
   const left = daysBetween(today(), s.due);
   const cls = st === 'learn' ? 'learn' : 'know';
   return `<span class="pill ${cls}" title="Следующий повтор: ${s.due}">↻ ${left} дн</span>`;
+}
+// сколько карточек подойдёт в ближайшие дни (бесплатно — одна строка «завтра / за неделю»; подробный прогноз — в Pro)
+function dueAhead() {
+  const t = today(), tm = addDays(t, 1), wk = addDays(t, 7); let tomorrow = 0, week = 0;
+  for (const n of S.notes.values()) {
+    if (!trainable(n)) continue;
+    const s = S.srs.get(n.id); if (!s || !s.introduced || !s.due) continue;
+    if (s.due === tm) tomorrow++;
+    if (s.due > t && s.due <= wk) week++;
+  }
+  return { tomorrow, week };
 }
 function introducedToday() { let c = 0; const t = today(); for (const s of S.srs.values()) if (s.introduced === t) c++; return c; }
 function reviewQueue() {
@@ -2650,8 +2684,9 @@ async function relearn(ids) {
   for (const id of ids) {
     const prev = S.srs.get(id); before.set(id, prev ? { ...prev } : null);
     const p = Object.assign({ reps: 0, ivl: 0, ease: 2.3, lapses: 0 }, prev || {});
-    const next = Object.assign({}, p, { reps: 0, ivl: 0, due: t, lastGrade: 1, failedOn: t, last: t,
-      lapses: (p.lapses || 0) + (prev && prev.introduced ? 1 : 0), ease: Math.max(1.3, +((p.ease || 2.3) - 0.2).toFixed(2)), introduced: p.introduced || t });
+    const f = fsrsNext(prev && prev.introduced ? p : null, 1, t);   // «снова учить» — как ответ «не знаю»
+    const next = Object.assign({}, p, { reps: 0, ivl: 0, due: t, lastGrade: 1, failedOn: t, last: t, s: f.st, d: f.d,
+      lapses: (p.lapses || 0) + (prev && prev.introduced ? 1 : 0), ease: +(1.3 + (10 - f.d) * 1.7 / 9).toFixed(2), introduced: p.introduced || t });
     S.srs.set(id, next);
   }
   rerender(); updateBadge();
@@ -5236,10 +5271,10 @@ function renderTrain() {
   root.innerHTML = `<div class="wrap">
     <section class="panel">
       <h3>Повторение на сегодня</h3>
-      <p class="sub">Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше: через 2 дня, 5 дней, ~12 дней, ~месяц.</p>
+      <p class="sub">Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше и дальше — насколько, зависит от того, как легко она тебе даётся.</p>
       <div class="today">
         <div class="bignum">${total}</div>
-        <div class="split"><span>к повторению: <b>${rq.due.length}</b></span><span>новых сегодня: <b>${rq.fresh.length}</b> из ${S.settings.newPerDay ?? 10} <span class="hint">(всего не изучено: ${rq.freshTotal})</span></span></div>
+        <div class="split"><span>к повторению: <b>${rq.due.length}</b></span><span>новых сегодня: <b>${rq.fresh.length}</b> из ${S.settings.newPerDay ?? 10} <span class="hint">(всего не изучено: ${rq.freshTotal})</span></span>${(f => `<span class="ahead" id="ahead">дальше: завтра — <b>${f.tomorrow}</b>, за неделю — <b>${f.week}</b></span>`)(dueAhead())}</div>
         <button class="btn primary big" id="start-review" ${total ? '' : 'disabled'}>${total ? 'Начать повторение' : 'На сегодня всё'}</button>
       </div>
       ${!S.uid ? '<p class="notice" style="margin:14px 0 0">Прогресс сохраняется только для вошедших пользователей: сейчас оценки не запомнятся.</p>' : ''}
@@ -5330,10 +5365,23 @@ function dropCurrent() {
   renderSession($('#train'));
   setRef(id, true, true);
 }
+/* Журнал ответов: одна запись на месяц (data/users/<uid>/srs/log/<ГГГГ-ММ>) со сводкой по дням:
+   { days: { 'ГГГГ-ММ-ДД': { n, g1, g2, g3, fresh } } } — для статистики и будущей настройки FSRS под человека. */
+const logCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('log');
+function logAnswer(g, wasNew) {
+  if (!S.db || !S.uid) return;
+  const t = today(), m = t.slice(0, 7), cur = S.srsLog.get(m) || { days: {} };
+  const day = Object.assign({ n: 0, g1: 0, g2: 0, g3: 0, fresh: 0 }, cur.days[t]);
+  day.n++; day['g' + g]++; if (wasNew) day.fresh++;
+  const next = { days: Object.assign({}, cur.days, { [t]: day }) };
+  S.srsLog.set(m, next);
+  logCol().doc(m).set(next).catch(() => {});
+}
 async function gradeCurrent(g) {
   const T = S.train; const id = T.queue[T.i];
   T.results.set(id, T.results.has(id) ? Math.min(T.results.get(id), g) : g);
   if (g === 1) T.queue.push(id);
+  logAnswer(g, !S.srs.get(id)?.introduced);
   const next = schedule(S.srs.get(id), g, T.kind === 'free');
   S.srs.set(id, next);
   T.i++; T.shown = false;
@@ -5600,6 +5648,7 @@ async function boot() {
   }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
+    logCol().onSnapshot(snap => { S.srsLog = new Map(snap.docs.map(d => [d.id, d.data()])); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
     db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); }, () => {});
   }
 }
@@ -5673,7 +5722,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { S, store, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
