@@ -69,6 +69,8 @@ a{color:var(--accent)}
   display:flex;align-items:center;gap:16px;padding-block:10px;padding-inline:16px;flex-wrap:wrap}
 .brand{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .brand b{color:var(--accent);font-weight:600}
+.brand-pro{font:700 10px/1 var(--f-body);letter-spacing:.04em;background:var(--accent);color:var(--bg);border-radius:999px;padding:3px 6px;margin-left:-3px}
+.brand-pro[hidden]{display:none}
 .modes{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
 .modes button{border:0;background:none;padding:6px 14px;border-radius:999px;color:var(--muted);font-weight:500;display:flex;gap:6px;align-items:center}
 .modes button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -717,7 +719,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 
 <div class="app">
   <header class="top">
-    <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span></div>
+    <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span><span class="brand-pro" id="brand-pro" hidden>Pro</span></div>
     <span class="sync-badge" id="sync-badge" role="status" hidden></span>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
@@ -5329,6 +5331,7 @@ function wirePlanPanel() {
 }
 // пробный Pro заканчивается через 2 дня — одно напоминание (черновик текста, согласовать с Александром)
 function renderPlanBar() {
+  const bp = $('#brand-pro'); if (bp) bp.hidden = !(window.NOTES_FLAVOR === 'public' && planOn() && S.plan.pro);   // «Pro» у названия; у Free — ничего
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
