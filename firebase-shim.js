@@ -74,6 +74,21 @@
     resolveUser(u);
   });
 
+  /* Нет связи с Firestore: заметки — из кэша на устройстве. Firestore сам отдаёт их из кэша (fromCache), пока сервер не ответит;
+     коротко — так бывает при каждом открытии, поэтому «Нет связи» — если не ответил за 4 с (или браузер сказал, что сети нет). */
+  userReady.then(function () {
+    var stale = false, t = 0, cached = false;
+    function emit(v) { if (v === stale) return; stale = v; try { window.dispatchEvent(new CustomEvent('notes-sync', { detail: { stale: v } })); } catch (e) {} }
+    try {
+      fs.collection('notes').onSnapshot({ includeMetadataChanges: true }, function (s) {
+        cached = !!(s.metadata && s.metadata.fromCache); clearTimeout(t);
+        if (cached) t = setTimeout(function () { emit(true); }, 4000); else emit(false);
+      }, function () {});
+    } catch (e) {}
+    window.addEventListener('offline', function () { emit(true); });
+    window.addEventListener('online', function () { if (!cached) emit(false); });
+  });
+
   var userApi = null;
   window.claude = {
     use: function (name) {

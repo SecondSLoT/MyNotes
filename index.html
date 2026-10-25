@@ -245,7 +245,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;color:var(--muted);font-variant-numeric:tabular-nums}
 .meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
 .meter.warn .mb i{background:var(--hard)}.meter.warn .mv{color:var(--hard)}
-.sync-badge{font-size:12px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--hard-soft);color:var(--hard);white-space:nowrap;align-self:center}
+.sync-badge{cursor:pointer;font-size:12px;line-height:1;padding:5px 9px;border-radius:999px;background:var(--hard-soft);color:var(--hard);white-space:nowrap;align-self:center}
 .item .when{margin-left:auto;font-size:12px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
 .item .snip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}
 .row-item{position:relative;border-bottom:1px solid var(--line)}
@@ -499,6 +499,18 @@ button.tag{border:0;background:none;padding:0}
 .today .ahead{margin-top:4px}
 .train-plus.locked{opacity:.75}
 .train-plus .pro{font:600 11px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 7px;margin-left:4px}
+.fb-mine{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.fb-mine summary{cursor:pointer;font-weight:600;font-size:14px}
+.fb-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--bg)}
+.fb-meta{font-size:12px;color:var(--muted)}
+.fb-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;margin-top:4px}
+.fb-reply{margin-top:10px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0}
+.fb-wait{margin-top:6px}
+.fb-item>.fb-text.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.fb-more{border:0;background:none;padding:0;margin-top:2px;color:var(--accent);font:inherit;font-size:13px;cursor:pointer}
+.fb-new{font:600 11px/1 var(--f-body);background:var(--accent);color:var(--bg);border-radius:999px;padding:2px 6px;margin-left:4px;vertical-align:1px}
+#m-prog{position:relative}
+#m-prog.has-dot::after{content:'';position:absolute;top:5px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
 .sec-limits{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 18px}
 .sec-limits label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;min-width:0}
 .sec-limits label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -576,7 +588,7 @@ button.tag{border:0;background:none;padding:0}
 .totals b{display:block;font:600 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
 .totals span{font-size:12.5px;color:var(--muted)}
 .notice{padding:12px 14px;border-radius:10px;background:var(--hard-soft);color:var(--hard);font-size:14px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;line-height:1.4;width:max-content;max-width:min(560px,calc(100vw - 24px));box-sizing:border-box;text-align:center;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
 .help-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;gap:7px;border:1px solid var(--line-strong);background:var(--raised);color:var(--muted);border-radius:999px;padding:6px 13px 6px 7px;font:500 13px var(--f-body);box-shadow:0 4px 14px rgba(0,0,0,.08)}
 .help-fab span{width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:600 12px/1 var(--f-display)}
@@ -5354,20 +5366,26 @@ window.addEventListener('notes-sync', e => {
   const d = e.detail || {};
   if (d.held) toast(`Не сохранено на сервере: ${d.held} — ${d.limit || 'лимит бесплатной версии'} Эти правки остаются на этом устройстве.`);
 });
-/* правки без интернета (ReteNote): shim сообщает, есть ли связь и сколько правок ждут отправки */
-let syncWasOffline = false;
+/* без связи: shim сообщает, есть ли связь, сколько правок ждут отправки (ReteNote) и что заметки не удалось обновить — на экране сохранённые на устройстве (stale; обе версии) */
+const SYNC = { offline: false, pending: 0, stale: false };
+let syncWasOffline = false, syncHadPending = false, staleTold = false;
+const STALE_MSG = 'Нет связи с сервером — показаны заметки, сохранённые на этом устройстве. Изменения с других устройств подгрузятся сами, когда появится интернет.';
 window.addEventListener('notes-sync', e => {
   const d = e.detail || {}, b = $('#sync-badge'); if (!b) return;
-  if (d.offline) {
-    syncWasOffline = true; b.hidden = false;
-    b.textContent = 'Нет связи' + (d.pending ? ` · ${d.pending} ${plural(d.pending, 'изменение', 'изменения', 'изменений')}` : '');
-    b.title = 'Изменения сохранены на этом устройстве и отправятся сами, когда появится интернет';
-  } else if (!d.pending) {
+  if ('stale' in d) SYNC.stale = !!d.stale;
+  if ('offline' in d) { SYNC.offline = !!d.offline; SYNC.pending = d.pending || 0; }
+  if (SYNC.offline || SYNC.stale) {
+    syncWasOffline = true; if (SYNC.pending) syncHadPending = true; b.hidden = false;
+    b.textContent = 'Нет связи' + (SYNC.pending ? ` · ${SYNC.pending} ${plural(SYNC.pending, 'изменение', 'изменения', 'изменений')}` : '');
+    b.title = (SYNC.stale ? 'Показаны заметки, сохранённые на этом устройстве: возможно, не последние версии. ' : '') + (SYNC.pending ? 'Изменения сохранены на этом устройстве и отправятся сами, когда появится интернет' : 'Обновятся сами, когда появится интернет');
+    if (SYNC.stale && !staleTold) { staleTold = true; toast(STALE_MSG); }
+  } else if (!SYNC.pending) {
     b.hidden = true;
-    if (syncWasOffline) { syncWasOffline = false; toast('Связь есть — изменения отправлены'); }
+    if (syncWasOffline) { toast(syncHadPending ? 'Связь есть — изменения отправлены' : 'Связь есть — заметки обновлены'); syncWasOffline = syncHadPending = staleTold = false; }
   }
   for (const t of d.conflicts || []) toast(`Заметку «${t}» за это время изменили на другом устройстве — там осталась та версия, а твоя сохранена рядом копией`);
 });
+document.addEventListener('click', e => { if (e.target.closest?.('#sync-badge')) toast(SYNC.stale ? STALE_MSG : $('#sync-badge').title); });
 async function write(fn, okMsg) {
   if (!S.db) { toast('Хранилище недоступно, изменения не сохранены'); return false; }
   try { await fn(); if (okMsg) toast(okMsg); return true; }
@@ -5745,7 +5763,7 @@ function renderProg() {
       <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
     </section>
     ${tagsPanelHtml()}
-    ${window.NOTES_FEEDBACK ? `<section class="panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div></section>` : ''}
+    ${window.NOTES_FEEDBACK ? `<section class="panel" id="fb-panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик. Ответ придёт сюда и на почту.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div>${fbMineHtml()}</section>` : ''}
     ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() + debugPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root);
@@ -5757,6 +5775,7 @@ function renderProg() {
     await saveSettings({ newPerDay: v });
   };
   wireTrainPlus(root);
+  wireFbMine(); fbJump();
 }
 
 // the due count depends on the date: refresh it when the tab comes back (e.g. left open overnight) and every minute
@@ -5834,6 +5853,55 @@ async function maybeOnboard() {
   } catch { /* не страшно: попробуем при следующем открытии */ }
   S.onboarding = false;
 }
+/* ---------- ответы на обратную связь (ReteNote: window.NOTES_FEEDBACK_MINE) ----------
+   Свои сообщения с ответами разработчика — в «Настройки → Обратная связь». Новый ответ: точка на «Настройках» и подсказка «Прочитать»;
+   прочитанным считается, когда ответ показан на экране. Проверка — при открытии, раз в 30 минут при возвращении на вкладку, после своего сообщения. */
+const FB_KIND = { bug: 'Проблема', idea: 'Идея' };
+async function fbCheck(force) {
+  if (!window.NOTES_FEEDBACK_MINE || !S.uid) return;
+  if (!force && S.fbAt && Date.now() - S.fbAt < 30 * 60e3) return;
+  S.fbAt = Date.now();
+  let r; try { r = await window.NOTES_FEEDBACK_MINE(); } catch { return; }
+  const was = S.fb?.unseen || 0; S.fb = r; fbDot();
+  if (S.mode === 'prog') { const pan = $('#fb-mine-wrap'); if (pan) { pan.outerHTML = fbMineHtml(); wireFbMine(); fbJump(); } }
+  if (r.unseen > was) toast(r.unseen === 1 ? 'Разработчик ответил на твоё сообщение' : `Новых ответов разработчика: ${r.unseen}`, { label: 'Прочитать', fn: openFbMine });
+}
+function fbDot() { $('#m-prog')?.classList.toggle('has-dot', !!S.fb?.unseen); }
+function fbMineHtml() {
+  const f = S.fb;
+  if (!f || !f.items?.length) return '<div id="fb-mine-wrap"></div>';
+  const when = x => shortDate(String(x).replace(' ', 'T'));
+  return `<div id="fb-mine-wrap"><details class="fb-mine" id="fb-mine"${f.unseen ? ' open' : ''}><summary>Мои сообщения · ${f.items.length}${f.unseen ? ' <span class="fb-new">новый ответ</span>' : ''}</summary>
+    ${f.items.map(x => `<div class="fb-item"><div class="fb-meta">${FB_KIND[x.kind] || ''} · ${esc(when(x.created))}</div><div class="fb-text${x.text.length > 300 || x.text.split('\n').length > 6 ? ' clamp' : ''}">${esc(x.text)}</div>${x.text.length > 300 || x.text.split('\n').length > 6 ? '<button type="button" class="fb-more">Показать полностью</button>' : ''}
+      ${x.reply ? `<div class="fb-reply${x.seen ? '' : ' unseen'}"><div class="fb-meta">Ответ разработчика · ${esc(when(x.replied))}${x.seen ? '' : ' <span class="fb-new">новый</span>'}</div><div class="fb-text">${esc(x.reply)}</div></div>`
+        : '<div class="fb-meta fb-wait">Ответа пока нет</div>'}</div>`).join('')}
+  </details></div>`;
+}
+function fbSeen() {
+  if (!S.fb?.unseen) return;
+  S.fb.unseen = 0; S.fb.items.forEach(x => { if (x.reply) x.seen = true; }); fbDot();
+  window.NOTES_FEEDBACK_SEEN?.().catch(() => {});
+}
+function wireFbMine() {
+  const d = $('#fb-mine'); if (!d) return;
+  d.querySelectorAll('.fb-more').forEach(b => b.onclick = () => { b.previousElementSibling.classList.remove('clamp'); b.remove(); });
+  if (!S.fb?.unseen) return;
+  const r = d.querySelector('.fb-reply.unseen'); if (!r) return;
+  const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && d.open) { io.disconnect(); fbSeen(); } }, { threshold: 0.5 });
+  io.observe(r);
+  d.addEventListener('toggle', () => { if (!d.open) return; io.disconnect(); io.observe(r); });
+}
+// «Прочитать»: настройки перерисовываются ещё раз, когда придёт тариф, — прокручиваем к ответам при каждой перерисовке в ближайшие 2 с
+function openFbMine() { S.fbJumpUntil = Date.now() + 2000; setMode('prog'); fbJump(); }
+function fbJump() {
+  if (!(Date.now() < S.fbJumpUntil)) return;
+  const d = $('#fb-mine'); if (!d) return;
+  d.open = true;
+  const r = d.querySelector('.fb-reply.unseen');   // сразу к новому ответу (сообщения — от новых к старым, ответ может быть в самом низу)
+  (r ? r.closest('.fb-item') : d).scrollIntoView({ block: r ? 'center' : 'start' });
+}
+window.addEventListener('focus', () => fbCheck());
+
 /* ---------- отзывы (если сборка их поддерживает: window.NOTES_FEEDBACK) ---------- */
 function openFeedback(kind = 'bug') {
   if (!window.NOTES_FEEDBACK) return;
@@ -5862,7 +5930,7 @@ function openFeedback(kind = 'bug') {
     $('#fb-send').disabled = true; $('#fb-status').textContent = 'Отправляю…';
     try {
       await window.NOTES_FEEDBACK(kind, text, { mode: S.mode, editing: !!S.editing, phone: window.matchMedia('(max-width:760px)').matches, theme: document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') });
-      close(); toast('Спасибо! Отзыв отправлен');
+      close(); toast('Спасибо! Отзыв отправлен — ответ придёт в «Настройки → Обратная связь» и на почту'); fbCheck(true);
     } catch (err) { $('#fb-send').disabled = false; $('#fb-status').textContent = 'Не отправилось: ' + (err?.message || err); }
   };
   ta.focus();
@@ -5881,6 +5949,7 @@ async function boot() {
   try { S.uid = user ? await user.id() : null; } catch { S.uid = null; }
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
+  fbCheck(true);   // ответы разработчика на свои сообщения (ReteNote)
   loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
@@ -5969,7 +6038,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { S, store, toast, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
