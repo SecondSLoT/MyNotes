@@ -426,6 +426,14 @@ button.tag{border:0;background:none;padding:0}
 .tb.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
 .tb:active{background:var(--accent-soft)}
 .tb b{font-weight:700}.tb i{font-family:Georgia,serif;font-style:italic;font-size:16px}.tb s{text-decoration-thickness:1.5px}
+/* пропуски для тренировки {{…}}: в заметке — лёгкая подложка, в тренировке — «[…]» на месте нужного */
+.cloze{background:var(--accent-soft);border-radius:4px;padding:0 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.cloze-card .cloze.other{background:none;padding:0}
+.cloze-card .cloze.gap{background:none;border:1.5px dashed var(--accent);color:var(--accent);font-weight:600;padding:0 8px;letter-spacing:.05em}
+.cloze-card .cloze.hit{background:var(--good-soft);color:var(--good);font-weight:600;outline:1.5px solid var(--good);outline-offset:1px}
+.pill.cloze-n{color:var(--accent);background:var(--accent-soft)}
+.tb .cz-ico{font:600 12px/1 var(--f-mono, monospace);letter-spacing:-.5px}
+.tb.pro-lock{opacity:.6}
 .tc-red{color:var(--tc-red)}.tc-orange{color:var(--tc-orange)}.tc-green{color:var(--tc-green)}.tc-blue{color:var(--tc-blue)}.tc-purple{color:var(--tc-purple)}.tc-gray{color:var(--tc-gray)}
 .tb .tc-ico{display:grid;justify-items:center;line-height:1;font-weight:600;font-size:15px}
 .tb .tc-ico i{display:block;width:14px;height:3px;border-radius:2px;margin-top:2px;background:var(--cur-tc,var(--ink))}
@@ -796,6 +804,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
           <li>Расписание считает алгоритм FSRS: он помнит, насколько прочно ты знаешь каждую карточку и насколько она трудная, и зовёт повторить, когда вероятность вспомнить опускается примерно до 90%. Так повторений меньше, а забывается не больше.</li>
           <li>Подпись под кнопкой оценки — когда карточка снова попадёт в повторение. Для новой карточки: «Знаю» — через 4 дня, «Плаваю» и «Не знаю» — завтра.</li>
           <li>Под числом на сегодня — сколько карточек подойдёт <b>завтра</b> и <b>за неделю</b>: можно заранее понять, будет ли завал.</li>
+          <li><b>Пропуски</b> — выдели в тексте заметки слово или фразу и нажми на панели <b>[…]</b> (в Markdown это <code>{{…}}</code>). В тренировке этот кусок будет скрыт, остальной текст виден — так удобно учить длинные ответы по частям. Каждый пропуск — отдельная карточка со своим расписанием; у заметки с пропусками карточками становятся они, а в списке видно «N пропусков». Пропуски внутри кода не считаются. В ReteNote пропуски — возможность Pro: без Pro заметка тренируется целиком, как обычная.</li>
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
@@ -872,6 +881,36 @@ const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [
 
 const trainable = n => n && !n.ref && (n.body || '').trim().length > 0 && isTrainFolder(n.section);
 const isDue = id => { const s = S.srs.get(id); return s && s.due && s.due <= today(); };
+/* Карточки. Обычно заметка = одна карточка (id заметки): вопрос — заголовок, ответ — текст.
+   Пропуски (Pro, «тренировка плюс»; в MyNotes — всегда): метки {{…}} в тексте; у такой заметки карточки — сами пропуски,
+   id «<заметка>~c<md5 текста пропуска, 8 знаков>» (правка текста пропуска — новая карточка). Без Pro та же заметка — одна обычная карточка. */
+const plusOn = () => window.NOTES_FLAVOR !== 'public' || (planOn() && !!S.plan?.pro);
+const clozeHash = t => md5hex(String(t).trim()).slice(0, 8);
+function clozeTexts(body) {   // пропуски вне кода, без повторов, по порядку
+  let fence = false; const out = [];
+  for (const line of String(body || '').split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
+    if (fence) continue;
+    const l = line.replace(/`[^`]*`/g, ''), re = /\{\{([^{}\n]+?)\}\}/g; let m;
+    while ((m = re.exec(l))) { const t = m[1].trim(); if (t && !out.includes(t)) out.push(t); }
+  }
+  return out;
+}
+const baseId = cid => String(cid).split('~')[0];
+const noteOfCard = cid => S.notes.get(baseId(cid));
+function cardsOf(n) {
+  if (!trainable(n)) return [];
+  const cs = plusOn() ? clozeTexts(n.body) : [];
+  return cs.length ? cs.map(t => n.id + '~c' + clozeHash(t)) : [n.id];
+}
+function clozeOfCard(cid) {   // текст пропуска карточки (или null — обычная карточка)
+  if (!String(cid).includes('~c')) return null;
+  const n = noteOfCard(cid); if (!n) return null;
+  const h = String(cid).split('~c')[1];
+  return clozeTexts(n.body).find(t => clozeHash(t) === h) || null;
+}
+const noteDue = n => cardsOf(n).some(isDue);
+const cardsOfIds = ids => ids.flatMap(id => cardsOf(S.notes.get(id)));
 
 /* Расписание — FSRS-4.5 (решено 25.10: для всех, бесплатно). Память о карточке: s — прочность (через сколько дней вероятность вспомнить
    упадёт до 90%), d — трудность 1…10. Наши оценки: 1 «не знаю» = Again, 2 «плаваю» = Hard, 3 «знаю» = Good.
@@ -919,16 +958,33 @@ function schedule(prev, g, free) {
 }
 const ivlText = ivl => ivl <= 0 ? 'сегодня' : ivl === 1 ? 'завтра' : `через ${ivl} ${plural(ivl, 'день', 'дня', 'дней')}`;
 function plural(n, a, b, c) { n = Math.abs(n) % 100; const n1 = n % 10; if (n > 10 && n < 20) return c; if (n1 > 1 && n1 < 5) return b; if (n1 === 1) return a; return c; }
-function stage(id) {
-  const n = S.notes.get(id); const s = S.srs.get(id);
+function cardStage(id) {
+  const n = noteOfCard(id); const s = S.srs.get(id);
   if (!trainable(n)) return null;
   if (!s || !s.introduced) return 'new';
   if (s.ivl >= 21) return 'solid';
   if (s.ivl >= 7) return 'know';
   return 'learn';
 }
+// стадия заметки: одна карточка — её стадия; несколько (пропуски) — все новые → «новая», есть новые и начатые → «учу», иначе — самая слабая
+const STAGES = ['new', 'learn', 'know', 'solid'];
+function stage(id) {
+  const cs = cardsOf(S.notes.get(id)); if (!cs.length) return null;
+  const st = cs.map(cardStage);
+  if (st.length === 1) return st[0];
+  if (st.every(x => x === 'new')) return 'new';
+  if (st.includes('new')) return 'learn';
+  return STAGES[Math.min(...st.map(x => STAGES.indexOf(x)))];
+}
 function srsPill(id) {
-  const n = S.notes.get(id);
+  const n = S.notes.get(id), cs = n ? cardsOf(n) : [];
+  if (cs.length > 1 || (cs.length === 1 && cs[0] !== id)) {   // заметка с пропусками
+    const k = `<span class="pill cloze-n" title="Заметка тренируется по пропускам">${cs.length} ${plural(cs.length, 'пропуск', 'пропуска', 'пропусков')}</span>`;
+    if (cs.every(c => !S.srs.get(c)?.introduced)) return k + '<span class="pill new">новая</span>';
+    if (cs.some(isDue)) return k + '<span class="pill due">повторить</span>';
+    const left = Math.min(...cs.map(c => S.srs.get(c)?.due).filter(Boolean).map(d => daysBetween(today(), d)));
+    return k + (isFinite(left) ? `<span class="pill ${stage(id) === 'learn' ? 'learn' : 'know'}">↻ ${left} дн</span>` : '');
+  }
   if (n && !isTrainFolder(n.section)) return '';
   if (n && n.ref) return '<span class="pill ref" title="Не попадает в тренировку">вне тренировки</span>';
   if (n && !(n.body || '').trim()) return '<span class="pill empty">без ответа</span>';
@@ -942,9 +998,8 @@ function srsPill(id) {
 // сколько карточек подойдёт в ближайшие дни (бесплатно — одна строка «завтра / за неделю»; подробный прогноз — в Pro)
 function dueAhead() {
   const t = today(), tm = addDays(t, 1), wk = addDays(t, 7); let tomorrow = 0, week = 0;
-  for (const n of S.notes.values()) {
-    if (!trainable(n)) continue;
-    const s = S.srs.get(n.id); if (!s || !s.introduced || !s.due) continue;
+  for (const n of S.notes.values()) for (const c of cardsOf(n)) {
+    const s = S.srs.get(c); if (!s || !s.introduced || !s.due) continue;
     if (s.due === tm) tomorrow++;
     if (s.due > t && s.due <= wk) week++;
   }
@@ -953,11 +1008,10 @@ function dueAhead() {
 function introducedToday() { let c = 0; const t = today(); for (const s of S.srs.values()) if (s.introduced === t) c++; return c; }
 function reviewQueue() {
   const t = today(); const due = [], fresh = [];
-  for (const n of sortedNotes()) {
-    if (!trainable(n)) continue;
-    const s = S.srs.get(n.id);
-    if (s && s.introduced) { if (s.due && s.due <= t) due.push(n.id); }
-    else fresh.push(n.id);
+  for (const n of sortedNotes()) for (const c of cardsOf(n)) {
+    const s = S.srs.get(c);
+    if (s && s.introduced) { if (s.due && s.due <= t) due.push(c); }
+    else fresh.push(c);
   }
   const room = Math.max(0, (S.settings.newPerDay ?? 10) - introducedToday());
   return { due, fresh: fresh.slice(0, room), freshTotal: fresh.length };
@@ -1119,7 +1173,7 @@ async function purgeNotes(ids, quiet) {
   for (const id of ids) {
     S.trash.delete(id);
     await write(() => S.db.collection('notes').doc(id).delete(), null);
-    if (S.uid && S.srs.has(id)) { try { await srsCol().doc(id).delete(); } catch {} }
+    if (S.uid) for (const c of [...S.srs.keys()].filter(k => baseId(k) === id)) { S.srs.delete(c); try { await srsCol().doc(c).delete(); } catch {} }   // и карточки пропусков
   }
   if (ids.includes(S.noteId)) { S.noteId = null; $('#lib').classList.remove('reading'); }
   rerender();
@@ -1375,6 +1429,10 @@ function renderMd(src) {
   if (!mdReady) {
     mdReady = true;
     // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the text-colour spans pass
+    // пропуск для тренировки {{…}} → <span class="cloze" data-c="<md5 текста>">…</span> (в коде не трогаем — код размечает marked раньше)
+    try { marked.use({ extensions: [{ name: 'cloze', level: 'inline', start(src) { const i = src.indexOf('{{'); return i < 0 ? undefined : i; },
+      tokenizer(src) { const m = /^\{\{([^{}\n]+?)\}\}/.exec(src); if (m && m[1].trim()) return { type: 'cloze', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) }; },
+      renderer(t) { return `<span class="cloze" data-c="${clozeHash(t.text)}">${this.parser.parseInline(t.tokens)}</span>`; } }] }); } catch {}
     try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
   }
   // пустой пункт чек-листа «- [ ]» marked показывает текстом: даём ему невидимый символ, чтобы вышел квадратик
@@ -1454,7 +1512,7 @@ function sectionCounts() {
   // counts include everything inside nested folders
   const c = new Map(), d = new Map();
   const bump = (m, id) => { for (const x of [id, ...ancestors(id)]) m.set(x, (m.get(x) || 0) + 1); };
-  for (const n of S.notes.values()) { if (!S.sections.has(n.section)) continue; bump(c, n.section); if (trainable(n) && isDue(n.id)) bump(d, n.section); }
+  for (const n of S.notes.values()) { if (!S.sections.has(n.section)) continue; bump(c, n.section); for (const c of cardsOf(n)) if (isDue(c)) bump(d, n.section); }
   return { c, d };
 }
 function sectionsSorted() { return tree().list.map(e => e.s); }
@@ -2539,7 +2597,7 @@ function wireDataPanel() {
         for (const n of notes) { let id = n.section; while (id && !need.has(id)) { need.add(id); id = (d.sections.find(x => x.id === id) || S.sections.get(id))?.parent; } }
         secs = secs.filter(sc => S.sections.has(sc.id) || need.has(sc.id));
       } }
-    const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(id) || S.trash.has(id) || notes.some(n => n.id === id)) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
+    const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(baseId(id)) || S.trash.has(baseId(id)) || notes.some(n => n.id === baseId(id))) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
     const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
     S.dataPanel = { status: 'Импортирую…' }; renderProg();
     // картинки из Evernote: загрузить туда же, куда обычные картинки заметок, и подставить ссылки
@@ -2676,9 +2734,9 @@ function wireAccountPanel() {
 }
 
 /* ---------- reset progress: «снова учить» ---------- */
-function hasProgress(id) { const s = S.srs.get(id); return !!(s && s.introduced); }
+function hasProgress(id) { return cardsOf(S.notes.get(id)).some(c => S.srs.get(c)?.introduced); }   // заметка: начата хоть одна её карточка
 async function relearn(ids) {
-  ids = ids.filter(id => trainable(S.notes.get(id)));
+  ids = cardsOfIds(ids.filter(id => trainable(S.notes.get(id))));   // заметки → их карточки (у заметки с пропусками — все пропуски)
   if (!ids.length) return;
   const t = today(); const before = new Map();
   for (const id of ids) {
@@ -3411,7 +3469,9 @@ function renderReader(scrollTop) {
   const s = S.srs.get(n.id); S.hitNav = null;
   const terms = S.q ? parseQuery(S.q) : null;
   const nbr = (() => { const l = currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
-  const srsLine = n.ref ? '' : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
+  const cards = cardsOf(n), multi = cards.length && cards[0] !== n.id;
+  const srsLine = n.ref ? '' : multi ? (cs => cs.length ? `<span class="hint">Повторов: ${cs.reduce((a, x) => a + (x.seen || 0), 0)} · ошибок: ${cs.reduce((a, x) => a + (x.lapses || 0), 0)} · следующий ${(d => d <= today() ? 'сегодня' : d.split('-').reverse().join('.'))(cs.map(x => x.due).sort()[0])}</span>` : '')(cards.map(c => S.srs.get(c)).filter(x => x && x.introduced && x.due))
+    : s && s.introduced ? `<span class="hint">Повторов: ${s.seen || 0} · ошибок: ${s.lapses || 0} · следующий ${s.due <= today() ? 'сегодня' : s.due.split('-').reverse().join('.')}</span>` : '';
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><button id="prev-note" aria-label="Предыдущая заметка в списке" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="Следующая заметка в списке" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="Открыть раздел и прокрутить список к этой заметке">${esc(secPath(n.section))} ↳</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="Вернуться к заметке, из которой пришёл по ссылке">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
@@ -3451,7 +3511,7 @@ function renderReader(scrollTop) {
   $('#edit') && ($('#edit').onclick = () => editHere(n.id));
   $('#unref') && ($('#unref').onclick = () => setRef(n.id, false));
   $('#relearn') && ($('#relearn').onclick = () => relearn([n.id]));
-  $('#drill') && ($('#drill').onclick = () => startSession([n.id], 'free', 'Одна карточка'));
+  $('#drill') && ($('#drill').onclick = () => startSession(cardsOf(n), 'free', 'Одна карточка'));
   restoreTagEdit();
 }
 
@@ -3995,6 +4055,7 @@ function renderEditor(box) {
   tb.addEventListener('click', e => {
     const b = e.target.closest('[data-md]'); if (!b) return;
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
+    if (b.dataset.md === 'cloze' && !plusOn()) { showPlanDialog('plus'); return; }   // пропуски — «тренировка плюс» (Pro)
     if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
     requestAnimationFrame(refreshTb);
   });
@@ -4100,7 +4161,7 @@ function toolbarHtml() {
   return `<div class="md-toolbar" role="toolbar" aria-label="Форматирование">
     <div class="tb-group">${b('bold', '<b>B</b>', `Жирный (${MOD}+B)`)}${b('italic', '<i>I</i>', `Курсив (${MOD}+I)`)}${b('strike', '<s>S</s>', `Зачёркнутый (${MOD}+Shift+X)`)}${b('code', ICO.code, `Код в строке (${MOD}+E)`)}${b('color', '<span class="tc-ico">A<i></i></span>', 'Цвет текста')}</div>
     <div class="tb-group">${b('h1', '<span class="hl">H<small>1</small></span>', `Заголовок (${MOD}+Alt+1)`)}${b('h2', '<span class="hl">H<small>2</small></span>', `Подзаголовок (${MOD}+Alt+2)`)}${b('ul', ICO.ul, `Маркированный список (${MOD}+Shift+8)`)}${b('ol', ICO.ol, `Нумерованный список (${MOD}+Shift+7)`)}${b('task', ICO.task, 'Чек-лист')}${b('quote', ICO.quote, 'Цитата')}</div>
-    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('note', ICO.note, 'Ссылка на заметку ([[ в тексте)')}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}</div>
+    <div class="tb-group">${b('block', ICO.block, `Блок кода Kotlin (${MOD}+Shift+C)`)}${b('link', ICO.link, `Ссылка (${MOD}+K)`)}${b('note', ICO.note, 'Ссылка на заметку ([[ в тексте)')}${b('img', ICO.img, 'Картинка из папки img')}${b('table', ICO.table, 'Таблица')}${b('hr', ICO.hr, 'Разделитель')}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', 'Пропуск для тренировки {{…}}: в тренировке этот кусок будет скрыт' + (plusOn() ? '' : ' — в Pro'), plusOn() ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, `Отменить (${MOD}+Z)`)}${b('redo', ICO.redo, `Повторить (${MOD}+Shift+Z)`)}</div>
   </div>`;
 }
@@ -4196,6 +4257,12 @@ function mdAction(act, ta) {
     case 'note': return pickForMd(ta, s, e);
     case 'table': return insertBlock(ta, '| Колонка 1 | Колонка 2 |\n| --- | --- |\n| значение | значение |', 2, 9);
     case 'hr': return insertBlock(ta, '---', 3);
+    case 'cloze': {   // {{выделенное}}; снова на пропуске — снять
+      if (v.slice(s - 2, s) === '{{' && v.slice(e, e + 2) === '}}') return replaceRange(ta, s - 2, e + 2, sel, s - 2, e - 2);
+      if (!sel.trim()) return replaceRange(ta, s, e, '{{}}', s + 2, s + 2);
+      const t = sel.replace(/^\s+|\s+$/g, ''), lead = sel.match(/^\s*/)[0];
+      return replaceRange(ta, s, e, sel.replace(t, '{{' + t + '}}'), s + lead.length + 2, s + lead.length + 2 + t.length);
+    }
     case 'undo': if (S.editing?.live) return liveUndo(S.editing, -1); ta.focus(); try { document.execCommand('undo'); } catch {} return;
     case 'redo': if (S.editing?.live) return liveUndo(S.editing, 1); ta.focus(); try { document.execCommand('redo'); } catch {} return;
   }
@@ -4300,6 +4367,7 @@ function mdInline(nodes) {
     if (t === 'STRONG' || t === 'B') s += mdWrap('**', kids());
     else if (t === 'EM' || t === 'I') s += mdWrap('*', kids());
     else if (t === 'DEL' || t === 'S' || t === 'STRIKE') s += mdWrap('~~', kids());
+    else if (t === 'SPAN' && n.classList.contains('cloze')) { const inner = kids(); s += inner.trim() ? `{{${inner.trim()}}}` : inner; }
     else if (t === 'SPAN' && tcOf(n)) { const inner = kids(); const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0]; s += inner.trim() ? `${lead}<span class="tc-${tcOf(n)}">${inner.trim()}</span>${trail}` : inner; }
     else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
     else if (t === 'A') { const label = kids().trim() || n.getAttribute('href') || ''; s += `[${label}](${n.getAttribute('href') || ''})`; }
@@ -4354,6 +4422,12 @@ function visAction(act, vis) {
       vis.dispatchEvent(new Event('input', { bubbles: true })); return;
     }
     case 'block': return exec('insertHTML', `<pre><code class="language-kotlin">${esc(text || '// код')}</code></pre><p><br></p>`);
+    case 'cloze': {   // пропуск: выделенное → <span class="cloze">; внутри пропуска — снять
+      const cz = closestIn(vis, 'span.cloze');
+      if (cz) { const f = document.createDocumentFragment(); while (cz.firstChild) f.appendChild(cz.firstChild); cz.replaceWith(f); vis.dispatchEvent(new Event('input', { bubbles: true })); return; }
+      if (!text.trim()) return;
+      return exec('insertHTML', `<span class="cloze">${esc(text)}</span>&#8203;`);
+    }
     case 'link': {
       const a = closestIn(vis, 'a');
       if (a) { const r = document.createRange(); r.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(r); exec('unlink'); return; }
@@ -4753,7 +4827,7 @@ function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed, renew = kind === 'renew';
-  const head = kind === 'spaces' ? 'Общие разделы — в Pro' : renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
+  const head = kind === 'spaces' ? 'Общие разделы — в Pro' : kind === 'plus' ? 'Тренировка «плюс» — в Pro' : renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
@@ -5253,10 +5327,10 @@ function weakness(id) {
   return (s.lastGrade === 1 ? 3 : s.lastGrade === 2 ? 2 : 0) + (s.lapses || 0) * 0.6 + (2.5 - s.ease) + (s.ivl < 3 ? 0.5 : 0) + (isDue(id) ? 0.8 : 0);
 }
 function freePool(o) {
-  let list = sortedNotes().filter(trainable);
+  let list = sortedNotes().filter(trainable);   // дальше — карточки (у заметки с пропусками их несколько)
   if (o.sections.length) { const allow = new Set(); for (const id of o.sections) for (const x of subtree(id)) allow.add(x); list = list.filter(n => allow.has(n.section)); }
   if (o.tags.length) list = list.filter(n => (n.tags || []).some(t => o.tags.includes(t)));
-  let ids = list.map(n => n.id);
+  let ids = list.flatMap(cardsOf);
   if (o.order === 'shuffle') ids = shuffle(ids);
   if (o.order === 'weak') ids = ids.map(id => [id, weakness(id) + Math.random() * 0.3]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   return o.limit ? ids.slice(0, o.limit) : ids;
@@ -5285,7 +5359,7 @@ function renderTrain() {
       <div class="opts">
         <div><div class="lbl" style="margin-bottom:8px">Разделы</div><div class="opt-row" id="o-secs">
           <button class="chip" data-s="" aria-pressed="${!o.sections.length}">Все</button>
-          ${sectionsSorted().map(s => { const sub = subtree(s.id); const c = sortedNotes().filter(n => sub.has(n.section) && trainable(n)).length; return c ? `<button class="chip" data-s="${esc(s.id)}" aria-pressed="${o.sections.includes(s.id)}">${esc(s.title)} <span class="tag">${c}</span></button>` : ''; }).join('')}
+          ${sectionsSorted().map(s => { const sub = subtree(s.id); const c = sortedNotes().filter(n => sub.has(n.section)).reduce((a, n) => a + cardsOf(n).length, 0); return c ? `<button class="chip" data-s="${esc(s.id)}" aria-pressed="${o.sections.includes(s.id)}">${esc(s.title)} <span class="tag">${c}</span></button>` : ''; }).join('')}
         </div></div>
         ${tags.length ? `<div><div class="lbl" style="margin-bottom:8px">Теги</div><div class="opt-row" id="o-tags">${tags.map(([t, c]) => `<button class="chip" data-t="${esc(t)}" aria-pressed="${o.tags.includes(t)}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')}</div></div>` : ''}
         <div class="opt-row"><span class="lbl" style="margin-right:6px">Порядок</span><div class="seg" id="o-order">
@@ -5314,18 +5388,19 @@ function renderSession(root) {
   const T = S.train;
   if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
   sessionClass();
-  const id = T.queue[T.i]; const n = S.notes.get(id);
-  if (!n) { T.i++; renderSession(root); return; }
+  const id = T.queue[T.i]; const n = noteOfCard(id), cz = clozeOfCard(id);
+  if (!n || (String(id).includes('~c') && !cz)) { T.i++; renderSession(root); return; }   // заметку удалили или пропуск исправили — дальше
   const answered = new Set([...T.results.keys()]).size;
   const prev = S.srs.get(id); const free = T.kind === 'free';
   const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? 'срок не меняется' : 'повтор ' + ivlText(r.ivl); };
   root.innerHTML = `<div class="session">
     <div class="sbar"><button class="btn" id="s-end">Завершить</button><div class="track"><i style="width:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
     <div class="card">
-      <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
+      <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${cz ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
       ${`<div class="q">${softBreaks(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>
-      ${S.canWrite ? tagRowHtml(id, 'train') : ''}
-      ${T.shown ? `<div class="ans md" id="ans">${renderMd(n.body)}</div>` : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}`}
+      ${S.canWrite ? tagRowHtml(n.id, 'train') : ''}
+      ${cz ? `<div class="ans md cloze-card${T.shown ? ' shown' : ''}" id="ans">${renderMd(n.body)}</div>` : ''}
+      ${T.shown ? (cz ? '' : `<div class="ans md" id="ans">${renderMd(n.body)}</div>`) : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}`}
     </div>
     ${T.shown ? `<div class="grades">
       <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
@@ -5333,7 +5408,12 @@ function renderSession(root) {
       <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
     <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
   </div>`;
-  if (T.shown && $('#ans')) enhance($('#ans'));
+  if ((T.shown || cz) && $('#ans')) enhance($('#ans'));
+  // пропуск: до ответа — «[…]» на месте нужного куска (остальные пропуски видны), после — он подсвечен
+  if (cz && $('#ans')) for (const sp of $('#ans').querySelectorAll('span.cloze')) {
+    if (sp.dataset.c !== clozeHash(cz)) { sp.classList.add('other'); continue; }
+    if (T.shown) sp.classList.add('hit'); else { sp.textContent = '[…]'; sp.classList.add('gap'); sp.title = 'Вспомни, что здесь'; }
+  }
   $('#s-end').onclick = () => { T.done = true; renderSession(root); };
   wireTrainEdit(root, n);
   $('#reveal') && ($('#reveal').onclick = () => { T.shown = true; renderSession(root); });
@@ -5344,7 +5424,7 @@ function renderSession(root) {
 }
 function startTrainEdit() {
   const T = S.train; if (!T || T.done || !S.canWrite || S.editing) return;
-  const n = S.notes.get(T.queue[T.i]); if (!n) return;
+  const n = noteOfCard(T.queue[T.i]); if (!n) return;
   if ($('#reader #ed')) $('#reader .doc').innerHTML = ''; // the editor lives in the overlay now; no duplicate ids
   startEdit(n.id, null, false, true);
 }
@@ -5356,15 +5436,24 @@ function wireTrainEdit(root, n) {
   $('#t-edit-btn') && ($('#t-edit-btn').onclick = startTrainEdit);
   $('#ans') && S.canWrite && ($('#ans').ondblclick = e => { if (!e.target.closest('a, input, button')) { getSelection().removeAllRanges(); startTrainEdit(); } });
 }
-function dropCurrent() {
+function dropCurrent() {   // вся заметка — вне тренировки (и все её пропуски)
   const T = S.train; const id = T.queue[T.i]; if (!id) return;
-  if (!T.results.has(id)) T.total = Math.max(0, T.total - 1);
-  T.queue = T.queue.filter((x, k) => k < T.i || x !== id);
-  T.removed = (T.removed || []).concat(id);
+  const nid = baseId(id), rest = [...new Set(T.queue.filter((x, k) => k >= T.i && baseId(x) === nid))];
+  T.total = Math.max(0, T.total - rest.filter(x => !T.results.has(x)).length);
+  T.queue = T.queue.filter((x, k) => k < T.i || baseId(x) !== nid);
+  T.removed = (T.removed || []).concat(nid);
   T.shown = false;
   renderSession($('#train'));
-  setRef(id, true, true);
+  setRef(nid, true, true);
 }
+// стадия одной карточки (для карточки-пропуска в тренировке)
+function cardPill(cid) {
+  const s = S.srs.get(cid), st = cardStage(cid), k = '<span class="pill cloze-n">пропуск</span>';
+  if (st === 'new') return k + '<span class="pill new">новая</span>';
+  if (isDue(cid)) return k + '<span class="pill due">повторить</span>';
+  return k + (s?.due ? `<span class="pill ${st === 'learn' ? 'learn' : 'know'}">↻ ${daysBetween(today(), s.due)} дн</span>` : '');
+}
+const cardTitle = cid => { const n = noteOfCard(cid); return n ? n.title + (clozeOfCard(cid) ? ' · пропуск' : '') : ''; };
 /* Журнал ответов: одна запись на месяц (data/users/<uid>/srs/log/<ГГГГ-ММ>) со сводкой по дням:
    { days: { 'ГГГГ-ММ-ДД': { n, g1, g2, g3, fresh } } } — для статистики и будущей настройки FSRS под человека. */
 const logCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('log');
@@ -5394,17 +5483,17 @@ async function gradeCurrent(g) {
 function renderSummary(root) {
   const T = S.train; const c = { 1: 0, 2: 0, 3: 0 };
   for (const g of T.results.values()) c[g]++;
-  const missed = [...T.results.entries()].filter(([, g]) => g === 1).map(([id]) => id).filter(id => S.notes.has(id));
-  const shaky = [...T.results.entries()].filter(([, g]) => g === 2).map(([id]) => id).filter(id => S.notes.has(id));
+  const missed = [...T.results.entries()].filter(([, g]) => g === 1).map(([id]) => id).filter(id => noteOfCard(id));
+  const shaky = [...T.results.entries()].filter(([, g]) => g === 2).map(([id]) => id).filter(id => noteOfCard(id));
   root.innerHTML = `<div class="wrap"><section class="panel">
     <h3>${esc(T.label)}: итог</h3>
     <p class="sub">${T.results.size ? `Пройдено ${T.results.size} ${plural(T.results.size, 'карточка', 'карточки', 'карточек')}.` : 'Сессия завершена без ответов.'}</p>
     <div class="summary-grid">
       <div class="stat g1"><b>${c[1]}</b>не знал</div><div class="stat g2"><b>${c[2]}</b>плавал</div><div class="stat g3"><b>${c[3]}</b>знал</div>
     </div>
-    ${missed.length ? `<div class="lbl">Не знал</div><ul class="missed">${missed.map(id => `<li><button data-open="${esc(id)}">${esc(S.notes.get(id).title)}</button></li>`).join('')}</ul>` : ''}
+    ${missed.length ? `<div class="lbl">Не знал</div><ul class="missed">${missed.map(id => `<li><button data-open="${esc(baseId(id))}">${esc(cardTitle(id))}</button></li>`).join('')}</ul>` : ''}
     ${(T.removed || []).length ? `<div class="lbl">Убрано из тренировки</div><ul class="excluded">${T.removed.filter(id => S.notes.has(id)).map(id => `<li><span class="nm">${esc(S.notes.get(id).title)}</span>${S.notes.get(id).ref ? `<button class="btn" data-unref="${esc(id)}">Вернуть</button>` : '<span class="hint">возвращена</span>'}</li>`).join('')}</ul>` : ''}
-    ${shaky.length ? `<div class="lbl">Плавал</div><ul class="missed">${shaky.map(id => `<li><button data-open="${esc(id)}">${esc(S.notes.get(id).title)}</button></li>`).join('')}</ul>` : ''}
+    ${shaky.length ? `<div class="lbl">Плавал</div><ul class="missed">${shaky.map(id => `<li><button data-open="${esc(baseId(id))}">${esc(cardTitle(id))}</button></li>`).join('')}</ul>` : ''}
     <div class="bar">
       ${missed.length + shaky.length ? `<button class="btn primary" id="again">Прогнать ещё раз то, что не знал (${missed.length + shaky.length})</button>` : ''}
       <button class="btn" id="done">Готово</button></div>
@@ -5439,7 +5528,7 @@ function progressHtml() {
   const tot = { new: 0, learn: 0, know: 0, solid: 0 }; let dueAll = 0;
   const rows = sectionsSorted().map(s => {
     const c = { new: 0, learn: 0, know: 0, solid: 0 }; let due = 0, all = 0;
-    for (const n of S.notes.values()) if (n.section === s.id) { const st = stage(n.id); if (!st) continue; c[st]++; all++; if (isDue(n.id)) due++; }
+    for (const n of S.notes.values()) if (n.section === s.id) for (const cid of cardsOf(n)) { const st = cardStage(cid); if (!st) continue; c[st]++; all++; if (isDue(cid)) due++; }
     for (const k in c) tot[k] += c[k]; dueAll += due;
     if (!all) return '';
     const w = k => (100 * c[k] / all).toFixed(1) + '%';
@@ -5722,7 +5811,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { S, store, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
