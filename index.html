@@ -432,6 +432,8 @@ button.tag{border:0;background:none;padding:0}
 .cloze-card .cloze.gap{background:none;border:1.5px dashed var(--accent);color:var(--accent);font-weight:600;padding:0 8px;letter-spacing:.05em}
 .cloze-card .cloze.hit{background:var(--good-soft);color:var(--good);font-weight:600;outline:1.5px solid var(--good);outline-offset:1px}
 .pill.cloze-n{color:var(--accent);background:var(--accent-soft)}
+.rev-hint{margin:2px 0 6px;color:var(--accent);font-weight:600}
+.q.rev-a{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);color:var(--good)}
 .tb .cz-ico{font:600 12px/1 var(--f-mono, monospace);letter-spacing:-.5px}
 .tb.pro-lock{opacity:.6}
 .tc-red{color:var(--tc-red)}.tc-orange{color:var(--tc-orange)}.tc-green{color:var(--tc-green)}.tc-blue{color:var(--tc-blue)}.tc-purple{color:var(--tc-purple)}.tc-gray{color:var(--tc-gray)}
@@ -493,6 +495,29 @@ button.tag{border:0;background:none;padding:0}
 .today .split{color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:2px}
 .today .split b{color:var(--ink);font-weight:600}
 .today .ahead{margin-top:4px}
+.train-plus.locked{opacity:.75}
+.train-plus .pro{font:600 11px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 7px;margin-left:4px}
+.sec-limits{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 14px}
+.sec-limits label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}
+.sec-limits input{width:80px;border:1px solid var(--line);background:var(--raised);color:var(--ink);border-radius:8px;padding:5px 8px}
+/* статистика тренировки */
+.stats .stat-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 14px}
+@media (max-width:520px){.stats .stat-tiles{gap:6px}.stats .stat-tiles>div{padding:8px;font-size:12px}.stats .stat-tiles b{font-size:20px}.stats .stat-tiles .hint{display:none}}
+.stats .stat-tiles>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--muted);font-size:13px}
+.stats .stat-tiles b{display:block;font-size:24px;line-height:1.2;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.stats .lbl{margin:12px 0 6px}
+.fc{display:flex;align-items:flex-end;gap:2px;height:96px;padding-bottom:18px;position:relative}
+.fc-bar{flex:1;height:100%;display:flex;align-items:flex-end;position:relative;min-width:0}
+.fc-bar i{display:block;width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:1px;opacity:.85}
+.fc-bar:first-child i{background:var(--kt, var(--accent));opacity:1}
+.fc-bar:hover i{opacity:1}
+.fc-bar span{position:absolute;top:100%;left:0;margin-top:3px;font-size:11px;color:var(--faint);white-space:nowrap}
+.cal{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;grid-auto-columns:11px;gap:3px;overflow-x:auto;padding-bottom:2px}
+.cal i{border-radius:2px;background:var(--line)}
+.cal i.l1{background:color-mix(in srgb,var(--accent) 30%,var(--line))}.cal i.l2{background:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.cal i.l3{background:color-mix(in srgb,var(--accent) 80%,var(--line))}.cal i.l4{background:var(--accent)}
+.hard-list li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.stats-teaser .pro,.stats .pro{font:600 11px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 7px;vertical-align:middle}
 .opts{display:flex;flex-direction:column;gap:14px}
 .opt-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -804,7 +829,11 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
           <li>Расписание считает алгоритм FSRS: он помнит, насколько прочно ты знаешь каждую карточку и насколько она трудная, и зовёт повторить, когда вероятность вспомнить опускается примерно до 90%. Так повторений меньше, а забывается не больше.</li>
           <li>Подпись под кнопкой оценки — когда карточка снова попадёт в повторение. Для новой карточки: «Знаю» — через 4 дня, «Плаваю» и «Не знаю» — завтра.</li>
           <li>Под числом на сегодня — сколько карточек подойдёт <b>завтра</b> и <b>за неделю</b>: можно заранее понять, будет ли завал.</li>
-          <li><b>Пропуски</b> — выдели в тексте заметки слово или фразу и нажми на панели <b>[…]</b> (в Markdown это <code>{{…}}</code>). В тренировке этот кусок будет скрыт, остальной текст виден — так удобно учить длинные ответы по частям. Каждый пропуск — отдельная карточка со своим расписанием; у заметки с пропусками карточками становятся они, а в списке видно «N пропусков». Пропуски внутри кода не считаются. В ReteNote пропуски — возможность Pro: без Pro заметка тренируется целиком, как обычная.</li>
+          <li><b>Пропуски</b> — выдели в тексте заметки слово или фразу и нажми на панели <b>[…]</b> (в Markdown это <code>{{…}}</code>). В тренировке этот кусок будет скрыт, остальной текст виден — так удобно учить длинные ответы по частям. Каждый пропуск — отдельная карточка со своим расписанием; у заметки с пропусками карточками становятся они, а в списке видно «N пропусков». Пропуски внутри кода не считаются. Без «тренировки плюс» заметка с пропусками тренируется целиком, как обычная.</li>
+          <li><b>В обе стороны</b> — в меню раздела «⋮ → Спрашивать в обе стороны»: у каждой заметки раздела (и подразделов) появляется обратная карточка — показан ответ, вспомни вопрос. Удобно для терминов, слов, коротких определений.</li>
+          <li><b>Статистика</b> — внизу вкладки «Тренировка»: сколько дней подряд занимаешься, сколько знакомых карточек помнишь, прогноз на месяц по дням, календарь занятий и самые трудные карточки.</li>
+          <li><b>Настройки расписания</b> («Настройки → Тренировка»): насколько хорошо помнить (выше — чаще повторения), самый длинный интервал и лимит новых карточек в день для отдельных разделов.</li>
+          <li>В ReteNote пропуски, обратные карточки, статистика и настройки расписания — «тренировка плюс» в Pro.</li>
           <li><b>Свободная тренировка</b> — выбранные разделы и теги, по порядку, вразнобой или «сначала слабые», без оглядки на расписание. «Не знаю» и «Плаваю» здесь тоже влияют на расписание, а «Знаю» по карточке, срок которой ещё не подошёл, срок не меняет.</li>
           <li><b>«Сначала слабые»</b> сортирует карточки по твоей истории ответов: первыми идут те, где в прошлый раз было «Не знаю», затем «Плаваю», затем ещё не виденные, и в конце уверенно известные. Выше поднимаются и карточки, на которых часто ошибался, у которых короткий интервал или подошёл срок повторения. Похожие по слабости перемешиваются.</li>
           <li>Кнопка <b>«Проверить себя»</b> в заметке — быстрая тренировка одной карточки.</li>
@@ -898,11 +927,16 @@ function clozeTexts(body) {   // пропуски вне кода, без пов
 }
 const baseId = cid => String(cid).split('~')[0];
 const noteOfCard = cid => S.notes.get(baseId(cid));
+// обратные карточки («в обе стороны», флаг раздела both — тоже «тренировка плюс»): «<заметка>~r» — по ответу вспомнить вопрос
+function isBothFolder(id) { if (!id || !S.sections.has(id)) return false; if (S.sections.get(id).both) return true; return ancestors(id).some(a => S.sections.get(a)?.both); }
 function cardsOf(n) {
   if (!trainable(n)) return [];
-  const cs = plusOn() ? clozeTexts(n.body) : [];
-  return cs.length ? cs.map(t => n.id + '~c' + clozeHash(t)) : [n.id];
+  if (!plusOn()) return [n.id];
+  const cs = clozeTexts(n.body);
+  if (cs.length) return cs.map(t => n.id + '~c' + clozeHash(t));
+  return isBothFolder(n.section) ? [n.id, n.id + '~r'] : [n.id];
 }
+const isReverse = cid => String(cid).endsWith('~r');
 function clozeOfCard(cid) {   // текст пропуска карточки (или null — обычная карточка)
   if (!String(cid).includes('~c')) return null;
   const n = noteOfCard(cid); if (!n) return null;
@@ -922,7 +956,8 @@ const fsrsClampD = d => Math.min(10, Math.max(1, d));
 const fsrsD0 = g => fsrsClampD(FSRS_W[4] - (g - 3) * FSRS_W[5]);
 const fsrsR = (t, st) => Math.pow(1 + FSRS_FACTOR * t / st, FSRS_DECAY);   // вероятность вспомнить через t дней
 // интервал для желаемой вероятности вспомнить (по умолчанию 90%: интервал = прочности)
-const fsrsIvl = (st, want) => Math.max(1, Math.min(S.settings.maxIvl || 36500, Math.round(st / FSRS_FACTOR * (Math.pow(want || S.settings.retention || 0.9, 1 / FSRS_DECAY) - 1))));
+// настройки «насколько хорошо помнить» и «самый длинный интервал» — «тренировка плюс» (без неё — 90% и без ограничения)
+const fsrsIvl = (st, want) => Math.max(1, Math.min((plusOn() && S.settings.maxIvl) || 36500, Math.round(st / FSRS_FACTOR * (Math.pow(want || (plusOn() && S.settings.retention) || 0.9, 1 / FSRS_DECAY) - 1))));
 function fsrsState(s) {   // s, d карточки; старая (без FSRS) — из ivl / ease
   if (typeof s.s === 'number' && typeof s.d === 'number') return { st: s.s, d: s.d };
   if (!s.reps && !s.ivl) return null;   // ещё не отвечали «знаю» — как новая
@@ -979,7 +1014,8 @@ function stage(id) {
 function srsPill(id) {
   const n = S.notes.get(id), cs = n ? cardsOf(n) : [];
   if (cs.length > 1 || (cs.length === 1 && cs[0] !== id)) {   // заметка с пропусками
-    const k = `<span class="pill cloze-n" title="Заметка тренируется по пропускам">${cs.length} ${plural(cs.length, 'пропуск', 'пропуска', 'пропусков')}</span>`;
+    const k = cs.some(isReverse) ? '<span class="pill cloze-n" title="Спрашивается в обе стороны: по вопросу и по ответу">⇄ обе стороны</span>'
+      : `<span class="pill cloze-n" title="Заметка тренируется по пропускам">${cs.length} ${plural(cs.length, 'пропуск', 'пропуска', 'пропусков')}</span>`;
     if (cs.every(c => !S.srs.get(c)?.introduced)) return k + '<span class="pill new">новая</span>';
     if (cs.some(isDue)) return k + '<span class="pill due">повторить</span>';
     const left = Math.min(...cs.map(c => S.srs.get(c)?.due).filter(Boolean).map(d => daysBetween(today(), d)));
@@ -1014,7 +1050,14 @@ function reviewQueue() {
     else fresh.push(c);
   }
   const room = Math.max(0, (S.settings.newPerDay ?? 10) - introducedToday());
-  return { due, fresh: fresh.slice(0, room), freshTotal: fresh.length };
+  // лимит новых у раздела (тренировка плюс): ближайший раздел с newLimit (сам или предок) — не больше стольких новых в день из него
+  let pick = fresh;
+  if (plusOn()) {
+    const lim = sid => [sid, ...ancestors(sid)].find(a => typeof S.sections.get(a)?.newLimit === 'number'), used = new Map();
+    for (const [c, s] of S.srs) if (s.introduced === t) { const n = noteOfCard(c), l = n && lim(n.section); if (l) used.set(l, (used.get(l) || 0) + 1); }
+    pick = fresh.filter(c => { const l = lim(noteOfCard(c)?.section); if (!l) return true; const u = used.get(l) || 0; if (u >= S.sections.get(l).newLimit) return false; used.set(l, u + 1); return true; });
+  }
+  return { due, fresh: pick.slice(0, room), freshTotal: fresh.length };
 }
 
 /* ---------- folder tree: sections have parent (id or null) and train (bool) ---------- */
@@ -3059,6 +3102,11 @@ function renderSecMenu() {
     const trainBtn = owner && owner !== sec.id
       ? `<button role="menuitem" disabled><span class="ico">◎</span>Тренируется в составе «${esc(S.sections.get(owner).title)}»</button>`
       : `<button data-act="sec-train" role="menuitem" aria-checked="${!!sec.train}"><span class="ico">${sec.train ? '☑' : '☐'}</span>Тренировать заметки раздела</button>`;
+    // «в обе стороны» (тренировка плюс): для раздела, который тренируется (сам или в составе); у предка уже включено — показываем это
+    const bothOwner = [sec.id, ...ancestors(sec.id)].find(a => S.sections.get(a)?.both);
+    const bothBtn = !isTrainFolder(sec.id) || !(plusOn() || planOn()) ? ''
+      : bothOwner && bothOwner !== sec.id ? `<button role="menuitem" disabled><span class="ico">⇄</span>В обе стороны — в составе «${esc(S.sections.get(bothOwner).title)}»</button>`
+      : `<button data-act="sec-both" role="menuitem" aria-checked="${!!sec.both}" title="Каждая заметка — две карточки: по вопросу вспомнить ответ и по ответу — вопрос"><span class="ico">${sec.both ? '☑' : '☐'}</span>Спрашивать в обе стороны${plusOn() ? '' : ' · Pro'}</button>`;
     menuEl.innerHTML = `<div class="ask" style="color:var(--muted)">${esc(sec.title)} · ${count}</div>
       <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>Переименовать</button>
       <button data-act="sec-sub" role="menuitem"><span class="ico">+</span>Новый подраздел</button>
@@ -3068,7 +3116,7 @@ function renderSecMenu() {
       <button data-act="sec-move" role="menuitem"><span class="ico">⇄</span>Переместить в…</button>
       ${window.NOTES_SHARE ? '<button data-act="sec-share" role="menuitem"><span class="ico">🔗</span>Поделиться…</button>' : ''}
       <div class="sep" role="separator"></div>
-      ${trainBtn}
+      ${trainBtn}${bothBtn}
       <div class="sep" role="separator"></div>
       <button class="danger" data-act="sec-del" role="menuitem"><span class="ico">✕</span>Удалить раздел</button>`;
   }
@@ -3109,6 +3157,12 @@ async function moveFolder(id, to) {
   rerender();
   const ok = await write(() => S.db.collection('sections').doc(id).update({ parent: to, order }), `«${f.title}» → ${to ? '«' + S.sections.get(to).title + '»' : 'верхний уровень'}`);
   if (!ok) { Object.assign(f, was); rerender(); }
+}
+async function setFolderBoth(id, val) {
+  const f = S.sections.get(id); if (!f) return;
+  f.both = val; rerender(); updateBadge();
+  const ok = await write(() => S.db.collection('sections').doc(id).update({ both: val }), val ? `«${f.title}»: спрашиваю в обе стороны — по вопросу и по ответу` : `«${f.title}»: только по вопросу`);
+  if (!ok) { f.both = !val; rerender(); updateBadge(); }
 }
 async function setFolderTrain(id, val) {
   const f = S.sections.get(id); if (!f) return;
@@ -3219,6 +3273,7 @@ menuEl.addEventListener('click', async e => {
     else if (act === 'sec-move-to') { closeMenu(); moveFolder(id, b.dataset.to || null); }
     else if (act === 'sec-share') { closeMenu(); openShare('section', id); }
     else if (act === 'sec-train') { closeMenu(); setFolderTrain(id, !S.sections.get(id)?.train); }
+    else if (act === 'sec-both') { closeMenu(); if (!plusOn()) showPlanDialog('plus'); else setFolderBoth(id, !S.sections.get(id)?.both); }
     else if (act === 'sec-subsort') { closeMenu(); setSubSort(id, S.sections.get(id)?.subSort === 'title' ? 'manual' : 'title'); }
     else if (act === 'sec-del-all') { S.menu.mode = 'confirmDelAll'; renderMenu(); }
     else if (act === 'sec-del-all-yes') { closeMenu(); deleteFolderWithNotes(id); }
@@ -4833,7 +4888,7 @@ function showPlanDialog(kind, msg) {
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
     ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы. ${PRO_PRICE()}.</p>`}
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания. ${PRO_PRICE()}.</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -4869,7 +4924,7 @@ function planPanelHtml() {
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
     : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
@@ -5369,8 +5424,8 @@ function renderTrain() {
         <div><button class="btn primary big" id="start-free" ${pool ? '' : 'disabled'}>Начать · ${o.limit ? Math.min(o.limit, pool) : pool} ${plural(o.limit ? Math.min(o.limit, pool) : pool, 'карточка', 'карточки', 'карточек')}</button></div>
       </div>
     </section>
-    ${progressHtml()}</div>`;
-  wireProgress(root);
+    ${statsHtml()}${progressHtml()}</div>`;
+  wireProgress(root); wireStats(root);
   $('#start-review').onclick = () => startSession(shuffle(rq.due).concat(rq.fresh), 'review', 'Повторение');
   const save = () => { store.set('trainOpts', S.trainOpts); renderTrain(); };
   root.querySelectorAll('#o-secs [data-s]').forEach(b => b.onclick = () => { const v = b.dataset.s; o.sections = !v ? [] : o.sections.includes(v) ? o.sections.filter(x => x !== v) : o.sections.concat(v); save(); });
@@ -5389,18 +5444,20 @@ function renderSession(root) {
   if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
   sessionClass();
   const id = T.queue[T.i]; const n = noteOfCard(id), cz = clozeOfCard(id);
-  if (!n || (String(id).includes('~c') && !cz)) { T.i++; renderSession(root); return; }   // заметку удалили или пропуск исправили — дальше
+  const rev = isReverse(id);
+  if (!n || (String(id).includes('~c') && !cz) || (rev && !cardsOf(n).includes(id))) { T.i++; renderSession(root); return; }   // заметку удалили, пропуск исправили, «в обе стороны» выключили — дальше
   const answered = new Set([...T.results.keys()]).size;
   const prev = S.srs.get(id); const free = T.kind === 'free';
   const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? 'срок не меняется' : 'повтор ' + ivlText(r.ivl); };
   root.innerHTML = `<div class="session">
     <div class="sbar"><button class="btn" id="s-end">Завершить</button><div class="track"><i style="width:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
     <div class="card">
-      <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${cz ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
-      ${`<div class="q">${softBreaks(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>
+      <div class="eyebrow" style="font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:8px;align-items:center">${esc(S.sections.get(n.section)?.title || '')} ${cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? '<span class="pill" style="color:var(--again)">ещё раз</span>' : ''}${S.canWrite ? '<button class="drop-card" id="drop-card" title="Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.">Убрать из тренировки</button>' : ''}</div>
+      ${rev ? `<p class="hint rev-hint">⇄ По ответу вспомни вопрос</p><div class="ans md rev-q" id="ans">${renderMd(n.body)}</div>${T.shown ? `<div class="q rev-a">${softBreaks(n.title)}</div>` : ''}`
+        : `<div class="q">${softBreaks(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="Дополнить или исправить карточку (E, двойной клик по ответу)">✎ Править</button>` : ''}</div>`}
       ${S.canWrite ? tagRowHtml(n.id, 'train') : ''}
       ${cz ? `<div class="ans md cloze-card${T.shown ? ' shown' : ''}" id="ans">${renderMd(n.body)}</div>` : ''}
-      ${T.shown ? (cz ? '' : `<div class="ans md" id="ans">${renderMd(n.body)}</div>`) : `<button class="btn primary big reveal" id="reveal">Показать ответ <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}`}
+      ${T.shown ? (cz || rev ? '' : `<div class="ans md" id="ans">${renderMd(n.body)}</div>`) : `<button class="btn primary big reveal" id="reveal">Показать ${rev ? 'вопрос' : 'ответ'} <span class="hint key-hint" style="color:inherit;opacity:.7">· пробел</span></button>`}
     </div>
     ${T.shown ? `<div class="grades">
       <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
@@ -5408,7 +5465,7 @@ function renderSession(root) {
       <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
     <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
   </div>`;
-  if ((T.shown || cz) && $('#ans')) enhance($('#ans'));
+  if ((T.shown || cz || rev) && $('#ans')) enhance($('#ans'));
   // пропуск: до ответа — «[…]» на месте нужного куска (остальные пропуски видны), после — он подсвечен
   if (cz && $('#ans')) for (const sp of $('#ans').querySelectorAll('span.cloze')) {
     if (sp.dataset.c !== clozeHash(cz)) { sp.classList.add('other'); continue; }
@@ -5448,20 +5505,21 @@ function dropCurrent() {   // вся заметка — вне трениров�
 }
 // стадия одной карточки (для карточки-пропуска в тренировке)
 function cardPill(cid) {
-  const s = S.srs.get(cid), st = cardStage(cid), k = '<span class="pill cloze-n">пропуск</span>';
+  const s = S.srs.get(cid), st = cardStage(cid), k = `<span class="pill cloze-n">${isReverse(cid) ? '⇄ обратная' : 'пропуск'}</span>`;
   if (st === 'new') return k + '<span class="pill new">новая</span>';
   if (isDue(cid)) return k + '<span class="pill due">повторить</span>';
   return k + (s?.due ? `<span class="pill ${st === 'learn' ? 'learn' : 'know'}">↻ ${daysBetween(today(), s.due)} дн</span>` : '');
 }
-const cardTitle = cid => { const n = noteOfCard(cid); return n ? n.title + (clozeOfCard(cid) ? ' · пропуск' : '') : ''; };
+const cardTitle = cid => { const n = noteOfCard(cid); return n ? n.title + (clozeOfCard(cid) ? ' · пропуск' : isReverse(cid) ? ' · обратная' : '') : ''; };
 /* Журнал ответов: одна запись на месяц (data/users/<uid>/srs/log/<ГГГГ-ММ>) со сводкой по дням:
-   { days: { 'ГГГГ-ММ-ДД': { n, g1, g2, g3, fresh } } } — для статистики и будущей настройки FSRS под человека. */
+   { days: { 'ГГГГ-ММ-ДД': { n, g1, g2, g3, fresh, rn, r3 } } } — rn / r3: ответы по уже знакомым карточкам и из них «знаю»
+   (доля «помню знакомое»). Для статистики (Pro) и будущей настройки FSRS под человека. */
 const logCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('log');
 function logAnswer(g, wasNew) {
   if (!S.db || !S.uid) return;
   const t = today(), m = t.slice(0, 7), cur = S.srsLog.get(m) || { days: {} };
-  const day = Object.assign({ n: 0, g1: 0, g2: 0, g3: 0, fresh: 0 }, cur.days[t]);
-  day.n++; day['g' + g]++; if (wasNew) day.fresh++;
+  const day = Object.assign({ n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0 }, cur.days[t]);
+  day.n++; day['g' + g]++; if (wasNew) day.fresh++; else { day.rn++; if (g === 3) day.r3++; }
   const next = { days: Object.assign({}, cur.days, { [t]: day }) };
   S.srsLog.set(m, next);
   logCol().doc(m).set(next).catch(() => {});
@@ -5523,6 +5581,53 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ---------- статистика тренировки («тренировка плюс», Pro; в MyNotes — всегда) ----------
+   Прогноз на 30 дней (по срокам карточек), календарь занятий и серия дней подряд (журнал ответов), доля «знаю» по знакомым
+   карточкам за 30 дней, трудные карточки (FSRS: трудность и ошибки). Без Pro при включённых тарифах — заглушка «в Pro». */
+function trainStats() {
+  const t = today(), ahead = Array.from({ length: 30 }, (_, i) => ({ d: addDays(t, i), n: 0 }));
+  const hard = [];
+  for (const n of S.notes.values()) for (const c of cardsOf(n)) {
+    const s = S.srs.get(c); if (!s || !s.introduced || !s.due) continue;
+    const k = Math.max(0, daysBetween(t, s.due)); if (k < 30) ahead[k].n++;   // просроченные — на сегодня
+    const d = typeof s.d === 'number' ? s.d : null;
+    if ((s.lapses || 0) > 0 || (d != null && d >= 7)) hard.push({ id: c, d: d || 0, lapses: s.lapses || 0 });
+  }
+  hard.sort((a, b) => b.lapses - a.lapses || b.d - a.d);
+  const days = {}; for (const m of S.srsLog.values()) Object.assign(days, m.days || {});
+  let streak = 0; for (let d = days[t]?.n ? t : addDays(t, -1); days[d]?.n; d = addDays(d, -1)) streak++;
+  let rn = 0, r3 = 0, n30 = 0; for (let i = 0; i < 30; i++) { const x = days[addDays(t, -i)]; if (x) { rn += x.rn || 0; r3 += x.r3 || 0; n30 += x.n || 0; } }
+  return { ahead, hard: hard.slice(0, 10), days, streak, recall: rn ? Math.round(r3 * 100 / rn) : null, rn, n30 };
+}
+function statsHtml() {
+  if (!plusOn()) return planOn() ? `<section class="panel stats-teaser"><h3>Статистика <span class="pro">Pro</span></h3>
+    <p class="sub">Прогноз нагрузки на месяц по дням, календарь занятий и серия дней подряд, сколько знакомых карточек ты помнишь, самые трудные карточки.</p>
+    <div class="bar"><button class="btn" type="button" id="stats-pro">Подробнее о Pro</button></div></section>` : '';
+  const st = trainStats(), t = today(), max = Math.max(1, ...st.ahead.map(x => x.n));
+  const wk = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'], dow = d => (new Date(d + 'T12:00').getDay() + 6) % 7;
+  const bars = st.ahead.map((x, i) => `<div class="fc-bar" title="${i === 0 ? 'Сегодня (вместе с просроченными)' : i === 1 ? 'Завтра' : x.d.split('-').reverse().slice(0, 2).join('.') + ', ' + wk[dow(x.d)]}: ${x.n}"><i style="height:${Math.round(x.n / max * 100)}%"></i>${i % 7 === 0 ? `<span>${i === 0 ? 'сегодня' : x.d.split('-').reverse().slice(0, 2).join('.')}</span>` : ''}</div>`).join('');
+  // календарь: 18 недель, столбик — неделя (пн…вс)
+  const start = addDays(t, -(17 * 7 + dow(t))), cells = [], lv = n => !n ? 0 : n < 10 ? 1 : n < 25 ? 2 : n < 50 ? 3 : 4;
+  for (let d = start; d <= t; d = addDays(d, 1)) { const n = st.days[d]?.n || 0; cells.push(`<i class="l${lv(n)}" title="${d.split('-').reverse().join('.')}: ${n ? n + ' ' + plural(n, 'ответ', 'ответа', 'ответов') : 'не занимался'}"></i>`); }
+  return `<section class="panel stats">
+    <h3>Статистика</h3>
+    <div class="stat-tiles">
+      <div><b>${st.streak}</b>${plural(st.streak, 'день', 'дня', 'дней')} подряд</div>
+      <div><b>${st.recall == null ? '—' : st.recall + '%'}</b>знакомых карточек помнишь${st.rn ? ` <span class="hint">(${st.rn} ${plural(st.rn, 'ответ', 'ответа', 'ответов')} за 30 дней)</span>` : ''}</div>
+      <div><b>${st.n30}</b>${plural(st.n30, 'ответ', 'ответа', 'ответов')} за 30 дней</div>
+    </div>
+    <div class="lbl">Сколько карточек будет каждый день — ближайшие 30 дней</div>
+    <div class="fc" role="img" aria-label="Прогноз повторений на 30 дней">${bars}</div>
+    <div class="lbl">Занятия за 4 месяца</div>
+    <div class="cal" role="img" aria-label="Календарь занятий">${cells.join('')}</div>
+    ${st.hard.length ? `<div class="lbl">Трудные карточки</div><ul class="missed hard-list">${st.hard.map(h => `<li><button data-open="${esc(baseId(h.id))}">${esc(cardTitle(h.id))}</button><span class="hint">${h.lapses ? `ошибок: ${h.lapses}` : ''}${h.lapses && h.d >= 7 ? ' · ' : ''}${h.d >= 7 ? 'трудная' : ''}</span></li>`).join('')}</ul>` : ''}
+  </section>`;
+}
+function wireStats(root) {
+  root.querySelector('#stats-pro') && (root.querySelector('#stats-pro').onclick = () => showPlanDialog('plus'));
+  root.querySelectorAll('.stats [data-open]').forEach(b => b.onclick = () => { setMode('lib'); openNote(b.dataset.open); });
+}
+
 /* ---------- training statistics (shown under «Тренировка») ---------- */
 function progressHtml() {
   const tot = { new: 0, learn: 0, know: 0, solid: 0 }; let dueAll = 0;
@@ -5566,6 +5671,42 @@ function wireProgress(root) {
 }
 
 /* ---------- settings ---------- */
+// настройки пишутся целиком: set() заменяет документ — сохраняем и остальные поля (onboarded, retention…)
+async function saveSettings(patch, msg) {
+  Object.assign(S.settings, patch);
+  if (S.db && S.uid) await write(() => S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings)), msg || 'Настройка сохранена');
+  updateBadge();
+}
+// «тренировка плюс»: насколько хорошо помнить, самый длинный интервал, лимит новых по разделам
+const RETENTION = [[0.8, '80% — реже'], [0.85, '85%'], [0.9, '90% — обычно'], [0.95, '95% — чаще']];
+const MAXIVL = [[30, 'месяц'], [90, '3 месяца'], [180, 'полгода'], [365, 'год'], [0, 'без ограничения']];
+function trainPlusHtml() {
+  if (!plusOn() && !planOn()) return '';
+  const on = plusOn(), dis = on ? '' : 'disabled', r = S.settings.retention || 0.9, mx = S.settings.maxIvl || 0;
+  const roots = sectionsSorted().filter(x => x.train || x.newLimit != null);
+  return `<div class="train-plus${on ? '' : ' locked'}">
+    <div class="lbl" style="margin:16px 0 8px">Расписание ${on ? '' : '<span class="pro">Pro</span>'}</div>
+    <div class="opt-row"><span class="lbl" style="margin-right:6px">Насколько хорошо помнить</span><div class="seg" id="o-ret">
+      ${RETENTION.map(([v, l]) => `<button type="button" data-ret="${v}" aria-pressed="${r === v}" ${dis}>${l}</button>`).join('')}</div></div>
+    <p class="hint" style="margin:4px 0 10px">Выше — чаще повторения и крепче память; ниже — реже, но больше забывается. Обычно хватает 90%.</p>
+    <div class="opt-row"><span class="lbl" style="margin-right:6px">Самый длинный интервал</span><div class="seg" id="o-max">
+      ${MAXIVL.map(([v, l]) => `<button type="button" data-max="${v}" aria-pressed="${mx === v}" ${dis}>${l}</button>`).join('')}</div></div>
+    ${roots.length ? `<div class="lbl" style="margin:14px 0 6px">Новых в день по разделам</div><p class="hint" style="margin:0 0 6px">Пусто — общий лимит. Лимит раздела действует и на подразделы.</p>
+      <div class="sec-limits">${roots.map(x => `<label><span>${esc(x.title)}</span><input type="number" min="0" max="100" data-lim="${esc(x.id)}" value="${x.newLimit ?? ''}" placeholder="общий" ${dis}></label>`).join('')}</div>` : ''}
+    ${on ? '' : '<div class="bar"><button class="btn" type="button" id="plus-pro">Подробнее о Pro</button></div>'}
+  </div>`;
+}
+function wireTrainPlus(root) {
+  root.querySelectorAll('[data-ret]').forEach(b => b.onclick = async () => { await saveSettings({ retention: +b.dataset.ret }); renderProg(); });
+  root.querySelectorAll('[data-max]').forEach(b => b.onclick = async () => { await saveSettings({ maxIvl: +b.dataset.max }); renderProg(); });
+  root.querySelectorAll('[data-lim]').forEach(i => i.onchange = async () => {
+    const id = i.dataset.lim, f = S.sections.get(id); if (!f) return;
+    const v = i.value.trim() === '' ? null : Math.max(0, Math.min(100, parseInt(i.value, 10) || 0));
+    f.newLimit = v; updateBadge();
+    await write(() => S.db.collection('sections').doc(id).update({ newLimit: v }), v == null ? `«${f.title}»: общий лимит` : `«${f.title}»: не больше ${v} новых в день`);
+  });
+  root.querySelector('#plus-pro') && (root.querySelector('#plus-pro').onclick = () => showPlanDialog('plus'));
+}
 function renderProg() {
   const root = $('#prog');
   if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю…</div></div>'; return; }
@@ -5578,6 +5719,7 @@ function renderProg() {
         <input id="npd" type="number" min="0" max="100" value="${S.settings.newPerDay ?? 10}" style="width:80px;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">
         <button class="btn">Сохранить</button>
       </form>
+      ${trainPlusHtml()}
     </section>
     <section class="panel">
       <h3>Редактор</h3>
@@ -5595,10 +5737,9 @@ function renderProg() {
   $('#set-form').onsubmit = async e => {
     e.preventDefault();
     const v = Math.max(0, Math.min(100, parseInt($('#npd').value, 10) || 0));
-    S.settings.newPerDay = v;
-    if (S.db && S.uid) await write(() => S.db.doc(`data/users/${S.uid}/settings`).set({ newPerDay: v }), 'Настройка сохранена');
-    updateBadge();
+    await saveSettings({ newPerDay: v });
   };
+  wireTrainPlus(root);
 }
 
 // the due count depends on the date: refresh it when the tab comes back (e.g. left open overnight) and every minute
@@ -5726,7 +5867,7 @@ async function boot() {
   loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
-    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, sort: v.sort, subSort: v.subSort }]; }));
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
@@ -5811,7 +5952,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { S, store, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
