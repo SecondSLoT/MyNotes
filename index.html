@@ -5815,14 +5815,15 @@ function wireTrainPlus(root) {
 }
 /* ---------- оформление: светлая / тёмная (бесплатно), цветовые темы и чёрный фон (кроме трёх тем — Pro; MyNotes — всё) ----------
    Выбор — в настройках аккаунта (settings.theme / mode / oled, на всех устройствах); действующий вид — в localStorage aw.look,
-   его ставит скрипт в начале страницы ещё до отрисовки. Pro закончился — выбор помним, показываем «Лес» и обычный тёмный фон. */
+   его ставит скрипт в начале страницы ещё до отрисовки. Pro закончился — выбранная тема и чёрный фон остаются (решено 26.10),
+   но сменил на бесплатную / выключил — вернуть без Pro нельзя. Тарифы выключены (ReteNote) — Pro-тем нет совсем. */
 const THEMES = [['forest', 'Лес', 0], ['sea', 'Море', 0], ['graphite', 'Графит', 0], ['plum', 'Слива', 1], ['terra', 'Терракота', 1], ['rose', 'Сакура', 1], ['sepia', 'Сепия', 1]];
 const THEME_SW = {"forest": ["#f3f4ef", "#121513", "#2f6b55", "#7cc4a3"], "sea": ["#eef2f5", "#0f141a", "#1f6aa5", "#6fb2ec"], "plum": ["#f3f1f6", "#141218", "#6a4bb5", "#b39cf0"], "terra": ["#f6f1ea", "#17120f", "#b04f2a", "#f0956b"], "rose": ["#f7f0f1", "#171214", "#b4466b", "#f08fae"], "graphite": ["#f2f2f2", "#0b0b0b", "#2b2b2b", "#e6e6e6"], "sepia": ["#f1e7d0", "#1a160f", "#8a5a1f", "#d9a65e"]};   // [светлый фон, тёмный фон, акцент светлой, акцент тёмной]
 const proOn = () => plusOn();
 const lookPrefs = () => { const s = S.settings || {}; return { theme: s.theme || 'forest', mode: s.mode || 'system', oled: !!s.oled }; };
 function effLook() {
-  const p = lookPrefs(), t = THEMES.find(x => x[0] === p.theme), pro = proOn();
-  return { theme: t && (!t[2] || pro) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && pro };
+  const p = lookPrefs(), t = THEMES.find(x => x[0] === p.theme), keep = proOn() || planOn();   // planOn без Pro — уже выбранное остаётся
+  return { theme: t && (!t[2] || keep) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && keep };
 }
 function applyLook() {
   const l = effLook(), r = document.documentElement;
@@ -5835,8 +5836,8 @@ function applyLook() {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyLook());
 function lookPanelHtml() {
-  const p = effLook(), pro = proOn(), showPro = pro || planOn();   // отмечено то, что действует (Pro закончился — «Лес»)
-  const lock = t => t[2] && !pro;
+  const p = effLook(), pro = proOn(), showPro = pro || planOn();   // отмечено то, что действует
+  const lock = t => t[2] && !pro && p.theme !== t[0];   // действующую Pro-тему (осталась после Pro) не запираем
   return `<section class="panel" id="look-panel"><h3>Оформление</h3>
     <div class="opt-row" style="margin-top:10px"><span class="lbl" style="margin-right:6px">Тема</span><div class="seg seg-wrap" id="look-mode">
       ${[['system', 'Как в системе'], ['light', 'Светлая'], ['dark', 'Тёмная']].map(([k, l]) => `<button type="button" data-look-mode="${k}" aria-pressed="${p.mode === k}">${l}</button>`).join('')}</div></div>
@@ -5845,18 +5846,21 @@ function lookPanelHtml() {
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
         <span class="sw-c"><i style="background:${c[0]}"><b style="background:${c[2]}"></b></i><i style="background:${c[1]}"><b style="background:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
-    ${showPro ? `<label class="look-oled"><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> Чёрный фон в тёмной теме${pro ? '' : ' <span class="pro">Pro</span>'}<span class="hint">экономит батарею на телефонах с OLED-экраном</span></label>` : ''}
+    ${showPro ? `<label class="look-oled"><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> Чёрный фон в тёмной теме${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}<span class="hint">экономит батарею на телефонах с OLED-экраном</span></label>` : ''}
   </section>`;
 }
 function wireLookPanel(root) {
   root.querySelectorAll('[data-look-mode]').forEach(b => b.onclick = async () => { await saveSettings({ mode: b.dataset.lookMode }, 'Тема сохранена'); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-theme]').forEach(b => b.onclick = async () => {
     if (b.classList.contains('locked')) { showPlanDialog('themes'); return; }
+    if (b.getAttribute('aria-pressed') === 'true') return;
+    const cur = THEMES.find(t => t[0] === effLook().theme);
+    if (cur && cur[2] && !proOn() && !confirm(`«${cur[1]}» — тема из Pro: без Pro вернуть её не получится. Сменить тему?`)) return;
     await saveSettings({ theme: b.dataset.lookTheme }, 'Цвета сохранены'); applyLook(); renderProg();
   });
   const o = root.querySelector('#look-oled');
   if (o) o.onchange = async () => {
-    if (!proOn()) { o.checked = false; showPlanDialog('themes'); return; }
+    if (o.checked && !proOn()) { o.checked = false; showPlanDialog('themes'); return; }   // выключить можно всегда, включить — с Pro
     await saveSettings({ oled: o.checked }, o.checked ? 'Чёрный фон включён' : 'Чёрный фон выключен'); applyLook();
   };
 }
