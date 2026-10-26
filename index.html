@@ -371,7 +371,12 @@ button.tchip-t:hover{text-decoration:underline}
 .row-item.selected{background:var(--accent-soft)}
 .tag-rename{display:flex;gap:6px;flex-wrap:wrap;width:100%}
 .tag-rename input{flex:1;min-width:140px;border:1px solid var(--accent);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 9px;font:13px var(--f-mono)}
-#tags-panel .nm .tag{font-size:13.5px}
+#tags-panel .nm .tag{font-size:13.5px;max-width:100%;text-align:left;overflow-wrap:anywhere}
+#tags-panel .tm-acts{display:flex;gap:8px;flex:none}
+/* узкий экран: имя тега — строкой целиком, под ним число заметок и кнопки */
+@media (max-width:560px){#tags-panel li:has(.tm-acts){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+  #tags-panel li .nm{display:contents}#tags-panel li .nm small{white-space:nowrap}#tags-panel li .nm .tag{grid-column:1/-1}
+  #tags-panel .tm-acts .btn{padding-block:5px;font-size:13.5px}}
 .rename-form{display:flex;flex-direction:column;gap:8px;padding-block:10px;padding-inline:16px;background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .rename-form textarea{resize:none;field-sizing:content;max-height:9em;line-height:1.4;font-family:inherit;border:1px solid var(--accent);background:var(--bg);border-radius:8px;padding:7px 10px;width:100%;box-sizing:border-box;font-weight:500}
 .rename-form .bar{gap:6px}
@@ -721,6 +726,10 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .rail{display:none}
   .rail-resizer{display:none}
   .chips-row{display:flex}
+  /* теги на телефоне — в одну строку с прокруткой, как разделы */
+  .tagbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .tagbar::-webkit-scrollbar{display:none}
+  .tagbar>*{flex:none;white-space:nowrap}
   /* шторка «Разделы»: то же дерево, что слева на компьютере, выезжает снизу */
   body.secs-open .rail{display:flex;position:fixed;z-index:26;left:0;right:0;bottom:0;margin:0 auto;max-width:640px;max-height:min(86dvh,calc(100dvh - 40px));
     background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);
@@ -3097,7 +3106,7 @@ function tagsPanelHtml() {
       ? `<li><form class="tag-rename" data-tag-rename="${esc(t)}"><input id="tag-rename-input" value="${esc(t)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Новое имя тега"><button class="btn primary">Сохранить</button><button class="btn" type="button" data-tm-cancel>Отмена</button></form></li>`
       : M.del === t
       ? `<li><span class="nm">Убрать <b>#${esc(t)}</b> из ${c} ${plural(c, 'заметки', 'заметок', 'заметок')}?</span><button class="btn danger" data-tm-del-yes="${esc(t)}">Удалить тег</button><button class="btn" data-tm-cancel>Отмена</button></li>`
-      : `<li><span class="nm"><button class="tag" data-tm-filter="${esc(t)}">#${esc(t)}</button><small>${c} ${plural(c, 'заметка', 'заметки', 'заметок')}</small></span>${S.canWrite ? `<button class="btn" data-tm-rename="${esc(t)}">Переименовать</button><button class="btn danger" data-tm-del="${esc(t)}">Удалить</button>` : ''}</li>`).join('')}</ul>`
+      : `<li><span class="nm"><button class="tag" data-tm-filter="${esc(t)}">#${esc(t)}</button><small>${c} ${plural(c, 'заметка', 'заметки', 'заметок')}</small></span>${S.canWrite ? `<span class="tm-acts"><button class="btn" data-tm-rename="${esc(t)}">Переименовать</button><button class="btn danger" data-tm-del="${esc(t)}">Удалить</button></span>` : ''}</li>`).join('')}</ul>`
       : '<div class="empty-state">Тегов пока нет. Добавь первый в любой заметке кнопкой «+ тег».</div>'}
   </details>`;
 }
