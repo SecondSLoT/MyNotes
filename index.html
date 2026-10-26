@@ -15,6 +15,7 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
+<script>/* тема оформления — до отрисовки, чтобы не мигало (applyLook сохраняет в aw.look) */try{var L=JSON.parse(localStorage.getItem("aw.look")||"null"),R=document.documentElement;if(L){if(L.theme&&L.theme!=="forest")R.dataset.palette=L.theme;if(L.mode==="light"||L.mode==="dark")R.dataset.theme=L.mode;if(L.oled)R.dataset.oled=""}}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
@@ -54,6 +55,64 @@
   --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
   --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
   color-scheme:dark}
+/* Цветовые темы (26.10): data-palette на <html> — фон, серые и акцент; цвета смысла (оценки, выделение, цвет текста, код) общие.
+   «Лес» — без атрибута (переменные выше). Светлая/тёмная — data-theme (light | dark | нет — как в системе); data-oled — чёрный фон в тёмной. */
+:root[data-palette="sea"]{
+  --bg:#eef2f5; --surface:#f8fafc; --raised:#ffffff; --ink:#17212b; --muted:#566676; --faint:#8b97a2;
+  --line:#d6dee6; --line-strong:#bbc4cc; --accent:#1f6aa5; --accent-ink:#ffffff; --accent-soft:#dde9f4; --code-bg:#edeff2;}
+@media (prefers-color-scheme: dark){:root[data-palette="sea"]:not([data-theme="light"]){
+  --bg:#0f141a; --surface:#141b22; --raised:#1a222b; --ink:#e2e9f0; --muted:#9aa9b8; --faint:#697581;
+  --line:#26313c; --line-strong:#404b55; --accent:#6fb2ec; --accent-ink:#08131d; --accent-soft:#1a2b3b; --code-bg:#1e252c;}}
+:root[data-palette="sea"][data-theme="dark"]{
+  --bg:#0f141a; --surface:#141b22; --raised:#1a222b; --ink:#e2e9f0; --muted:#9aa9b8; --faint:#697581;
+  --line:#26313c; --line-strong:#404b55; --accent:#6fb2ec; --accent-ink:#08131d; --accent-soft:#1a2b3b; --code-bg:#1e252c;}
+:root[data-palette="plum"]{
+  --bg:#f3f1f6; --surface:#faf9fc; --raised:#ffffff; --ink:#211b29; --muted:#665d72; --faint:#9791a0;
+  --line:#e0dbe7; --line-strong:#c5c0cc; --accent:#6a4bb5; --accent-ink:#ffffff; --accent-soft:#ebe5f6; --code-bg:#efeef1;}
+@media (prefers-color-scheme: dark){:root[data-palette="plum"]:not([data-theme="light"]){
+  --bg:#141218; --surface:#1a171f; --raised:#211d27; --ink:#ebe6f2; --muted:#aaa1b6; --faint:#766f7f;
+  --line:#2e2936; --line-strong:#484350; --accent:#b39cf0; --accent-ink:#160f24; --accent-soft:#2b2340; --code-bg:#24212a;}}
+:root[data-palette="plum"][data-theme="dark"]{
+  --bg:#141218; --surface:#1a171f; --raised:#211d27; --ink:#ebe6f2; --muted:#aaa1b6; --faint:#766f7f;
+  --line:#2e2936; --line-strong:#484350; --accent:#b39cf0; --accent-ink:#160f24; --accent-soft:#2b2340; --code-bg:#24212a;}
+:root[data-palette="terra"]{
+  --bg:#f6f1ea; --surface:#fcf9f4; --raised:#ffffff; --ink:#2a1f17; --muted:#76665a; --faint:#a3978c;
+  --line:#e7ddd1; --line-strong:#cdc2b7; --accent:#b04f2a; --accent-ink:#ffffff; --accent-soft:#f5e2d7; --code-bg:#f1eee9;}
+@media (prefers-color-scheme: dark){:root[data-palette="terra"]:not([data-theme="light"]){
+  --bg:#17120f; --surface:#1d1713; --raised:#241d18; --ink:#f0e7de; --muted:#b5a597; --faint:#7e7267;
+  --line:#352b24; --line-strong:#4f453e; --accent:#f0956b; --accent-ink:#2a120a; --accent-soft:#3b2419; --code-bg:#28211d;}}
+:root[data-palette="terra"][data-theme="dark"]{
+  --bg:#17120f; --surface:#1d1713; --raised:#241d18; --ink:#f0e7de; --muted:#b5a597; --faint:#7e7267;
+  --line:#352b24; --line-strong:#4f453e; --accent:#f0956b; --accent-ink:#2a120a; --accent-soft:#3b2419; --code-bg:#28211d;}
+:root[data-palette="rose"]{
+  --bg:#f7f0f1; --surface:#fdf8f9; --raised:#ffffff; --ink:#2a1c20; --muted:#7a6168; --faint:#a69398;
+  --line:#ecdde0; --line-strong:#d1c2c5; --accent:#b4466b; --accent-ink:#ffffff; --accent-soft:#f6e0e7; --code-bg:#f2edee;}
+@media (prefers-color-scheme: dark){:root[data-palette="rose"]:not([data-theme="light"]){
+  --bg:#171214; --surface:#1d1719; --raised:#251d20; --ink:#f2e6ea; --muted:#b8a2a9; --faint:#807075;
+  --line:#362a2e; --line-strong:#504448; --accent:#f08fae; --accent-ink:#2b0f19; --accent-soft:#3d2029; --code-bg:#282123;}}
+:root[data-palette="rose"][data-theme="dark"]{
+  --bg:#171214; --surface:#1d1719; --raised:#251d20; --ink:#f2e6ea; --muted:#b8a2a9; --faint:#807075;
+  --line:#362a2e; --line-strong:#504448; --accent:#f08fae; --accent-ink:#2b0f19; --accent-soft:#3d2029; --code-bg:#282123;}
+:root[data-palette="graphite"]{
+  --bg:#f2f2f2; --surface:#fafafa; --raised:#ffffff; --ink:#1a1a1a; --muted:#616161; --faint:#949494;
+  --line:#dedede; --line-strong:#c3c3c3; --accent:#2b2b2b; --accent-ink:#ffffff; --accent-soft:#e6e6e6; --code-bg:#efefef;}
+@media (prefers-color-scheme: dark){:root[data-palette="graphite"]:not([data-theme="light"]){
+  --bg:#0b0b0b; --surface:#121212; --raised:#191919; --ink:#ececec; --muted:#a3a3a3; --faint:#6e6e6e;
+  --line:#272727; --line-strong:#434343; --accent:#e6e6e6; --accent-ink:#111111; --accent-soft:#262626; --code-bg:#1d1d1d;}}
+:root[data-palette="graphite"][data-theme="dark"]{
+  --bg:#0b0b0b; --surface:#121212; --raised:#191919; --ink:#ececec; --muted:#a3a3a3; --faint:#6e6e6e;
+  --line:#272727; --line-strong:#434343; --accent:#e6e6e6; --accent-ink:#111111; --accent-soft:#262626; --code-bg:#1d1d1d;}
+:root[data-palette="sepia"]{
+  --bg:#f1e7d0; --surface:#f7efdc; --raised:#fbf5e6; --ink:#3b2f1e; --muted:#7a6a52; --faint:#a4967e;
+  --line:#e0d2b4; --line-strong:#c9bb9f; --accent:#8a5a1f; --accent-ink:#fff8ea; --accent-soft:#ecdcb9; --code-bg:#eee5d2;}
+@media (prefers-color-scheme: dark){:root[data-palette="sepia"]:not([data-theme="light"]){
+  --bg:#1a160f; --surface:#201b13; --raised:#272118; --ink:#e9dcc2; --muted:#ae9f84; --faint:#7a6f5b;
+  --line:#3a3224; --line-strong:#524a3a; --accent:#d9a65e; --accent-ink:#24180a; --accent-soft:#3a2e1c; --code-bg:#2a251c;}}
+:root[data-palette="sepia"][data-theme="dark"]{
+  --bg:#1a160f; --surface:#201b13; --raised:#272118; --ink:#e9dcc2; --muted:#ae9f84; --faint:#7a6f5b;
+  --line:#3a3224; --line-strong:#524a3a; --accent:#d9a65e; --accent-ink:#24180a; --accent-soft:#3a2e1c; --code-bg:#2a251c;}
+@media (prefers-color-scheme: dark){:root[data-oled]:not([data-theme="light"]){ --bg:#000000; --surface:#070707; --raised:#0f0f0f; --line:#222222; --line-strong:#333333; --code-bg:#0c0c0c; }}
+:root[data-oled][data-theme="dark"]{ --bg:#000000; --surface:#070707; --raised:#0f0f0f; --line:#222222; --line-strong:#333333; --code-bg:#0c0c0c; }
 [hidden]{display:none!important}
 .only-public{display:none}body.flavor-public .only-public{display:revert}body.flavor-public .only-personal{display:none}
 html,body{height:100%}
@@ -511,6 +570,14 @@ button.tag{border:0;background:none;padding:0}
 .fb-new{font:600 11px/1 var(--f-body);background:var(--accent);color:var(--bg);border-radius:999px;padding:2px 6px;margin-left:4px;vertical-align:1px}
 #m-prog{position:relative}
 #m-prog.has-dot::after{content:'';position:absolute;top:5px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.sw{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--raised);color:var(--ink);cursor:pointer;font:inherit;font-size:13px;text-align:left}
+.sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.sw-c{display:grid;grid-template-columns:1fr 1fr;height:44px;border-radius:8px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.sw-c i{display:grid;place-items:center}.sw-c b{width:16px;height:16px;border-radius:50%}
+.sw.locked .sw-c{opacity:.75}
+.sw .pro,.look-oled .pro{font:600 10px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 6px;margin-left:2px}
+.look-oled{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:14px;font-size:14px}.look-oled .hint{flex-basis:100%;margin-left:26px}
 .sec-limits{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 18px}
 .sec-limits label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;min-width:0}
 .sec-limits label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -4882,7 +4949,7 @@ const planUsed = kind => kind === 'notes' ? ownCount(S.notes) : kind === 'sectio
 async function loadPlan() {
   if (!window.NOTES_PLAN) return;
   try { S.plan = await window.NOTES_PLAN(); } catch { return; }
-  renderPlanBar(); if (S.mode === 'prog') renderProg();
+  renderPlanBar(); applyLook(); if (S.mode === 'prog') renderProg();
   if (!S.payChecked) { S.payChecked = true; payReturn(); }
 }
 // уткнулись в лимит Free: true — действие делать не надо (показано окно про Pro)
@@ -4900,13 +4967,13 @@ function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed, renew = kind === 'renew';
-  const head = kind === 'spaces' ? 'Общие разделы — в Pro' : kind === 'plus' ? 'Тренировка «плюс» — в Pro' : renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
+  const head = kind === 'spaces' ? 'Общие разделы — в Pro' : kind === 'plus' ? 'Тренировка «плюс» — в Pro' : kind === 'themes' ? 'Цветовые темы — в Pro' : renew ? (P.source === 'paid' ? 'Продлить Pro' : 'Оформить Pro') : pro ? 'Место под картинки закончилось' : `В бесплатной версии — ${(PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0)}`;
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
     ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания. ${PRO_PRICE()}.</p>`}
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}.</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -4942,7 +5009,7 @@ function planPanelHtml() {
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
     : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}.</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
@@ -5746,6 +5813,54 @@ function wireTrainPlus(root) {
   });
   root.querySelector('#plus-pro') && (root.querySelector('#plus-pro').onclick = () => showPlanDialog('plus'));
 }
+/* ---------- оформление: светлая / тёмная (бесплатно), цветовые темы и чёрный фон (кроме трёх тем — Pro; MyNotes — всё) ----------
+   Выбор — в настройках аккаунта (settings.theme / mode / oled, на всех устройствах); действующий вид — в localStorage aw.look,
+   его ставит скрипт в начале страницы ещё до отрисовки. Pro закончился — выбор помним, показываем «Лес» и обычный тёмный фон. */
+const THEMES = [['forest', 'Лес', 0], ['sea', 'Море', 0], ['graphite', 'Графит', 0], ['plum', 'Слива', 1], ['terra', 'Терракота', 1], ['rose', 'Сакура', 1], ['sepia', 'Сепия', 1]];
+const THEME_SW = {"forest": ["#f3f4ef", "#121513", "#2f6b55", "#7cc4a3"], "sea": ["#eef2f5", "#0f141a", "#1f6aa5", "#6fb2ec"], "plum": ["#f3f1f6", "#141218", "#6a4bb5", "#b39cf0"], "terra": ["#f6f1ea", "#17120f", "#b04f2a", "#f0956b"], "rose": ["#f7f0f1", "#171214", "#b4466b", "#f08fae"], "graphite": ["#f2f2f2", "#0b0b0b", "#2b2b2b", "#e6e6e6"], "sepia": ["#f1e7d0", "#1a160f", "#8a5a1f", "#d9a65e"]};   // [светлый фон, тёмный фон, акцент светлой, акцент тёмной]
+const proOn = () => plusOn();
+const lookPrefs = () => { const s = S.settings || {}; return { theme: s.theme || 'forest', mode: s.mode || 'system', oled: !!s.oled }; };
+function effLook() {
+  const p = lookPrefs(), t = THEMES.find(x => x[0] === p.theme), pro = proOn();
+  return { theme: t && (!t[2] || pro) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && pro };
+}
+function applyLook() {
+  const l = effLook(), r = document.documentElement;
+  if (l.theme === 'forest') delete r.dataset.palette; else r.dataset.palette = l.theme;
+  if (l.mode === 'system') delete r.dataset.theme; else r.dataset.theme = l.mode;
+  if (l.oled) r.dataset.oled = ''; else delete r.dataset.oled;
+  store.set('look', l);
+  const bg = getComputedStyle(r).getPropertyValue('--bg').trim();   // строка состояния телефона — цвета фона
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyLook());
+function lookPanelHtml() {
+  const p = effLook(), pro = proOn(), showPro = pro || planOn();   // отмечено то, что действует (Pro закончился — «Лес»)
+  const lock = t => t[2] && !pro;
+  return `<section class="panel" id="look-panel"><h3>Оформление</h3>
+    <div class="opt-row" style="margin-top:10px"><span class="lbl" style="margin-right:6px">Тема</span><div class="seg seg-wrap" id="look-mode">
+      ${[['system', 'Как в системе'], ['light', 'Светлая'], ['dark', 'Тёмная']].map(([k, l]) => `<button type="button" data-look-mode="${k}" aria-pressed="${p.mode === k}">${l}</button>`).join('')}</div></div>
+    <div class="lbl" style="margin:16px 0 8px">Цвета</div>
+    <div class="swatches">${THEMES.filter(t => !t[2] || showPro).map(t => { const c = THEME_SW[t[0]];
+      return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
+        <span class="sw-c"><i style="background:${c[0]}"><b style="background:${c[2]}"></b></i><i style="background:${c[1]}"><b style="background:${c[3]}"></b></i></span>
+        <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
+    ${showPro ? `<label class="look-oled"><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> Чёрный фон в тёмной теме${pro ? '' : ' <span class="pro">Pro</span>'}<span class="hint">экономит батарею на телефонах с OLED-экраном</span></label>` : ''}
+  </section>`;
+}
+function wireLookPanel(root) {
+  root.querySelectorAll('[data-look-mode]').forEach(b => b.onclick = async () => { await saveSettings({ mode: b.dataset.lookMode }, 'Тема сохранена'); applyLook(); renderProg(); });
+  root.querySelectorAll('[data-look-theme]').forEach(b => b.onclick = async () => {
+    if (b.classList.contains('locked')) { showPlanDialog('themes'); return; }
+    await saveSettings({ theme: b.dataset.lookTheme }, 'Цвета сохранены'); applyLook(); renderProg();
+  });
+  const o = root.querySelector('#look-oled');
+  if (o) o.onchange = async () => {
+    if (!proOn()) { o.checked = false; showPlanDialog('themes'); return; }
+    await saveSettings({ oled: o.checked }, o.checked ? 'Чёрный фон включён' : 'Чёрный фон выключен'); applyLook();
+  };
+}
+
 function renderProg() {
   const root = $('#prog');
   if (!S.loaded.notes) { root.innerHTML = '<div class="wrap"><div class="empty-state">Загружаю…</div></div>'; return; }
@@ -5762,11 +5877,12 @@ function renderProg() {
         ${[['prev', 'Визуально'], ['split', 'Рядом'], ['edit', 'Markdown']].map(([k, l]) => `<button data-edt="${k}" aria-pressed="${store.get('edTab', 'edit') === k}">${l}</button>`).join('')}</div></div>
       <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
     </section>
+    ${lookPanelHtml()}
     ${tagsPanelHtml()}
     ${window.NOTES_FEEDBACK ? `<section class="panel" id="fb-panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик. Ответ придёт сюда и на почту.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div>${fbMineHtml()}</section>` : ''}
     ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() + debugPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
     </div>`;
-  wireTagsPanel(root);
+  wireTagsPanel(root); wireLookPanel(root);
   root.querySelectorAll('[data-edt]').forEach(b => b.onclick = () => { store.set('edTab', b.dataset.edt); renderProg(); });
   if (window.NOTES_STANDALONE) { wirePlanPanel(); wireDebugPanel(); wireDataPanel(); wireAccountPanel(); wireGhPanel(); $('#install-go2') && ($('#install-go2').onclick = doInstall); }
   $('#set-form').onsubmit = async e => {
@@ -5965,7 +6081,7 @@ async function boot() {
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
     logCol().onSnapshot(snap => { S.srsLog = new Map(snap.docs.map(d => [d.id, d.data()])); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
-    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); rerender(); }, () => {});
+    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); applyLook(); rerender(); }, () => {});
   }
 }
 
@@ -6038,7 +6154,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, toast, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
