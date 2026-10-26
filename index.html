@@ -548,6 +548,13 @@ button.tag{border:0;background:none;padding:0}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bar .spacer{flex:1}
 .hint{font-size:12.5px;color:var(--faint)}
+/* «?» — пояснение раскрывается под строкой (вместо постоянного серого текста) */
+.help-q{position:relative;display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;padding:0;border:1px solid var(--line);border-radius:50%;
+  background:var(--raised);color:var(--muted);font:600 11.5px/1 var(--f-body);vertical-align:1px;cursor:pointer}
+.help-q::after{content:"";position:absolute;inset:-10px}
+.help-q[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.help-t{margin:4px 0 10px;padding:8px 11px;border-radius:8px;background:var(--raised);border-left:3px solid var(--accent);color:var(--muted);font-size:13px;line-height:1.45}
+.help-t[hidden]{display:none}
 .confirm{display:flex;gap:8px;align-items:center;background:var(--again-soft);color:var(--again);padding:8px 10px;border-radius:8px;flex-wrap:wrap}
 
 /* training + progress */
@@ -582,7 +589,7 @@ button.tag{border:0;background:none;padding:0}
 .sw-c i{display:grid;place-items:center}.sw-c b{width:16px;height:16px;border-radius:50%}
 .sw.locked .sw-c{opacity:.75}
 .sw .pro,.look-oled .pro{font:600 10px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 6px;margin-left:2px}
-.look-oled{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:14px;font-size:14px}.look-oled .hint{flex-basis:100%;margin-left:26px}
+.look-oled{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-top:14px;font-size:14px}.look-oled label{display:flex;align-items:center;gap:8px}
 .sec-limits{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 18px}
 .sec-limits label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;min-width:0}
 .sec-limits label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -841,7 +848,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
       <div class="bulkbar" id="bulkbar" hidden></div>
       <div class="items" id="items"><div class="empty-state">Загружаю заметки…</div></div>
     </section>
-    <article class="reader" id="reader"><div class="doc"><div class="empty-state" id="reader-empty">Выбери заметку слева или найди её через поиск.</div></div></article>
+    <article class="reader" id="reader"><div class="doc"><div class="empty-state" id="reader-empty">Выбери заметку слева или найди её через поиск</div></div></article>
   </main>
 
   <main class="page" id="train" hidden></main>
@@ -979,6 +986,13 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let helpN = 0;
+// «?» к подписи: [кнопка, текст]; текст ставится строкой ниже, открывается по нажатию
+function help(text) { const id = 'help-' + (++helpN);
+  return [`<button type="button" class="help-q" aria-expanded="false" aria-controls="${id}" aria-label="Подсказка" title="Подсказка">?</button>`, `<p class="help-t" id="${id}" hidden>${text}</p>`]; }
+document.addEventListener('click', e => { const b = e.target.closest('.help-q'); if (!b) return; e.preventDefault(); e.stopPropagation();
+  const t = document.getElementById(b.getAttribute('aria-controls')); if (!t) return;
+  const d = b.closest('summary')?.parentElement; if (d && !d.open) { d.open = true; t.hidden = false; } else t.hidden = !t.hidden; b.setAttribute('aria-expanded', String(!t.hidden)); }, true);
 const store = {
   get(k, d) { try { const v = localStorage.getItem('aw.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('aw.' + k, JSON.stringify(v)); } catch {} }
@@ -1937,7 +1951,7 @@ function renderList() {
   if (!list.length) {
     renderBulkBar([]);
     const virtEmpty = { fav: 'Здесь будут избранные заметки. Отметь заметку звёздочкой ☆ рядом с заголовком или через «⋮ → В избранное».', recent: 'Здесь появятся заметки, которые ты недавно открывал или менял.' };
-    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова.' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка».' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Резервное копирование и перенос»: там «Загрузить резервную копию» и «Импорт из Evernote».' : 'База заметок пока пустая.')}</div>`;
+    $('#items').innerHTML = `<div class="empty-state">${terms ? 'Ничего не нашлось. Попробуй другое слово или часть слова' : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? 'В этом разделе пока пусто. Добавь первую заметку кнопкой «+ Заметка»' : (window.NOTES_STANDALONE ? 'База заметок пока пустая. Чтобы перенести заметки, открой «Настройки» (⚙ вверху) → «Резервное копирование и перенос»: там «Загрузить резервную копию» и «Импорт из Evernote»' : 'База заметок пока пустая')}</div>`;
     return;
   }
   const grouped = !terms && !S.tag && !isVirtual(S.section) && hasKids(S.section) && sortMode(S.section) === 'manual';
@@ -1985,7 +1999,7 @@ function renderTrashList(list) {
         <span class="meta"><span class="pill">${esc(S.sections.get(n.section)?.title || 'раздел удалён')}</span>${n.deletedBy && spaceOfNote(n) ? `<span class="hint">удалил(а): ${esc(personName(n.deletedBy) || 'участник')}</span>` : ''}<span class="hint">ещё ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}</span></span>
       </button>
       ${S.canWrite && canEditIn(spaceOfNote(n)) ? `<div class="tr-acts"><button class="btn" data-restore="${esc(n.id)}">Восстановить</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">Удалить навсегда</button>` : ''}</div>` : ''}
-    </div>`).join('') : '<div class="empty-state">Корзина пуста.</div>');
+    </div>`).join('') : '<div class="empty-state">Корзина пуста</div>');
   $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
   $('#trash-empty-no') && ($('#trash-empty-no').onclick = () => { S.emptyAsk = false; renderList(); });
   $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.values()].filter(canPurge).map(n => n.id)); });
@@ -2124,9 +2138,10 @@ document.addEventListener('keydown', e => { if (drag && e.key === 'Escape') endD
 function ghPanelHtml() {
   const c = ghConf(); const st = S.ghStatus || '';
   const inp = 'border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:7px 9px;width:100%;font:inherit';
+  const H = help(`Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена «Картинка» вставляет шаблон ссылки, само изображение нужно будет загрузить в репозиторий вручную`);
   return `<details class="panel" id="gh-panel" ${S.ghOpen ? 'open' : ''}>
-    <summary>Картинки <span>· ${ghReady() ? 'загрузка в GitHub подключена' : 'загрузка в GitHub не подключена'}</span></summary>
-    <p class="sub" style="margin-top:8px">Когда подключено, картинку можно вставить в редактор из буфера (скриншот + Ctrl/⌘+V), перетащить файлом или выбрать кнопкой «Картинка» — она сама загрузится в папку <code>img</code> твоего репозитория. Токен хранится только в этом браузере, на каждом устройстве его вводят отдельно. Без токена «Картинка» вставляет шаблон ссылки, само изображение нужно будет загрузить в репозиторий вручную.</p>
+    <summary>Картинки${H[0]} <span>· ${ghReady() ? 'загрузка в GitHub подключена' : 'загрузка в GitHub не подключена'}</span></summary>
+    ${H[1]}
     <form id="gh-form" class="opts" style="gap:10px;margin-top:10px">
       <label class="field"><span class="lbl">Репозиторий (владелец/имя)</span><input id="gh-repo" style="${inp}" value="${esc(c.repo)}" placeholder="login/my-notes" autocomplete="off"></label>
       <label class="field"><span class="lbl">Ветка</span><input id="gh-branch" style="${inp}" value="${esc(c.branch)}" placeholder="main" autocomplete="off"></label>
@@ -2161,10 +2176,10 @@ function orphansHtml() {
   if (O.loading) body = '<p class="hint">Смотрю, что лежит в папке img…</p>';
   else if (O.error) body = `<p class="hint" style="color:var(--again)">${esc(O.error)}</p>`;
   else if (O.list) {
-    if (!O.list.length) body = `<p class="hint">${O.progress ? esc(O.progress) + ' ' : ''}Всё чисто: ${O.total ? `все ${O.total} ${plural(O.total, 'картинка', 'картинки', 'картинок')} в img используются в заметках` : 'в папке img пока нет картинок'}.</p>`;
+    if (!O.list.length) body = `<p class="hint">${O.progress ? esc(O.progress) + ' ' : ''}Всё чисто: ${O.total ? `все ${O.total} ${plural(O.total, 'картинка', 'картинки', 'картинок')} в img используются в заметках` : 'в папке img пока нет картинок'}</p>`;
     else {
       const gh = ghConf(); const selN = O.sel.size; const selSize = O.list.filter(f => O.sel.has(f.path)).reduce((a, f) => a + f.size, 0);
-      body = `<p class="hint">Не используются: ${O.list.length} из ${O.total} (${kb(O.list.reduce((a, f) => a + f.size, 0))}). Картинки из заметок в корзине считаются используемыми. Если ты прямо сейчас вставил картинку в незаконченную заметку — сначала сохрани заметку.</p>
+      body = `<p class="hint">Не используются: ${O.list.length} из ${O.total} (${kb(O.list.reduce((a, f) => a + f.size, 0))}). Картинки из заметок в корзине считаются используемыми. Если ты прямо сейчас вставил картинку в незаконченную заметку — сначала сохрани заметку</p>
         <div class="orph-grid">${O.list.map(f => `<label class="orph"><input type="checkbox" data-orph="${esc(f.path)}" ${O.sel.has(f.path) ? 'checked' : ''}><img loading="lazy" src="https://raw.githubusercontent.com/${esc(gh.repo)}/${esc(gh.branch)}/${esc(f.path)}" alt=""><span>${esc(f.name)}<small>${kb(f.size)}</small></span></label>`).join('')}</div>
         <div class="bar" style="margin-top:10px;flex-wrap:wrap">
           <button class="btn" type="button" id="orph-all">${selN === O.list.length ? 'Снять все' : 'Выбрать все'}</button>
@@ -2242,28 +2257,29 @@ function wireGhPanel() {
 }
 function dataPanelHtml() {
   const D = S.dataPanel || {};
+  const H = help(`Резервная копия — один файл (zip-архив) со всеми разделами, заметками, картинками, тегами и прогрессом тренировок.
+      Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим`), H2 = help(`В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → формат ENEX. Каждый блокнот — отдельный файл .enex;
+      выбери их все сразу — каждый станет разделом. Таблицы, списки, чек-листы, код и картинки переносятся, повторный импорт не создаёт дублей.<br><br>Папка пригодится, если блокноты разложены по подпапкам (например, по стопкам Evernote) — подпапки станут разделами.
+      Стопку можно задать и в имени файла: <code>Стопка@@@Блокнот.enex</code>`);
   return `<details class="panel" id="data-panel" ${S.dataOpen ? 'open' : ''}>
-    <summary>Резервное копирование и перенос <span>· файл со всеми заметками</span></summary>
-    <p class="sub" style="margin-top:8px">Резервная копия — один файл (zip-архив) со всеми разделами, заметками, картинками, тегами и прогрессом тренировок.
-      Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим.</p>
+    <summary>Резервное копирование и перенос${H[0]} <span>· файл со всеми заметками</span></summary>
+    ${H[1]}
     <div class="bar">
       <button class="btn" id="data-export">Сохранить резервную копию</button>
       <label class="btn" for="data-file" style="cursor:pointer">Загрузить резервную копию…</label>
       <input type="file" id="data-file" accept=".zip,.json,application/zip,application/json" hidden>
     </div>
-    <h4 class="sub-h">Перенос из Evernote</h4>
-    <p class="sub">В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → формат ENEX. Каждый блокнот — отдельный файл .enex;
-      выбери их все сразу — каждый станет разделом. Таблицы, списки, чек-листы, код и картинки переносятся, повторный импорт не создаёт дублей.</p>
+    <h4 class="sub-h">Перенос из Evernote${H2[0]}</h4>
+    ${H2[1]}
     <div class="bar">
       <label class="btn" for="data-enex" style="cursor:pointer">Импорт из Evernote…</label>
       <input type="file" id="data-enex" accept=".enex" multiple hidden>
       <label class="btn link-like" for="data-dir" style="cursor:pointer">или выбрать папку с файлами .enex</label>
       <input type="file" id="data-dir" webkitdirectory multiple hidden>
     </div>
-    <p class="hint">Папка пригодится, если блокноты разложены по подпапкам (например, по стопкам Evernote) — подпапки станут разделами.
-      Стопку можно задать и в имени файла: <code>Стопка@@@Блокнот.enex</code>.</p>
+    
     ${(() => { const c = backupConf(); const [y, m, d] = (c.last || '').split('-').map(Number);
-      return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя резервная копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}.` : 'Резервных копий на этом устройстве ещё не было.'}</p>
+      return `<p class="hint" style="margin-top:12px">${c.last ? `Последняя резервная копия на этом устройстве: ${new Date(y, m - 1, d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: y === new Date().getFullYear() ? undefined : 'numeric' })}` : 'Резервных копий на этом устройстве ещё не было'}</p>
     <div class="opt-row" style="margin-top:8px"><label for="backup-every">Напоминать о копии</label>
       <select id="backup-every" style="border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 8px">${[['week', 'раз в неделю'], ['month', 'раз в месяц'], ['off', 'не напоминать']].map(([v, l]) => `<option value="${v}" ${c.every === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
 `; })()}
@@ -2332,7 +2348,7 @@ function planImportHtml(d) {
   return `<div class="confirm plan-imp" style="margin-top:12px;display:block"><p style="margin:0 0 8px"><b>В бесплатной версии — до ${P.limits.notes} заметок.</b>
     Новых в файле: ${fresh}, места осталось: ${room}. С Pro импортируется всё.</p>
     ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="imp-trial">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}
-    <p class="hint" style="margin:8px 0 0">${room ? `Или импортируй только ${room} самых свежих (по дате изменения) — кнопкой ниже, остальное подождёт Pro.` : 'Места для новых заметок нет: удали ненужные или оформи Pro.'}</p></div>`;
+    <p class="hint" style="margin:8px 0 0">${room ? `Или импортируй только ${room} самых свежих (по дате изменения) — кнопкой ниже, остальное подождёт Pro` : 'Места для новых заметок нет: удали ненужные или оформи Pro'}</p></div>`;
 }
 function importConfirmBody(d, X, head, conflicts, box) {
   if (!conflicts) {
@@ -2358,7 +2374,7 @@ function importConfirmBody(d, X, head, conflicts, box) {
     <p style="margin:0 0 8px">${head} Новых заметок: ${X.fresh}${X.newSecs ? `, новых разделов: ${X.newSecs}` : ''}${X.same.length ? `, совпадают с сайтом: ${X.same.length}` : ''}.
       ${X.notes.length ? `Отличаются заметки: ${X.notes.length}.` : ''}${extra.length ? ` Ещё отличаются ${extra.join('; ')}.` : ''}</p>
     ${X.notes.length ? `<details style="margin:0 0 10px"><summary style="cursor:pointer;font:inherit;font-weight:500;padding:0">Показать заметки с конфликтом (${X.notes.length})</summary><ul style="margin:8px 0 0;padding-left:18px;max-height:240px;overflow:auto;line-height:1.5">${rows}</ul></details>` : ''}
-    <p style="margin:0 0 10px" class="hint">Новые заметки добавятся в любом случае. Выбор касается только того, что уже есть на сайте.</p>
+    <p style="margin:0 0 10px" class="hint">Новые заметки добавятся в любом случае. Выбор касается только того, что уже есть на сайте</p>
     <div class="bar" style="flex-wrap:wrap">
       <button class="btn primary" id="data-import-go" data-mode="replace">Заменить версией из файла</button>
       <button class="btn" id="data-import-keep" data-mode="keep">Оставить как на сайте</button>
@@ -2532,9 +2548,9 @@ function renderInstallBar() {
 function appPanelHtml() {
   const m = isStandalone() ? 'standalone' : installMode();
   const body = m === 'standalone' ? `<p class="sub">✓ ${APP_NAME()} открыт как приложение</p>`
-    : m === 'prompt' ? `<p class="sub">Установи ${APP_NAME()} как приложение: своё окно без адресной строки, значок на рабочем столе или в списке приложений.</p><div class="bar" style="margin-top:10px"><button class="btn primary" type="button" id="install-go2">Установить приложение</button></div>`
-    : m === 'ios' ? `<p class="sub">На iPhone и iPad: нажми «Поделиться» ${SHARE_ICO} в Safari и выбери «На экран „Домой“» — ${APP_NAME()} откроется как приложение.</p>`
-    : `<p class="sub">Кнопки установки нет — значит, приложение уже установлено или этот браузер не умеет устанавливать сайты (например, Firefox). В Chrome и Edge установка — в меню браузера («Установить приложение» или значок в адресной строке), на iPhone — в Safari: «Поделиться» → «На экран „Домой“».</p>`;
+    : m === 'prompt' ? `<p class="sub">Установи ${APP_NAME()} как приложение: своё окно без адресной строки, значок на рабочем столе или в списке приложений</p><div class="bar" style="margin-top:10px"><button class="btn primary" type="button" id="install-go2">Установить приложение</button></div>`
+    : m === 'ios' ? `<p class="sub">На iPhone и iPad: нажми «Поделиться» ${SHARE_ICO} в Safari и выбери «На экран „Домой“» — ${APP_NAME()} откроется как приложение</p>`
+    : `<p class="sub">Кнопки установки нет — значит, приложение уже установлено или этот браузер не умеет устанавливать сайты (например, Firefox). В Chrome и Edge установка — в меню браузера («Установить приложение» или значок в адресной строке), на iPhone — в Safari: «Поделиться» → «На экран „Домой“»</p>`;
   return `<section class="panel" id="app-panel"><h3>Приложение</h3>${body}</section>`;
 }
 /* ---------- импорт из Evernote (.enex): файл = блокнот, папки = разделы, заметка = заметка ---------- */
@@ -2812,8 +2828,9 @@ function accMethodsHtml() {
       ${I.email ? `<p class="hint">Почта для входа: ${esc(I.email)}</p>` : `<input id="acc-email" type="email" autocomplete="email" placeholder="Почта" required>`}
       <input id="acc-pass" type="password" autocomplete="new-password" placeholder="Пароль (от 8 символов)" minlength="8" required>
       <div class="bar"><button class="btn primary" type="submit">Сохранить</button><button class="btn" type="button" id="acc-pass-no">Отмена</button></div></form>` : '';
-  return `<h4>Способы входа</h4><ul class="methods">${rows}</ul>${passForm}
-    <p class="hint">Привязанные способы ведут в этот аккаунт. Войти непривязанным — получится новый, отдельный аккаунт.${nLinked === 1 && window.NOTES_UNLINK ? ' Единственный способ входа отвязать нельзя — сначала привяжи другой.' : ''}</p>
+  const H = help('Привязанные способы ведут в этот аккаунт. Войти непривязанным — получится новый, отдельный аккаунт');
+  return `<h4>Способы входа${H[0]}</h4><ul class="methods">${rows}</ul>${passForm}
+    ${H[1]}${nLinked === 1 && window.NOTES_UNLINK ? '<p class="hint">Единственный способ входа отвязать нельзя — сначала привяжи другой</p>' : ''}
     ${M.msg ? `<p class="hint acc-msg ${M.err ? 'err' : ''}">${esc(M.msg)}</p>` : ''}`;
 }
 function loadAccInfo(force) {
@@ -2857,7 +2874,7 @@ function wireAccountPanel() {
   $('#data-signout') && ($('#data-signout').onclick = () => {
     // неотправленные правки (не было связи) при выходе пропадут — предупредить, выйти по второму нажатию
     const n = window.NOTES_PENDING ? window.NOTES_PENDING() : 0;
-    if (n && !S.signoutAnyway) { S.signoutAnyway = true; toast(`Есть неотправленные изменения (${n}) — при выходе они пропадут. Нажми «Выйти» ещё раз, чтобы выйти всё равно.`); return; }
+    if (n && !S.signoutAnyway) { S.signoutAnyway = true; toast(`Есть неотправленные изменения (${n}) — при выходе они пропадут. Нажми «Выйти» ещё раз, чтобы выйти всё равно`); return; }
     window.NOTES_SIGN_OUT();
   });
   $('#del-ask') && ($('#del-ask').onclick = () => { S.accPanel = { delAsk: true }; renderProg(); requestAnimationFrame(() => $('#del-confirm')?.focus()); });
@@ -3079,7 +3096,7 @@ async function bulkMenuAct(act, b) {
   if (act === 'bulk-cancel' || act === 'bulk-back') { closeMenu(); return; }
   if (act === 'bulk-move') {
     closeMenu(); const sec = b.dataset.sec; let order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0));
-    if (ids.some(id => S.notes.has(id) && spaceMoveTarget(S.notes.get(id), sec))) { toast('В чужой общий раздел заметки переносятся по одной: «⋮ → Перенести в…» — каждая перейдёт владельцу раздела.'); return; }
+    if (ids.some(id => S.notes.has(id) && spaceMoveTarget(S.notes.get(id), sec))) { toast('В чужой общий раздел заметки переносятся по одной: «⋮ → Перенести в…» — каждая перейдёт владельцу раздела'); return; }
     let okAll = true;
     for (const id of ids) { const n = S.notes.get(id); if (!n || n.section === sec) continue; order += 1; n.section = sec; n.order = order; const o = order; okAll = (await write(() => S.db.collection('notes').doc(id).update({ section: sec, order: o, updated: new Date().toISOString() }), null)) && okAll; }
     toast(okAll ? `Перенесено в «${S.sections.get(sec)?.title || ''}»: ${ids.length}` : 'Часть заметок не перенеслась'); renderRail(); renderList(); return;
@@ -3099,15 +3116,16 @@ async function bulkMenuAct(act, b) {
 /* manage tags (in «Настройки») */
 function tagsPanelHtml() {
   const tags = allTags(); const M = S.tagMgr || {};
+  const H = help('Переименование меняет тег во всех заметках сразу. Если переименовать в уже существующий тег, они сольются в один');
   return `<details class="panel" id="tags-panel" ${S.tagsOpen ? 'open' : ''}>
-    <summary>Теги <span>· ${tags.length}</span></summary>
-    <p class="sub" style="margin-top:8px">Переименование меняет тег во всех заметках сразу. Если переименовать в уже существующий тег, они сольются в один.</p>
+    <summary>Теги${H[0]} <span>· ${tags.length}</span></summary>
+    ${H[1]}
     ${tags.length ? `<ul class="excluded">${tags.map(([t, c]) => M.rename === t
       ? `<li><form class="tag-rename" data-tag-rename="${esc(t)}"><input id="tag-rename-input" value="${esc(t)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Новое имя тега"><button class="btn primary">Сохранить</button><button class="btn" type="button" data-tm-cancel>Отмена</button></form></li>`
       : M.del === t
       ? `<li><span class="nm">Убрать <b>#${esc(t)}</b> из ${c} ${plural(c, 'заметки', 'заметок', 'заметок')}?</span><button class="btn danger" data-tm-del-yes="${esc(t)}">Удалить тег</button><button class="btn" data-tm-cancel>Отмена</button></li>`
       : `<li><span class="nm"><button class="tag" data-tm-filter="${esc(t)}">#${esc(t)}</button><small>${c} ${plural(c, 'заметка', 'заметки', 'заметок')}</small></span>${S.canWrite ? `<span class="tm-acts"><button class="btn" data-tm-rename="${esc(t)}">Переименовать</button><button class="btn danger" data-tm-del="${esc(t)}">Удалить</button></span>` : ''}</li>`).join('')}</ul>`
-      : '<div class="empty-state">Тегов пока нет. Добавь первый в любой заметке кнопкой «+ тег».</div>'}
+      : '<div class="empty-state">Тегов пока нет. Добавь первый в любой заметке кнопкой «+ тег»</div>'}
   </details>`;
 }
 function wireTagsPanel(root) {
@@ -3184,11 +3202,11 @@ function renderSecMenu() {
       ${count ? `Заметки попадут в корзину — их можно вернуть в течение ${TRASH_DAYS} дней.` : ''}</div>
       <div class="ask-row"><button class="yes" data-act="sec-del-all-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
   } else if (M.mode === 'confirmDel' && sub.size > 1) {
-    menuEl.innerHTML = `<div class="ask">Внутри «${esc(sec.title)}» есть подразделы. Сначала перенеси или удали их — или удали всё вместе.</div>
+    menuEl.innerHTML = `<div class="ask">Внутри «${esc(sec.title)}» есть подразделы. Сначала перенеси или удали их — или удали всё вместе</div>
       <div class="ask-row"><button data-act="sec-back">Понятно</button><button class="danger" data-act="sec-del-all">Удалить вместе с ${count ? 'заметками' : 'подразделами'}</button></div>`;
   } else if (M.mode === 'confirmDel') {
     menuEl.innerHTML = count
-      ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали.</div>
+      ? `<div class="ask">В разделе ${count} ${plural(count, 'заметка', 'заметки', 'заметок')}. Сначала перенеси их в другой раздел через «⋮ → Перенести в раздел» или удали</div>
         <div class="ask-row"><button data-act="sec-back">Понятно</button><button class="danger" data-act="sec-del-all">Удалить вместе с заметками</button></div>`
       : `<div class="ask">Удалить пустой раздел «${esc(sec.title)}»?</div><div class="ask-row"><button class="yes" data-act="sec-del-yes">Удалить</button><button data-act="sec-back">Отмена</button></div>`;
   } else {
@@ -3519,10 +3537,10 @@ function renderArticle(box, scrollTop) {
     <div class="mbar"><button class="back" id="back">← К списку</button><span class="mnav"><span class="mpos">${list.length} ${plural(list.length, 'заметка', 'заметки', 'заметок')}</span></span></div>
     <div class="eyebrow"><span>Читать подряд</span><button class="sec-link" id="art-close">закрыть статью ✕</button></div>
     <h1>${esc(title)}</h1>
-    ${list.length ? `<details class="art-toc" ${list.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>Содержание · ${list.length}</summary><ol>${list.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : '<div class="empty-state">В этом списке пока нет заметок.</div>'}
+    ${list.length ? `<details class="art-toc" ${list.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>Содержание · ${list.length}</summary><ol>${list.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : '<div class="empty-state">В этом списке пока нет заметок</div>'}
     ${list.map((n, i) => `<section class="art-note" id="art-${esc(n.id)}" data-id="${esc(n.id)}">
       <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(n.title)}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="Открыть заметку отдельно">Открыть</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">Править</button>` : ''}</span></div>
-      <div class="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет.</p>'}</div>
+      <div class="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет</p>'}</div>
     </section>`).join('')}
     ${list.length ? `<div class="art-end">Конец раздела · ${list.length} ${plural(list.length, 'заметка', 'заметки', 'заметок')}</div>` : ''}`;
   box.querySelectorAll('.art-note .md').forEach(md => enhance(md, null));
@@ -3579,7 +3597,7 @@ function renderTrashed(box, n) {
     <div class="eyebrow">Корзина · был в «${esc(secPath(n.section) || 'раздел удалён')}»</div>
     <h1>${esc(n.title)}</h1>
     ${S.canWrite ? `<div class="trash-banner"><span>Заметка в корзине: исчезнет насовсем через ${daysLeft(n)} ${plural(daysLeft(n), 'день', 'дня', 'дней')}.${n.deletedBy && spaceOfNote(n) ? ` Удалил(а): ${esc(personName(n.deletedBy) || 'участник')}.` : ''}</span>${canEditIn(spaceOfNote(n)) ? '<button class="btn primary" id="tr-restore">Восстановить</button>' : ''}${canPurge(n) ? '<button class="btn danger" id="tr-purge">Удалить навсегда</button>' : ''}</div>` : ''}
-    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Пустая заметка.</p>'}</div>`;
+    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Пустая заметка</p>'}</div>`;
   enhance($('#md'), null);
   $('#back').onclick = () => $('#lib').classList.remove('reading');
   $('#tr-restore') && ($('#tr-restore').onclick = () => restoreNotes([n.id]));
@@ -3614,7 +3632,7 @@ function renderReader(scrollTop) {
   if (S.article) { renderArticle(box, scrollTop); return; }
   if (!S.notes.has(S.noteId) && S.trash.has(S.noteId)) { renderTrashed(box, S.trash.get(S.noteId)); return; }
   const n = S.notes.get(S.noteId);
-  if (!n) { box.innerHTML = `<div class="empty-state">${S.loaded.notes ? 'Выбери заметку слева или найди её через поиск.' : 'Загружаю заметки…'}</div>`; return; }
+  if (!n) { box.innerHTML = `<div class="empty-state">${S.loaded.notes ? 'Выбери заметку слева или найди её через поиск' : 'Загружаю заметки…'}</div>`; return; }
   const s = S.srs.get(n.id); S.hitNav = null;
   const terms = S.q ? parseQuery(S.q) : null;
   const nbr = (() => { const l = currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
@@ -3628,8 +3646,8 @@ function renderReader(scrollTop) {
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? '<button class="btn" id="unref">Вернуть в тренировку</button>' : ''}${trainable(n) && hasProgress(n.id) && S.uid ? '<button class="btn" id="relearn" title="Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново">Снова учить</button>' : ''}${trainable(n) ? '<button class="btn" id="drill">Проверить себя</button>' : ''}${S.canWrite ? '<button class="btn" id="edit">Редактировать</button>' : ''}</span></div>
-    ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>Есть несохранённые правки от ${hhmm(getDraft(n.id).ts)}.</span><button class="btn primary" id="dr-cont">Продолжить редактирование</button></div>` : ''}
-    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать.</p>'}</div>`;
+    ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>Есть несохранённые правки от ${hhmm(getDraft(n.id).ts)}</span><button class="btn primary" id="dr-cont">Продолжить редактирование</button></div>` : ''}
+    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : '<p class="hint">Ответа пока нет. Нажми «Редактировать», чтобы дописать</p>'}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
   setupHits(box);
   $('#pin') && ($('#pin').onclick = () => togglePin(n.id));
@@ -4028,7 +4046,7 @@ function liveStatus(E) {
 function liveOff(E) {
   if (!E.live) return;
   clearTimeout(E.L.t); E.live = false; E.L.done = true;
-  if (S.editing === E) { const box = $('#reader'); if (box) { E.draft.title = $('#ed-title')?.value ?? E.draft.title; renderEditor(box); } toast('Совместная правка сейчас недоступна — сохрани заметку как обычно.'); }
+  if (S.editing === E) { const box = $('#reader'); if (box) { E.draft.title = $('#ed-title')?.value ?? E.draft.title; renderEditor(box); } toast('Совместная правка сейчас недоступна — сохрани заметку как обычно'); }
 }
 // «Готово» (или ушли из редактора): досылаем своё и выходим из заметки; без связи — обычная запись (уйдёт с очередью правок)
 // закрыли вкладку посреди правки — последнее отправляем «в фоне» (fetch keepalive)
@@ -4078,7 +4096,7 @@ function renderEditor(box) {
   box.innerHTML = `
     <button class="back" id="back">${E.tab === 'split' ? '← Показать список заметок' : '← К списку'}</button>
     <div class="eyebrow">${E.live ? 'Совместная правка' : E.id ? 'Редактирование' : 'Новая заметка'}</div>
-    ${E.draftOffer ? `<div class="draft-note" style="margin-top:10px"><span>Есть несохранённый черновик${E.id ? ' этой заметки' : ' новой заметки'} от ${hhmm(E.draftOffer.ts)}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}.</span><button class="btn primary" type="button" id="dr-restore">Восстановить</button><button class="btn" type="button" id="dr-drop">Удалить черновик</button></div>` : ''}
+    ${E.draftOffer ? `<div class="draft-note" style="margin-top:10px"><span>Есть несохранённый черновик${E.id ? ' этой заметки' : ' новой заметки'} от ${hhmm(E.draftOffer.ts)}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}</span><button class="btn primary" type="button" id="dr-restore">Восстановить</button><button class="btn" type="button" id="dr-drop">Удалить черновик</button></div>` : ''}
     <form class="editor" id="ed" style="margin-top:14px">
       <div class="field"><label for="ed-title">Вопрос / заголовок</label><input id="ed-title" required value="${esc(d.title)}" placeholder="Например: Чем launch отличается от async?"></div>
       <div class="grid2">
@@ -4913,14 +4931,14 @@ const PRO_PRICE = () => { const p = S.plan?.prices || { month: 139, year: 1190 }
 // кнопки оплаты (разовая оплата через Robokassa); пока оплата не подключена — подсказка
 function payHtml(primary) {
   const P = S.plan || {};
-  if (!P.payReady) return P.pro || !P.trialUsed ? '' : '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро.</p>';
+  if (!P.payReady) return P.pro || !P.trialUsed ? '' : '<p class="hint">Пробный период уже был. Оплата Pro появится совсем скоро</p>';
   const p = P.prices || {};
   return `<div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${P.pro ? 'Продлить' : 'Pro'} на месяц — ${rub(p.month)}</button>
     <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${P.pro ? 'Продлить' : 'Pro'} на год — ${rub(p.year)} <span class="save">−${yearSave(p)}%</span></button></div>
     ${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span><b>Продлевать автоматически.</b> Даю согласие списывать
       ${rub(p.month)} раз в месяц или ${rub(p.year)} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.
-      За 3 дня до списания напомним в приложении; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>.</span></label>` : ''}
-    <p class="hint">${P.recurringReady ? 'Оплата через Robokassa.' : 'Разовая оплата через Robokassa, без автоматических списаний.'} Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>.</p>`;
+      За 3 дня до списания напомним в приложении; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a></span></label>` : ''}
+    <p class="hint">${P.recurringReady ? 'Оплата через Robokassa' : 'Разовая оплата через Robokassa, без автоматических списаний'} Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a></p>`;
 }
 function wirePay(root) {
   root.querySelectorAll('[data-pay]').forEach(b => b.onclick = async () => {
@@ -4936,7 +4954,7 @@ function wirePay(root) {
 async function payReturn() {
   const q = new URLSearchParams(location.search), r = q.get('pay'); if (!r) return;
   q.delete('pay'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
-  if (r !== 'ok') { toast('Оплата не прошла — деньги не списаны. Попробовать ещё раз можно в «Настройки → Тариф».'); return; }
+  if (r !== 'ok') { toast('Оплата не прошла — деньги не списаны. Попробовать ещё раз можно в «Настройки → Тариф»'); return; }
   const start = store.get('payStart', null); store.set('payStart', null);
   toast('Спасибо! Проверяю оплату…');
   for (let i = 0; i < 20; i++) {
@@ -4947,7 +4965,7 @@ async function payReturn() {
     }
     await new Promise(res => setTimeout(res, 1500));
   }
-  toast('Оплата ещё обрабатывается — Pro включится в течение нескольких минут. Если не включится, напиши на secondslot@gmail.com.');
+  toast('Оплата ещё обрабатывается — Pro включится в течение нескольких минут. Если не включится, напиши на secondslot@gmail.com');
 }
 const planOn = () => !!(S.plan && S.plan.enabled);
 const fmtBytes = b => b >= 1073741824 ? `${+(b / 1073741824).toFixed(1)} ГБ`.replace('.', ',') : `${Math.round(b / 1048576)} МБ`;
@@ -4981,8 +4999,8 @@ function showPlanDialog(kind, msg) {
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
-    ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему.</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит.</p>
-    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}.</p>`}
+    ${renew ? `<p>${P.source === 'paid' ? 'Pro' : 'Пробный Pro'} действует до ${esc(planDate(P.until))}. Оплаченный срок добавится к текущему</p>` : pro ? '' : `<p>Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит</p>
+    <p><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes || 2147483648)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}</p>`}
     ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
     <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">Попробовать Pro — ${P.trialDays || 14} дней бесплатно</button><button class="btn" type="button" id="plan-no">Не сейчас</button>`
       : `<button class="btn" type="button" id="plan-no">${renew || P.payReady ? 'Не сейчас' : 'Понятно'}</button>`}</div>
@@ -5014,11 +5032,11 @@ function planPanelHtml() {
   return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
     <summary>Тариф <span>· ${esc(sub)}</span></summary>
     <div class="meters">${meter('Заметки', planUsed('notes'), planLimit('notes'))}${meter('Разделы', planUsed('sections'), planLimit('sections'))}${meter('Картинки', planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
-    ${pro && P.autorenew && !P.forever ? `<p class="sub"><b>Автопродление включено:</b> ${esc(planDate(P.until))} спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'} с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же.</p>
+    ${pro && P.autorenew && !P.forever ? `<p class="sub"><b>Автопродление включено:</b> ${esc(planDate(P.until))} спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'} с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же</p>
       <div class="bar"><button class="btn" type="button" id="renew-off">Отключить автопродление</button></div>`
-    : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится.</p>${payHtml(false)}
+    : pro ? (P.forever ? '' : `<p class="sub">Pro действует до ${esc(planDate(P.until))}${P.source === 'trial' ? ' (пробный период)' : ''}${P.payReady ? ' — оплаченный срок добавится к нему' : ''}. Потом — снова бесплатная версия: всё, что есть, останется, но новое сверх лимитов создать не получится</p>${payHtml(false)}
       ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">Включить автопродление — ${rub(P.renewAmount)} раз в ${P.renewPeriod === 'year' ? 'год' : 'месяц'}</button></div>` : ''}`)
-      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}.</p>
+      : `<p class="sub"><b>Pro</b> — заметки и разделы без ограничений, ${fmtBytes(P.proBytes)} под картинки, история версий до 100 копий, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон. ${PRO_PRICE()}</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">Попробовать Pro — ${P.trialDays} дней бесплатно</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
@@ -5032,7 +5050,7 @@ function spaceOfSection(id) {   // общий раздел, в котором л
 const spaceOfNote = n => n ? spaceOfSection(n.section) : null;
 const canEditIn = sp => !sp || sp.role === 'owner' || (sp.role === 'edit' && sp.active);
 function roRefuse(sp) { if (canEditIn(sp)) return false; toast(sp.role === 'edit' ? 'Pro у владельца раздела закончился — пока можно только читать.' : 'В этом общем разделе ты только читаешь.'); return true; }
-function delRefuse(sp) { if (!sp || sp.role === 'owner') return false; toast('Удалять в общем разделе может только его владелец.'); return true; }
+function delRefuse(sp) { if (!sp || sp.role === 'owner') return false; toast('Удалять в общем разделе может только его владелец'); return true; }
 const canPurge = n => { const sp = n ? spaceOfNote(n) : null; return !sp || sp.role === 'owner'; };   // навсегда — только своё
 function personName(uid) {
   if (uid === S.uid) return 'ты';
@@ -5044,29 +5062,27 @@ const joinUrl = t => `${location.origin}/?join=${t}`;
 function collabHtml(sp) {
   if (!window.NOTES_SPACES) return '';
   if (!sp && !planOn()) return '';   // общие разделы — в Pro: пока тарифы выключены, их не видно
-  const head = `<h3>Совместная работа <span class="pro">Pro</span></h3>`;
-  if (!sp) return `<div class="collab">${head}<p class="hint" style="margin:0">Пригласи людей читать или редактировать этот раздел вместе с тобой — до 10 участников. Редакторы могут отправлять заметки в корзину, удалить навсегда — только ты.</p>
+  const head = (h = ['', '']) => `<h3>Совместная работа <span class="pro">Pro</span>${h[0]}</h3>${h[1]}`;
+  if (!sp) return `<div class="collab">${head(help('Пригласи людей читать или редактировать этот раздел вместе с тобой — до 10 участников. Редакторы могут отправлять заметки в корзину, удалить навсегда — только ты'))}
     <div class="row"><button class="btn primary" type="button" id="sp-make">Сделать раздел общим</button></div></div>`;
-  if (sp.role !== 'owner') return `<div class="collab">${head}<p style="margin:0">Владелец — <b>${esc(sp.owner.name)}</b>. Ты ${sp.closing ? 'читаешь' : sp.role === 'edit' ? (sp.active ? 'редактируешь' : 'читаешь (у владельца закончился Pro)') : 'читаешь'}.</p>
-    ${sp.closing ? `<p class="hint" style="margin:0">Владелец перестал делиться этим разделом: до ${esc(planDate(sp.closing))} он у тебя только для чтения, потом пропадёт. Сохрани копию себе, если она нужна.</p>` : ''}
+  if (sp.role !== 'owner') return `<div class="collab">${head(help('Копия — твой личный раздел с теми же заметками и картинками; дальше они живут отдельно от общего'))}<p style="margin:0">Владелец — <b>${esc(sp.owner.name)}</b>. Ты ${sp.closing ? 'читаешь' : sp.role === 'edit' ? (sp.active ? 'редактируешь' : 'читаешь (у владельца закончился Pro)') : 'читаешь'}</p>
+    ${sp.closing ? `<p class="hint" style="margin:0">Владелец перестал делиться этим разделом: до ${esc(planDate(sp.closing))} он у тебя только для чтения, потом пропадёт. Сохрани копию себе, если она нужна</p>` : ''}
     ${sp.members.length ? `<p class="hint" style="margin:0">Участники: ${sp.members.map(m => esc(m.name)).join(', ')}</p>` : ''}
-    <div class="row"><button class="btn${sp.closing ? ' primary' : ''}" type="button" id="sp-copy">Сохранить копию себе</button><button class="btn" type="button" id="sp-leave">Выйти из раздела</button></div>
-    <p class="hint" style="margin:0">Копия — твой личный раздел с теми же заметками и картинками; дальше они живут отдельно от общего.</p></div>`;
-  if (sp.closing) return `<div class="collab">${head}<p style="margin:0">Ты перестал делиться этим разделом. До ${esc(planDate(sp.closing))} участники только читают и могут сохранить копию себе, потом раздел станет снова только твоим.</p>
+    <div class="row"><button class="btn${sp.closing ? ' primary' : ''}" type="button" id="sp-copy">Сохранить копию себе</button><button class="btn" type="button" id="sp-leave">Выйти из раздела</button></div></div>`;
+  if (sp.closing) return `<div class="collab">${head()}<p style="margin:0">Ты перестал делиться этим разделом. До ${esc(planDate(sp.closing))} участники только читают и могут сохранить копию себе, потом раздел станет снова только твоим</p>
     <div class="row"><button class="btn primary" type="button" id="sp-reopen">Снова делиться</button></div></div>`;
   const full = sp.members.length >= 10;
-  return `<div class="collab">${head}
-    ${!sp.active ? '<p class="hint" style="margin:0">Pro закончился — участники сейчас только читают, приглашать нельзя.</p>' : ''}
+  return `<div class="collab">${head(help('Приглашение действует 7 дней. Принять его можно, войдя в ReteNote'))}
+    ${!sp.active ? '<p class="hint" style="margin:0">Pro закончился — участники сейчас только читают, приглашать нельзя</p>' : ''}
     <div class="who">${sp.members.length ? sp.members.map(m => `<div><span class="nm">${esc(m.name)}</span>
         <select data-sp-role="${esc(m.id)}" aria-label="Роль: ${esc(m.name)}"><option value="read" ${m.role === 'read' ? 'selected' : ''}>читает</option><option value="edit" ${m.role === 'edit' ? 'selected' : ''}>редактирует</option></select>
-        <button class="btn" type="button" data-sp-kick="${esc(m.id)}">Убрать</button></div>`).join('') : '<p class="hint" style="margin:0">Пока никого — пригласи по ссылке.</p>'}</div>
+        <button class="btn" type="button" data-sp-kick="${esc(m.id)}">Убрать</button></div>`).join('') : '<p class="hint" style="margin:0">Пока никого — пригласи по ссылке</p>'}</div>
     ${sp.active && !full ? `<div class="row"><select id="sp-inv-role" aria-label="Роль приглашённого"><option value="edit">Редактировать</option><option value="read">Только читать</option></select>
-      <button class="btn primary" type="button" id="sp-invite">Ссылка-приглашение</button></div>` : full ? '<p class="hint" style="margin:0">Участников уже 10 — больше нельзя.</p>' : ''}
+      <button class="btn primary" type="button" id="sp-invite">Ссылка-приглашение</button></div>` : full ? '<p class="hint" style="margin:0">Участников уже 10 — больше нельзя</p>' : ''}
     ${(sp.invites || []).map(i => `<div class="inv"><input readonly value="${esc(joinUrl(i.token))}" aria-label="Приглашение"><span>${ROLE[i.role]} · до ${esc(planDate(i.expires))}</span>
         <button class="btn" type="button" data-sp-copy="${esc(i.token)}">Скопировать</button><button class="btn" type="button" data-sp-revoke="${esc(i.id)}">Отозвать</button></div>`).join('')}
-    <p class="hint" style="margin:0">Приглашение действует 7 дней. Принять его можно, войдя в ReteNote.</p>
     <div class="row"><button class="btn" type="button" id="sp-stop">${S.spStop ? 'Точно перестать делиться?' : 'Перестать делиться'}</button></div>
-    ${S.spStop && sp.members.length ? '<p class="hint" style="margin:0">Участники ещё неделю смогут читать раздел и сохранить копию себе, потом он у них пропадёт.</p>' : ''}</div>`;
+    ${S.spStop && sp.members.length ? '<p class="hint" style="margin:0">Участники ещё неделю смогут читать раздел и сохранить копию себе, потом он у них пропадёт</p>' : ''}</div>`;
 }
 function wireCollab(sp, redraw) {
   const S2 = window.NOTES_SPACES; if (!S2) return;
@@ -5107,7 +5123,7 @@ function renderSpaceBar() {
   const cl = sps.find(sp => sp.role !== 'owner' && sp.closing && store.get('spClose.' + sp.id, '') !== sp.closing);
   if (cl) {
     const ok = () => { store.set('spClose.' + cl.id, cl.closing); renderSpaceBar(); };
-    bar.innerHTML = `<p><b>${esc(cl.owner.name)} больше не делится разделом «${esc(cl.title)}».</b> До ${esc(planDate(cl.closing))} он у тебя только для чтения, потом пропадёт. Можно сохранить копию себе — со всеми заметками и картинками.</p>
+    bar.innerHTML = `<p><b>${esc(cl.owner.name)} больше не делится разделом «${esc(cl.title)}».</b> До ${esc(planDate(cl.closing))} он у тебя только для чтения, потом пропадёт. Можно сохранить копию себе — со всеми заметками и картинками</p>
       <div class="bar"><button class="btn primary" type="button" id="space-bar-copy">Сохранить копию себе</button><button class="btn" type="button" id="space-bar-ok">Понятно</button></div>`;
     bar.hidden = false;
     $('#space-bar-ok').onclick = ok;
@@ -5118,7 +5134,7 @@ function renderSpaceBar() {
   const del = [...S.trash.values()].filter(n => n.deletedBy && n.deletedBy !== uid && (n.deleted || '') > seen && own.has(spaceOfNote(n)?.id));
   if (!del.length) return hide();
   const names = [...new Set(del.map(n => personName(n.deletedBy) || 'Участник'))], last = del.map(n => n.deleted).sort().pop();
-  bar.innerHTML = `<p><b>${esc(names.join(', '))} ${names.length > 1 ? 'удалили' : 'удалил(а)'} ${del.length} ${plural(del.length, 'заметку', 'заметки', 'заметок')} в общих разделах.</b> Они в корзине — можно посмотреть и вернуть.</p>
+  bar.innerHTML = `<p><b>${esc(names.join(', '))} ${names.length > 1 ? 'удалили' : 'удалил(а)'} ${del.length} ${plural(del.length, 'заметку', 'заметки', 'заметок')} в общих разделах.</b> Они в корзине — можно посмотреть и вернуть</p>
     <div class="bar"><button class="btn" type="button" id="space-bar-see">Посмотреть</button><button class="btn" type="button" id="space-bar-ok">Понятно</button></div>`;
   bar.hidden = false;
   $('#space-bar-ok').onclick = () => { store.set(key, last); renderSpaceBar(); };
@@ -5139,14 +5155,14 @@ function folderMoveTarget(id, to) {
 function moveToSpace(id, sec, folder) {
   const n = folder ? S.sections.get(id) : S.notes.get(id), tsp = n && (folder ? folderMoveTarget(id, sec) : spaceMoveTarget(n, sec)); if (!tsp) return false;
   if (!canEditIn(tsp)) { roRefuse(tsp); return true; }
-  if (folder && spacesList().some(x => x.role === 'owner' && subtree(id).has(x.root))) { toast('Внутри этого раздела есть общий раздел — перенести его в чужой общий нельзя.'); return true; }
+  if (folder && spacesList().some(x => x.role === 'owner' && subtree(id).has(x.root))) { toast('Внутри этого раздела есть общий раздел — перенести его в чужой общий нельзя'); return true; }
   let ov = $('#move-ov'); if (!ov) { ov = document.createElement('div'); ov.id = 'move-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const close = () => { ov.hidden = true; ov.innerHTML = ''; }, title = S.sections.get(sec)?.title || '';
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="move-title">
     <h2 id="move-title">Перенести в общий раздел?</h2>
-    <p style="margin:0">${folder ? `Раздел «${esc(n.title || 'Без названия')}» со всеми подразделами и заметками перейдёт` : `Заметка «${esc(n.title || 'Без названия')}» перейдёт`} в раздел «${esc(title)}» — его владелец <b>${esc(tsp.owner.name)}</b>.</p>
-    <p class="hint" style="margin:0">${folder ? 'Их' : 'Её'} увидят все участники раздела. Удалить навсегда сможет только владелец, забрать обратно — только копией. Картинки скопируются к владельцу, история версий перейдёт вместе с ${folder ? 'заметками' : 'заметкой'}, ссылки на чтение (если были) отключатся.${folder ? ' Заметки из корзины останутся у тебя.' : ''}</p>
+    <p style="margin:0">${folder ? `Раздел «${esc(n.title || 'Без названия')}» со всеми подразделами и заметками перейдёт` : `Заметка «${esc(n.title || 'Без названия')}» перейдёт`} в раздел «${esc(title)}» — его владелец <b>${esc(tsp.owner.name)}</b></p>
+    <p class="hint" style="margin:0">${folder ? 'Их' : 'Её'} увидят все участники раздела. Удалить навсегда сможет только владелец, забрать обратно — только копией. Картинки скопируются к владельцу, история версий перейдёт вместе с ${folder ? 'заметками' : 'заметкой'}, ссылки на чтение (если были) отключатся.${folder ? ' Заметки из корзины останутся у тебя' : ''}</p>
     <p class="hint" id="move-status" style="margin:0"></p>
     <div class="bar"><button class="btn primary" type="button" id="move-yes">Перенести</button><button class="btn" type="button" id="move-no">Отмена</button></div></div>`;
   $('#move-no').onclick = () => { close(); rerender(); };
@@ -5172,8 +5188,8 @@ async function joinCheck() {
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="join-title">
     <h2 id="join-title">Приглашение в общий раздел</h2>
-    <p style="margin:0"><b>${esc(info.owner)}</b> приглашает тебя ${info.role === 'edit' ? 'читать и редактировать' : 'читать'} раздел «${esc(info.title)}».</p>
-    ${info.already ? `<p class="hint" style="margin:0">Ты уже участник этого раздела${info.already === 'owner' ? ' (это твой раздел)' : ''}.</p>` : '<p class="hint" style="margin:0">Раздел появится у тебя в списке разделов со значком 👥. Участники увидят твоё имя.</p>'}
+    <p style="margin:0"><b>${esc(info.owner)}</b> приглашает тебя ${info.role === 'edit' ? 'читать и редактировать' : 'читать'} раздел «${esc(info.title)}»</p>
+    ${info.already ? `<p class="hint" style="margin:0">Ты уже участник этого раздела${info.already === 'owner' ? ' (это твой раздел)' : ''}</p>` : '<p class="hint" style="margin:0">Раздел появится у тебя в списке разделов со значком 👥. Участники увидят твоё имя</p>'}
     <p class="hint" id="join-status" style="margin:0"></p>
     <div class="bar">${info.already === 'owner' ? '' : `<button class="btn primary" type="button" id="join-yes">${info.already ? 'Обновить роль' : 'Принять'}</button>`}<button class="btn" type="button" id="join-no">${info.already ? 'Закрыть' : 'Отказаться'}</button></div></div>`;
   $('#join-no').onclick = close;
@@ -5203,7 +5219,7 @@ async function openShare(kind, id) {
     if (foreign()) {   // чужой общий раздел: ссылкой на чтение делится владелец; для раздела — участники и «Выйти»
       ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-title">
         <h2 id="share-title">${kind === 'note' ? 'Заметка' : 'Раздел'} «${esc(item.title || 'Без названия')}»</h2>
-        <p class="hint" style="margin:0">Это общий раздел владельца — ${esc(sp0().owner.name)}. Делиться ссылкой может только он.</p>
+        <p class="hint" style="margin:0">Это общий раздел владельца — ${esc(sp0().owner.name)}. Делиться ссылкой может только он</p>
         ${kind === 'section' && sp0().root === id ? collabHtml(sp0()) : ''}
         <p class="hint" id="share-status" aria-live="polite" style="margin:0">${esc(status || '')}</p>
         <div class="bar"><button class="btn" type="button" id="share-done">Готово</button></div></div>`;
@@ -5216,7 +5232,7 @@ async function openShare(kind, id) {
     ov.innerHTML = `<div class="help-sheet share-sheet" role="dialog" aria-modal="true" aria-labelledby="share-title">
       <h2 id="share-title">Поделиться ${kind === 'note' ? 'заметкой' : 'разделом'} «${esc(item.title || 'Без названия')}»</h2>
       <label class="share-tog"><input type="checkbox" id="share-on" ${share ? 'checked' : ''} ${busy ? 'disabled' : ''}>Ссылка для чтения</label>
-      <p class="hint" style="margin:0">Кто угодно со ссылкой может читать — без входа и без аккаунта${kind === 'section' ? '. Видны все заметки раздела и его подразделов, кроме корзины' : ''}. Отключишь — ссылка перестанет работать.</p>
+      <p class="hint" style="margin:0">Кто угодно со ссылкой может читать — без входа и без аккаунта${kind === 'section' ? '. Видны все заметки раздела и его подразделов, кроме корзины' : ''}. Отключишь — ссылка перестанет работать</p>
       ${share ? `<div class="share-link"><input id="share-url" readonly value="${esc(url())}" aria-label="Ссылка"><button class="btn primary" type="button" id="share-copy">Скопировать</button></div>
         <p class="hint" style="margin:0"><a href="${esc(url())}" target="_blank" rel="noopener">Открыть, как увидят другие</a></p>` : ''}
       ${kind === 'section' ? collabHtml(sp0()) : ''}
@@ -5312,14 +5328,14 @@ async function openHistory(noteId) {
 function renderHistory() {
   const H = S.history, ov = $('#ver-ov'); if (!H || !ov) return;
   const list = ov.querySelector('.ver-list'), locked = H.items.filter(v => v.locked).length;
-  if (!H.items.length) { list.innerHTML = '<p class="empty">Версий пока нет. Когда заметку правят, прежний текст сохраняется сюда — не чаще раза в 10 минут.</p>'; return; }
+  if (!H.items.length) { list.innerHTML = '<p class="empty">Версий пока нет. Когда заметку правят, прежний текст сохраняется сюда — не чаще раза в 10 минут</p>'; return; }
   let day = '', html = '';
   for (const v of H.items) {
     const d = verDay(v.created); if (d !== day) { html += `<div class="day">${esc(d)}</div>`; day = d; }
     html += `<button type="button" data-ver="${esc(v.id)}" class="${v.locked ? 'locked' : ''}" aria-current="${H.sel === v.id}"><span class="t">${verTime(v.created)}</span>
       <span class="r">${v.locked ? '🔒 в Pro' : v.reason === 'restore' ? 'до восстановления' : ''}</span></button>`;
   }
-  if (locked) html += `<p class="ver-more">Версии старше суток — в Pro (ещё ${locked}).</p>`;
+  if (locked) html += `<p class="ver-more">Версии старше суток — в Pro (ещё ${locked})</p>`;
   list.innerHTML = html;
   list.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => {
     const v = H.items.find(x => x.id === b.dataset.ver);
@@ -5348,7 +5364,7 @@ function renderVersion() {
     <p class="hint" style="margin:0">${esc(verDay(v.created))}, ${verTime(v.created)}${v.reason === 'restore' ? ' · сохранена перед восстановлением' : ''}${H.tab === 'diff' ? ' — что изменилось с тех пор (было → сейчас)' : ''}</p>
     ${H.tab === 'diff'
       ? `${(d.title || '') !== (n.title || '') ? `<p class="ver-title">Заголовок: <del>${esc(d.title || 'Без названия')}</del> → <b>${esc(n.title || 'Без названия')}</b></p>` : ''}
-         ${same ? '<p class="hint">Совпадает с текущей версией заметки.</p>' : (d.body || '') === (n.body || '') ? '<p class="hint">Текст не менялся.</p>' : `<div class="ver-diff">${diffHtml(d.body || '', n.body || '')}</div>`}`
+         ${same ? '<p class="hint">Совпадает с текущей версией заметки</p>' : (d.body || '') === (n.body || '') ? '<p class="hint">Текст не менялся</p>' : `<div class="ver-diff">${diffHtml(d.body || '', n.body || '')}</div>`}`
       : `<h1 class="ver-h1" style="margin:0;font:600 22px/1.3 var(--f-display)">${esc(d.title || 'Без названия')}</h1><div class="md ver-md">${renderMd(d.body || '')}</div>`}
     <div class="bar"><button class="btn primary" type="button" id="ver-restore" ${same ? 'disabled' : ''}>Восстановить эту версию</button><button class="btn" type="button" id="ver-copy">Скопировать текст</button></div>`;
   if (H.tab === 'view') { const md = view.querySelector('.ver-md'); try { enhance(md, null); } catch {} try { fixImgs(md); } catch {} }
@@ -5370,9 +5386,10 @@ function debugPanelHtml() {
   const d = P.debug || {}, tog = (k, label, hint) => `<label class="dbg-tog"><input type="checkbox" data-dbg="${k}" ${d[k] ? 'checked' : ''}><span>${label}${hint ? `<small>${hint}</small>` : ''}</span></label>`;
   const now = !P.pro ? 'Free' : P.forever ? 'Pro навсегда' : `Pro (${P.source === 'trial' ? 'пробный' : P.source === 'paid' ? 'оплачен' : '?'}) до ${planDate(P.until)}`;
   const btn = (a, t, extra = '') => `<button class="btn" type="button" data-dbg-act="${a}" ${extra}>${t}</button>`;
+  const H = help('Всё здесь действует только на этот аккаунт — остальные пользователи ничего не замечают');
   return `<details class="panel" id="debug-panel" ${S.debugOpen ? 'open' : ''}>
-    <summary>Отладка <span>· только для тебя</span></summary>
-    <p class="sub">Всё здесь действует только на этот аккаунт — остальные пользователи ничего не замечают.</p>
+    <summary>Отладка${H[0]} <span>· только для тебя</span></summary>
+    ${H[1]}
     <p class="dbg-now">Сейчас: <b>${esc(now)}</b> · пробный ${P.trialUsed ? 'был' : 'не был'} · автопродление ${P.autorenew ? 'включено' : 'выключено'} · тарифы ${P.enabled ? 'включены' : 'выключены'}</p>
     ${tog('plans', 'Тарифы Free / Pro', d.plans ? '' : P.enabled ? 'сейчас включены для всех' : 'для всех выключены — включить только мне')}
     ${tog('recurring', 'Автопродление', P.recurringReady && !d.recurring ? 'сейчас включено для всех' : 'галочка «Продлевать автоматически» при оплате')}
@@ -5425,16 +5442,16 @@ function renderPlanBar() {
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
   if (!end || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
   bar.innerHTML = P.autorenew ? `<p><b>Pro продлится автоматически ${esc(planDate(P.until))}:</b> спишем ${rub(P.renewAmount)} за следующий ${P.renewPeriod === 'year' ? 'год' : 'месяц'}
-    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется.</p>
+    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется</p>
     <div class="bar"><button class="btn" type="button" id="plan-bar-off">Отключить автопродление</button><button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`
   : `<p><b>${paid ? 'Pro' : 'Пробный Pro'} закончится ${esc(planDate(P.until))}.</b> Потом вернутся ограничения бесплатной версии: до ${P.free.notes} заметок,
-    ${P.free.sections} разделов и ${fmtBytes(P.free.bytes)} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится.</p>
+    ${P.free.sections} разделов и ${fmtBytes(P.free.bytes)} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится</p>
     <div class="bar">${P.payReady ? `<button class="btn primary" type="button" id="plan-bar-pay">${paid ? 'Продлить' : 'Оформить Pro'}</button>` : ''}<button class="btn" type="button" id="plan-bar-ok">Понятно</button></div>`;
   bar.hidden = false;
   $('#plan-bar-ok').onclick = () => { store.set(key, P.until); renderPlanBar(); };
   $('#plan-bar-pay') && ($('#plan-bar-pay').onclick = () => showPlanDialog('renew'));
   $('#plan-bar-off') && ($('#plan-bar-off').onclick = async () => {
-    try { S.plan = await window.NOTES_AUTORENEW(false); store.set(key, P.until); renderPlanBar(); if (S.mode === 'prog') renderProg(); toast(`Автопродление отключено. Pro действует до ${planDate(S.plan.until)}, больше ничего не спишем.`); }
+    try { S.plan = await window.NOTES_AUTORENEW(false); store.set(key, P.until); renderPlanBar(); if (S.mode === 'prog') renderProg(); toast(`Автопродление отключено. Pro действует до ${planDate(S.plan.until)}, больше ничего не спишем`); }
     catch (e) { toast('Не получилось: ' + (e?.message || e)); }
   });
 }
@@ -5470,7 +5487,7 @@ async function write(fn, okMsg) {
     if (e && e.code === 'invalid_argument') { S.canWrite = false; toast('Нет прав на изменение: открыт режим только для чтения'); renderLib(); }
     else if (e && e.code === 'quota_exceeded') toast('Хранилище заполнено: удали лишние заметки');
     else if (e && (e.status === 403 || e.status === 400) && e.response?.message) toast(e.response.message);   // понятный текст сервера (общий раздел, лимит…)
-    else toast('Не получилось сохранить. Попробуй ещё раз.');
+    else toast('Не получилось сохранить. Попробуй ещё раз');
     return false;
   }
 }
@@ -5500,18 +5517,16 @@ function renderTrain() {
   const tags = allTags();
   root.innerHTML = `<div class="wrap">
     <section class="panel">
-      <h3>Повторение на сегодня</h3>
-      <p class="sub">Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше и дальше — насколько, зависит от того, как легко она тебе даётся.</p>
+      ${(h => `<h3>Повторение на сегодня${h[0]}</h3>${h[1]}`)(help('Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше и дальше — насколько, зависит от того, как легко она тебе даётся'))}
       <div class="today">
         <div class="bignum">${total}</div>
         <div class="split"><span>к повторению: <b>${rq.due.length}</b></span><span>новых сегодня: <b>${rq.fresh.length}</b> из ${S.settings.newPerDay ?? 10} <span class="hint">(всего не изучено: ${rq.freshTotal})</span></span>${(f => `<span class="ahead" id="ahead">дальше: завтра — <b>${f.tomorrow}</b>, за неделю — <b>${f.week}</b></span>`)(dueAhead())}</div>
         <button class="btn primary big" id="start-review" ${total ? '' : 'disabled'}>${total ? 'Начать повторение' : 'На сегодня всё'}</button>
       </div>
-      ${!S.uid ? '<p class="notice" style="margin:14px 0 0">Прогресс сохраняется только для вошедших пользователей: сейчас оценки не запомнятся.</p>' : ''}
+      ${!S.uid ? '<p class="notice" style="margin:14px 0 0">Прогресс сохраняется только для вошедших пользователей: сейчас оценки не запомнятся</p>' : ''}
     </section>
     <section class="panel">
-      <h3>Свободная тренировка</h3>
-      <p class="sub">Прогнать выбранные темы без оглядки на расписание, например перед собесом. Ошибки и «плаваю» тоже попадут в расписание.</p>
+      ${(h => `<h3>Свободная тренировка${h[0]}</h3>${h[1]}`)(help('Прогнать выбранные темы без оглядки на расписание, например перед собесом. Ошибки и «плаваю» тоже попадут в расписание'))}
       <div class="opts">
         <div><div class="lbl" style="margin-bottom:8px">Разделы</div><div class="opt-row" id="o-secs">
           <button class="chip" data-s="" aria-pressed="${!o.sections.length}">Все</button>
@@ -5564,7 +5579,7 @@ function renderSession(root) {
       <button class="grade g1" data-g="1" title="Клавиша 1"><kbd>1</kbd>Не знаю<small>${pv(1)}</small></button>
       <button class="grade g2" data-g="2" title="Клавиша 2"><kbd>2</kbd>Плаваю<small>${pv(2)}</small></button>
       <button class="grade g3" data-g="3" title="Клавиша 3"><kbd>3</kbd>Знаю<small>${pv(3)}</small></button></div>
-    <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3.</span></p>` : ''}
+    <p class="hint grade-hint">Под оценкой написано, когда карточка снова попадёт в повторение.<span class="keys"> Оценивать можно клавишами 1, 2, 3</span></p>` : ''}
   </div>`;
   if ((T.shown || cz || rev) && $('#ans')) enhance($('#ans'));
   // пропуск: до ответа — «[…]» на месте нужного куска (остальные пропуски видны), после — он подсвечен
@@ -5646,7 +5661,7 @@ function renderSummary(root) {
   const shaky = [...T.results.entries()].filter(([, g]) => g === 2).map(([id]) => id).filter(id => noteOfCard(id));
   root.innerHTML = `<div class="wrap"><section class="panel">
     <h3>${esc(T.label)}: итог</h3>
-    <p class="sub">${T.results.size ? `Пройдено ${T.results.size} ${plural(T.results.size, 'карточка', 'карточки', 'карточек')}.` : 'Сессия завершена без ответов.'}</p>
+    <p class="sub">${T.results.size ? `Пройдено ${T.results.size} ${plural(T.results.size, 'карточка', 'карточки', 'карточек')}` : 'Сессия завершена без ответов'}</p>
     <div class="summary-grid">
       <div class="stat g1"><b>${c[1]}</b>не знал</div><div class="stat g2"><b>${c[2]}</b>плавал</div><div class="stat g3"><b>${c[3]}</b>знал</div>
     </div>
@@ -5702,7 +5717,7 @@ function trainStats() {
 }
 function statsHtml() {
   if (!plusOn()) return planOn() ? `<section class="panel stats-teaser"><h3>Статистика <span class="pro">Pro</span></h3>
-    <p class="sub">Прогноз нагрузки на месяц по дням, календарь занятий и серия дней подряд, сколько знакомых карточек ты помнишь, самые трудные карточки.</p>
+    <p class="sub">Прогноз нагрузки на месяц по дням, календарь занятий и серия дней подряд, сколько знакомых карточек ты помнишь, самые трудные карточки</p>
     <div class="bar"><button class="btn" type="button" id="stats-pro">Подробнее о Pro</button></div></section>` : '';
   const st = trainStats(), t = today(), max = Math.max(1, ...st.ahead.map(x => x.n));
   const wk = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'], dow = d => (new Date(d + 'T12:00').getDay() + 6) % 7;
@@ -5746,8 +5761,7 @@ function progressHtml() {
   const allT = tot.new + tot.learn + tot.know + tot.solid;
   return `
     <section class="panel">
-      <h3>Прогресс</h3>
-      <p class="sub">«Знаю» — карточка с интервалом от недели, «уверенно» — от трёх недель. Заметки вне тренировки и вопросы без ответа не считаются.</p>
+      ${(h => `<h3>Прогресс${h[0]}</h3>${h[1]}`)(help('«Знаю» — карточка с интервалом от недели, «уверенно» — от трёх недель. Заметки вне тренировки и вопросы без ответа не считаются'))}
       <div class="totals">
         <div><b>${allT}</b><span>карточек в тренировке</span></div>
         <div><b>${tot.learn + tot.know + tot.solid}</b><span>уже начато</span></div>
@@ -5757,12 +5771,12 @@ function progressHtml() {
     </section>
     <section class="panel">
       <div class="legend" style="margin-bottom:10px"><span><i class="s-solid"></i>уверенно</span><span><i class="s-know"></i>знаю</span><span><i class="s-learn"></i>изучаются</span><span><i class="s-new"></i>новые</span></div>
-      ${rows || '<div class="empty-state">Пока нет карточек для тренировки.</div>'}
+      ${rows || '<div class="empty-state">Пока нет карточек для тренировки</div>'}
     </section>
-    ${(() => { const ex = sortedNotes().filter(n => n.ref && (n.body || '').trim()); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
-      <summary>Вне тренировки <span>· ${ex.length} ${plural(ex.length, 'карточка', 'карточки', 'карточек')}</span></summary>
-      <p class="sub" style="margin-top:8px">Заметки, которые ты убрал из ротации. Они остаются в заметках, их можно вернуть в любой момент.</p>
-      ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(secPath(n.section))}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">Вернуть</button>` : ''}</li>`).join('')}</ul>` : '<div class="empty-state">Пока ничего не убрано.</div>'}
+    ${(() => { const ex = sortedNotes().filter(n => n.ref && (n.body || '').trim()), H = help('Заметки, которые ты убрал из ротации. Они остаются в заметках, их можно вернуть в любой момент'); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
+      <summary>Вне тренировки${H[0]} <span>· ${ex.length} ${plural(ex.length, 'карточка', 'карточки', 'карточек')}</span></summary>
+      ${H[1]}
+      ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(secPath(n.section))}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">Вернуть</button>` : ''}</li>`).join('')}</ul>` : '<div class="empty-state">Пока ничего не убрано</div>'}
     </details>`; })()}
   `;
 }
@@ -5786,9 +5800,9 @@ function trainPlusHtml() {
   const on = plusOn(), dis = on ? '' : 'disabled', r = S.settings.retention || 0.9, mx = S.settings.maxIvl || 0;
   return `<div class="train-plus${on ? '' : ' locked'}">
     <div class="lbl" style="margin:16px 0 8px">Расписание ${on ? '' : '<span class="pro">Pro</span>'}</div>
-    <div class="lbl" style="margin:0 0 6px">Насколько хорошо помнить</div><div class="seg seg-wrap" id="o-ret">
+    ${(h => `<div class="lbl" style="margin:0 0 6px">Насколько хорошо помнить${h[0]}</div>${h[1]}`)(help('Выше — чаще повторения и крепче память; ниже — реже, но больше забывается. Обычно хватает 90%'))}<div class="seg seg-wrap" id="o-ret">
       ${RETENTION.map(([v, l]) => `<button type="button" data-ret="${v}" aria-pressed="${r === v}" ${dis}>${l}</button>`).join('')}</div>
-    <p class="hint" style="margin:6px 0 12px">Выше — чаще повторения и крепче память; ниже — реже, но больше забывается. Обычно хватает 90%.</p>
+    <div style="height:12px"></div>
     <div class="lbl" style="margin:0 0 6px">Самый длинный интервал</div><div class="seg seg-wrap" id="o-max">
       ${MAXIVL.map(([v, l]) => `<button type="button" data-max="${v}" aria-pressed="${mx === v}" ${dis}>${l}</button>`).join('')}</div>
   </div>`;
@@ -5797,16 +5811,16 @@ function trainPlusHtml() {
 function newPerDayHtml() {
   const on = plusOn(), dis = on ? '' : 'disabled', show = on || planOn();
   const roots = show ? sectionsSorted().filter(x => x.train || x.newLimit != null) : [];
-  return `<div class="lbl" style="margin:18px 0 6px">Новые карточки в день</div>
-    <p class="hint" style="margin:0 0 8px">Сколько ещё не изученных карточек добавлять в тренировку каждый день.</p>
+  const h1 = help('Сколько ещё не изученных карточек добавлять в тренировку каждый день');
+  const h2 = help('Можно ограничить, сколько новых карточек в день брать из раздела, например чтобы один большой раздел не занимал весь дневной лимит. Пусто — без отдельного лимита. Лимит раздела действует и на подразделы');
+  return `<div class="lbl" style="margin:18px 0 6px">Новые карточки в день${h1[0]}</div>${h1[1]}
     <form class="opt-row" id="set-form">
       <label for="npd">Всего</label>
       <input id="npd" type="number" min="0" max="100" value="${S.settings.newPerDay ?? 10}" style="width:80px;border:1px solid var(--line);background:var(--raised);color:var(--ink);border-radius:8px;padding:6px 8px">
       <button class="btn">Сохранить</button>
     </form>
     ${roots.length ? `<div class="train-plus${on ? '' : ' locked'}">
-      <div class="lbl" style="margin:14px 0 6px">По разделам ${on ? '' : '<span class="pro">Pro</span>'}</div>
-      <p class="hint" style="margin:0 0 8px">Можно ограничить, сколько новых карточек в день брать из раздела, например чтобы один большой раздел не занимал весь дневной лимит. Пусто — без отдельного лимита. Лимит раздела действует и на подразделы.</p>
+      <div class="lbl" style="margin:14px 0 6px">По разделам ${on ? '' : '<span class="pro">Pro</span>'}${h2[0]}</div>${h2[1]}
       <div class="sec-limits">${roots.map(x => `<label><span>${esc(x.title)}</span><input type="number" min="0" max="100" data-lim="${esc(x.id)}" value="${x.newLimit ?? ''}" placeholder="без лимита" ${dis}></label>`).join('')}</div>
     </div>` : ''}
     ${show && !on ? '<div class="bar"><button class="btn" type="button" id="plus-pro">Подробнее о Pro</button></div>' : ''}`;
@@ -5832,6 +5846,10 @@ const proOn = () => plusOn();
 const lookPrefs = () => { const s = S.settings || {}; return { theme: s.theme || 'forest', mode: s.mode || 'system', oled: !!s.oled }; };
 function effLook() {
   const p = lookPrefs(), t = THEMES.find(x => x[0] === p.theme), keep = proOn() || planOn();   // planOn без Pro — уже выбранное остаётся
+  // ReteNote: тариф ещё не загружен (настройки приходят раньше) — цвета и чёрный фон те же, что были (aw.look), иначе мигает «Лес»
+  // (Pro-тема и чёрный фон остаются, если уже действовали на этом устройстве; бесплатное меняется сразу)
+  if (window.NOTES_PLAN && !S.plan) { const was = store.get('look', null) || {};
+    return { theme: t && (!t[2] || was.theme === p.theme) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && !!was.oled }; }
   return { theme: t && (!t[2] || keep) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && keep };
 }
 function applyLook() {
@@ -5855,7 +5873,7 @@ function lookPanelHtml() {
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
         <span class="sw-c"><i style="background:${c[0]}"><b style="background:${c[2]}"></b></i><i style="background:${c[1]}"><b style="background:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
-    ${showPro ? `<label class="look-oled"><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> Чёрный фон в тёмной теме${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}<span class="hint">экономит батарею на телефонах с OLED-экраном</span></label>` : ''}
+    ${showPro ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> Чёрный фон в тёмной теме</label>${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}${h[0]}</div>${h[1]}`)(help('Фон становится совсем чёрным — на телефонах с OLED-экраном это экономит батарею. Действует только в тёмной теме')) : ''}
   </section>`;
 }
 function wireLookPanel(root) {
@@ -5888,11 +5906,11 @@ function renderProg() {
       <h3>Редактор</h3>
       <div class="opt-row" style="margin-top:10px"><span class="lbl" style="margin-right:6px">Открывать в режиме</span><div class="seg" id="ed-default">
         ${[['prev', 'Визуально'], ['split', 'Рядом'], ['edit', 'Markdown']].map(([k, l]) => `<button data-edt="${k}" aria-pressed="${store.get('edTab', 'edit') === k}">${l}</button>`).join('')}</div></div>
-      <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе. Двойной клик по тексту заметки открывает редактор с курсором в этом месте; кнопка «Редактировать» и клавиша <kbd>E</kbd> — на том месте, где читаешь. <kbd>${MOD}+S</kbd> — сохранить, не выходя; <kbd>Esc</kbd> — сохранить и вернуться к чтению.</p>
+      <p class="hint" style="margin:8px 0 0">Режим запоминается и при переключении прямо в редакторе</p>
     </section>
     ${lookPanelHtml()}
     ${tagsPanelHtml()}
-    ${window.NOTES_FEEDBACK ? `<section class="panel" id="fb-panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик. Ответ придёт сюда и на почту.</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div>${fbMineHtml()}</section>` : ''}
+    ${window.NOTES_FEEDBACK ? `<section class="panel" id="fb-panel"><h3>Обратная связь</h3><p class="sub" style="margin-top:6px">Нашёл ошибку или есть идея? Напиши — это читает разработчик. Ответ придёт сюда и на почту</p><div class="bar" style="margin-top:10px"><button class="btn" data-feedback="bug">Сообщить о проблеме</button><button class="btn" data-feedback="idea">Предложить идею</button></div>${fbMineHtml()}</section>` : ''}
     ${window.NOTES_STANDALONE ? (window.NOTES_FLAVOR === 'public' ? planPanelHtml() + debugPanelHtml() : ghPanelHtml()) + dataPanelHtml() + accountPanelHtml() + appPanelHtml() : ''}
     </div>`;
   wireTagsPanel(root); wireLookPanel(root);
@@ -6042,7 +6060,7 @@ function openFeedback(kind = 'bug') {
     <h2 id="fb-title" style="margin:0;font:600 20px/1.2 var(--f-display)">Отзыв</h2>
     <div class="seg" role="group" aria-label="Тип отзыва"><button type="button" data-k="bug">Проблема</button><button type="button" data-k="idea">Идея</button></div>
     <textarea id="fb-text" maxlength="5000"></textarea>
-    <p class="hint">Вместе с текстом уйдут: экран приложения, размер экрана и браузер. Содержимое заметок не отправляется.</p>
+    <p class="hint">Вместе с текстом уйдут: экран приложения, размер экрана и браузер. Содержимое заметок не отправляется</p>
     <div class="bar"><button class="btn primary" type="button" id="fb-send">Отправить</button><button class="btn" type="button" id="fb-cancel">Отмена</button></div>
     <p class="hint" id="fb-status" aria-live="polite"></p>
   </div>`;
@@ -6071,7 +6089,7 @@ async function boot() {
 
   const [db, user] = await Promise.all([window.claude?.use?.('db') ?? null, window.claude?.use?.('user') ?? null]);
   if (!db) {
-    $('#items').innerHTML = '<div class="empty-state">Не удалось подключиться к хранилищу заметок. Открой страницу в Claude, войдя в аккаунт.</div>';
+    $('#items').innerHTML = '<div class="empty-state">Не удалось подключиться к хранилищу заметок. Открой страницу в Claude, войдя в аккаунт</div>';
     return;
   }
   S.db = db;
@@ -6090,7 +6108,7 @@ async function boot() {
     for (const d of snap.docs) { const v = Object.assign({ id: d.id }, d.data()); (v.deleted ? tr : act).set(d.id, v); }
     S.notes = act; S.trash = tr;
     S.loaded.notes = true; rerender(); autoPurge(); renderSpaceBar();
-  }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу.</div>'; });
+  }, e => { $('#items').innerHTML = '<div class="empty-state">Не получилось загрузить заметки. Обнови страницу</div>'; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
     logCol().onSnapshot(snap => { S.srsLog = new Map(snap.docs.map(d => [d.id, d.data()])); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
