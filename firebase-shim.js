@@ -10,7 +10,7 @@
   function el(html) { var d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; }
   function showGate(title, text, withButton) {
     if (!overlay) {
-      overlay = el('<div class="gate"><div class="gate-card"><div class="gate-mark">‹/›</div><h1></h1><p></p><button class="btn primary big" type="button">Войти через Google</button><small></small></div></div>');
+      overlay = el('<div class="gate"><div class="gate-card"><div class="gate-mark">‹/›</div><h1></h1><p></p><button class="btn primary big" type="button">' + tt('login.via', { name: 'Google' }) + '</button><small></small></div></div>');
       var st = document.createElement('style');
       st.textContent = '.gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:var(--bg,#f3f4ef);color:var(--ink,#1c201d)}' +
         '.gate-card{max-width:380px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}' +
@@ -31,7 +31,7 @@
 
   if (!window.firebase || !cfg.firebase || !cfg.firebase.apiKey || /ВСТАВЬ/.test(cfg.firebase.apiKey)) {
     document.addEventListener('DOMContentLoaded', function () {
-      showGate('Нужна настройка', 'Открой config.js и вставь туда настройки своего проекта Firebase (см. инструкцию).', false);
+      showGate(tt('my.setup'), tt('my.setup.text'), false);
     });
     window.claude = { use: function () { return Promise.resolve(null); } };
     return;
@@ -52,7 +52,7 @@
       if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment')) {
         auth.signInWithRedirect(provider);
       } else if (err && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-        gateError('Не получилось войти: ' + (err.message || err.code));
+        gateError(tt('login.failed', { why: err.message || err.code }));
       }
     });
   }
@@ -60,12 +60,12 @@
 
   var resolveUser;
   var userReady = new Promise(function (r) { resolveUser = r; });
-  auth.getRedirectResult().catch(function (err) { if (err) gateError('Не получилось войти: ' + (err.message || err.code)); });
+  auth.getRedirectResult().catch(function (err) { if (err) gateError(tt('login.failed', { why: err.message || err.code })); });
   auth.onAuthStateChanged(function (u) {
-    if (!u) { showGate('MyNotes', 'Войди, чтобы открыть свои заметки на этом устройстве.', true); return; }
+    if (!u) { showGate('MyNotes', tt('my.login.text'), true); return; }
     var allowed = (cfg.allowedEmails || []).map(function (x) { return String(x).toLowerCase(); });
     if (allowed.length && allowed.indexOf(String(u.email || '').toLowerCase()) < 0) {
-      showGate('Этот аккаунт не подходит', 'Вход выполнен как ' + u.email + '. Заметки доступны только владельцу.', true);
+      showGate(tt('my.wrong'), tt('my.wrong.text', { email: u.email }), true);
       auth.signOut();
       return;
     }
