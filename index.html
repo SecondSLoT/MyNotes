@@ -3208,13 +3208,14 @@ function openStage() {
   const sizes = store.get('stage.fs', {}) || {}, canScroll = plusOn() || planOn();
   let fi = STAGE_FS.indexOf(sizes[n.id]); if (fi < 0) fi = 4;
   let lvl = Math.min(15, Math.max(1, +store.get('stage.speed', 8) || 8));
+  const tipN = +store.get('stage.tips', 0) || 0; if (tipN < 2) store.set('stage.tips', tipN + 1);
   const ov = document.createElement('div'); ov.id = 'stage'; ov.className = 'stage';
   ov.innerHTML = `<div class="stage-scroll"><div class="stage-text md"><h1 class="stage-title">${esc(n.title)}</h1>${md.innerHTML}</div></div>
     <div class="stage-bar" hidden>
       <button type="button" data-st="fs-" aria-label="${tt('stage.smaller')}" title="${tt('stage.smaller')}">A−</button><button type="button" data-st="fs+" aria-label="${tt('stage.bigger')}" title="${tt('stage.bigger')}">A+</button>
       ${canScroll ? `<span class="stage-sep"></span><button type="button" data-st="slow" aria-label="${tt('stage.slower')}" title="${tt('stage.slower')}">−</button><span class="stage-speed" aria-live="polite"></span><button type="button" data-st="fast" aria-label="${tt('stage.faster')}" title="${tt('stage.faster')}">+</button><button type="button" data-st="play" class="stage-play" aria-label="${tt('stage.play')}" title="${tt('stage.play')}">▶</button>` : ''}
       <span class="stage-sep"></span><button type="button" data-st="x" aria-label="${tt('stage.close')}" title="${tt('stage.close')}">✕</button>
-    </div><div class="stage-tip">${tt('stage.hint')}</div>`;
+    </div>${tipN < 2 ? `<div class="stage-tip">${tt('stage.hint')}</div>` : ''}`;   // подсказка — только первые два раза (27.10)
   ov.querySelectorAll('.stage-text .code-copy, .stage-text .code-wrap > button').forEach(b => b.remove());
   ov.querySelectorAll('.stage-text input').forEach(i => { i.disabled = true; });
   ov.querySelectorAll('.stage-text mark').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
