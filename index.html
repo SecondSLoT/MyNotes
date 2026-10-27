@@ -496,6 +496,9 @@ window.STR = {
   // ===== Редактор: панель форматирования и вставки
   'ed.added': 'Заметка добавлена',
   'tb.label': 'Форматирование',
+  'code.copy': 'Скопировать код',
+  'code.copied': '✓ Скопировано',
+  'code.copy.failed': 'Не получилось скопировать — выдели текст и скопируй вручную',
   'tb.bold': 'Жирный ({mod}+B)',
   'tb.italic': 'Курсив ({mod}+I)',
   'tb.strike': 'Зачёркнутый ({mod}+Shift+X)',
@@ -1856,6 +1859,12 @@ button.tag{border:0;background:none;padding:0}
 .md code{font:.88em var(--f-mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
 .md pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 1em;line-height:1.5}
 .md pre code{background:none;padding:0;font-size:13px;white-space:pre}
+.code-wrap{position:relative}.code-wrap pre{padding-right:46px}
+.code-copy{position:absolute;top:7px;right:7px;display:flex;align-items:center;gap:5px;height:28px;min-width:28px;padding:0 6px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--muted);font:500 12px var(--f-body);cursor:pointer;opacity:0;transition:opacity .15s,color .15s}
+.code-copy svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.code-copy .cc-done{display:none}.code-copy.done{color:var(--accent);opacity:1}.code-copy.done svg{display:none}.code-copy.done .cc-done{display:inline}
+.code-wrap:hover .code-copy,.code-copy:focus-visible{opacity:1}.code-copy:hover{color:var(--ink);border-color:var(--line-strong)}
+@media (hover:none){.code-copy{opacity:.9;height:32px;min-width:32px;justify-content:center}}
 .md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
 .visual img{cursor:pointer;display:inline-block;vertical-align:bottom;max-width:calc(100% - 6px)}   /* строчная картинка: курсор после неё — справа снизу, как в документе */.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
@@ -3078,8 +3087,33 @@ function enhance(root, terms) {
       c.innerHTML = r.value;
     } catch {}
   });
+  if (!root.isContentEditable) addCodeCopy(root);
   if (terms) markTerms(root, terms);
 }
+/* кнопка «Скопировать» у блока кода: на компьютере — при наведении, на телефоне видна всегда; копирует весь блок одним нажатием.
+   Блок оборачивается в .code-wrap, чтобы кнопка стояла в углу и не уезжала при прокрутке длинного кода вбок */
+const COPY_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 5.5V3.6c0-.9-.7-1.6-1.6-1.6H3.6C2.7 2 2 2.7 2 3.6v5.3c0 .9.7 1.6 1.6 1.6h1.9"/></svg>';
+function addCodeCopy(root) {
+  root.querySelectorAll('pre').forEach(pre => {
+    if (pre.parentElement?.classList.contains('code-wrap')) return;
+    const w = document.createElement('div'); w.className = 'code-wrap'; pre.replaceWith(w); w.append(pre);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'code-copy'; b.title = tt('code.copy'); b.setAttribute('aria-label', tt('code.copy'));
+    b.innerHTML = COPY_ICO + `<span class="cc-done">${tt('code.copied')}</span>`; w.append(b);
+  });
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch {}
+  const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.append(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch {} ta.remove(); return ok;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('.code-copy'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const pre = b.parentElement.querySelector('pre'), code = pre?.querySelector('code') || pre;
+  if (!code || !await copyText(code.textContent.replace(/\n$/, ''))) { toast(tt('code.copy.failed')); return; }
+  b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1600);
+}, true);
+document.addEventListener('dblclick', e => { if (e.target.closest('.code-copy')) e.stopPropagation(); }, true);   // двойное нажатие на кнопку — не «редактировать здесь»
 function markTerms(root, Q) {
   if (!Q || !Q.re) return null;
   const re = new RegExp(Q.re.source, 'i');
@@ -7087,7 +7121,7 @@ function renderSession(root) {
       <button class="grade g1" data-g="1" title="${tt('tr.key', { n: 1 })}"><kbd>1</kbd>${tt('tr.g1')}<small>${pv(1)}</small></button>
       <button class="grade g2" data-g="2" title="${tt('tr.key', { n: 2 })}"><kbd>2</kbd>${tt('tr.g2')}<small>${pv(2)}</small></button>
       <button class="grade g3" data-g="3" title="${tt('tr.key', { n: 3 })}"><kbd>3</kbd>${tt('tr.g3')}<small>${pv(3)}</small></button></div>
-    <p class="hint grade-hint">${tt('tr.grade.hint')}<span class="keys"> ${tt('tr.grade.keys')}</span></p>` : ''}
+    <p class="hint grade-hint">${tt('tr.grade.hint')}<span class="keys">. ${tt('tr.grade.keys')}</span></p>` : ''}
   </div>`;
   if ((T.shown || cz || rev) && $('#ans')) enhance($('#ans'));
   // пропуск: до ответа — «[…]» на месте нужного куска (остальные пропуски видны), после — он подсвечен
