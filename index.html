@@ -459,7 +459,7 @@ button.tag{border:0;background:none;padding:0}
 .md pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 1em;line-height:1.5}
 .md pre code{background:none;padding:0;font-size:13px;white-space:pre}
 .md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
-.visual img{cursor:pointer}.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
+.visual img{cursor:pointer;display:inline-block;vertical-align:bottom;max-width:calc(100% - 6px)}   /* строчная картинка: курсор после неё — справа снизу, как в документе */.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
 .md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
 .md td,.md th{border:1px solid var(--line);padding:5px 9px;overflow-wrap:normal;word-break:normal;min-width:3.2em}  /* широкая таблица прокручивается, а не рвёт слова по буквам */
@@ -4276,8 +4276,12 @@ function renderEditor(box) {
       if (e.inputType !== 'deleteContentBackward' && e.inputType !== 'deleteContentForward') { visImgSel(vis, null); return; }
       const img = vis.querySelector('img.vsel') || visImgBeside(vis, e.inputType === 'deleteContentBackward' ? -1 : 1);
       if (!img) return;
+      // клавиатура телефона (Android) часто шлёт стирание без права отмены: браузер сделает своё (например, склеит строки),
+      // а картинку уберём сразу после
+      if (!e.cancelable) { vis._dropAfter = img; return; }
       e.preventDefault(); visImgDrop(vis, img);
     });
+    vis.addEventListener('input', () => { const img = vis._dropAfter; vis._dropAfter = null; if (img && vis.contains(img)) visImgDrop(vis, img); });
     vis.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); histStep(vis, e.inputType === 'historyUndo' ? -1 : 1); } });
     vis.addEventListener('input', e => visAutoFormat(e, vis));
     vis.addEventListener('input', () => histSoon(vis));
