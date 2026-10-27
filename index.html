@@ -426,6 +426,12 @@ window.STR = {
   'reader.relearn.title': 'Сбросить прогресс: карточка сразу попадёт в сегодняшнее повторение и пойдёт по интервалам заново',
   'reader.relearn': 'Снова учить',
   'reader.drill': 'Проверить себя',
+  'find.title': 'Найти в заметке',
+  'find.title.key': 'Найти в заметке ({mod}+F)',
+  'find.ph': 'Найти в заметке…',
+  'find.count': '{n} из {total}',
+  'find.none': 'Не найдено',
+  'find.close': 'Закрыть поиск',
 
   // ===== Открытая заметка, чтение подряд, корзина
   'note.renamed': 'Переименовано',
@@ -1663,6 +1669,8 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .hitbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:6px 10px;margin:0 0 12px;font-size:13px;width:max-content;max-width:100%}
 .hitbar button{border:1px solid var(--line);background:var(--raised);border-radius:6px;min-width:28px;height:26px;color:var(--ink)}
 .md mark.cur,.art-note mark.cur{outline:2px solid var(--accent);outline-offset:1px}
+.findbar{width:100%;max-width:520px;box-sizing:border-box;padding:5px 6px 5px 10px}.findbar input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none;padding:4px 0}
+.findbar input::-webkit-search-cancel-button{display:none}.findbar .fcount{color:var(--muted);white-space:nowrap;font-size:12px}.findbar button:disabled{opacity:.4}
 @media (max-width:760px){.hitbar{top:60px}
   body.editing .top{display:none}
   body.editing .lib{height:100%}
@@ -2592,7 +2600,7 @@ function parentOf(id) { const p = S.sections.get(id)?.parent; return p && p !== 
 function tree() {
   const all = [...S.sections.values()];
   const sig = all.map(x => `${x.id}/${x.parent || ''}/${x.order}/${x.title}/${x.subSort || ''}`).join('|');
-  if (treeCache.sig === sig) return treeCache;
+  if (treeCache.sig === sig) { for (const e of treeCache.list) e.s = S.sections.get(e.s.id) || e.s; return treeCache; }   // порядок тот же, но записи разделов — свежие (тренировка, «в обе стороны»…)
   const by = new Map();
   for (const x of all) { const p = parentOf(x.id); if (!by.has(p)) by.set(p, []); by.get(p).push(x); }
   // подразделы раздела с subSort: 'title' — по алфавиту (с числами по-человечески: «2» раньше «10»), иначе — ручной порядок
@@ -3114,20 +3122,54 @@ document.addEventListener('click', async e => {
   b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1600);
 }, true);
 document.addEventListener('dblclick', e => { if (e.target.closest('.code-copy')) e.stopPropagation(); }, true);   // двойное нажатие на кнопку — не «редактировать здесь»
-function markTerms(root, Q) {
+function markTerms(root, Q, find) {   // find — поиск в заметке: и в блоках кода, обёртки .fmk снимаются unmarkFind
   if (!Q || !Q.re) return null;
   const re = new RegExp(Q.re.source, 'i');
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('pre,mark') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest(find ? 'mark,.code-copy' : 'pre,mark') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   let first = null;
   for (const node of nodes) {
     if (!re.test(node.nodeValue)) continue;
-    const span = document.createElement('span'); span.innerHTML = esc(node.nodeValue).replace(new RegExp(Q.re.source, 'gi'), '<mark>$1</mark>');
+    const span = document.createElement('span'); if (find) span.className = 'fmk'; span.innerHTML = esc(node.nodeValue).replace(new RegExp(Q.re.source, 'gi'), '<mark>$1</mark>');
     node.replaceWith(span); first = first || span.querySelector('mark');
   }
   return first;
 }
 
+function unmarkFind(root) { root.querySelectorAll('span.fmk').forEach(s => s.replaceWith(document.createTextNode(s.textContent))); root.normalize(); }
+/* поиск внутри открытой заметки (27.10): 🔍 у заметки или Ctrl/⌘+F; совпадения — с теми же словоформами, что общий поиск, и в коде тоже */
+function openFind() {
+  const md = $('#md'), n = S.notes.get(S.noteId); if (!md || !n || S.editing) return;
+  let bar = $('#findbar'); if (bar) { bar.querySelector('input').select(); return; }
+  document.querySelector('#reader .hitbar')?.remove();   // плашка совпадений общего поиска — её заменяет поиск в заметке
+  unmarkFind(md); md.querySelectorAll('mark').forEach(m => m.replaceWith(document.createTextNode(m.textContent))); md.normalize();
+  bar = document.createElement('div'); bar.className = 'hitbar findbar'; bar.id = 'findbar';
+  bar.innerHTML = `<input type="search" placeholder="${tt('find.ph')}" aria-label="${tt('find.title')}" enterkeyhint="search" autocomplete="off" spellcheck="false"><span class="fcount" aria-live="polite"></span>`
+    + `<button type="button" data-f="-1" aria-label="${tt('hits.prev')}" disabled>‹</button><button type="button" data-f="1" aria-label="${tt('hits.next')}" disabled>›</button><button type="button" data-f="x" aria-label="${tt('find.close')}" title="${tt('find.close')}">✕</button>`;
+  md.before(bar);
+  const inp = bar.querySelector('input'), cnt = bar.querySelector('.fcount');
+  let marks = [], cur = 0, timer;
+  const go = i => { marks[cur]?.classList.remove('cur'); cur = (i + marks.length) % marks.length; marks[cur].classList.add('cur'); cnt.textContent = tt('find.count', { n: cur + 1, total: marks.length }); scrollWithin($('#reader'), marks[cur]); };
+  const run = () => {
+    unmarkFind(md); marks = []; cur = 0;
+    const q = inp.value.trim();
+    if (q) { markTerms(md, parseQuery(q), true); marks = [...md.querySelectorAll('span.fmk mark')]; }
+    bar.querySelectorAll('[data-f="1"],[data-f="-1"]').forEach(b => b.disabled = marks.length < 2);
+    cnt.textContent = !q ? '' : marks.length ? '' : tt('find.none');
+    if (marks.length) go(0);
+  };
+  const close = () => { clearTimeout(timer); unmarkFind(md); bar.remove(); };
+  inp.oninput = () => { clearTimeout(timer); timer = setTimeout(run, 150); };
+  inp.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); if (!marks.length) run(); else go(cur + (e.shiftKey ? -1 : 1)); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+  };
+  bar.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; if (b.dataset.f === 'x') close(); else if (marks.length) go(cur + +b.dataset.f); });
+  inp.focus();
+}
+document.addEventListener('keydown', e => {   // Ctrl/⌘+F при открытой заметке — поиск в ней (во время правки — как обычно в браузере)
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.code === 'KeyF') && S.mode === 'lib' && !S.editing && !S.article && S.noteId && $('#md') && !$('#help:not([hidden])')) { e.preventDefault(); openFind(); }
+});
 /* ---------- UI: modes ---------- */
 document.body.classList.add('mode-' + S.mode);
 if (window.NOTES_FLAVOR === 'public') document.body.classList.add('flavor-public');
@@ -5171,7 +5213,7 @@ function renderReader(scrollTop) {
     <h1>${esc(n.title)}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
-      <span class="actions">${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}${trainable(n) ? `<button class="btn" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</span></div>
+      <span class="actions">${(n.body || '').trim() ? `<button class="btn icon-btn" id="find-in" title="${tt('find.title.key', { mod: MOD })}" aria-label="${tt('find.title')}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg></button>` : ''}${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}${trainable(n) ? `<button class="btn" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</span></div>
     ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>${tt('draft.has', { time: hhmm(getDraft(n.id).ts) })}</span><button class="btn primary" id="dr-cont">${tt('draft.continue')}</button></div>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('reader.noanswer')}</p>`}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
@@ -5202,6 +5244,7 @@ function renderReader(scrollTop) {
   $('#prev-note').onclick = () => nbr.prev && openNote(nbr.prev, 'prev');
   $('#next-note').onclick = () => nbr.next && openNote(nbr.next, 'next');
   $('#edit') && ($('#edit').onclick = () => editHere(n.id));
+  $('#find-in') && ($('#find-in').onclick = openFind);
   $('#unref') && ($('#unref').onclick = () => setRef(n.id, false));
   $('#relearn') && ($('#relearn').onclick = () => relearn([n.id]));
   $('#drill') && ($('#drill').onclick = () => startSession(cardsOf(n), 'free', tt('drill.one')));
