@@ -459,6 +459,7 @@ button.tag{border:0;background:none;padding:0}
 .md pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 1em;line-height:1.5}
 .md pre code{background:none;padding:0;font-size:13px;white-space:pre}
 .md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
+.visual img{cursor:pointer}.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
 .md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
 .md td,.md th{border:1px solid var(--line);padding:5px 9px;overflow-wrap:normal;word-break:normal;min-width:3.2em}  /* широкая таблица прокручивается, а не рвёт слова по буквам */
@@ -1594,6 +1595,51 @@ function pickImages() {
   document.body.append(ov);
 }
 function noGhHint() { if (window.NOTES_STANDALONE) toast('Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки'); }
+
+/* ---------- картинки в «Визуально»: выделить и удалить ---------- */
+function visImgSel(vis, img) {
+  vis.querySelectorAll('img.vsel').forEach(i => i.classList.remove('vsel'));
+  if (!img) return;
+  img.classList.add('vsel');
+  // курсор сразу после картинки: на телефоне «стереть» на клавиатуре удалит её (там нет keydown с Backspace — только beforeinput)
+  const r = document.createRange(); r.setStartAfter(img); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+}
+const VIS_BLOCK = /^(P|LI|H[1-6]|BLOCKQUOTE|PRE|DIV|UL|OL|TABLE|HR)$/;
+// картинка рядом с курсором в сторону dir (-1 — перед ним, для Backspace; 1 — после, для Delete): между ними только пустой текст.
+// Через границу строки — только если соседняя строка состоит из одной картинки (пустую строку сначала удаляет сам браузер)
+function visImgBeside(vis, dir) {
+  const sl = getSelection(); if (!sl.rangeCount || !sl.isCollapsed || !vis.contains(sl.anchorNode)) return null;
+  const blank = t => !t.replace(/[\u200b\s]/g, '');
+  const edgeImg = el => { const im = [...el.querySelectorAll('img')]; return im.length ? im[dir < 0 ? im.length - 1 : 0] : null; };
+  const look = node => {   // img — нашли; null — дальше нельзя; undefined — пусто, идём дальше
+    if (node.nodeType === 3) return blank(node.textContent) ? undefined : null;
+    if (node.nodeType !== 1) return undefined;
+    if (node.nodeName === 'IMG') return node;
+    if (node.nodeName === 'BR') return undefined;
+    if (VIS_BLOCK.test(node.nodeName)) return blank(node.textContent) && edgeImg(node) ? edgeImg(node) : null;
+    const kids = [...node.childNodes]; if (dir < 0) kids.reverse();
+    for (const k of kids) { const h = look(k); if (h !== undefined) return h; }
+    return undefined;
+  };
+  let n = sl.anchorNode, o = sl.anchorOffset, x;
+  if (n.nodeType === 3) { if (!blank(dir < 0 ? n.textContent.slice(0, o) : n.textContent.slice(o))) return null; x = n; }
+  else {
+    const k = dir < 0 ? n.childNodes[o - 1] : n.childNodes[o];
+    if (k) { const h = look(k); if (h) return h; if (h === null) return null; x = k; } else x = n === vis ? null : n;
+  }
+  for (; x && x !== vis; x = x.parentNode) {
+    if (VIS_BLOCK.test(x.nodeName) && blank(x.textContent) && !x.querySelector('img')) return null;   // пустая строка — её удалит сам браузер
+    for (let sb = dir < 0 ? x.previousSibling : x.nextSibling; sb; sb = dir < 0 ? sb.previousSibling : sb.nextSibling) { const h = look(sb); if (h !== undefined) return h; }
+    if (VIS_BLOCK.test(x.nodeName) && x.parentNode !== vis) return null;   // из пункта списка, ячейки и т. п. наружу не выходим
+  }
+  return null;
+}
+function visImgDrop(vis, img) {
+  let box = img.parentNode; img.remove();
+  // строка без текста и картинок после удаления — убрать и её (кроме последней: пустой редактор держит одну строку)
+  while (box && box !== vis && !box.textContent.replace(/[\u200b\s]/g, '') && !box.querySelector('img') && vis.children.length > 1) { const up = box.parentNode; box.remove(); box = up; }
+  vis.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContent' }));
+}
 
 /* ---------- markdown ---------- */
 const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
@@ -4218,6 +4264,20 @@ function renderEditor(box) {
       if (li && prevLi?.classList.contains('task')) { li.classList.add('task'); if (!li.textContent.trim()) li.dataset.checked = 'false'; }
     });
     visHist(vis);
+    // картинки (27.10): Chrome не удаляет картинку-блок по Backspace/Delete. Нажал на картинку — она выделена (рамка),
+    // Backspace/Delete удаляют её; курсор вплотную к картинке (или в начале строки сразу после строки с картинкой) — тоже
+    vis.addEventListener('click', e => visImgSel(vis, e.target.tagName === 'IMG' && vis.contains(e.target) ? e.target : null));
+    vis.addEventListener('keydown', e => {
+      const sel = vis.querySelector('img.vsel');
+      if (sel && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); visImgDrop(vis, sel); return; }
+      if (!['Shift', 'Control', 'Meta', 'Alt', 'Unidentified'].includes(e.key)) visImgSel(vis, null);
+    });
+    vis.addEventListener('beforeinput', e => {
+      if (e.inputType !== 'deleteContentBackward' && e.inputType !== 'deleteContentForward') { visImgSel(vis, null); return; }
+      const img = vis.querySelector('img.vsel') || visImgBeside(vis, e.inputType === 'deleteContentBackward' ? -1 : 1);
+      if (!img) return;
+      e.preventDefault(); visImgDrop(vis, img);
+    });
     vis.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); histStep(vis, e.inputType === 'historyUndo' ? -1 : 1); } });
     vis.addEventListener('input', e => visAutoFormat(e, vis));
     vis.addEventListener('input', () => histSoon(vis));
