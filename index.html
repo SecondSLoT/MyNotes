@@ -478,7 +478,6 @@ window.STR = {
   'ed.body.ph': 'Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.',
   'ed.vis.label': 'Ответ, визуальный редактор',
   'ed.vis.ph': 'Пиши ответ прямо здесь',
-  'ed.hint.vis': 'В визуальной колонке можно писать и форматировать прямо в отформатированном тексте, Markdown обновится сам.',
   'ed.hint.keys': '{mod}+B жирный · {mod}+I курсив · {mod}+E код · {mod}+K ссылка',
   'ed.hint.live': 'правки сохраняются сами и сразу видны остальным · {mod}+Z — отменить свою правку · Esc — готово',
   'ed.hint.save': '{mod}+S — сохранить · Esc или {mod}+Enter — сохранить и закрыть',
@@ -602,7 +601,7 @@ window.STR = {
   'tr.g1': 'Не знаю',
   'tr.g2': 'Плаваю',
   'tr.g3': 'Знаю',
-  'tr.grade.hint': 'Под оценкой написано, когда карточка снова попадёт в повторение.',
+  'tr.grade.hint': 'Под оценкой написано, когда карточка снова попадёт в повторение',
   'tr.grade.keys': 'Оценивать можно клавишами 1, 2, 3',
   'tr.cloze.title': 'Вспомни, что здесь',
   'tr.pill.rev': '⇄ обратная',
@@ -723,8 +722,9 @@ window.STR = {
   'pay.extend.month': 'Продлить на месяц — {price}',
   'pay.extend.year': 'Продлить на год — {price}',
   'pay.auto': '<b>Продлевать автоматически.</b> Даю согласие списывать\n      {month} раз в месяц или {year} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.\n      За 3 дня до списания напомним в приложении; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>',
-  'pay.via': 'Оплата через Robokassa',
-  'pay.via.once': 'Разовая оплата через Robokassa, без автоматических списаний',
+  'pay.via': 'Оплата через Robokassa.',
+  'pay.via.once': 'Разовая оплата через Robokassa, без автоматических списаний.',
+  'pay.going': 'Открываем оплату…',
   'pay.offer': 'Оплачивая, принимаешь условия <a href="/offer.html" target="_blank" rel="noopener">оферты</a>',
   'pay.failed': 'Оплата не прошла — деньги не списаны. Попробовать ещё раз можно в «Настройки → Тариф»',
   'pay.checking': 'Спасибо! Проверяю оплату…',
@@ -734,8 +734,8 @@ window.STR = {
   'pay.pending': 'Оплата ещё обрабатывается — Pro включится в течение нескольких минут. Если не включится, напиши на {email}',
   'size.gb': '{n} ГБ',
   'plan.notes.left': 'В бесплатной версии осталось заметок: {n} из {limit}',
-  'plan.what.notes': 'до {n} заметок',
-  'plan.what.sections': 'до {n} разделов',
+  'plan.what.notes': 'до {n} {n|заметки|заметок|заметок}',
+  'plan.what.sections': 'до {n} {n|раздела|разделов|разделов}',
   'plan.what.bytes': '{size} под картинки',
   'plan.h.spaces': 'Общие разделы — в Pro',
   'plan.h.plus': 'Тренировка «плюс» — в Pro',
@@ -1672,7 +1672,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px)}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-bar .btn:disabled:not(.busy){opacity:.4}.pay-bar .btn.busy:disabled{opacity:1;cursor:progress}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
 .dbg-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.dbg-row .btn{font-size:13px}.dbg-tog{display:flex;gap:10px;align-items:flex-start;margin:6px 0;cursor:pointer}.dbg-tog input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--accent)}.dbg-tog small{display:block;color:var(--muted)}.dbg-lim{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.dbg-lim input{width:84px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}.dbg-now{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:14px}
 .ver-sheet{max-width:1000px;height:min(760px,calc(100vh - 48px));overflow:hidden}
 .ver-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.ver-head h2{margin:0;font:600 18px/1.25 var(--f-display)}.ver-head .sub{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
@@ -2234,11 +2234,14 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
     </div>
   </header>
   <script>/* a reload keeps the tab's history entry: show the screen it was on from the first paint, so notes don't flash (setMode clears data-boot) */
-  (function () { var m; try { m = history.state && history.state.nav && history.state.nav.m; } catch (e) {} if (m !== 'prog' && m !== 'train') return;
+  (function () { var nv, m; try { nv = history.state && history.state.nav; m = nv && nv.m; } catch (e) {}
+    if (m === 'lib' && nv.r && nv.n) { window.BOOT_READ = nv.n; return; }   // телефон, открыта заметка (обновление страницы свайпом) — остаться в ней
+    if (m !== 'prog' && m !== 'train') return;
     window.BOOT_MODE = m; document.documentElement.dataset.boot = m; document.body.classList.add('mode-' + m);
     document.querySelectorAll('.modes button[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); }); })();</script>
 
   <main class="lib" id="lib">
+  <script>if (window.BOOT_READ) document.getElementById('lib').classList.add('reading');</script>
     <div class="sheet-bg" id="sheet-bg"></div>
     <aside class="rail" id="rail" aria-label="Разделы"></aside>
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
@@ -2410,7 +2413,7 @@ const S = {
   sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), srsLog: new Map(), settings: { newPerDay: 10 },
   loaded: { sections: false, notes: false, settings: false },
   searchHere: store.get('searchHere', false),
-  mode: window.BOOT_MODE || 'lib', section: store.get('section', 'all'), noteId: store.get('note', null), q: '', tag: null,
+  mode: window.BOOT_MODE || 'lib', section: store.get('section', 'all'), noteId: window.BOOT_READ || store.get('note', null), q: '', tag: null,
   editing: null, // {id|null, draft}
   train: null,   // active session
   trainOpts: (o => (o.limit === 50 ? Object.assign(o, { limit: 25 }) : o))(store.get('trainOpts', { sections: [], tags: [], order: 'shuffle', limit: 15 })),
@@ -5602,7 +5605,7 @@ function renderEditor(box) {
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="${tt('ed.body.label')}" placeholder="${tt('ed.body.ph')}">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="${tt('ed.vis.label')}" data-empty="${tt('ed.vis.ph')}">${renderMd(d.body)}</div>` : ''}
         </div>
-        <span class="hint">${E.tab === 'edit' ? '' : tt('ed.hint.vis') + ' '}${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>
+        <span class="hint">${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>
       </div>
       <div class="bar">
         ${E.live ? `<button class="btn primary" type="submit">${tt('btn.done')}</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary" type="submit">${tt('btn.save')}</button>
@@ -6447,12 +6450,14 @@ function payHtml(primary) {
 }
 function wirePay(root) {
   root.querySelectorAll('[data-pay]').forEach(b => b.onclick = async () => {
+    // нажатая кнопка — «Открываем оплату…» и не бледнеет, вторая — неактивна: видно, какой срок выбран
+    const label = b.innerHTML; b.classList.add('busy'); b.textContent = tt('pay.going');
     root.querySelectorAll('[data-pay]').forEach(x => x.disabled = true);
     try {
       const r = await window.NOTES_PAY(b.dataset.pay, !!root.querySelector('#pay-auto')?.checked);
       store.set('payStart', { until: S.plan?.until || '', at: Date.now() });   // вернёмся с оплаты — ждём, пока срок сдвинется
       location.href = r.url;
-    } catch (e) { root.querySelectorAll('[data-pay]').forEach(x => x.disabled = false); toast(tt('err.failed', { why: e?.message || e })); }
+    } catch (e) { b.classList.remove('busy'); b.innerHTML = label; root.querySelectorAll('[data-pay]').forEach(x => x.disabled = false); toast(tt('err.failed', { why: e?.message || e })); }
   });
 }
 // вернулись со страницы оплаты (?pay=ok / ?pay=fail): Pro включает уведомление Robokassa — подождать его
@@ -7588,6 +7593,7 @@ async function boot() {
     const act = new Map(), tr = new Map();
     for (const d of snap.docs) { const v = Object.assign({ id: d.id }, d.data()); (v.deleted ? tr : act).set(d.id, v); }
     S.notes = act; S.trash = tr;
+    if (!S.loaded.notes && window.BOOT_READ && !S.notes.has(S.noteId)) $('#lib').classList.remove('reading');   // открытой заметки уже нет — к списку
     S.loaded.notes = true; rerender(); autoPurge(); renderSpaceBar();
   }, e => { $('#items').innerHTML = `<div class="empty-state">${tt('boot.failed')}</div>`; });
   if (S.uid) {
@@ -7631,7 +7637,7 @@ function closeTopLayer() {
   return false;
 }
 window.addEventListener('popstate', e => {
-  if (!NAV.ready) return;
+  if (!NAV.ready) { if (!S.loaded?.notes) return; NAV.ready = true; }   // «назад» сразу после обновления страницы, ещё ни одного касания
   const here = navNow();
   if (closeTopLayer()) { history.pushState({ nav: here }, ''); return; }
   const st = e.state?.nav; if (!st) return;
