@@ -1161,6 +1161,7 @@ window.STR = {
   'dbg.a.unforever': 'Снять Pro навсегда',
   'dbg.a.trialreset': 'Сбросить «пробный был»',
   'dbg.a.renew': 'Имитировать автосписание',
+  'dbg.a.autorenew': 'Pro с автопродлением',
   'dbg.a.remind': 'Письмо-напоминание себе',
   'dbg.mail.sent': 'Письмо отправлено',
   'dbg.done': 'Готово: {what}',
@@ -7150,7 +7151,7 @@ function debugPanelHtml() {
       <input type="number" min="0" step="0.1" id="dbg-mb" placeholder="${Math.round(P.free.bytes / 1048576)}" value="${d.free_mb ?? ''}" aria-label="${tt('dbg.lim.mb')}"> ${tt('dbg.lim.mb')}
       <button class="btn" type="button" id="dbg-lim-go">${tt('dbg.lim.go')}</button><button class="btn" type="button" id="dbg-lim-reset">${tt('dbg.lim.reset')}</button></div>
     <div class="dbg-row">${btn('free', tt('dbg.a.free'))}${btn('trial', tt('dbg.a.trial'))}${btn('paid', tt('dbg.a.paid'))}${btn('ending', tt('dbg.a.ending'))}${btn('expired', tt('dbg.a.expired'))}
-      ${btn('forever', tt(P.forever ? 'dbg.a.unforever' : 'plan.sub.forever'))}${btn('trial_reset', tt('dbg.a.trialreset'))}${P.autorenew ? btn('renew_sim', tt('dbg.a.renew')) : ''}${btn('remind', tt('dbg.a.remind'))}</div>
+      ${btn('forever', tt(P.forever ? 'dbg.a.unforever' : 'plan.sub.forever'))}${btn('trial_reset', tt('dbg.a.trialreset'))}${P.recurringReady && !P.autorenew ? btn('autorenew', tt('dbg.a.autorenew')) : ''}${P.autorenew ? btn('renew_sim', tt('dbg.a.renew')) : ''}${btn('remind', tt('dbg.a.remind'))}</div>
     <p class="hint" id="dbg-status" aria-live="polite"></p>
   </details>`;
 }
