@@ -61,6 +61,7 @@ window.STR = {
   'land.foot.offer': 'Оферта',
   'land.foot.privacy': 'Политика конфиденциальности',
   'land.foot.consent': 'Согласие на обработку ПДн',
+  'land.foot.terms': 'Пользовательское соглашение',
 
   // ===== Экран входа
   'err.offline': 'Нет связи с сервером',
@@ -80,6 +81,7 @@ window.STR = {
   'login.none': 'Вход пока не настроен на сервере',
   'login.privacy': 'Политика конфиденциальности',
   'login.consent': 'Согласие на обработку данных',
+  'login.terms': 'Входя, ты принимаешь <a href="/terms.html" target="_blank" rel="noopener">Пользовательское соглашение</a>',
   'login.popup.lost': 'Вход не завершился. Так бывает, если окно входа было открыто долго — просто нажми кнопку ещё раз.',
   'login.failed': 'Не получилось войти: {why}',
   'login.failed.pass': 'неверная почта или пароль',
@@ -159,8 +161,8 @@ window.STR = {
   // ===== Плашки: тариф, синхронизация
   'auto.on': 'Автопродление включено',
   'auto.off': 'Автопродление отключено. Pro действует до {date}, больше ничего не спишем',
-  'planbar.auto.month': '<b>Pro продлится автоматически {date}:</b> спишем {sum} за следующий месяц\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
-  'planbar.auto.year': '<b>Pro продлится автоматически {date}:</b> спишем {sum} за следующий год\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
+  'planbar.auto.month': '<b>Pro продлится автоматически {date} около 10:00 по Москве:</b> спишем {sum} за следующий месяц\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
+  'planbar.auto.year': '<b>Pro продлится автоматически {date} около 10:00 по Москве:</b> спишем {sum} за следующий год\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
   'planbar.end.paid': '<b>Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
   'planbar.end.trial': '<b>Пробный Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} под картинки. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
   'planbar.extend': 'Продлить',
@@ -742,7 +744,10 @@ window.STR = {
   'pay.year': 'Pro на год — {price}',
   'pay.extend.month': 'Продлить на месяц — {price}',
   'pay.extend.year': 'Продлить на год — {price}',
-  'pay.auto': '<b>Продлевать автоматически.</b> Даю согласие списывать\n      {month} раз в месяц или {year} раз в год — по выбранному сроку — с той же карты в день окончания Pro, пока не отключу.\n      За 3 дня до списания напомним в приложении; отключить можно в любой момент в «Настройки → Тариф». Условия — в <a href="/offer.html" target="_blank" rel="noopener">оферте</a>',
+  'pay.auto.agree': 'Я согласен на автоматические списания согласно условиям <a href="/offer.html" target="_blank" rel="noopener">оферты</a>',
+  'pay.auto.info': 'Периодичность списаний — по выбранному сроку: {month} раз в месяц или {year} раз в год. Списываем накануне дня окончания оплаченного срока, около 10:00 по Москве, с той же карты; за 3 дня напомним в приложении. Отключить можно в любой момент: «Настройки → Тариф». Только для карт российских банков',
+  'plan.auto.info.month': 'Периодичность списаний: {sum} раз в месяц — накануне дня окончания оплаченного срока, около 10:00 по Москве, с карты, которой оплачен Pro. Отключить можно в любой момент здесь же',
+  'plan.auto.info.year': 'Периодичность списаний: {sum} раз в год — накануне дня окончания оплаченного срока, около 10:00 по Москве, с карты, которой оплачен Pro. Отключить можно в любой момент здесь же',
   'pay.via': 'Оплата через Robokassa.',
   'pay.via.once': 'Разовая оплата через Robokassa, без автоматических списаний.',
   'pay.going': 'Открываем оплату…',
@@ -777,9 +782,11 @@ window.STR = {
   'plan.sub.until': 'Pro до {date}',
   'plan.sub.free': 'бесплатный',
   'plan.title': 'Тариф',
-  'plan.auto.on.month': '<b>Автопродление включено:</b> {date} спишем {sum} за следующий месяц с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же',
-  'plan.auto.on.year': '<b>Автопродление включено:</b> {date} спишем {sum} за следующий год с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же',
+  'plan.auto.on.month': '<b>Автопродление включено:</b> {date} около 10:00 по Москве спишем {sum} за следующий месяц с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же',
+  'plan.auto.on.year': '<b>Автопродление включено:</b> {date} около 10:00 по Москве спишем {sum} за следующий год с карты, которой ты оплачивал Pro. За 3 дня напомним здесь же',
   'plan.auto.off': 'Отключить автопродление',
+  'plan.price.notice': '<b>Цена Pro изменилась:</b> теперь {now}. Без твоего согласия новую сумму не спишем, поэтому автопродление по прежней цене ({old}) отключится перед ближайшим списанием начиная с {date}; оплаченный срок сохранится. Продлевать по новой цене — включи автопродление снова, отметив согласие',
+  'planbar.price': '<b>Автопродление отключится {date}:</b> цена Pro изменилась, по прежней цене ({old}) больше не списываем. Pro действует до {until}; продлить по новой цене ({now}) можно в «Настройки → Тариф»',
   'plan.until': 'Pro действует до {date}',
   'plan.until.trial': ' (пробный период)',
   'plan.until.add': ' — оплаченный срок добавится к нему',
@@ -1383,7 +1390,7 @@ window.STR = {
   'lp.faq.11': 'Что будет, когда закончится Pro?',
   'lp.faq.12': 'Ничего не удалится: все заметки и картинки останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
   'lp.faq.13': 'Можно вернуть деньги?',
-  'lp.faq.14': 'Да, в течение 14 дней после оплаты — без объяснения причин. Напиши на <a href="mailto:support@retenote.ru">support@retenote.ru</a>',
+  'lp.faq.14': 'Да. За первую оплату Pro — всю сумму в течение 14 дней, без объяснения причин; в остальных случаях — за неиспользованные дни. Напиши на <a href="mailto:support@retenote.ru">support@retenote.ru</a>',
   'lp.faq.15': 'Можно показать заметку крупно — на выступлении или концерте?',
   'lp.faq.16': 'Да: кнопка «На весь экран» у заметки. Текст крупный, размер можно менять, экран не гаснет. Листать — касанием вверху или внизу экрана, к соседней заметке — смахиванием в сторону. Удобно для речи, текста песни или рецепта у плиты. Автопрокрутка текста — в Pro',
   'lp.final.1': 'Начни с первой заметки',
@@ -1392,6 +1399,7 @@ window.STR = {
   'lp.foot.2': 'Оферта',
   'lp.foot.3': 'Политика конфиденциальности',
   'lp.foot.4': 'Согласие на обработку ПДн',
+  'lp.foot.5': 'Пользовательское соглашение',
   'lp.cookie.1': 'Сайт использует cookie Яндекс Метрики, чтобы понимать, откуда приходят посетители. Подробнее — в <a href="/privacy.html#cookie">политике конфиденциальности</a>\n  <div class="row"><button class="btn primary small" type="button" id="cookie-yes">Хорошо</button><button class="btn ghost small" type="button" id="cookie-no">Не нужно</button></div>',
   'lp.head.content.1': 'Приложение для заметок на телефоне и компьютере: разделы, теги, поиск, редактор с таблицами и кодом. А то, что важно выучить, ReteNote поможет запомнить — интервальные повторения прямо из заметок',
   'lp.head.content.2': 'Заметки на телефоне и компьютере. А то, что важно выучить, ReteNote поможет запомнить',
@@ -1702,7 +1710,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .item[aria-current="true"]{background:var(--raised);box-shadow:inset 3px 0 0 var(--accent)}
 .item .t{font-weight:500;line-height:1.35;display:block}
 .item .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px);max-height:none}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-bar .btn:disabled:not(.busy){opacity:.4}.pay-bar .btn.busy:disabled{opacity:1;cursor:progress}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
+.help-sheet.plan-sheet{max-width:440px;padding:20px 20px 16px;gap:10px;margin-top:min(12vh,120px);max-height:none}.plan-sheet .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.plan-sheet .hint:empty{display:none}.pay-bar .btn{flex:1 1 200px}.pay-bar .btn:disabled:not(.busy){opacity:.4}.pay-bar .btn.busy:disabled{opacity:1;cursor:progress}.pay-auto{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer;margin:12px 0 0}.pay-auto input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--accent)}.pay-auto b{color:var(--ink);font-weight:600}.pay-auto span{color:var(--ink)}.pay-auto-info{font-size:12.5px;line-height:1.45;color:var(--muted);margin:4px 0 0 28px}.pay-bar .save{font-size:12px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);margin-left:4px}.pay-bar .btn.primary .save{background:var(--accent-ink);color:var(--accent)}.plan-sheet h2{margin:0 0 4px;font:600 20px/1.25 var(--f-display)}.plan-sheet p{margin:0;line-height:1.5}
 .dbg-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.dbg-row .btn{font-size:13px}.dbg-tog{display:flex;gap:10px;align-items:flex-start;margin:6px 0;cursor:pointer}.dbg-tog input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--accent)}.dbg-tog small{display:block;color:var(--muted)}.dbg-lim{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}.dbg-lim input{width:84px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line-strong);background:var(--raised);color:inherit}.dbg-now{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:14px}
 .ver-sheet{max-width:1000px;height:min(760px,calc(100vh - 48px));overflow:hidden}
 .ver-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}.ver-head h2{margin:0;font:600 18px/1.25 var(--f-display)}.ver-head .sub{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
@@ -3993,7 +4001,7 @@ function accountPanelHtml() {
     </div>` : ''}
     ${A.status ? `<p class="hint" style="margin-top:10px">${esc(A.status)}</p>` : ''}
     ${window.NOTES_LEGAL ? `<p class="hint legal-links" style="margin-top:12px">${tt('acc.docs')} <a href="${window.NOTES_LEGAL.privacy}" target="_blank" rel="noopener">${tt('login.privacy')}</a> ·
-      <a href="${window.NOTES_LEGAL.consent}" target="_blank" rel="noopener">${tt('acc.consent')}</a></p>` : ''}
+      <a href="${window.NOTES_LEGAL.consent}" target="_blank" rel="noopener">${tt('acc.consent')}</a>${window.NOTES_LEGAL.terms ? ` · <a href="${window.NOTES_LEGAL.terms}" target="_blank" rel="noopener">${tt('land.foot.terms')}</a>` : ''}</p>` : ''}
   </details>`;
 }
 // картинки при импорте из Evernote меняют вид ссылки (enex:… → адрес загруженной картинки или пометка) — при сравнении не в счёт
@@ -6661,13 +6669,14 @@ const rub = n => `${Number(n).toLocaleString('ru-RU').replace(/\s/g, '\u00a0')}\
 const yearSave = p => Math.round((1 - p.year / (12 * p.month)) * 100);   // выгода годовой оплаты, %
 const PRO_PRICE = () => { const p = S.plan?.prices || { month: 139, year: 1190 }; return tt('pay.price', { month: rub(p.month), year: rub(p.year), save: yearSave(p) }); };
 // кнопки оплаты (разовая оплата через Robokassa); пока оплата не подключена — подсказка
-function payHtml(primary) {
+function payHtml(primary, noAuto) {   // noAuto — ниже своя галочка «включить снова» (в «Тарифе»), вторая не нужна
   const P = S.plan || {};
   if (!P.payReady) return P.pro || !P.trialUsed ? '' : `<p class="hint">${tt('pay.soon')}</p>`;
   const p = P.prices || {};
   return `<div class="bar pay-bar"><button class="btn${primary ? ' primary' : ''}" type="button" data-pay="month">${tt(P.pro ? 'pay.extend.month' : 'pay.month', { price: rub(p.month) })}</button>
     <button class="btn${primary ? ' primary' : ''}" type="button" data-pay="year">${tt(P.pro ? 'pay.extend.year' : 'pay.year', { price: rub(p.year) })} <span class="save">−${yearSave(p)}%</span></button></div>
-    ${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span>${tt('pay.auto', { month: rub(p.month), year: rub(p.year) })}</span></label>` : ''}
+    ${P.recurringReady && !P.autorenew && !noAuto ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span>${tt('pay.auto.agree')}</span></label>
+      <p class="pay-auto-info">${tt('pay.auto.info', { month: rub(p.month), year: rub(p.year) })}</p>` : ''}
     <p class="hint">${tt(P.recurringReady ? 'pay.via' : 'pay.via.once')} ${tt('pay.offer')}</p>`;
 }
 // ушли со страницы (оплата, вход) и вернулись «назад»: браузер достаёт страницу из кэша (bfcache) как была — с нажатой кнопкой; вернуть её
@@ -6755,6 +6764,8 @@ async function startTrial(btn, done) {
   try { S.plan = await window.NOTES_TRIAL(); done?.(); toast(tt('plan.trial.on', { n: S.plan.trialDays || 14 })); renderPlanBar(); if (S.mode === 'prog') renderProg(); }
   catch (e) { btn.disabled = false; const st = $('#plan-status'); if (st) st.textContent = tt('err.failed', { why: e?.message || e }); else toast(tt('err.failed', { why: e?.message || e })); }
 }
+// включить автопродление снова — новое согласие по текущей цене (сервер берёт её же, оферта п. 4.6.6)
+const renewPrice = P => (P.prices || {})[P.renewPeriod === 'year' ? 'year' : 'month'] ?? P.renewAmount;
 const planDate = s => { const d = new Date(String(s).replace(' ', 'T')); return isNaN(d) ? '' : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }); };
 function planPanelHtml() {
   if (!planOn()) return '';
@@ -6768,10 +6779,13 @@ function planPanelHtml() {
   return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
     <summary>${tt('plan.title')} <span>· ${esc(sub)}</span></summary>
     <div class="meters">${meter(tt('nav.lib'), planUsed('notes'), planLimit('notes'))}${meter(tt('rail.label'), planUsed('sections'), planLimit('sections'))}${meter(tt('gh.title'), planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
-    ${pro && P.autorenew && !P.forever ? `<p class="sub">${tt(P.renewPeriod === 'year' ? 'plan.auto.on.year' : 'plan.auto.on.month', { date: esc(planDate(P.until)), sum: rub(P.renewAmount) })}</p>
+    ${pro && P.autorenew && !P.forever ? `${P.priceNotice ? `<p class="sub plan-price">${tt('plan.price.notice', { now: rub(P.priceNotice.now), old: rub(P.priceNotice.old), date: esc(planDate(P.priceNotice.offDate)) })}</p>` : ''}
+      <p class="sub">${tt(P.renewPeriod === 'year' ? 'plan.auto.on.year' : 'plan.auto.on.month', { date: esc(planDate(P.renewDate || P.until)), sum: rub(P.renewAmount) })}</p>
       <div class="bar"><button class="btn" type="button" id="renew-off">${tt('plan.auto.off')}</button></div>`
-    : pro ? (P.forever ? '' : `<p class="sub">${tt('plan.until', { date: esc(planDate(P.until)) })}${P.source === 'trial' ? tt('plan.until.trial') : ''}${P.payReady ? tt('plan.until.add') : ''}. ${tt('plan.until.after')}</p>${payHtml(false)}
-      ${P.recurringReady && P.canAutorenew ? `<div class="bar"><button class="btn" type="button" id="renew-on">${tt(P.renewPeriod === 'year' ? 'plan.auto.year' : 'plan.auto.month', { sum: rub(P.renewAmount) })}</button></div>` : ''}`)
+    : pro ? (P.forever ? '' : `<p class="sub">${tt('plan.until', { date: esc(planDate(P.until)) })}${P.source === 'trial' ? tt('plan.until.trial') : ''}${P.payReady ? tt('plan.until.add') : ''}. ${tt('plan.until.after')}</p>${payHtml(false, P.recurringReady && P.canAutorenew)}
+      ${P.recurringReady && P.canAutorenew ? `<label class="pay-auto"><input type="checkbox" id="renew-agree"><span>${tt('pay.auto.agree')}</span></label>
+        <p class="pay-auto-info">${tt(P.renewPeriod === 'year' ? 'plan.auto.info.year' : 'plan.auto.info.month', { sum: rub(renewPrice(P)) })}</p>
+        <div class="bar"><button class="btn" type="button" id="renew-on" disabled>${tt(P.renewPeriod === 'year' ? 'plan.auto.year' : 'plan.auto.month', { sum: rub(renewPrice(P)) })}</button></div>` : ''}`)
       : `<p class="sub">${tt('plan.pro', { size: fmtBytes(P.proBytes) })} ${PRO_PRICE()}</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">${tt('plan.trial.try', { n: P.trialDays })}</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
@@ -7164,11 +7178,12 @@ function wirePlanPanel() {
   wirePay(p);
   const flip = on => async ev => {
     ev.target.disabled = true;
-    try { S.plan = await window.NOTES_AUTORENEW(on); toast(on ? tt('auto.on') : tt('auto.off', { date: planDate(S.plan.until) }) + '.'); renderPlanBar(); renderProg(); }
+    try { S.plan = await window.NOTES_AUTORENEW(on, on && !!$('#renew-agree')?.checked); toast(on ? tt('auto.on') : tt('auto.off', { date: planDate(S.plan.until) }) + '.'); renderPlanBar(); renderProg(); }
     catch (e) { ev.target.disabled = false; toast(tt('err.failed', { why: e?.message || e })); }
   };
   $('#renew-off') && ($('#renew-off').onclick = flip(false));
   $('#renew-on') && ($('#renew-on').onclick = flip(true));
+  $('#renew-agree') && ($('#renew-agree').onchange = () => { $('#renew-on').disabled = !$('#renew-agree').checked; });   // включить снова — только с согласием
 }
 // пробный Pro заканчивается через 2 дня — одно напоминание (черновик текста, согласовать с Александром)
 function renderPlanBar() {
@@ -7176,8 +7191,10 @@ function renderPlanBar() {
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
-  if (!end || end - Date.now() > (paid ? 3 : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
-  bar.innerHTML = P.autorenew ? `<p>${tt(P.renewPeriod === 'year' ? 'planbar.auto.year' : 'planbar.auto.month', { date: esc(planDate(P.until)), sum: rub(P.renewAmount) })}</p>
+  if (!end || end - Date.now() > (paid ? (P.autorenew ? 4 : 3) : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.innerHTML = P.autorenew && P.priceNotice?.willStop ? `<p>${tt('planbar.price', { date: esc(planDate(P.renewDate)), old: rub(P.priceNotice.old), now: rub(P.priceNotice.now), until: esc(planDate(P.until)) })}</p>
+    <div class="bar"><button class="btn" type="button" id="plan-bar-ok">${tt('btn.ok')}</button></div>`
+  : P.autorenew ? `<p>${tt(P.renewPeriod === 'year' ? 'planbar.auto.year' : 'planbar.auto.month', { date: esc(planDate(P.renewDate || P.until)), sum: rub(P.renewAmount) })}</p>
     <div class="bar"><button class="btn" type="button" id="plan-bar-off">${tt('plan.auto.off')}</button><button class="btn" type="button" id="plan-bar-ok">${tt('btn.ok')}</button></div>`
   : `<p>${tt(paid ? 'planbar.end.paid' : 'planbar.end.trial', { date: esc(planDate(P.until)), notes: P.free.notes, sections: P.free.sections, size: fmtBytes(P.free.bytes) })}</p>
     <div class="bar">${P.payReady ? `<button class="btn primary" type="button" id="plan-bar-pay">${tt(paid ? 'planbar.extend' : 'plan.h.get')}</button>` : ''}<button class="btn" type="button" id="plan-bar-ok">${tt('btn.ok')}</button></div>`;
