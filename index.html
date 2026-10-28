@@ -1382,7 +1382,7 @@ window.STR = {
   'lp.faq.11': 'Что будет, когда закончится Pro?',
   'lp.faq.12': 'Ничего не удалится: все заметки и картинки останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
   'lp.faq.13': 'Можно вернуть деньги?',
-  'lp.faq.14': 'Да, в течение 14 дней после оплаты — без объяснения причин. Напиши на <a href="mailto:secondslot@gmail.com">secondslot@gmail.com</a>',
+  'lp.faq.14': 'Да, в течение 14 дней после оплаты — без объяснения причин. Напиши на <a href="mailto:support@retenote.ru">support@retenote.ru</a>',
   'lp.final.1': 'Начни с первой заметки',
   'lp.final.2': 'Вход через Яндекс ID или VK ID — меньше минуты',
   'lp.foot.1': 'Контакты и реквизиты',
@@ -6694,7 +6694,7 @@ async function payReturn() {
     }
     await new Promise(res => setTimeout(res, 1500));
   }
-  toast(tt('pay.pending', { email: window.NOTES_CONTACT || 'secondslot@gmail.com' }));
+  toast(tt('pay.pending', { email: window.NOTES_CONTACT || 'support@retenote.ru' }));
 }
 const planOn = () => !!(S.plan && S.plan.enabled);
 const fmtBytes = b => b >= 1073741824 ? tt('size.gb', { n: String(+(b / 1073741824).toFixed(1)).replace('.', ',') }) : tt('size.mb', { n: Math.round(b / 1048576) });
