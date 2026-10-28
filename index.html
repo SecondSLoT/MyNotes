@@ -1096,6 +1096,9 @@ window.STR = {
   'fb.mine': 'Мои сообщения · {n}',
   'fb.new.reply': 'новый ответ',
   'fb.more': 'Показать полностью',
+  'fb.del': 'Убрать из списка — у разработчика сообщение останется',
+  'fb.deleted': 'Сообщение убрано из списка',
+  'fb.del.fail': 'Не получилось убрать — проверь интернет',
   'fb.reply': 'Ответ разработчика',
   'fb.new': 'новый',
   'fb.wait': 'Ответа пока нет',
@@ -2006,7 +2009,9 @@ button.tag{border:0;background:none;padding:0}
 .train-plus .pro{font:600 11px/1 var(--f-body);background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 7px;margin-left:4px}
 .fb-mine{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .fb-mine summary{cursor:pointer;font-weight:600;font-size:14px}
-.fb-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--bg)}
+.fb-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--bg);position:relative}
+.fb-del{position:absolute;top:4px;right:4px;width:32px;height:32px;border:0;border-radius:8px;background:none;color:var(--faint);font-size:14px;cursor:pointer}
+.fb-del:hover{background:var(--accent-soft);color:var(--ink)}.fb-item>.fb-meta:first-of-type{padding-right:28px}
 .fb-meta{font-size:12px;color:var(--muted)}
 .fb-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;margin-top:4px}
 .fb-reply{margin-top:10px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0}
@@ -7719,10 +7724,21 @@ function fbMineHtml() {
   if (!f || !f.items?.length) return '<div id="fb-mine-wrap"></div>';
   const when = x => shortDate(String(x).replace(' ', 'T'));
   return `<div id="fb-mine-wrap"><details class="fb-mine" id="fb-mine"${f.unseen ? ' open' : ''}><summary>${tt('fb.mine', { n: f.items.length })}${f.unseen ? ` <span class="fb-new">${tt('fb.new.reply')}</span>` : ''}</summary>
-    ${f.items.map(x => `<div class="fb-item"><div class="fb-meta">${FB_KIND[x.kind] || ''} · ${esc(when(x.created))}</div><div class="fb-text${x.text.length > 300 || x.text.split('\n').length > 6 ? ' clamp' : ''}">${esc(x.text)}</div>${x.text.length > 300 || x.text.split('\n').length > 6 ? `<button type="button" class="fb-more">${tt('fb.more')}</button>` : ''}
+    ${f.items.map(x => `<div class="fb-item" data-fb="${esc(x.id)}">${window.NOTES_FEEDBACK_HIDE ? `<button type="button" class="fb-del" data-fb-del aria-label="${tt('fb.del')}" title="${tt('fb.del')}">✕</button>` : ''}<div class="fb-meta">${FB_KIND[x.kind] || ''} · ${esc(when(x.created))}</div><div class="fb-text${x.text.length > 300 || x.text.split('\n').length > 6 ? ' clamp' : ''}">${esc(x.text)}</div>${x.text.length > 300 || x.text.split('\n').length > 6 ? `<button type="button" class="fb-more">${tt('fb.more')}</button>` : ''}
       ${x.reply ? `<div class="fb-reply${x.seen ? '' : ' unseen'}"><div class="fb-meta">${tt('fb.reply')} · ${esc(when(x.replied))}${x.seen ? '' : ` <span class="fb-new">${tt('fb.new')}</span>`}</div><div class="fb-text">${esc(x.reply)}</div></div>`
         : `<div class="fb-meta fb-wait">${tt('fb.wait')}</div>`}</div>`).join('')}
   </details></div>`;
+}
+// убрать своё сообщение из списка (28.10) — только у себя; «Вернуть» в подсказке
+function fbRedraw() { const pan = $('#fb-mine-wrap'); if (!pan) return; const open = $('#fb-mine')?.open; pan.outerHTML = fbMineHtml(); if (open && $('#fb-mine')) $('#fb-mine').open = true; wireFbMine(); }
+async function fbHide(id) {
+  const i = S.fb?.items.findIndex(x => x.id === id); if (i == null || i < 0) return;
+  const [x] = S.fb.items.splice(i, 1);
+  if (x.reply && !x.seen) { S.fb.unseen = Math.max(0, (S.fb.unseen || 0) - 1); fbDot(); }
+  fbRedraw();
+  const back = async () => { await window.NOTES_FEEDBACK_HIDE(id, false).catch(() => {}); await fbCheck(true); const d = $('#fb-mine'); if (d) d.open = true; };
+  try { await window.NOTES_FEEDBACK_HIDE(id, true); toast(tt('fb.deleted'), { label: tt('btn.undo'), fn: back }); }
+  catch { S.fb.items.splice(i, 0, x); fbRedraw(); toast(tt('fb.del.fail')); }
 }
 function fbSeen() {
   if (!S.fb?.unseen) return;
@@ -7732,6 +7748,7 @@ function fbSeen() {
 function wireFbMine() {
   const d = $('#fb-mine'); if (!d) return;
   d.querySelectorAll('.fb-more').forEach(b => b.onclick = () => { b.previousElementSibling.classList.remove('clamp'); b.remove(); });
+  d.querySelectorAll('[data-fb-del]').forEach(b => b.onclick = () => fbHide(b.closest('.fb-item').dataset.fb));
   if (!S.fb?.unseen) return;
   const r = d.querySelector('.fb-reply.unseen'); if (!r) return;
   const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting) && d.open) { io.disconnect(); fbSeen(); } }, { threshold: 0.5 });
