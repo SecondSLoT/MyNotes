@@ -1272,7 +1272,8 @@ window.STR = {
   'lp.top.5': 'Вопросы',
   'lp.top.6': 'Войти',
   'lp.hero.1': 'Заметки, которые остаются с тобой',
-  'lp.hero.2': 'Пиши, храни и находи всё нужное — на телефоне и компьютере. А то, что важно выучить, ReteNote поможет запомнить: сам напомнит повторить вовремя',
+  'lp.hero.2': 'Пиши, храни и находи всё нужное — на телефоне и компьютере',
+  'lp.hero.7': '<b>А если нужно что-то выучить</b> — слова, термины, билеты к экзамену — включи у раздела тренировку. Заметки станут карточками «вопрос — ответ», и ReteNote сам напомнит повторить каждую, когда начнёшь забывать',
   'lp.hero.3': 'Начать бесплатно',
   'lp.hero.4': 'Как работает тренировка',
   'lp.hero.5': 'Вход через Яндекс ID или VK ID',
@@ -1383,6 +1384,8 @@ window.STR = {
   'lp.faq.12': 'Ничего не удалится: все заметки и картинки останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
   'lp.faq.13': 'Можно вернуть деньги?',
   'lp.faq.14': 'Да, в течение 14 дней после оплаты — без объяснения причин. Напиши на <a href="mailto:support@retenote.ru">support@retenote.ru</a>',
+  'lp.faq.15': 'Можно показать заметку крупно — на выступлении или концерте?',
+  'lp.faq.16': 'Да: кнопка «На весь экран» у заметки. Текст крупный, размер можно менять, экран не гаснет. Листать — касанием вверху или внизу экрана, к соседней заметке — смахиванием в сторону. Удобно для речи, текста песни или рецепта у плиты. Автопрокрутка текста — в Pro',
   'lp.final.1': 'Начни с первой заметки',
   'lp.final.2': 'Вход через Яндекс ID или VK ID — меньше минуты',
   'lp.foot.1': 'Контакты и реквизиты',
@@ -4526,7 +4529,7 @@ function wireAccMethods() {
   const redraw = () => { box.innerHTML = accMethodsHtml(); wireAccMethods(); };
   const say = (msg, err) => { M.msg = msg; M.err = !!err; redraw(); };
   box.querySelectorAll('[data-link]').forEach(b => b.onclick = () => {
-    b.disabled = true;
+    b.disabled = true; onBackRestore(() => { b.disabled = false; });   // привязка переходом к Яндексу / VK — вернулись «назад»
     window.NOTES_LINK(b.dataset.link).then(() => { M.msg = ''; S.accInfo = null; loadAccInfo(true); say(tt('acc.linked.ok')); }, e => say(e.message, true));
   });
   box.querySelectorAll('[data-unlink]').forEach(b => b.onclick = () => { M.unlink = b.dataset.unlink; M.msg = ''; redraw(); });
@@ -6667,16 +6670,20 @@ function payHtml(primary) {
     ${P.recurringReady && !P.autorenew ? `<label class="pay-auto"><input type="checkbox" id="pay-auto"><span>${tt('pay.auto', { month: rub(p.month), year: rub(p.year) })}</span></label>` : ''}
     <p class="hint">${tt(P.recurringReady ? 'pay.via' : 'pay.via.once')} ${tt('pay.offer')}</p>`;
 }
+// ушли со страницы (оплата, вход) и вернулись «назад»: браузер достаёт страницу из кэша (bfcache) как была — с нажатой кнопкой; вернуть её
+function onBackRestore(fn) { addEventListener('pageshow', function h(e) { if (!e.persisted) return; removeEventListener('pageshow', h); fn(); }); }
 function wirePay(root) {
   root.querySelectorAll('[data-pay]').forEach(b => b.onclick = async () => {
     // нажатая кнопка — «Открываем оплату…» и не бледнеет, вторая — неактивна: видно, какой срок выбран
     const label = b.innerHTML; b.classList.add('busy'); b.textContent = tt('pay.going');
     root.querySelectorAll('[data-pay]').forEach(x => x.disabled = true);
+    const undo = () => { b.classList.remove('busy'); b.innerHTML = label; root.querySelectorAll('[data-pay]').forEach(x => x.disabled = false); };
+    onBackRestore(undo);
     try {
       const r = await window.NOTES_PAY(b.dataset.pay, !!root.querySelector('#pay-auto')?.checked);
       store.set('payStart', { until: S.plan?.until || '', at: Date.now() });   // вернёмся с оплаты — ждём, пока срок сдвинется
       location.href = r.url;
-    } catch (e) { b.classList.remove('busy'); b.innerHTML = label; root.querySelectorAll('[data-pay]').forEach(x => x.disabled = false); toast(tt('err.failed', { why: e?.message || e })); }
+    } catch (e) { undo(); toast(tt('err.failed', { why: e?.message || e })); }
   });
 }
 // вернулись со страницы оплаты (?pay=ok / ?pay=fail): Pro включает уведомление Robokassa — подождать его
