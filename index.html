@@ -60,7 +60,7 @@ window.STR = {
   'land.foot.contacts': 'Контакты и реквизиты',
   'land.foot.offer': 'Оферта',
   'land.foot.privacy': 'Политика конфиденциальности',
-  'land.foot.consent': 'Согласие на обработку ПДн',
+  'land.foot.consent': 'Согласие на обработку персональных данных',
   'land.foot.terms': 'Пользовательское соглашение',
 
   // ===== Экран входа
@@ -80,7 +80,7 @@ window.STR = {
   'login.new.or': ' или ',
   'login.none': 'Вход пока не настроен на сервере',
   'login.privacy': 'Политика конфиденциальности',
-  'login.consent': 'Согласие на обработку данных',
+  'login.consent': 'Согласие на обработку персональных данных',
   'login.terms': 'Входя, ты принимаешь <a href="/terms.html" target="_blank" rel="noopener">Пользовательское соглашение</a>',
   'login.popup.lost': 'Вход не завершился. Так бывает, если окно входа было открыто долго — просто нажми кнопку ещё раз.',
   'login.failed': 'Не получилось войти: {why}',
@@ -132,7 +132,7 @@ window.STR = {
   'offer.done': 'Теперь сюда можно входить любым из способов',
   'consent.links': '<a href="/consent.html" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a>',
   'consent.need': 'Чтобы войти, отметь согласие на обработку персональных данных.',
-  'consent.title': 'Согласие на обработку данных',
+  'consent.title': 'Согласие на обработку персональных данных',
   'consent.again': 'Документы обновились',
   'consent.text': 'Чтобы пользоваться {app}, нужно твоё согласие на обработку персональных данных. В документах простыми словами написано, какие данные хранятся, где и как долго',
   'consent.failed': 'Не получилось сохранить согласие: {why}',
@@ -1118,7 +1118,7 @@ window.STR = {
   'fb.sending': 'Отправляю…',
   'fb.sent': 'Спасибо! Отзыв отправлен — ответ придёт в «Настройки → Обратная связь» и на почту',
   'fb.failed': 'Не отправилось: {why}',
-  'boot.nodb': 'Не удалось подключиться к хранилищу заметок. Открой страницу в Claude, войдя в аккаунт',
+  'boot.nodb': 'Не удалось подключиться к хранилищу заметок. Проверь интернет и обнови страницу',
   'boot.failed': 'Не получилось загрузить заметки. Обнови страницу',
 
   // ===== Отладка (только для тестировщика)
@@ -1399,7 +1399,7 @@ window.STR = {
   'lp.foot.1': 'Контакты и реквизиты',
   'lp.foot.2': 'Оферта',
   'lp.foot.3': 'Политика конфиденциальности',
-  'lp.foot.4': 'Согласие на обработку ПДн',
+  'lp.foot.4': 'Согласие на обработку персональных данных',
   'lp.foot.5': 'Пользовательское соглашение',
   'lp.cookie.1': 'Сайт использует cookie Яндекс Метрики, чтобы понимать, откуда приходят посетители. Подробнее — в <a href="/privacy.html#cookie">политике конфиденциальности</a>\n  <div class="row"><button class="btn primary small" type="button" id="cookie-yes">Хорошо</button><button class="btn ghost small" type="button" id="cookie-no">Не нужно</button></div>',
   'lp.head.content.1': 'Приложение для заметок на телефоне и компьютере: разделы, теги, поиск, редактор с таблицами и кодом. А то, что важно выучить, ReteNote поможет запомнить — интервальные повторения прямо из заметок',
@@ -1555,6 +1555,14 @@ body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* нажатие на телефоне: без синего прямоугольника браузера (tap-highlight), вместо него — своё: кнопка чуть сжимается, строка и чипы подсвечиваются.
+   Обводка при управлении с клавиатуры (:focus-visible выше) остаётся */
+html{-webkit-tap-highlight-color:transparent}
+.btn,.chip,.tag,.tb,.more{transition:transform .08s,background-color .08s,filter .08s}
+.btn:active:not(:disabled),.chip:active,.tag:active,.tb:active,.more:active{transform:scale(.97)}
+.btn:active:not(:disabled):not(.primary):not(.link-like):not(.danger-link),.chip:active:not([aria-pressed="true"]){background:var(--accent-soft)}
+.btn.primary:active:not(:disabled){filter:brightness(.92)}
+.item:active,.menu button:active{background:var(--surface)}
 a{color:var(--accent)}
 .app{display:flex;flex-direction:column;height:100%}
 
@@ -1811,6 +1819,8 @@ button.tchip-t:hover{text-decoration:underline}
 .tag-rename input{flex:1;min-width:140px;border:1px solid var(--accent);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 9px;font:13px var(--f-mono)}
 #tags-panel .nm .tag{font-size:13.5px;max-width:100%;text-align:left;overflow-wrap:anywhere}
 #tags-panel .tm-acts{display:flex;gap:8px;flex:none}
+/* вопрос «убрать тег из N заметок?»: текст на всю ширину, кнопки под ним — не вылезают за панель */
+#tags-panel li.tm-ask{flex-wrap:wrap}#tags-panel li.tm-ask .nm{display:block;flex:1 1 100%}
 /* узкий экран: имя тега — строкой целиком, под ним число заметок и кнопки */
 @media (max-width:560px){#tags-panel li:has(.tm-acts){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
   #tags-panel li .nm{display:contents}#tags-panel li .nm small{white-space:nowrap}#tags-panel li .nm .tag{grid-column:1/-1}
@@ -4843,7 +4853,7 @@ function tagsPanelHtml() {
     ${tags.length ? `<ul class="excluded">${tags.map(([t, c]) => M.rename === t
       ? `<li><form class="tag-rename" data-tag-rename="${esc(t)}"><input id="tag-rename-input" value="${esc(t)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${tt('tags.rename.label')}"><button class="btn primary">${tt('btn.save')}</button><button class="btn" type="button" data-tm-cancel>${tt('btn.cancel')}</button></form></li>`
       : M.del === t
-      ? `<li><span class="nm">${tt('tags.del.ask', { tag: esc(t), n: c })}</span><button class="btn danger" data-tm-del-yes="${esc(t)}">${tt('tags.del')}</button><button class="btn" data-tm-cancel>${tt('btn.cancel')}</button></li>`
+      ? `<li class="tm-ask"><span class="nm">${tt('tags.del.ask', { tag: esc(t), n: c })}</span><button class="btn danger" data-tm-del-yes="${esc(t)}">${tt('tags.del')}</button><button class="btn" data-tm-cancel>${tt('btn.cancel')}</button></li>`
       : `<li><span class="nm"><button class="tag" data-tm-filter="${esc(t)}">#${esc(t)}</button><small>${tt('notes.n', { n: c })}</small></span>${S.canWrite ? `<span class="tm-acts"><button class="btn" data-tm-rename="${esc(t)}">${tt('tags.rename')}</button><button class="btn danger" data-tm-del="${esc(t)}">${tt('btn.delete')}</button></span>` : ''}</li>`).join('')}</ul>`
       : `<div class="empty-state">${tt('tags.empty')}</div>`}
   </details>`;
