@@ -573,6 +573,7 @@ window.STR = {
   'img.loaded': 'Картинка загружена',
   'img.nogh': 'Чтобы вставлять картинки, подключи GitHub: ⚙ Настройки → Картинки',
   'img.alt': 'Иллюстрация из заметки',
+  'img.fail': 'Картинка не загрузилась — нажми, чтобы повторить',
   'img.camera': 'Сфотографировать',
   'img.choose': 'Выбрать картинки',
   'btn.cancel': 'Отмена',
@@ -1912,6 +1913,8 @@ button.tag{border:0;background:none;padding:0}
 .code-wrap:hover .code-copy,.code-copy:focus-visible{opacity:1}.code-copy:hover{color:var(--ink);border-color:var(--line-strong)}
 @media (hover:none){.code-copy{opacity:.9;height:32px;min-width:32px;justify-content:center}}
 .md img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--line);background:#fff;display:block;margin:6px 0 14px}
+.md img.img-fail,.visual img.img-fail{box-sizing:border-box;width:100%;min-height:96px;font-size:0;color:transparent;background:var(--raised);border:1px dashed var(--line-strong);cursor:pointer}   /* картинка не загрузилась — рамка с подписью, а не пустота; font-size:0 прячет alt, подпись — из data-fail */
+.md img.img-fail::after,.visual img.img-fail::after{content:attr(data-fail);display:block;box-sizing:border-box;width:100%;padding:38px 14px 0;text-align:center;font:13px/1.4 var(--f-body);color:var(--muted)}
 .visual img{cursor:pointer;display:inline-block;vertical-align:bottom;max-width:calc(100% - 6px)}   /* строчная картинка: курсор после неё — справа снизу, как в документе */.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
 .md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
@@ -2964,6 +2967,25 @@ function fixImgs(root) {
     };
   });
 }
+// Картинка не загрузилась (сервер не отвечает, нет сети) — вместо пустого места рамка с подписью; сама пробует ещё раз (через 5, 20, 60 с),
+// при возвращении связи — тоже, а нажатие в чтении — сразу. Разметку заметки это не трогает: класс и data-fail в Markdown не попадают (htmlToMd берёт alt и src)
+const IMG_RETRY = [5000, 20000, 60000];
+function imgRetry(img) {
+  if (!img.isConnected) return;
+  const src = img.getAttribute('src'); if (!src) return;
+  img.removeAttribute('src'); img.setAttribute('src', src);
+}
+function imgFail(img) {
+  img.classList.add('img-fail'); img.dataset.fail = tt('img.fail');
+  const n = +img.dataset.tries || 0;
+  if (n < IMG_RETRY.length) { img.dataset.tries = n + 1; setTimeout(() => { if (img.classList.contains('img-fail')) imgRetry(img); }, IMG_RETRY[n]); }
+}
+const imgRetryAll = () => document.querySelectorAll('img.img-fail').forEach(i => { i.dataset.tries = 0; imgRetry(i); });
+document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG') imgFail(t); }, true);
+document.addEventListener('load', e => { const t = e.target; if (t && t.tagName === 'IMG' && t.classList.contains('img-fail')) { t.classList.remove('img-fail'); delete t.dataset.fail; delete t.dataset.tries; } }, true);
+document.addEventListener('click', e => { const t = e.target; if (t && t.tagName === 'IMG' && t.classList.contains('img-fail') && !t.closest('.visual')) { e.preventDefault(); e.stopPropagation(); t.dataset.tries = 0; imgRetry(t); } }, true);
+window.addEventListener('online', imgRetryAll);
+window.addEventListener('notes-sync', e => { if (e.detail && e.detail.stale === false) imgRetryAll(); });
 const IMG_MAX_W = 1800;   // длинная сторона картинок — по ширине; высота не ограничена (длинный скриншот остаётся длинным)
 async function compressImage(file) {
   if (!/^image\/(png|jpe?g|webp|bmp)$/.test(file.type)) return file;
@@ -7949,7 +7971,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { compressImage, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { compressImage, imgFail, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
