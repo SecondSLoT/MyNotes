@@ -2964,14 +2964,24 @@ function fixImgs(root) {
     };
   });
 }
+const IMG_MAX_W = 1800;   // длинная сторона картинок — по ширине; высота не ограничена (длинный скриншот остаётся длинным)
 async function compressImage(file) {
   if (!/^image\/(png|jpe?g|webp|bmp)$/.test(file.type)) return file;
   try {
     const bmp = await createImageBitmap(file);
-    const k = Math.min(1, 1800 / bmp.width);
+    const k = Math.min(1, IMG_MAX_W / bmp.width), png = file.type === 'image/png';
+    // PNG (скриншоты, схемы, мелкий текст) — без потерь: не шире 1800 — как есть, шире — уменьшаем и сохраняем без потерь (WebP lossless или PNG, что меньше).
+    // Фото (JPEG и др.) — WebP с потерями, качество 86%
+    if (png && k === 1) { bmp.close && bmp.close(); return file; }
     const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-    const out = await new Promise(r => c.toBlob(r, 'image/webp', 0.86));
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height);
+    bmp.close && bmp.close();
+    const enc = (type, q) => new Promise(r => c.toBlob(r, type, q));
+    if (png) {
+      const cand = [await enc('image/png'), await enc('image/webp', 1)].filter(b => b && /^image\/(png|webp)$/.test(b.type));   // webp q=1 — lossless; Safari его не умеет — вернёт PNG
+      return cand.length ? cand.reduce((a, b) => (b.size < a.size ? b : a)) : file;
+    }
+    const out = await enc('image/webp', 0.86);
     return out && (out.size < file.size || k < 1) ? out : file;
   } catch { return file; }
 }
@@ -7939,7 +7949,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { compressImage, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
