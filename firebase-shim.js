@@ -56,7 +56,7 @@
       }
     });
   }
-  window.NOTES_SIGN_OUT = function () { auth.signOut().then(function () { location.reload(); }); };
+  window.NOTES_SIGN_OUT = function () { if (window.NOTES_LOCAL_CLEAR) window.NOTES_LOCAL_CLEAR(); auth.signOut().then(function () { location.reload(); }); };
 
   var resolveUser;
   var userReady = new Promise(function (r) { resolveUser = r; });

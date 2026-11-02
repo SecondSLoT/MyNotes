@@ -114,6 +114,7 @@ window.STR = {
   'oauth.off': 'способ входа не настроен',
   'oauth.start.failed': 'Не получилось начать вход: {why}',
   'oauth.lost': 'Вход через {name} не завершился — попробуй ещё раз',
+  'oauth.cancel': 'Вход через {name} отменён',
   'oauth.entering': 'Входим через {name}…',
   'oauth.linking': 'Привязываем {name}…',
   'oauth.failed': 'Не получилось войти через {name}: {why}',
@@ -2398,7 +2399,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="config.js"></script>
-<script src="firebase-shim.js?v=5dfb8a1aef"></script>
+<script src="firebase-shim.js?v=47acabe8e7"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -5570,7 +5571,12 @@ function pickForVis(vis, anchorEl) {
 
 /* ---------- editing where you read: anchors, drafts ---------- */
 const draftKey = id => 'draft.' + (id || 'new');
-function getDraft(id) { const d = store.get(draftKey(id), null); return d && typeof d.body === 'string' ? d : null; }
+// черновик помнит, чей он: после входа другим аккаунтом на этом устройстве чужой не предлагаем (и выбрасываем)
+function getDraft(id) {
+  const d = store.get(draftKey(id), null); if (!d || typeof d.body !== 'string') return null;
+  if (d.uid && S.uid && d.uid !== S.uid) { dropDraft(id); return null; }
+  return d;
+}
 function dropDraft(id) { try { localStorage.removeItem('aw.' + draftKey(id)); } catch {} }
 function draftDiffers(id, d) {
   const n = id ? S.notes.get(id) : null;
@@ -5580,8 +5586,13 @@ function draftDiffers(id, d) {
 function saveDraft(E) {
   const d = E.draft;
   if (!draftDiffers(E.id, d)) { dropDraft(E.id); return; }
-  store.set(draftKey(E.id), { title: d.title, section: d.section, tags: d.tags, ref: d.ref, body: d.body, ts: Date.now() });
+  store.set(draftKey(E.id), { title: d.title, section: d.section, tags: d.tags, ref: d.ref, body: d.body, ts: Date.now(), uid: S.uid || '' });
 }
+// выход и удаление аккаунта (зовут shim'ы): на устройстве не остаётся текста заметок и следов аккаунта — черновики, открытая заметка,
+// недавние, выбранный раздел; вид (тема) и прочее про устройство — остаются
+window.NOTES_LOCAL_CLEAR = function () {
+  try { for (const k of Object.keys(localStorage)) if (/^aw\.(draft\.|pro\.|note$|recent$|section$|lastFolder$)/.test(k)) localStorage.removeItem(k); } catch {}
+};
 const hhmm = ts => { const d = new Date(ts), z = n => String(n).padStart(2, '0'); const today0 = new Date(); return (d.toDateString() === today0.toDateString() ? '' : `${z(d.getDate())}.${z(d.getMonth() + 1)} `) + `${z(d.getHours())}:${z(d.getMinutes())}`; };
 // top-level markdown blocks <-> rendered elements: start offset of each block in the source
 function blockOffsets(src) {
