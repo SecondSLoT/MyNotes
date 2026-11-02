@@ -989,6 +989,7 @@ window.STR = {
   'sp.ro': 'В этом общем разделе ты только читаешь.',
   'sp.lost.copy': 'Править этот общий раздел тебе больше нельзя — твой текст сохранён копией в разделе «{sec}»',
   'sp.lost.open': 'Открыть',
+  'plan.now.pro': 'Pro уже включён — можно продолжать',
   'sp.you': 'ты',
   'sp.role.read': 'читает',
   'sp.role.edit': 'редактирует',
@@ -7060,10 +7061,16 @@ const ownCount = m => { let k = 0; for (const x of m.values()) { const sp = m ==
 const planUsed = kind => kind === 'notes' ? ownCount(S.notes) : kind === 'sections' ? ownCount(S.sections) : (S.plan?.usage?.bytes || 0);
 async function loadPlan() {
   if (!window.NOTES_PLAN) return;
+  S.planAt = Date.now();
   try { S.plan = await window.NOTES_PLAN(); } catch { return; }
   renderPlanBar(); applyLook(); if (S.mode === 'prog') renderProg();
   if (!S.payChecked) { S.payChecked = true; payReturn(); }
 }
+// тариф мог поменяться, пока вкладка была в фоне: оплатил в другой вкладке / на другом устройстве, кончился Pro (02.11: после оплаты
+// в другой вкладке открытое приложение продолжало предлагать Pro) — обновляем при возвращении во вкладку, не чаще раза в 15 с
+function planFresh() { if (window.NOTES_PLAN && S.uid && Date.now() - (S.planAt || 0) > 15000) loadPlan(); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') planFresh(); });
+window.addEventListener('focus', planFresh);
 // уткнулись в лимит Free: true — действие делать не надо (показано окно про Pro)
 function planBlocks(kind, add = 1) {
   if (!planOn() || planUsed(kind) + add <= planLimit(kind)) {
@@ -7079,6 +7086,10 @@ function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
   const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed, renew = kind === 'renew';
+  // окно «нужен Pro», а Pro, может, уже оплачен (на другом устройстве) — сверяемся с сервером; оказался Pro — окно закрываем
+  if (!pro && !renew && window.NOTES_PLAN && Date.now() - (S.planAt || 0) > 3000) loadPlan().then(() => {
+    const o = $('#plan-ov'); if (S.plan?.pro && o && !o.hidden) { o.hidden = true; o.innerHTML = ''; toast(tt('plan.now.pro')); }
+  });
   const head = kind === 'spaces' ? tt('plan.h.spaces') : kind === 'plus' ? tt('plan.h.plus') : kind === 'themes' ? tt('plan.h.themes') : kind === 'stage' ? tt('plan.h.stage') : renew ? tt(P.source === 'paid' ? 'plan.h.extend' : 'plan.h.get') : pro ? tt('plan.h.nospace') : tt('plan.h.free', { what: (PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0) });
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
