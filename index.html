@@ -540,6 +540,11 @@ window.STR = {
   'ed.ins.imgname': 'имя.png',
   'ed.ins.col': 'Колонка {n}',
   'ed.ins.value': 'значение',
+  'tbl.row': 'Строка ниже',
+  'tbl.col': 'Столбец справа',
+  'tbl.delrow': 'Удалить строку',
+  'tbl.delcol': 'Удалить столбец',
+  'tbl.del': 'Удалить таблицу',
   'ed.wait.img': 'Жду, пока загрузится изображение…',
   'tb.color': 'Цвет текста',
   'tb.task': 'Чек-лист',
@@ -1941,6 +1946,10 @@ button.tag{border:0;background:none;padding:0}
 .tb .tc-ico{display:grid;justify-items:center;line-height:1;font-weight:600;font-size:15px}
 .tb .tc-ico i{display:block;width:14px;height:3px;border-radius:2px;margin-top:2px;background:var(--cur-tc,var(--ink))}
 .color-pop{position:fixed;z-index:60;display:flex;gap:6px;align-items:center;padding:8px;background:var(--raised);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.tbl-pop{flex-direction:column;align-items:stretch;gap:2px;padding:6px}
+.color-pop.tbl-pop button{width:auto;height:auto;border:0;box-shadow:none;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;white-space:nowrap;padding:9px 14px;border-radius:8px;cursor:pointer}
+.color-pop.tbl-pop button:hover{background:var(--accent-soft)}
+.color-pop.tbl-pop button.danger{color:var(--again)}
 .color-pop button{width:30px;height:30px;border-radius:50%;border:2px solid var(--raised);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-pop button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 .color-pop .clear{background:none;color:var(--muted);font-size:15px;display:grid;place-items:center}
@@ -5399,6 +5408,13 @@ function renderArticle(box, scrollTop) {
 }
 
 function openNote(id, dir) {
+  // правишь заметку и открываешь другую — сначала сохранить (как Esc и «назад»; 02.11, решение Александра). Раньше правки оставались
+  // черновиком только на этом устройстве. Новая заметка без заголовка не сохраняется — остаётся черновиком, как раньше
+  const E = S.editing, f = E && document.getElementById('ed');
+  if (E && f && !E.leaving) E.sync?.();
+  if (E && f && !E.leaving && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title || '').trim()))) {
+    E.leaving = { id, dir }; f.requestSubmit(); return;
+  }
   if (S.article && !S.editing) {
     const sec = document.getElementById('art-' + id);
     if (sec) { $('#lib').classList.add('reading'); S.noteId = id; markListCurrent(id); scrollArticleTo(sec); return; }
@@ -6106,7 +6122,8 @@ function renderEditor(box) {
         vis.dispatchEvent(new Event('input', { bubbles: true }));
         return;
       }
-      document.execCommand('insertText', false, t);
+      if (!closestIn(vis, 'pre') && visPasteRich(vis, e.clipboardData, t)) return;
+      visPastePlain(vis, t);
     });
     vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
   }
@@ -6115,6 +6132,7 @@ function renderEditor(box) {
   tb.addEventListener('click', e => {
     const b = e.target.closest('[data-md]'); if (!b) return;
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
+    if (b.dataset.md === 'table' && E.pane === 'vis' && vis && closestIn(vis, 'td, th')) { openTblPop(b, vis); return; }   // курсор в таблице — меню строк и столбцов
     if (b.dataset.md === 'cloze' && !plusOn()) { showPlanDialog('plus'); return; }   // пропуски — «тренировка плюс» (Pro)
     if (E.pane === 'vis' && vis) visActionKeep(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
     requestAnimationFrame(refreshTb);
@@ -6156,6 +6174,7 @@ function renderEditor(box) {
     else if ((e.key === 's' || e.key === 'ы' || e.code === 'KeyS') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); E.stay = true; form.requestSubmit(); }   // не текст интерфейса
     else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (E.live || draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
   });
+  E.sync = sync;   // openNote: свежий текст из полей (черновик пишется с задержкой 0,5 с)
   let drT; form.addEventListener('input', () => { if (E.live) return; clearTimeout(drT); drT = setTimeout(() => { if (S.editing !== E) return; sync(); saveDraft(E); }, 500); });
   $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); renderReader(); });
   $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
@@ -6171,9 +6190,10 @@ function renderEditor(box) {
       const prev = S.notes.get(id); if (prev) S.notes.set(id, Object.assign({}, prev, { title: d.title || prev.title, body: d.body, tags: d.tags }));
       S.editing = null; S.artJumpToCurrent = true; renderList();
       if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
+      if (E.leaving) openNote(E.leaving.id, E.leaving.dir);
       return;
     }
-    if (!d.title.trim()) return;
+    if (!d.title.trim()) { E.leaving = null; return; }
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const prev = S.notes.get(id);
@@ -6192,7 +6212,9 @@ function renderEditor(box) {
       if (!await write(() => S.db.collection('notes').doc(cid).set(cdoc), null)) return;
       S.notes.set(cid, Object.assign({ id: cid }, cdoc)); dropDraft(E.id);
       toast(tt('sync.edit.conflict', { title: prev.title || tt('note.untitled') }), { label: tt('btn.ok'), fn() {} });
-      S.editing = null; S.noteId = cid; store.set('note', cid); renderList(); renderReader(true); return;
+      S.editing = null; S.noteId = cid; store.set('note', cid); renderList(); renderReader(true);
+      if (E.leaving) openNote(E.leaving.id, E.leaving.dir);
+      return;
     }
     const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
@@ -6202,6 +6224,7 @@ function renderEditor(box) {
     const wasNew = !E.id;
     const ok = await write(() => S.db.collection('notes').doc(id).set(doc), mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
     if (!ok) {
+      E.leaving = null;   // не сохранилось — остаёмся в редакторе (переход на другую заметку отменён)
       // общий раздел: пока правил, стал читателем / у владельца кончился Pro / раздел перестал быть общим — текст не пропадает, копией себе
       if (write.err?.status === 403 && spaceOfSection(doc.section)) { if (await keepOwnCopy(doc)) { dropDraft(E.id); S.editing = null; renderList(); renderReader(true); } }
       return;
@@ -6214,6 +6237,7 @@ function renderEditor(box) {
     S.editing = null; S.artJumpToCurrent = true; renderList();
     if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
     if (spaceTarget) moveToSpace(id, spaceTarget);
+    else if (E.leaving) openNote(E.leaving.id, E.leaving.dir);   // сохранили по переходу на другую заметку — открыть её
   });
   if (!E.id) $('#ed-title').focus();
 }
@@ -6452,11 +6476,11 @@ function mdKeydown(e, ta) {
 /* ---------- visual editor: HTML -> Markdown ---------- */
 const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'PRE', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'HR', 'TABLE', 'SECTION', 'ARTICLE', 'FIGURE']);
 function htmlToMd(root) {
-  return mdBlocks(root).join('\n\n').replace(/\u200b/g, '').replace(/\n{3,}/g, '\n\n').trim();
+  return mdBlocks(root).join('\n\n').replace(/[\u200b\u0001]/g, '').replace(/\n{3,}/g, '\n\n').trim();
 }
 function mdBlocks(parent) {
   const out = []; let buf = [];
-  const flush = () => { const t = mdInline(buf).replace(/^[ \t]+|\s+$/g, '').replace(/^\n+/, ''); if (t.trim()) out.push(t); buf = []; };
+  const flush = () => { const t = mdLeadEsc(mdInline(buf)).replace(/^[ \t]+|\s+$/g, '').replace(/^\n+/, ''); if (t.trim()) out.push(t); buf = []; };
   for (const n of parent.childNodes) {
     if (n.nodeType === 1 && BLOCK_TAGS.has(n.tagName)) { flush(); const b = mdBlock(n); if (b && b.trim()) out.push(b); }
     else buf.push(n);
@@ -6499,9 +6523,28 @@ function mdTable(el) {
   if (!rows.length) return '';
   const cells = r => [...r.children].map(c => mdInline([...c.childNodes]).replace(/\s+/g, ' ').trim().replace(/\|/g, '\\|'));
   const head = cells(rows[0]);
-  const lines = ['| ' + head.join(' | ') + ' |', '| ' + head.map(() => '---').join(' | ') + ' |'];
+  // выравнивание столбцов (:--- / :---: / ---:) — из align / style ячеек заголовка, иначе пропадало
+  const al = [...rows[0].children].map(c => (c.getAttribute('align') || c.style.textAlign || '').toLowerCase());
+  const sep = a => a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---';
+  const lines = ['| ' + head.join(' | ') + ' |', '| ' + head.map((_, i) => sep(al[i])).join(' | ') + ' |'];
   for (const r of rows.slice(1)) lines.push('| ' + cells(r).join(' | ') + ' |');
   return lines.join('\n');
+}
+// текст из «Визуально» → Markdown: знаки разметки, которые в Markdown что-то значили бы, — экранировать (02.11, тестирование, блок 3:
+// «\*не курсив\*» из Markdown после правки в «Визуально» становился курсивом, «\# не заголовок» в начале строки — заголовком).
+// Только когда нужно: «2*3*4» и snake_case без обратных косых. HTML показывается текстом, кроме <span class="tc-…"> — экранируем только его
+// строка текста, начинающаяся как разметка блока («# », «> », «- », «1. »), в Markdown стала бы заголовком / цитатой / списком — экранируем
+const mdLeadEsc = t => t.replace(/^([ \t]*)(#{1,6}(?=[ \t]|$)|>|[-+*](?=[ \t])|\d+(?=[.)][ \t]))/gm, (m, sp, mk) => sp + (/^\d/.test(mk) ? mk + '\\' : '\\' + mk)).replace(/\u0001/g, '');
+function mdText(v) {
+  if (/[*_~`[\]\\]/.test(v)) {
+    let html = ''; try { html = marked.parseInline(v, { gfm: true, breaks: true }); } catch {}
+    if (/<(em|strong|del|code|a)\b/i.test(html)) v = v.replace(/([\\*_~`[\]])/g, '\\$1');
+  }
+  return v.replace(/<(?=span\b)/gi, '\\<');
+}
+// адрес ссылки: русские буквы — как есть, а не %D0%BF… (так он и был написан в Markdown)
+function mdHref(h) {
+  try { const d = decodeURI(h); return /[\s<>()]/.test(d) ? h : d; } catch { return h; }
 }
 function mdWrap(mark, inner) {
   if (!inner.trim()) return inner;
@@ -6511,7 +6554,7 @@ function mdWrap(mark, inner) {
 function mdInline(nodes) {
   let s = '';
   for (const n of nodes) {
-    if (n.nodeType === 3) { s += n.nodeValue.replace(/​/g, '').replace(/ /g, ' ').replace(/[ \t\r\n]+/g, ' ').replace(/<(?=[A-Za-z\/!?])/g, '\\<'); continue; }
+    if (n.nodeType === 3) { s += mdText(n.nodeValue.replace(/​/g, '').replace(/ /g, ' ').replace(/[ \t\r\n]+/g, ' ')); continue; }
     if (n.nodeType !== 1) continue;
     const t = n.tagName, kids = () => mdInline([...n.childNodes]);
     if (t === 'STRONG' || t === 'B') s += mdWrap('**', kids());
@@ -6520,16 +6563,88 @@ function mdInline(nodes) {
     else if (t === 'SPAN' && n.classList.contains('cloze')) { const inner = kids(); s += inner.trim() ? `{{${inner.trim()}}}` : inner; }
     else if (t === 'SPAN' && tcOf(n)) { const inner = kids(); const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0]; s += inner.trim() ? `${lead}<span class="tc-${tcOf(n)}">${inner.trim()}</span>${trail}` : inner; }
     else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
-    else if (t === 'A') { const label = kids().trim() || n.getAttribute('href') || ''; s += `[${label}](${n.getAttribute('href') || ''})`; }
+    else if (t === 'A') {
+      const href = mdHref(n.getAttribute('href') || ''), label = kids().trim() || href;
+      // ссылка, у которой текст — сам адрес (из <https://…> или голого адреса), остаётся голым адресом, а не [адрес](адрес)
+      s += label === href && /^(https?:\/\/|mailto:)\S+$/i.test(href) && !/[<>()]/.test(href) ? href : `[${label}](${href})`;
+    }
     else if (t === 'IMG') s += `![${n.getAttribute('alt') === tt('img.alt') ? '' : (n.getAttribute('alt') || '')}](${n.dataset.src || n.getAttribute('src') || ''})`;
     else if (t === 'BR') s += '\n';   // перенос строки в Markdown и есть перенос (breaks: true)
     else if (t === 'INPUT') continue;
-    else if (BLOCK_TAGS.has(t)) s += '\n\n' + mdBlock(n) + '\n\n';
+    else if (BLOCK_TAGS.has(t)) s += '\n\n' + mdBlock(n).replace(/^/gm, '\u0001') + '\n\n';   // \u0001 — строки готовой разметки: начало строки не экранировать (mdBlocks)
     else s += kids();
   }
   return s;
 }
 
+// обычный текст в «Визуально»: перенос строки — перенос, пустая строка — новый абзац, одной вставкой.
+// insertText со множеством переносов Chrome делает по абзацу на строку (строки одного абзаца разъезжались) и очень медленно:
+// 100 КБ текста — 48 с, 1 МБ — вкладка висит (02.11, тестирование, блок 3). В блоке кода — как есть
+function visPasteHtml(t) {
+  return t.replace(/\r\n?/g, '\n').split(/\n{2,}/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+}
+// вставка с оформлением (02.11, решение Александра): с сайта, из Google Docs, Word, Excel / Sheets — заголовки, жирный, курсив, зачёркнутый,
+// ссылки, списки, цитаты, таблицы, код; шрифты, цвета, размеры, изображения с чужих сайтов — нет. Путь: html → чистка → Markdown (htmlToMd) → html
+// (renderMd) — в заметку попадает только то, что умеет Markdown. Код из IDE (VS Code — div со white-space: pre) — блоком кода как есть.
+// Ctrl+Shift+V браузер отдаёт без html — простой текст
+function visPasteRich(vis, cd, plain) {
+  const html = cd?.getData('text/html') || '';
+  if (!html || !window.DOMPurify || html.length > 3e6) return false;
+  const box = document.createElement('div');
+  box.innerHTML = DOMPurify.sanitize(html, { ALLOWED_TAGS: ['p', 'div', 'br', 'b', 'strong', 'i', 'em', 's', 'strike', 'del', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'blockquote', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'hr'], ALLOWED_ATTR: ['href', 'style', 'align', 'start'] });
+  if (!box.textContent.trim()) return false;
+  const st = el => (el.getAttribute('style') || '').toLowerCase();
+  if (!box.querySelector('pre') && [...box.querySelectorAll('div, span')].some(el => /white-space\s*:\s*pre/.test(st(el))) && /\n/.test(plain)) {
+    document.execCommand('insertHTML', false, `<pre><code>${esc(plain.replace(/\r\n?/g, '\n').replace(/\n$/, ''))}</code></pre><p><br></p>`);
+    return true;
+  }
+  const unwrap = el => el.replaceWith(...el.childNodes);
+  const wrap = (el, tag) => { const w = document.createElement(tag); el.before(w); w.appendChild(el); };
+  // Google Docs оборачивает всё в <b style="font-weight:normal">; жирный / курсив / зачёркнутый у него и у Word — стилями span
+  box.querySelectorAll('b, strong').forEach(b => { if (/font-weight\s*:\s*(normal|[1-4]00)\b/.test(st(b))) unwrap(b); });
+  box.querySelectorAll('span').forEach(sp => {
+    const v = st(sp);
+    if (/font-weight\s*:\s*(bold|[6-9]00)\b/.test(v)) wrap(sp, 'strong');
+    if (/font-style\s*:\s*italic/.test(v)) wrap(sp, 'em');
+    if (/text-decoration[^;]*line-through/.test(v)) wrap(sp, 's');
+  });
+  box.querySelectorAll('span').forEach(unwrap);
+  box.querySelectorAll('th, td').forEach(c => { if (!c.getAttribute('align') && /text-align\s*:\s*(center|right)/.test(st(c))) c.setAttribute('align', st(c).match(/text-align\s*:\s*(center|right)/)[1]); });
+  box.querySelectorAll('[style]').forEach(el => el.removeAttribute('style'));
+  const md = htmlToMd(box);
+  if (!md.trim()) return false;
+  const tmp = document.createElement('div'); tmp.innerHTML = renderMd(md); enhance(tmp);
+  document.execCommand('insertHTML', false, tmp.innerHTML);
+  return true;
+}
+function visPastePlain(vis, t) {
+  if (!t) return;
+  if (!/\n/.test(t) || closestIn(vis, 'pre')) { document.execCommand('insertText', false, t); return; }
+  if (t.length < 50000 || !visPasteBig(vis, t)) document.execCommand('insertHTML', false, visPasteHtml(t));
+}
+// большой текст: insertHTML на десятках тысяч строк — полминуты (1 МБ — 31 с). Ставим метку и собираем абзацы сами, узлами;
+// отмена — своя история «Визуально» (histRecord перед вставкой). false — место неподходящее (пункт списка, таблица), пусть вставит браузер
+function visPasteBig(vis, t) {
+  const blk = closestIn(vis, 'p, div, h1, h2, h3, h4, h5, h6');
+  if (closestIn(vis, 'li, td, th, blockquote') || (blk && blk.parentElement !== vis)) return false;
+  document.execCommand('insertHTML', false, '<span id="rn-paste-mark"></span>');
+  const m = vis.querySelector('#rn-paste-mark'); if (!m) return false;
+  const lines = p => { const f = document.createDocumentFragment(); p.split('\n').forEach((l, i) => { if (i) f.appendChild(document.createElement('br')); if (l) f.appendChild(document.createTextNode(l)); }); return f; };
+  const paras = t.replace(/\r\n?/g, '\n').split(/\n{2,}/);
+  const block = m.parentElement === vis ? null : m.parentElement.closest('p, div, h1, h2, h3, h4, h5, h6');
+  let end;
+  if (!block || paras.length === 1) { const f = lines(paras.join('\n\n')); end = f.lastChild; m.replaceWith(f); }
+  else {
+    const r = document.createRange(); r.setStartAfter(m); r.setEndAfter(block.lastChild); const tail = r.extractContents();
+    m.replaceWith(lines(paras[0]));
+    const frag = document.createDocumentFragment(); let last = null;
+    for (const p of paras.slice(1)) { last = document.createElement('p'); last.appendChild(lines(p)); frag.appendChild(last); }
+    end = last.lastChild || last; last.appendChild(tail); block.after(frag);
+  }
+  if (end) { const r = document.createRange(); r.setStartAfter(end); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+  return true;
+}
 /* ---------- visual editor: formatting actions ---------- */
 let savedRange = null;
 function saveSel() { const sel = getSelection(); savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null; }
@@ -6722,6 +6837,21 @@ function visAction(act, vis) {
         const r = document.createRange(); r.selectNodeContents(p); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
         vis.dispatchEvent(new Event('input', { bubbles: true })); return;
       }
+      // часть строки абзаца: Chrome вставляет <pre> посреди абзаца не блоком, а span со стилями — блока кода не получалось, текст
+      // рвался на пустые абзацы (02.11, тестирование, блок 3). Делим абзац сами: до выделения | блок кода | после
+      const rg = sel.rangeCount ? sel.getRangeAt(0) : null, el = n => n && (n.nodeType === 1 ? n : n.parentElement);
+      const blk = rg && el(rg.startContainer)?.closest('p, div');
+      if (blk && blk !== vis && blk.parentElement === vis && blk.contains(rg.endContainer)) {
+        histRecord(vis);
+        const pre = document.createElement('pre'), code = document.createElement('code');
+        code.className = 'language-kotlin'; code.dataset.new = ''; code.textContent = text || tt('ed.ins.code'); pre.appendChild(code);
+        const tr = document.createRange(); tr.setStart(rg.endContainer, rg.endOffset); tr.setEndAfter(blk.lastChild || blk);
+        const after = document.createElement('p'); after.appendChild(tr.extractContents()); rg.deleteContents();
+        if (!after.textContent.replace(/\u200b/g, '').trim() && !after.querySelector('img')) after.innerHTML = '<br>';
+        blk.after(pre, after);
+        if (!blk.textContent.replace(/\u200b/g, '').trim() && !blk.querySelector('img')) blk.remove();
+        visSelectNew(vis); return true;
+      }
       const ok = exec('insertHTML', `<pre><code data-new class="language-kotlin">${esc(text || tt('ed.ins.code'))}</code></pre><p><br></p>`);
       visSelectNew(vis);
       return ok;
@@ -6857,6 +6987,56 @@ document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contai
 document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeColorPop(); } }, true);
 window.addEventListener('scroll', () => closeColorPop(), true);
 
+/* ---------- таблица в «Визуально»: переход по ячейкам, строки и столбцы ---------- */
+// курсор в ячейку; select — выделить её текст (Tab по ячейкам, как в таблицах: набранное заменяет содержимое)
+function cellFocus(c, select) { const r = document.createRange(); r.selectNodeContents(c); if (!select || !c.textContent.trim()) r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); }
+function tblNewCell(tag) { const c = document.createElement(tag); c.appendChild(document.createElement('br')); return c; }
+function tblRowAfter(tr) {   // новая строка под tr (под заголовком — первой строкой тела)
+  const t = tr.closest('table'), row = document.createElement('tr');
+  for (let i = 0; i < tr.cells.length; i++) row.appendChild(tblNewCell('td'));
+  if (tr.parentElement.tagName === 'THEAD') { const b = t.tBodies[0] || t.createTBody(); b.insertBefore(row, b.firstChild); } else tr.after(row);
+  return row;
+}
+function tblMove(cell, dir) {
+  const t = cell.closest('table'), rows = [...t.rows], tr = cell.parentElement, ri = rows.indexOf(tr), ci = cell.cellIndex;
+  const cells = rows.flatMap(r => [...r.cells]), i = cells.indexOf(cell);
+  let to = null;
+  if (dir === 'next') to = cells[i + 1] || tblRowAfter(tr).cells[0];
+  else if (dir === 'prev') to = cells[i - 1] || cell;
+  else to = rows[ri + 1] ? (rows[ri + 1].cells[ci] || rows[ri + 1].cells[0]) : tblRowAfter(tr).cells[ci];
+  if (to) cellFocus(to, dir !== 'down');
+}
+function tblAct(vis, act) {
+  const cell = closestIn(vis, 'td, th'); if (!cell) return;
+  vis.focus(); histRecord(vis);
+  const t = cell.closest('table'), tr = cell.parentElement, ci = cell.cellIndex;
+  const dropTable = () => { const p = document.createElement('p'); p.appendChild(document.createElement('br')); t.replaceWith(p); cellFocus(p); };
+  if (act === 'row') cellFocus(tblRowAfter(tr).cells[ci] || tr.cells[0]);
+  else if (act === 'col') { for (const r of t.rows) r.insertBefore(tblNewCell(r.parentElement.tagName === 'THEAD' ? 'th' : 'td'), r.cells[ci + 1] || null); cellFocus(tr.cells[ci + 1]); }
+  else if (act === 'delrow') {
+    if (tr.parentElement.tagName === 'THEAD' || t.rows.length < 2) dropTable();   // строка заголовка обязательна в Markdown — без неё таблицы нет
+    else { const next = tr.nextElementSibling || tr.previousElementSibling; tr.remove(); cellFocus(next.cells[Math.min(ci, next.cells.length - 1)]); }
+  }
+  else if (act === 'delcol') {
+    if (tr.cells.length < 2) dropTable();
+    else { for (const r of t.rows) r.cells[ci]?.remove(); cellFocus(tr.cells[Math.min(ci, tr.cells.length - 1)]); }
+  }
+  else if (act === 'del') dropTable();
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function openTblPop(btn, vis) {
+  if (colorPop) { closeColorPop(); return; }
+  const pop = colorPop = document.createElement('div');
+  pop.className = 'color-pop tbl-pop'; pop.setAttribute('role', 'menu');
+  pop.innerHTML = [['row', tt('tbl.row')], ['col', tt('tbl.col')], ['delrow', tt('tbl.delrow')], ['delcol', tt('tbl.delcol')], ['del', tt('tbl.del')]]
+    .map(([a, label]) => `<button type="button" role="menuitem" data-tbl="${a}"${a === 'del' ? ' class="danger"' : ''}>${label}</button>`).join('');
+  document.body.appendChild(pop);
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+  pop.style.top = (r.bottom + 6) + 'px';
+  pop.addEventListener('mousedown', e => e.preventDefault());
+  pop.addEventListener('click', e => { const b = e.target.closest('[data-tbl]'); if (!b) return; closeColorPop(); tblAct(vis, b.dataset.tbl); });
+}
 function visColorAt(vis) {
   const sl = getSelection(); let n = sl.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentElement;
   while (n && n !== vis && vis.contains(n)) { const c = tcOf(n); if (c) return c; n = n.parentElement; }
@@ -7064,6 +7244,12 @@ function visPreEnter(e, vis) {
 function visKeydown(e, vis) {
   if (visExitInline(e, vis) || visPreEnter(e, vis)) return;
   const mod = e.ctrlKey || e.metaKey;
+  // таблица: Tab / Shift+Tab — соседняя ячейка (после последней — новая строка), Enter — ячейка ниже (в последней строке — новая строка).
+  // Раньше Tab уводил фокус из редактора, а перенос внутри ячейки при сохранении склеивался с текстом (в Markdown ячейка — одна строка)
+  if ((e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) && !mod && !e.altKey && !e.isComposing) {
+    const cell = closestIn(vis, 'td, th');
+    if (cell) { e.preventDefault(); histRecord(vis); tblMove(cell, e.key === 'Tab' ? (e.shiftKey ? 'prev' : 'next') : 'down'); vis.dispatchEvent(new Event('input', { bubbles: true })); return; }
+  }
   // Tab / Shift+Tab в списке — вложить пункт / поднять на уровень выше (раньше Tab уводил фокус из редактора); вне списка Tab работает как обычно
   if (e.key === 'Tab' && !mod && !e.altKey && !e.isComposing) {
     const li = closestIn(vis, 'li');
