@@ -294,6 +294,7 @@ window.STR = {
   'trash.purge': 'Удалить навсегда',
   'tags.manage.title': 'Переименовать или удалить теги',
   'list.grip': 'Перетащи, чтобы поменять порядок',
+  'list.show.more': 'Показать ещё {n}',
   'list.more': 'Действия с карточкой',
   'list.goto.title': 'Открыть раздел и прокрутить список к этой заметке',
 
@@ -1746,6 +1747,8 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .grp-h{display:flex;align-items:center;gap:8px;width:100%;border:0;border-bottom:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 12px/1.4 var(--f-mono);text-align:left;padding:12px 14px 6px;cursor:pointer}
 .grp-h:hover{color:var(--ink)}
 .grp-h .n{margin-left:auto;font-weight:500;color:var(--faint)}
+.list-more{display:block;width:100%;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:14px;cursor:pointer}
+.list-more:hover{color:var(--ink)}
 .grp-h.drop-after{box-shadow:inset 0 -2px 0 var(--accent)}
 .grp-h.drop-before{box-shadow:inset 0 2px 0 var(--accent)}
 .goto{position:absolute;right:8px;bottom:8px;border:1px solid var(--line);background:var(--raised);color:var(--accent);border-radius:6px;font-size:12px;padding:2px 8px}
@@ -3697,7 +3700,14 @@ function renderList() {
   const gcount = new Map(); if (grouped) for (const n of list) gcount.set(n.section, (gcount.get(n.section) || 0) + 1);
   const relPath = sec => { const chain = []; let x = sec; while (x && x !== S.section) { chain.unshift(S.sections.get(x)?.title || ''); x = parentOf(x); } return chain.join(' › ') || tt('list.group.own'); };
   let prevSec = null;
-  $('#items').innerHTML = list.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="${tt('list.group.open', { section: esc(secPath(n.section)) })}"><span>${n.section === S.section ? '' : '📁 '}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
+  // длинный список (тысячи заметок в «Все заметки» или в поиске) рисуем частями: сначала LIST_STEP строк, дальше — по мере прокрутки.
+  // Иначе каждая перерисовка (любая правка, синхронизация) — полсекунды на 5000 строк (тестирование, блок 15)
+  const lkey = [S.section, S.q, S.tag, !!S.select].join('\n');
+  if (S.listKey !== lkey) { S.listKey = lkey; S.listLimit = LIST_STEP; }
+  const want = [terms ? null : S.noteId, S.flash, S.renaming?.id].map(id => id ? list.findIndex(n => n.id === id) : -1).reduce((a, b) => Math.max(a, b), -1);
+  if (want >= S.listLimit) S.listLimit = want + LIST_STEP;
+  const shown = list.length > S.listLimit + LIST_STEP / 4 ? list.slice(0, S.listLimit) : list;
+  $('#items').innerHTML = shown.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="${tt('list.group.open', { section: esc(secPath(n.section)) })}"><span>${n.section === S.section ? '' : '📁 '}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
     <form class="row-item rename-form" data-id="${esc(n.id)}">
       <label class="lbl" for="rename-input">${tt('rename.label')}</label>
       <textarea id="rename-input" rows="1" autocomplete="off" enterkeyhint="done">${esc(S.renaming.draft)}</textarea>
@@ -3713,7 +3723,8 @@ function renderList() {
       </button>
       ${S.canWrite && !S.select ? `<button class="more" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu" aria-expanded="${S.menu?.id === n.id}">⋮</button>` : ''}
       ${(terms || S.tag) && !S.select ? `<button class="goto" data-goto="${esc(n.id)}" title="${tt('list.goto.title')}">${tt('list.goto')}</button>` : ''}
-    </div>`)).join('');
+    </div>`)).join('') + (shown.length < list.length ? `<button type="button" class="list-more" id="list-more">${tt('list.show.more', { n: list.length - shown.length })}</button>` : '');
+  listMoreWatch();
   renderBulkBar(list);
   if (S.flash) { const el = document.querySelector(`.row-item[data-id="${CSS.escape(S.flash)}"]`); if (el) { scrollWithin($('#items'), el); el.classList.add('flash'); } S.flash = null; }
   if (S.renaming) {
@@ -3722,6 +3733,23 @@ function renderList() {
   }
 }
 
+const LIST_STEP = 200;
+let listMoreObs = null;
+function listMoreWatch() {
+  listMoreObs?.disconnect(); const b = $('#list-more'); if (!b) return;
+  b.onclick = () => { const top = $('#items').scrollTop; S.listLimit += LIST_STEP * 2; renderList(); $('#items').scrollTop = top; };
+  if (!('IntersectionObserver' in window)) return;
+  listMoreObs = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) b.click(); }, { root: $('#items'), rootMargin: '0px 0px 600px 0px' });
+  listMoreObs.observe(b);
+}
+// строка заметки в списке; если она дальше нарисованной части — дорисовать
+function listRow(id) {
+  const q = () => document.querySelector(`#items .row-item[data-id="${CSS.escape(id)}"]`);
+  let r = q(); if (r || !$('#list-more')) return r;
+  const i = currentList().list.findIndex(n => n.id === id);
+  if (i >= S.listLimit) { S.listLimit = i + LIST_STEP; renderList(); r = q(); }
+  return r;
+}
 function renderTrashList(list) {
   renderBulkBar([]);
   const purgeable = list.filter(canPurge), shared = list.some(n => spaceOfNote(n));
@@ -4121,19 +4149,22 @@ const backupSet = patch => store.set('backup.' + (S.uid || ''), Object.assign(ba
 const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 const crc32 = u8 => { let c = ~0; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return ~c >>> 0; };
 const pipeBytes = async (u8, tr) => new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(tr)).arrayBuffer());
-async function zipBlob(files) {   // [{ name, data: Uint8Array, deflate }]
+// [{ name, data: Uint8Array, deflate }] или { name, data: Blob, crc } — большие файлы (изображения) Blob'ом: браузер держит их вне памяти страницы
+async function zipBlob(files) {
   const enc = new TextEncoder(), parts = [], central = [], now = new Date(); let off = 0;
   const tm = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1), dt = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
   for (const f of files) {
-    const name = enc.encode(f.name), crc = crc32(f.data); let body = f.data, method = 0;
-    if (f.deflate && typeof CompressionStream === 'function') { try { const z = await pipeBytes(f.data, new CompressionStream('deflate-raw')); if (z.length < body.length) { body = z; method = 8; } } catch {} }
+    const blob = f.data instanceof Blob, name = enc.encode(f.name), crc = blob ? f.crc : crc32(f.data), size = blob ? f.data.size : f.data.length;
+    let body = f.data, method = 0;
+    if (!blob && f.deflate && typeof CompressionStream === 'function') { try { const z = await pipeBytes(f.data, new CompressionStream('deflate-raw')); if (z.length < body.length) { body = z; method = 8; } } catch {} }
     const h = new DataView(new ArrayBuffer(30));
-    [[0, 0x04034b50, 4], [4, 20], [6, 0x0800], [8, method], [10, tm], [12, dt], [14, crc, 4], [18, body.length, 4], [22, f.data.length, 4], [26, name.length]]
+    const blen = blob ? size : body.length;
+    [[0, 0x04034b50, 4], [4, 20], [6, 0x0800], [8, method], [10, tm], [12, dt], [14, crc, 4], [18, blen, 4], [22, size, 4], [26, name.length]]
       .forEach(([o, v, w]) => w === 4 ? h.setUint32(o, v, true) : h.setUint16(o, v, true));
     const c = new DataView(new ArrayBuffer(46));
-    [[0, 0x02014b50, 4], [4, 20], [6, 20], [8, 0x0800], [10, method], [12, tm], [14, dt], [16, crc, 4], [20, body.length, 4], [24, f.data.length, 4], [28, name.length], [42, off, 4]]
+    [[0, 0x02014b50, 4], [4, 20], [6, 20], [8, 0x0800], [10, method], [12, tm], [14, dt], [16, crc, 4], [20, blen, 4], [24, size, 4], [28, name.length], [42, off, 4]]
       .forEach(([o, v, w]) => w === 4 ? c.setUint32(o, v, true) : c.setUint16(o, v, true));
-    parts.push(h, name, body); central.push(c, name); off += 30 + name.length + body.length;
+    parts.push(h, name, body); central.push(c, name); off += 30 + name.length + blen;
   }
   const e = new DataView(new ArrayBuffer(22));
   e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
@@ -4176,7 +4207,8 @@ async function saveBackup() {
       const bytes = await fetchImg(u); if (!bytes) { lost++; continue; }
       let nm = decodeURIComponent(u.split('/').pop() || 'image').replace(/[\\/:*?"<>|]/g, '_'), i = 1;
       while (used.has(nm)) nm = nm.replace(/(-\d+)?(\.\w+)?$/, (m, a, ext) => `-${++i}${ext || ''}`);
-      used.add(nm); images[u] = 'images/' + nm; files.push({ name: 'images/' + nm, data: bytes });
+      // сразу в Blob (crc — пока байты в памяти): на 500 МБ изображений страница иначе держит их все разом — телефон закрывает вкладку
+      used.add(nm); images[u] = 'images/' + nm; files.push({ name: 'images/' + nm, data: new Blob([bytes]), crc: crc32(bytes) });
     }
     const data = { format: 'android-notes', version: 2, exportedAt: new Date().toISOString(),
       sections: [...S.sections.values()], notes, srs, settings: S.settings, images };
@@ -5284,29 +5316,71 @@ function scrollArticleTo(el) {
   box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - off - 8;
 }
 let artObserver = null;
+const ART_STEP = 30, ART_CHARS = 300000;
+const artSig = (all, title) => S.artLimit + '|' + all.map(n => n.id + ':' + (n.updated || '') + ':' + (n.title || '').length + ':' + (n.body || '').length).join('|') + '|' + title + '|' + (S.q || '');
+function artNoteHtml(n, i) {
+  return `<section class="art-note" id="art-${esc(n.id)}" data-id="${esc(n.id)}">
+      <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(n.title)}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="${tt('art.open.title')}">${tt('art.open')}</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">${tt('art.edit')}</button>` : ''}</span></div>
+      <div class="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('art.noanswer')}</p>`}</div>
+    </section>`;
+}
+const artTail = (shown, total) => shown < total ? `<button type="button" class="list-more" id="art-more">${tt('list.show.more', { n: total - shown })}</button>` : total ? `<div class="art-end">${tt('art.end', { n: total })}</div>` : '';
+function artWire(root, terms) {
+  root.querySelectorAll('.art-note .md').forEach(md => enhance(md, null));
+  if (terms) root.querySelectorAll('.art-note .md, .art-head h2').forEach(el => markTerms(el, terms));
+  root.querySelectorAll('[data-art-open]').forEach(b => b.onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); openNote(b.dataset.artOpen); });
+  root.querySelectorAll('[data-art-edit]').forEach(b => b.onclick = () => { S.noteId = b.dataset.artEdit; startEdit(b.dataset.artEdit); });
+}
+// сколько заметок показать: не меньше min, плюс следующая порция (ART_STEP заметок или ART_CHARS символов текста)
+function artCount(list, min) {
+  let i = Math.min(min, list.length), k = 0, sz = 0;
+  while (i < list.length && k < ART_STEP && sz < ART_CHARS) { sz += (list[i].body || '').length; i++; k++; }
+  return i;
+}
 function renderArticle(box, scrollTop) {
-  const { list, terms, title } = currentList();
+  const { list: all, terms, title } = currentList();
   const prevScroll = $('#reader').scrollTop;
-  const sig = list.map(n => n.id + ':' + (n.updated || '') + ':' + (n.title || '').length + ':' + (n.body || '').length).join('|') + '|' + title + '|' + (S.q || '');
+  // «Читать подряд» по тысячам заметок рисуем частями (ART_STEP заметок / ART_CHARS текста), дальше — по мере прокрутки
+  // (5000 заметок разом — 10 с на компьютере; тестирование, блок 15)
+  const akey = [S.section, S.q, S.tag].join('\n');
+  if (S.artKey !== akey) { S.artKey = akey; S.artLimit = 0; }
+  const need = S.artJumpToCurrent && S.noteId ? all.findIndex(n => n.id === S.noteId) : -1;
+  if (!S.artLimit || need >= S.artLimit) S.artLimit = artCount(all, Math.max(S.artLimit, need + 1));
+  const list = all.length > S.artLimit ? all.slice(0, S.artLimit) : all;
+  const sig = artSig(all, title);
   if (!scrollTop && box.dataset.artSig === sig) return; // nothing changed, keep the reader as it is
   box.dataset.artSig = sig;
   box.innerHTML = `
-    <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: list.length })}</span></span></div>
+    <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
     <div class="eyebrow"><span>${tt('list.readall.label')}</span><button class="sec-link" id="art-close">${tt('art.close')}</button></div>
     <h1>${esc(title)}</h1>
-    ${list.length ? `<details class="art-toc" ${list.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: list.length })}</summary><ol>${list.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
-    ${list.map((n, i) => `<section class="art-note" id="art-${esc(n.id)}" data-id="${esc(n.id)}">
-      <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(n.title)}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="${tt('art.open.title')}">${tt('art.open')}</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">${tt('art.edit')}</button>` : ''}</span></div>
-      <div class="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('art.noanswer')}</p>`}</div>
-    </section>`).join('')}
-    ${list.length ? `<div class="art-end">${tt('art.end', { n: list.length })}</div>` : ''}`;
-  box.querySelectorAll('.art-note .md').forEach(md => enhance(md, null));
-  if (terms) box.querySelectorAll('.art-note .md, .art-head h2').forEach(el => markTerms(el, terms));
-  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = S.noteId && document.querySelector(`#items .row-item[data-id="${CSS.escape(S.noteId)}"]`); if (r) scrollWithin($('#items'), r); };
+    ${all.length ? `<details class="art-toc" ${all.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: all.length })}</summary><ol>${all.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
+    ${list.map((n, i) => artNoteHtml(n, i)).join('')}
+    ${artTail(list.length, all.length)}`;
+  artWire(box, terms);
+  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = S.noteId && listRow(S.noteId); if (r) scrollWithin($('#items'), r); };
   $('#art-close').onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); renderReader(true); };
-  box.querySelectorAll('[data-art-jump]').forEach(a => a.onclick = e => { e.preventDefault(); const t = document.getElementById('art-' + a.dataset.artJump); if (t) scrollArticleTo(t); });
-  box.querySelectorAll('[data-art-open]').forEach(b => b.onclick = () => { S.article = false; $('#read-all').setAttribute('aria-pressed', 'false'); openNote(b.dataset.artOpen); });
-  box.querySelectorAll('[data-art-edit]').forEach(b => b.onclick = () => { S.noteId = b.dataset.artEdit; startEdit(b.dataset.artEdit); });
+  box.querySelectorAll('[data-art-jump]').forEach(a => a.onclick = e => {
+    e.preventDefault(); const id = a.dataset.artJump;
+    if (!document.getElementById('art-' + id)) { const i = all.findIndex(n => n.id === id); if (i < 0) return; S.artLimit = artCount(all, i + 1); renderArticle(box, false); }
+    const t = document.getElementById('art-' + id); if (t) scrollArticleTo(t);
+  });
+  // следующая порция — дописываем в конец, уже показанное не перерисовываем
+  const artMore = () => {
+    const more = $('#art-more'); if (!more) return;
+    more.onclick = () => {
+      const from = S.artLimit; S.artLimit = artCount(all, from);
+      const tmp = document.createElement('div'); tmp.innerHTML = all.slice(from, S.artLimit).map((n, k) => artNoteHtml(n, from + k)).join('');
+      const added = [...tmp.children];
+      more.before(...added); added.forEach(el => artWire(el, terms)); more.insertAdjacentHTML('afterend', artTail(S.artLimit, all.length)); more.remove();
+      box.dataset.artSig = artSig(all, title);
+      added.forEach(el => artObserver?.observe(el));
+      artMore();
+    };
+    if ('IntersectionObserver' in window) { const o = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { o.disconnect(); more.click(); } }, { root: $('#reader'), rootMargin: '0px 0px 1200px 0px' }); o.observe(more); }
+  };
+  artMore();
+
   $('#reader').scrollTop = scrollTop ? 0 : prevScroll;
   if (scrollTop && S.noteId && list.some(n => n.id === S.noteId) && S.artJumpToCurrent) { const t = document.getElementById('art-' + S.noteId); if (t) scrollArticleTo(t); }
   S.artJumpToCurrent = false;
@@ -5317,7 +5391,7 @@ function renderArticle(box, scrollTop) {
     if (!vis) return;
     const id = vis.target.dataset.id; if (S.noteId === id) return;
     S.noteId = id; store.set('note', id); markListCurrent(id);
-    const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(id)}"]`);
+    const r = listRow(id);
     const items = $('#items');
     if (r && window.matchMedia('(min-width:761px)').matches) { const a = r.getBoundingClientRect(), b = items.getBoundingClientRect(); if (a.top < b.top || a.bottom > b.bottom) scrollWithin(items, r); }
   }, { root: $('#reader'), rootMargin: '0px 0px -70% 0px' });
@@ -5427,7 +5501,7 @@ function renderReader(scrollTop) {
     $('#dr-cont') && ($('#dr-cont').onclick = () => startEdit(n.id, readerAnchor(), true));
   }
   if (S.slide) { const dcl = S.slide === 'next' ? 'slide-in-next' : 'slide-in-prev'; S.slide = null; box.classList.remove('slide-in-next', 'slide-in-prev'); void box.offsetWidth; box.classList.add(dcl); }
-  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(n.id)}"]`); if (r) scrollWithin($('#items'), r); };
+  $('#back').onclick = () => { $('#lib').classList.remove('reading'); const r = listRow(n.id); if (r) scrollWithin($('#items'), r); };
   $('#sec-link').onclick = () => gotoInSection(n.id);
   S.nbr = nbr;
   $('#prev-note').onclick = () => nbr.prev && openNote(nbr.prev, 'prev');
@@ -5525,7 +5599,7 @@ function followNoteLink(id, fromId) {
   S.linkBack = fromId && fromId !== id ? fromId : null;
   S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
   S._following = true; try { openNote(id); } finally { S._following = false; }
-  const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(id)}"]`); if (r) scrollWithin($('#items'), r);
+  const r = listRow(id); if (r) scrollWithin($('#items'), r);
 }
 document.addEventListener('click', e => {
   const a = e.target.closest('a[href^="#note:"]'); if (!a || a.closest('[contenteditable="true"]')) return;
@@ -8280,7 +8354,7 @@ window.addEventListener('popstate', e => {
       if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s);
       if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
         openNote(st.n);
-        const r = document.querySelector(`#items .row-item[data-id="${CSS.escape(st.n)}"]`); if (r) scrollWithin($('#items'), r);
+        const r = listRow(st.n); if (r) scrollWithin($('#items'), r);
       }
       if (isPhone()) $('#lib').classList.toggle('reading', !!st.r);
     }
@@ -8304,7 +8378,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { compressImage, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
