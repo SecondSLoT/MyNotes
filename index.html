@@ -572,6 +572,7 @@ window.STR = {
   'img.loading': 'Загружаю изображение…',
   'img.nospace': 'не хватает места под изображения',
   'img.loaded': 'Изображение загружено',
+  'img.queued': 'Нет связи — изображение сохранено на этом устройстве и загрузится, когда она появится',
   'img.nogh': 'Чтобы вставлять изображения, подключи GitHub: ⚙ Настройки → Изображения',
   'img.alt': 'Иллюстрация из заметки',
   'img.fail': 'Изображение не загрузилось — нажми, чтобы повторить',
@@ -593,6 +594,10 @@ window.STR = {
   'sync.back.sent': 'Связь есть — изменения отправлены',
   'sync.back': 'Связь есть — заметки обновлены',
   'sync.conflict': 'Заметку «{title}» за это время изменили на другом устройстве — там осталась та версия, а твоя сохранена рядом копией',
+  'sync.edit.merged': 'Заметку «{title}» за это время изменили на другом устройстве — правки объединены',
+  'sync.edit.conflict': 'Заметку «{title}» за это время изменили на другом устройстве в тех же местах — там осталась та версия, а твоя сохранена рядом копией',
+  'sync.edit.copy': '{title} (моя версия)',
+  'sync.conflict.kept': 'Заметку «{title}» ты удалил, но за это время её изменили на другом устройстве — она осталась, с той правкой',
   'tr.today': 'Повторение на сегодня',
   'tr.today.help': 'Карточки, у которых подошёл срок, плюс порция новых. Оценка «знаю» отодвигает карточку дальше и дальше — насколько, зависит от того, как легко она тебе даётся',
   'tr.due': 'к повторению: <b>{n}</b>',
@@ -2988,16 +2993,16 @@ function insertUpload(file) {
   }
   toast(tt('img.loading'));
   const job = (async () => {
+    let blob = null;
     try {
-      const blob = await compressImage(file);
+      blob = await compressImage(file);
       if (planBlocks('bytes', blob.size)) throw new Error(tt('img.nospace'));
-      let path;
-      if (window.NOTES_UPLOAD) { path = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4)); if (S.plan?.usage) S.plan.usage.bytes += blob.size; }
-      else { path = newImgPath(blob); await ghPut(path, blob, `Add ${path} (MyNotes)`); }
+      const path = await uploadBlob(blob);
       localImages[path] = localImages[key];
       replaceInEditor(key, path);
       toast(tt('img.loaded'));
     } catch (err) {
+      if (blob && netLike(err) && await imgqPut(key, { blob, uid: S.uid || '', at: Date.now() })) { toast(tt('img.queued')); imgqSoon(); return; }   // нет связи — файл ждёт на устройстве
       replaceInEditor(`![](${key})`, ''); replaceInEditor(key, '');
       if (err?.code === 'limit') showPlanDialog('bytes', err.message); else
       toast(tt('img.failed', { why: err?.message || err }));
@@ -3005,6 +3010,63 @@ function insertUpload(file) {
   })();
   uploads.add(job); job.finally(() => uploads.delete(job));
 }
+async function uploadBlob(blob) {
+  if (window.NOTES_UPLOAD) { const p = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4)); if (S.plan?.usage) S.plan.usage.bytes += blob.size; return p; }
+  const p = newImgPath(blob); await ghPut(p, blob, `Add ${p} (MyNotes)`); return p;
+}
+const netLike = e => !!(e && (e.net || e instanceof TypeError || navigator.onLine === false));
+/* ---------- изображения, вставленные без связи (02.11) ----------
+   Файл (уже сжатый) ждёт на устройстве — IndexedDB «rn-img-queue», ключ — временный адрес uploading-…, который стоит в заметке.
+   Здесь изображение видно сразу (localImages), на других устройствах до загрузки — рамка «не загрузилось». Связь появилась
+   (online, «заметки обновлены», запуск, раз в минуту) — загружаем и меняем временный адрес на настоящий во всех заметках и в редакторе.
+   Временный адрес не встречается ни в одной заметке и черновике неделю — файл выбрасываем (изображение удалили из заметки) */
+const IMGQ = {};
+function imgqOpen() {
+  if (!IMGQ.p) IMGQ.p = new Promise(res => { try { const r = indexedDB.open('rn-img-queue', 1); r.onupgradeneeded = () => r.result.createObjectStore('q'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch { res(null); } });
+  return IMGQ.p;
+}
+async function imgqTx(mode, fn) {
+  const db = await imgqOpen(); if (!db) return null;
+  return new Promise(res => { try { const tx = db.transaction('q', mode), out = fn(tx.objectStore('q')); tx.oncomplete = () => res(typeof out === 'function' ? out() : true); tx.onerror = tx.onabort = () => res(null); } catch { res(null); } });
+}
+const imgqPut = (key, rec) => imgqTx('readwrite', st => { st.put(rec, key); });
+const imgqDel = key => imgqTx('readwrite', st => { st.delete(key); });
+const imgqAll = () => imgqTx('readonly', st => { const v = st.getAll(), k = st.getAllKeys(); return () => (v.result || []).map((r, i) => [k.result[i], r]); });
+function imgqUsed(key) {
+  if ([...S.notes.values(), ...S.trash.values()].some(n => (n.body || '').includes(key))) return true;
+  if ((S.editing?.draft?.body || '').includes(key) || ($('#ed-body')?.value || '').includes(key) || document.querySelector(`#ed-prev img[data-src="${CSS.escape(key)}"]`)) return true;
+  try { return Object.keys(localStorage).some(k => k.startsWith('aw.draft') && (localStorage.getItem(k) || '').includes(key)); } catch { return false; }
+}
+let imgqBusy = false, imgqT = 0;
+function imgqSoon(ms = 60000) { clearTimeout(imgqT); imgqT = setTimeout(imgqRun, ms); }
+async function imgqRun() {
+  if (imgqBusy || !S.db || !S.loaded.notes) return;
+  imgqBusy = true; let left = 0;
+  try {
+    const all = ((await imgqAll()) || []).filter(([, rec]) => !(rec.uid && S.uid && rec.uid !== S.uid));   // чужой аккаунт на этом устройстве — не трогаем
+    let shown = false;   // сначала показать все отложенные изображения на этом устройстве (после перезагрузки страницы) — загрузка может и не пройти
+    for (const [key, rec] of all) if (!localImages[key]) { localImages[key] = URL.createObjectURL(rec.blob); shown = true; }
+    if (shown) renderReader();
+    for (const [key, rec] of all) {
+      if (!imgqUsed(key)) { if (Date.now() - rec.at > 7 * 86400e3) await imgqDel(key); else left++; continue; }
+      let path;
+      try { path = await uploadBlob(rec.blob); }
+      catch (e) { left++; if (netLike(e) || e?.code === 'limit') break; continue; }
+      localImages[path] = localImages[key];
+      replaceInEditor(key, path);
+      if (S.editing?.base) S.editing.base.body = S.editing.base.body.split(key).join(path);
+      for (const coll of [S.notes, S.trash]) for (const n of [...coll.values()]) {
+        if (!(n.body || '').includes(key)) continue;
+        const doc = Object.assign({}, n, { body: n.body.split(key).join(path) }); delete doc.id;
+        if (await write(() => S.db.collection('notes').doc(n.id).set(doc), null)) coll.set(n.id, Object.assign({ id: n.id }, doc));
+      }
+      await imgqDel(key);
+      renderReader();
+    }
+  } finally { imgqBusy = false; if (left) imgqSoon(); }
+}
+window.addEventListener('online', () => imgqSoon(1500));
+window.addEventListener('notes-sync', e => { if (e.detail && !e.detail.offline && !e.detail.stale) imgqSoon(1500); });
 function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.test(f.type)); }
 // изображение: на телефоне — выбор «Сфотографировать» (камера сразу) или «Выбрать изображения» (галерея и файлы, можно несколько);
 // Android с выбором нескольких файлов камеру не предлагает, поэтому отдельный пункт. На компьютере — сразу выбор файлов
@@ -5776,7 +5838,8 @@ $('#new-note').addEventListener('click', () => {
 function startEdit(id, anchor, restore, overlay) {
   const n = S.notes.get(id);
   if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
-  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay };
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
+    base: editBase(n) };   // какой заметка была, когда открыли редактор: пока правишь, её могут изменить на другом устройстве (mergeEdit)
   if (liveFor(n)) { liveStart(S.editing, n); renderReader(!anchor); return; }   // общая заметка: живая правка, без черновиков
   const dr = getDraft(id);
   if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
@@ -6005,14 +6068,29 @@ function renderEditor(box) {
     // своя заметка → в чужой общий раздел: сначала сохраняем на месте, потом спрашиваем про перенос (она перейдёт владельцу раздела)
     let spaceTarget = null;
     if (prev && d.section !== prev.section && spaceMoveTarget(prev, d.section)) { spaceTarget = d.section; d.section = prev.section; }
+    // пока правил, заметку изменили на другом устройстве: правки в разных местах сливаем, в одних и тех же — наша версия копией рядом (02.11)
+    let mergedMsg = null, copyOf = null;
+    if (prev && E.base) {
+      const m = mergeEdit(E.base, d, prev);
+      if (m && m.conflict) copyOf = { title: tt('sync.edit.copy', { title: d.title.trim() || tt('note.untitled') }), body: d.body, tags: d.tags };
+      else if (m) { Object.assign(d, { title: m.title, body: m.body, tags: m.tags, section: m.section }); mergedMsg = tt('sync.edit.merged', { title: m.title }); }
+    }
+    if (copyOf) {   // заметку не трогаем (там версия с другого устройства), наша — новой заметкой рядом
+      const cid = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), cdoc = { section: prev.section, title: copyOf.title, body: copyOf.body, tags: copyOf.tags, ref: !!prev.ref, order: (prev.order ?? 0) + 0.5, created: now, updated: now };
+      if (!await write(() => S.db.collection('notes').doc(cid).set(cdoc), null)) return;
+      S.notes.set(cid, Object.assign({ id: cid }, cdoc)); dropDraft(E.id);
+      toast(tt('sync.edit.conflict', { title: prev.title || tt('note.untitled') }), { label: tt('btn.ok'), fn() {} });
+      S.editing = null; S.noteId = cid; store.set('note', cid); renderList(); renderReader(true); return;
+    }
     const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
     if (prev?.pinned) doc.pinned = true;
     const stay = E.stay; E.stay = false;
     const A = !stay && E.id ? editorAnchor(E) : null;
     const wasNew = !E.id;
-    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), tt(wasNew ? 'ed.added' : 'live.saved'));
+    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
     if (!ok) return;
+    E.base = editBase(doc);   // «Сохранить и остаться» (Ctrl+S): дальше сравниваем с только что сохранённым
     S.notes.set(id, Object.assign({ id }, prev || {}, doc));
     dropDraft(E.id); if (wasNew) dropDraft(null);
     S.noteId = id; store.set('note', id);
@@ -6022,6 +6100,46 @@ function renderEditor(box) {
     if (spaceTarget) moveToSpace(id, spaceTarget);
   });
   if (!E.id) $('#ed-title').focus();
+}
+/* ---------- одна заметка правится на двух устройствах (02.11) ----------
+   base — заметка, когда открыли редактор; mine — что получилось у нас; theirs — что сейчас на сервере (пришло с другого устройства).
+   Текст: правки в разных строках сливаются (ядро совместной правки RNCollab.merge); если одна сторона удалила или заменила строку,
+   которую трогала и другая, — конфликт (наша версия — копией рядом). Без RNCollab (MyNotes) любое расхождение текста — конфликт.
+   Заголовок: менял один — берём его; оба по-разному — конфликт. Теги — изменения обеих сторон; раздел — наш, если мы его меняли.
+   null — с другого устройства ничего не менялось */
+function editBase(n) { return { title: n.title || '', body: n.body || '', tags: [...(n.tags || [])], section: n.section }; }
+function mergeEdit(base, mine, theirs) {
+  const T = editBase(theirs), key = x => JSON.stringify([x.title, x.body, [...x.tags].sort(), x.section]);
+  if (key(T) === key(base)) return null;
+  const pick = (b, m, t) => m === b ? t : (t === b || t === m ? m : undefined);
+  const out = { conflict: false };
+  out.title = pick(base.title, mine.title, T.title); if (out.title === undefined) { out.conflict = true; out.title = mine.title; }
+  out.section = mine.section !== base.section ? mine.section : T.section;
+  const B = new Set(base.tags), M = new Set(mine.tags), Th = new Set(T.tags);
+  out.tags = [...new Set([...mine.tags, ...T.tags])].filter(t => !(B.has(t) && (!M.has(t) || !Th.has(t))));
+  out.body = pick(base.body, mine.body, T.body);
+  if (out.body === undefined) {
+    if (!window.RNCollab || bodyOverlap(base.body, mine.body, T.body)) { out.conflict = true; out.body = mine.body; }
+    else out.body = RNCollab.merge(base.body, mine.body, T.body);
+  }
+  return out;
+}
+// строки base, которые правка меняет — удаляет, заменяет, дописывает внутрь (del), и места, куда она вставляет новые строки целиком (ins)
+function editLines(base, text) {
+  const del = new Set(), ins = new Set(); let at = 0;
+  const line = i => { let n = 0; for (let k = base.indexOf('\n'); k !== -1 && k < i; k = base.indexOf('\n', k + 1)) n++; return n; };
+  for (const o of RNCollab.diffOps(base, text)) {
+    if (typeof o === 'string') {   // новые строки целиком (на границе строк) — «дописал», не мешают другим; вставка внутрь строки — правка этой строки
+      if (o.includes('\n') && (at === 0 || at === base.length || base[at - 1] === '\n')) ins.add(line(at)); else del.add(line(at));
+    }
+    else if (o > 0) at += o;
+    else { for (let l = line(at), e = line(at - o - 1); l <= e; l++) del.add(l); at -= o; }
+  }
+  return { del, ins };
+}
+function bodyOverlap(base, a, b) {
+  const x = editLines(base, a), y = editLines(base, b), hit = (s, t) => [...s].some(v => t.has(v));
+  return hit(x.del, y.del) || hit(x.del, y.ins) || hit(y.del, x.ins);
 }
 /* ---------- markdown toolbar ---------- */
 const MOD = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl';
@@ -7428,7 +7546,7 @@ window.addEventListener('notes-sync', e => {
     b.hidden = true;
     if (syncWasOffline) { toast(tt(syncHadPending ? 'sync.back.sent' : 'sync.back')); syncWasOffline = syncHadPending = staleTold = false; }
   }
-  for (const t of d.conflicts || []) toast(tt('sync.conflict', { title: t }));
+  for (const t of d.conflicts || []) toast(t && t.kept ? tt('sync.conflict.kept', { title: t.title }) : tt('sync.conflict', { title: t }));
 });
 document.addEventListener('click', e => { if (e.target.closest?.('#sync-badge')) toast(SYNC.stale ? STALE_MSG : $('#sync-badge').title); });
 async function write(fn, okMsg) {
@@ -8052,7 +8170,7 @@ async function boot() {
     for (const d of snap.docs) { const v = Object.assign({ id: d.id }, d.data()); (v.deleted ? tr : act).set(d.id, v); }
     S.notes = act; S.trash = tr;
     if (!S.loaded.notes && window.BOOT_READ && !S.notes.has(S.noteId)) $('#lib').classList.remove('reading');   // открытой заметки уже нет — к списку
-    S.loaded.notes = true; rerender(); autoPurge(); renderSpaceBar();
+    S.loaded.notes = true; rerender(); autoPurge(); renderSpaceBar(); imgqSoon(300);
   }, e => { $('#items').innerHTML = `<div class="empty-state">${tt('boot.failed')}</div>`; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
