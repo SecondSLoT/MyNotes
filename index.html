@@ -987,6 +987,8 @@ window.STR = {
   // ===== Общие разделы: совместная работа
   'sp.ro.expired': 'Pro у владельца раздела закончился — пока можно только читать.',
   'sp.ro': 'В этом общем разделе ты только читаешь.',
+  'sp.lost.copy': 'Править этот общий раздел тебе больше нельзя — твой текст сохранён копией в разделе «{sec}»',
+  'sp.lost.open': 'Открыть',
   'sp.you': 'ты',
   'sp.role.read': 'читает',
   'sp.role.edit': 'редактирует',
@@ -5800,7 +5802,9 @@ function liveStatus(E) {
 function liveOff(E) {
   if (!E.live) return;
   clearTimeout(E.L.t); E.live = false; E.L.done = true;
-  if (S.editing === E) { const box = $('#reader'); if (box) { E.draft.title = $('#ed-title')?.value ?? E.draft.title; renderEditor(box); } toast(tt('live.off')); }
+  // перерисовать через renderReader: renderEditor($('#reader')) затирал разметку читалки (#reader .doc), после чего страница падала
+  // на каждой перерисовке и редактор нельзя было закрыть (02.11)
+  if (S.editing === E) { E.draft.title = $('#ed-title')?.value ?? E.draft.title; renderReader(); toast(tt('live.off')); }
 }
 // «Готово» (или ушли из редактора): досылаем своё и выходим из заметки; без связи — обычная запись (уйдёт с очередью правок)
 // закрыли вкладку посреди правки — последнее отправляем «в фоне» (fetch keepalive)
@@ -5822,7 +5826,28 @@ async function liveFinish(E) {
   }
   const n = S.notes.get(E.id); if (!n) return false;
   E.draft.title = cur.title; E.draft.body = cur.body; E.draft.tags = tags;
-  return write(() => S.db.collection('notes').doc(E.id).update({ title: cur.title.trim() || n.title, body: cur.body, tags, updated: new Date().toISOString() }), null);
+  const ok = await write(() => S.db.collection('notes').doc(E.id).update({ title: cur.title.trim() || n.title, body: cur.body, tags, updated: new Date().toISOString() }), null);
+  if (!ok && write.err?.status === 403) await keepOwnCopy({ title: cur.title.trim() || n.title, body: cur.body, tags });   // права отняли — копией себе
+  return ok;
+}
+/* Текст, который нельзя сохранить в общем разделе (права отняли, пока правил, или правка без связи не принята), — копией в свой раздел (02.11):
+   «… (моя версия)» в первом своём разделе верхнего уровня; своих нет — создаём «Мои заметки» */
+async function keepOwnCopy(d) {
+  if (!S.db || !(d.body || d.title)) return false;
+  const own = [...S.sections.values()].filter(s => !spaceOfSection(s.id)).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  let sec = own.find(s => !s.parent) || own[0];
+  if (!sec) {
+    const sid = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    sec = { id: sid, title: tt('onb.mine'), order: 0 };
+    if (!await write(() => S.db.collection('sections').doc(sid).set({ title: sec.title, order: 0 }), null)) return false;
+  }
+  const now = new Date().toISOString(), id = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const doc = { section: sec.id, title: tt('sync.edit.copy', { title: (d.title || '').trim() || tt('note.untitled') }), body: d.body || '', tags: d.tags || [], ref: false,
+    order: Math.max(0, ...[...S.notes.values()].filter(n => n.section === sec.id).map(n => n.order ?? 0)) + 1, created: now, updated: now };
+  if (!await write(() => S.db.collection('notes').doc(id).set(doc), null)) return false;
+  S.notes.set(id, Object.assign({ id }, doc));
+  toast(tt('sp.lost.copy', { sec: sec.title }), { label: tt('sp.lost.open'), fn() { openNote(id); } });
+  return true;
 }
 
 /* ---------- editor ---------- */
@@ -6089,7 +6114,11 @@ function renderEditor(box) {
     const A = !stay && E.id ? editorAnchor(E) : null;
     const wasNew = !E.id;
     const ok = await write(() => S.db.collection('notes').doc(id).set(doc), mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
-    if (!ok) return;
+    if (!ok) {
+      // общий раздел: пока правил, стал читателем / у владельца кончился Pro / раздел перестал быть общим — текст не пропадает, копией себе
+      if (write.err?.status === 403 && spaceOfSection(doc.section)) { if (await keepOwnCopy(doc)) { dropDraft(E.id); S.editing = null; renderList(); renderReader(true); } }
+      return;
+    }
     E.base = editBase(doc);   // «Сохранить и остаться» (Ctrl+S): дальше сравниваем с только что сохранённым
     S.notes.set(id, Object.assign({ id }, prev || {}, doc));
     dropDraft(E.id); if (wasNew) dropDraft(null);
@@ -7547,12 +7576,15 @@ window.addEventListener('notes-sync', e => {
     if (syncWasOffline) { toast(tt(syncHadPending ? 'sync.back.sent' : 'sync.back')); syncWasOffline = syncHadPending = staleTold = false; }
   }
   for (const t of d.conflicts || []) toast(t && t.kept ? tt('sync.conflict.kept', { title: t.title }) : tt('sync.conflict', { title: t }));
+  for (const r of d.refused || []) keepOwnCopy(r.data || {});   // правка из очереди в общем разделе не принята по правам — копией себе
 });
 document.addEventListener('click', e => { if (e.target.closest?.('#sync-badge')) toast(SYNC.stale ? STALE_MSG : $('#sync-badge').title); });
 async function write(fn, okMsg) {
+  write.err = null;
   if (!S.db) { toast(tt('store.none')); return false; }
   try { await fn(); if (okMsg) toast(okMsg); return true; }
   catch (e) {
+    write.err = e;
     if (e && e.code === 'limit') { showPlanDialog((e.limit || '').replace('limit_', ''), e.message); return false; }
     if (e && e.code === 'invalid_argument') { S.canWrite = false; toast(tt('store.ro')); renderLib(); }
     else if (e && e.code === 'quota_exceeded') toast(tt('store.full'));
