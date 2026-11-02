@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f6b55'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='white' text-anchor='middle'%3E%E2%80%B9/%E2%80%BA%3C/text%3E%3C/svg%3E">
 <title>MyNotes</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3c90d0709e">
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
@@ -2465,7 +2465,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="config.js"></script>
-<script src="firebase-shim.js"></script>
+<script src="firebase-shim.js?v=5dfb8a1aef"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -3178,7 +3178,7 @@ function enhance(root, terms) {
   });
   root.querySelectorAll('img').forEach(img => { img.loading = 'lazy'; img.alt = img.alt || tt('img.alt'); });
   fixImgs(root);
-  if (root.id === 'ed-prev') prepVisTasks(root);
+  if (root.id === 'ed-prev') { visTidy(root); prepVisTasks(root); }
   if (window.hljs) root.querySelectorAll('pre code').forEach(c => {
     try {
       const m = (c.className.match(/language-(\w+)/) || [])[1];
@@ -6145,7 +6145,16 @@ function wrapInline(ta, mark, placeholder) {
   if (sel.length > 2 * L && sel.startsWith(mark) && sel.endsWith(mark)) {
     const inner = sel.slice(L, -L); replaceRange(ta, s, e, inner, s, s + inner.length); return;
   }
-  if (!sel) { const t = mark + placeholder + mark; replaceRange(ta, s, e, t, s + L, s + L + placeholder.length); return; }
+  if (!sel) {
+    // курсор внутри `кода` / **жирного** / ~~зачёркнутого~~ (кнопка горит) — снять, а не вставлять второй кусок рядом
+    const ls = v.lastIndexOf('\n', s - 1) + 1; let le = v.indexOf('\n', s); if (le < 0) le = v.length;
+    const esc = mark.replace(/[*~`]/g, c => '\\' + c), re = new RegExp(`${esc}(?!${esc})([^\\n]*?[^\\s])${esc}(?!${esc})`, 'g');
+    if (mark !== '*') for (const m of v.slice(ls, le).matchAll(re)) {
+      const a = ls + m.index, z = a + m[0].length;
+      if (s > a && s < z) { const inner = m[1]; replaceRange(ta, a, z, inner, Math.min(Math.max(s - L, a), a + inner.length), Math.min(Math.max(s - L, a), a + inner.length)); return; }
+    }
+    const t = mark + placeholder + mark; replaceRange(ta, s, e, t, s + L, s + L + placeholder.length); return;
+  }
   if (sel.includes('\n') && mark !== '`') {
     const t = sel.split('\n').map(x => x.trim() ? x.replace(/^(\s*(?:[-*+] |\d+\. |> )?)(.*?)(\s*)$/, `$1${mark}$2${mark}$3`) : x).join('\n');
     replaceRange(ta, s, e, t, s, s + t.length); return;
@@ -6158,10 +6167,10 @@ function lineBounds(ta) {
   const ls = v.lastIndexOf('\n', s - 1) + 1; let le = v.indexOf('\n', e); if (le < 0) le = v.length;
   return [ls, le];
 }
-const PREFIX_RE = /^(\s*)(#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> )?/;
+const PREFIX_RE = /^(\s*)(#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> ?)?/;
 function toggleLines(ta, kind) {
   const [ls, le] = lineBounds(ta); const lines = ta.value.slice(ls, le).split('\n');
-  const has = l => kind === 'h1' ? /^\s*#{1,2} /.test(l) : kind === 'h2' ? /^\s*#{3,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*> /.test(l);
+  const has = l => kind === 'h1' ? /^\s*#{1,2} /.test(l) : kind === 'h2' ? /^\s*#{3,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*>/.test(l);
   const nonEmpty = lines.filter(l => l.trim());
   const all = nonEmpty.length && nonEmpty.every(has);
   let n = 0;
@@ -6199,6 +6208,23 @@ function mdAction(act, ta) {
     case 'heading': return toggleLines(ta, 'h2');
     case 'h1': case 'h2': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
     case 'block': {
+      // курсор внутри блока кода (кнопка горит) — снять ограждение ```, текст остаётся
+      { const ln = v.split('\n'); let pos = 0, open = null;
+        for (let i = 0; i < ln.length; i++) {
+          const end = pos + ln[i].length;
+          if (/^\s*(```|~~~)/.test(ln[i])) {
+            if (open === null) open = { a: pos, ao: end };
+            else {
+              if (s >= open.a && e <= end) {
+                const body = v.slice(open.ao + 1, Math.max(pos - 1, open.ao + 1));
+                const ca = Math.min(Math.max(s - open.ao - 1, 0), body.length);
+                return replaceRange(ta, open.a, end, body, open.a + ca, open.a + ca);
+              }
+              open = null;
+            }
+          }
+          pos = end + 1;
+        } }
       if (!sel) return insertBlock(ta, '```kotlin\n\n```', 10);
       const t = '```kotlin\n' + sel.replace(/\n$/, '') + '\n```';
       return insertBlock(ta, t, 10, sel.replace(/\n$/, '').length);
@@ -6367,15 +6393,95 @@ function visCaretLiStart(vis) {
   const before = r.cloneContents(); if (before.textContent.replace(/[\u200b]/g, '') || before.querySelector('img')) return null;
   return li;
 }
+// вложить пункт в предыдущий / поднять на уровень выше — вручную: execCommand indent/outdent у Chrome кладёт <ul> прямо в <ul> (пункт пропадает из Markdown)
+// и ломает вложенность <li> в <li>
+function visKeepSel(fn) {
+  const sl = getSelection(), a = [sl.anchorNode, sl.anchorOffset, sl.focusNode, sl.focusOffset];
+  fn();
+  try { if (a[0]) sl.setBaseAndExtent(a[0], a[1], a[2], a[3]); } catch {}
+}
+function visIndentLi(li) {
+  const prev = li.previousElementSibling; if (!prev || prev.tagName !== 'LI') return false;
+  const tag = li.parentElement.tagName;
+  visKeepSel(() => {
+    let sub = prev.lastElementChild && prev.lastElementChild.tagName === tag ? prev.lastElementChild : null;
+    if (!sub) { sub = document.createElement(tag); prev.appendChild(sub); }
+    sub.appendChild(li);
+  });
+  return true;
+}
+function visOutdentLi(li) {
+  const list = li.parentElement, parentLi = list.parentElement && list.parentElement.closest('li'); if (!parentLi) return false;
+  visKeepSel(() => {
+    const rest = []; for (let n = li.nextElementSibling; n; n = n.nextElementSibling) rest.push(n);
+    if (rest.length) { let sub = li.lastElementChild && li.lastElementChild.tagName === list.tagName ? li.lastElementChild : null; if (!sub) { sub = document.createElement(list.tagName); li.appendChild(sub); } rest.forEach(n => sub.appendChild(n)); }
+    parentLi.after(li);
+    if (!list.children.length) list.remove();
+  });
+  return true;
+}
+// пустые «\n» между блоками (в разметке из Markdown) мешают редактированию: браузер ломает вложенность, пустые блоки остаются после снятия цитаты
+function visTidy(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), rm = []; let n;
+  while ((n = w.nextNode())) if (!n.textContent.trim() && n.parentElement && (n.parentElement === root || /^(UL|OL|BLOCKQUOTE|TABLE|THEAD|TBODY|TR)$/.test(n.parentElement.tagName))) rm.push(n);
+  rm.forEach(x => x.remove());
+}
 // убрать список у пункта: вложенный — на уровень выше, обычный — в обычную строку (на месте, курсор там же); картинки и текст не трогаем
 function visUnlist(vis, li) {
   li.classList.remove('task'); delete li.dataset.checked;
   const parentLi = li.parentElement && li.parentElement.parentElement && li.parentElement.parentElement.closest('li');
-  if (parentLi && vis.contains(parentLi)) exec('outdent');
+  if (parentLi && vis.contains(parentLi)) visOutdentLi(li);
   else {
     exec(li.parentElement && li.parentElement.tagName === 'OL' ? 'insertOrderedList' : 'insertUnorderedList');
     const n = getSelection().anchorNode; if (n && (n === vis || n.parentNode === vis)) exec('formatBlock', 'p');   // осталась «голая» строка прямо в редакторе — оборачиваем в абзац
   }
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+// пункты списка под выделением (или пункт с курсором); вложенные списки не считаем — берём самые внутренние
+function visSelLis(vis) {
+  const sl = getSelection(); let lis = [];
+  if (sl.rangeCount && !sl.isCollapsed) { const r = sl.getRangeAt(0); lis = [...vis.querySelectorAll('li')].filter(li => r.intersectsNode(li) && !li.querySelector('li')); }
+  if (!lis.length) { const li = closestIn(vis, 'li'); if (li) lis = [li]; }
+  return lis;
+}
+// только что вставленный элемент с data-new: убираем метку и выделяем его содержимое
+function visSelectNew(vis) {
+  const el = vis.querySelector('[data-new]'); if (!el) return;
+  el.removeAttribute('data-new');
+  const r = document.createRange(); r.selectNodeContents(el); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+const visUntask = li => { li.classList.remove('task'); if (!li.getAttribute('class')) li.removeAttribute('class'); delete li.dataset.checked; };
+// блок, в котором курсор, — заголовок или список: перед «другим» блоком (список, заголовок) сначала превращаем его в обычную строку,
+// иначе получается заголовок со списком внутри («## - слово») и наоборот
+function visPlain(vis) {
+  const li = visSelLis(vis)[0];
+  if (li) { visUnlist(vis, li); return; }
+  if (closestIn(vis, 'h1,h2,h3,h4,h5,h6')) exec('formatBlock', 'p');
+}
+// убрать цитату: у цитаты из Markdown внутри абзацы (<blockquote><p>…</p></blockquote>) — formatBlock их не снимает, поэтому выносим сами
+function visUnquote(vis) {
+  const bq = closestIn(vis, 'blockquote'); if (!bq) return;
+  const kids = [...bq.childNodes];
+  if (!kids.some(n => n.nodeType === 1 && /^(P|DIV|UL|OL|H[1-6]|PRE|TABLE|BLOCKQUOTE)$/.test(n.tagName))) { exec('formatBlock', 'p'); return; }   // голый текст — как раньше
+  const sl = getSelection(), r = sl.rangeCount ? sl.getRangeAt(0) : null;
+  const a = [sl.anchorNode, sl.anchorOffset, sl.focusNode, sl.focusOffset];
+  const hit = kids.map(n => r ? (r.intersectsNode(n) && (n.nodeType === 1 || n.textContent.trim())) : false);
+  let first = hit.indexOf(true), last = hit.lastIndexOf(true);
+  if (first < 0) { const at = kids.findIndex(n => n.contains(sl.anchorNode)); first = last = Math.max(at, 0); }
+  const sel = kids.slice(first, last + 1), after = kids.slice(last + 1);
+  const holder = document.createDocumentFragment();
+  for (const n of sel) {
+    if (n.nodeType === 3 && n.textContent.trim()) { const p = document.createElement('p'); p.appendChild(n); holder.appendChild(p); }   // голый текст рядом с абзацами — тоже в абзац
+    else holder.appendChild(n);
+  }
+  const blank = el => ![...el.childNodes].some(n => n.nodeType === 1 || n.textContent.trim());   // в разметке из Markdown между блоками — пустые «\n»
+  let tail = null;
+  if (after.length) { tail = bq.cloneNode(false); after.forEach(n => tail.appendChild(n)); bq.after(tail); }
+  bq.after(holder);
+  if (blank(bq)) bq.remove();
+  if (tail && blank(tail)) tail.remove();
+  try { sl.setBaseAndExtent(a[0], a[1], a[2], a[3]); } catch {}
   vis.dispatchEvent(new Event('input', { bubbles: true }));
 }
 // Кнопка панели не должна двигать страницу: после execCommand браузер сам «показывает курсор» и прокручивает (у пустого пункта списка — куда попало),
@@ -6410,27 +6516,58 @@ function visAction(act, vis) {
     case 'strike': return exec('strikeThrough');
     case 'code': {
       const c = closestIn(vis, 'code');
-      if (c && !c.closest('pre')) { const r = document.createRange(); r.selectNodeContents(c); sel.removeAllRanges(); sel.addRange(r); return exec('insertText', c.textContent); }
-      return exec('insertHTML', `<code>${esc(text || 'code')}</code>&#8203;`);
+      if (c && !c.closest('pre')) {   // снять код: вместо <code> — обычный текст, выделенный (insertText оставлял его внутри <code>)
+        const t = document.createTextNode(c.textContent); c.replaceWith(t);
+        const r = document.createRange(); r.selectNodeContents(t); sel.removeAllRanges(); sel.addRange(r);
+        vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+      }
+      const ok = exec('insertHTML', `<code data-new>${esc(text || 'code')}</code>&#8203;`);
+      visSelectNew(vis);   // вставленное остаётся выделенным: второе нажатие снимает код, а набор текста заменяет «code»
+      return ok;
     }
-    case 'h1': return exec('formatBlock', closestIn(vis, 'h1,h2') ? 'p' : 'h2');
-    case 'heading': case 'h2': return exec('formatBlock', closestIn(vis, 'h3,h4,h5,h6') ? 'p' : 'h3');
-    case 'quote': return exec('formatBlock', closestIn(vis, 'blockquote') ? 'p' : 'blockquote');
-    case 'ul': return exec('insertUnorderedList');
-    case 'ol': return exec('insertOrderedList');
+    case 'h1': case 'heading': case 'h2': {
+      const lvl = act === 'h1' ? 'h1,h2' : 'h3,h4,h5,h6', tag = act === 'h1' ? 'h2' : 'h3';
+      if (closestIn(vis, lvl)) return exec('formatBlock', 'p');
+      if (closestIn(vis, 'li')) visPlain(vis);   // из списка — в заголовок, а не заголовок со списком внутри
+      return exec('formatBlock', tag);
+    }
+    case 'quote': if (closestIn(vis, 'blockquote')) return visUnquote(vis); return exec('formatBlock', 'blockquote');
+    case 'ul': case 'ol': {
+      const cmd = act === 'ul' ? 'insertUnorderedList' : 'insertOrderedList', want = act === 'ul' ? 'UL' : 'OL';
+      const lis = visSelLis(vis), tasks = lis.filter(li => li.classList.contains('task'));
+      if (tasks.length) {   // чеклист → обычный список сразу, а не «отжатие»: тот же вид списка — только снимаем квадратики
+        tasks.forEach(visUntask);
+        if (lis.every(li => li.parentElement && li.parentElement.tagName === want)) { vis.dispatchEvent(new Event('input', { bubbles: true })); return; }
+      }
+      else if (!lis.length) visPlain(vis);   // из заголовка
+      else if (lis.length === 1 && lis[0].parentElement.tagName === want && lis[0].parentElement.parentElement.closest('li') && vis.contains(lis[0].parentElement.parentElement.closest('li'))) { visUnlist(vis, lis[0]); return; }   // вложенный пункт: «отжать» = на уровень выше (браузер ломал разметку <li> в <li>)
+      return exec(cmd);
+    }
     case 'task': {
-      if (!closestIn(vis, 'ul,ol')) exec('insertUnorderedList');
-      const sl = getSelection(); let lis = [];
-      if (sl.rangeCount && !sl.isCollapsed) { const r = sl.getRangeAt(0); lis = [...vis.querySelectorAll('li')].filter(li => r.intersectsNode(li) && !li.querySelector('li')); }
-      if (!lis.length) { const li = closestIn(vis, 'li'); if (li) lis = [li]; }
+      if (!closestIn(vis, 'li')) { visPlain(vis); exec('insertUnorderedList'); }
+      else if (visSelLis(vis).some(li => li.parentElement && li.parentElement.tagName === 'OL') && !visSelLis(vis).every(li => li.classList.contains('task'))) exec('insertUnorderedList');   // нумерованный → чеклист: квадратики бывают только у маркированного списка
+      const lis = visSelLis(vis);
       if (!lis.length) return;
       const on = !lis.every(li => li.classList.contains('task'));
       // «отжал» чек-лист на пустом пункте (только квадратик) — список исчезает совсем, а не становится маркированным
       if (!on && lis.length === 1 && !lis[0].textContent.replace(/[\u200b\s]/g, '') && !lis[0].querySelector('img')) { visUnlist(vis, lis[0]); return; }
-      lis.forEach(li => { li.classList.toggle('task', on); if (on) li.dataset.checked = li.dataset.checked || 'false'; else delete li.dataset.checked; });
+      lis.forEach(li => { if (on) { li.classList.add('task'); li.dataset.checked = li.dataset.checked || 'false'; } else visUntask(li); });
       vis.dispatchEvent(new Event('input', { bubbles: true })); return;
     }
-    case 'block': return exec('insertHTML', `<pre><code class="language-kotlin">${esc(text || tt('ed.ins.code'))}</code></pre><p><br></p>`);
+    case 'block': {
+      const pre = closestIn(vis, 'pre');
+      if (pre) {   // снять блок кода: текст блока — обычными строками
+        const p = document.createElement('p'), lines = pre.textContent.replace(/\n$/, '').split('\n');
+        lines.forEach((l, i) => { if (i) p.appendChild(document.createElement('br')); p.appendChild(document.createTextNode(l)); });
+        if (!pre.textContent) p.appendChild(document.createElement('br'));
+        pre.replaceWith(p);
+        const r = document.createRange(); r.selectNodeContents(p); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+        vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+      }
+      const ok = exec('insertHTML', `<pre><code data-new class="language-kotlin">${esc(text || tt('ed.ins.code'))}</code></pre><p><br></p>`);
+      visSelectNew(vis);
+      return ok;
+    }
     case 'cloze': {   // пропуск: выделенное → <span class="cloze">; внутри пропуска — снять
       const cz = closestIn(vis, 'span.cloze');
       if (cz) { const f = document.createDocumentFragment(); while (cz.firstChild) f.appendChild(cz.firstChild); cz.replaceWith(f); vis.dispatchEvent(new Event('input', { bubbles: true })); return; }
@@ -6459,7 +6596,11 @@ function visAction(act, vis) {
     }
     case 'note': return pickForVis(vis, document.querySelector('.md-toolbar [data-md="note"]') || vis);
     case 'table': return exec('insertHTML', `<table><thead><tr><th>${tt('ed.ins.col', { n: 1 })}</th><th>${tt('ed.ins.col', { n: 2 })}</th></tr></thead><tbody><tr><td>${tt('ed.ins.value')}</td><td>${tt('ed.ins.value')}</td></tr></tbody></table><p><br></p>`);
-    case 'hr': return exec('insertHorizontalRule');
+    case 'hr': {   // после линии — пустой абзац с курсором: иначе текст после неё оказывался «голым», вне абзаца
+      const ok = exec('insertHTML', '<hr><p data-new><br></p>');
+      const np = vis.querySelector('p[data-new]'); if (np) { np.removeAttribute('data-new'); const r = document.createRange(); r.setStart(np, 0); r.collapse(true); const sl2 = getSelection(); sl2.removeAllRanges(); sl2.addRange(r); vis.dispatchEvent(new Event('input', { bubbles: true })); }
+      return ok;
+    }
     case 'undo': return histStep(vis, -1);
     case 'redo': return histStep(vis, 1);
   }
@@ -6765,6 +6906,24 @@ function visPreEnter(e, vis) {
 function visKeydown(e, vis) {
   if (visExitInline(e, vis) || visPreEnter(e, vis)) return;
   const mod = e.ctrlKey || e.metaKey;
+  // Tab / Shift+Tab в списке — вложить пункт / поднять на уровень выше (раньше Tab уводил фокус из редактора); вне списка Tab работает как обычно
+  if (e.key === 'Tab' && !mod && !e.altKey && !e.isComposing) {
+    const li = closestIn(vis, 'li');
+    if (li) {
+      e.preventDefault(); histRecord(vis);
+      const nested = li.parentElement.parentElement && li.parentElement.parentElement.closest('li');
+      if (!e.shiftKey) visIndentLi(li); else if (nested) visOutdentLi(li);
+      vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+    }
+  }
+  // Enter на пустой строке цитаты — выйти из цитаты (как в списке); раньше цитата росла пустыми строками
+  if (e.key === 'Enter' && !mod && !e.shiftKey && !e.altKey && !e.isComposing) {
+    const sl = getSelection(), el = sl.isCollapsed && sl.anchorNode && (sl.anchorNode.nodeType === 1 ? sl.anchorNode : sl.anchorNode.parentElement);
+    const blk = el && el !== vis && el.closest('p, div');
+    if (blk && vis.contains(blk) && blk.parentElement && blk.parentElement.tagName === 'BLOCKQUOTE' && !blk.textContent.replace(/\u200b/g, '').trim() && !blk.querySelector('img')) {
+      e.preventDefault(); histRecord(vis); visUnquote(vis); return;
+    }
+  }
   if (mod && !e.altKey && (e.code === 'KeyZ' || e.code === 'KeyY')) { e.preventDefault(); histStep(vis, e.code === 'KeyY' || e.shiftKey ? 1 : -1); return; }
   if (e.key === 'Enter' || (e.key === ' ' && !mod)) histRecord(vis);   // word and line boundaries start a new undo step
   if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); visAction(e.code === 'Digit1' ? 'h1' : 'h2', vis); return; }
@@ -8048,7 +8207,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { compressImage, imgFail, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { compressImage, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
