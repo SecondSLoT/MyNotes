@@ -512,6 +512,7 @@ window.STR = {
   'ed.tab.vis': 'Визуально',
   'ed.link.url': 'Адрес ссылки',
   'ed.link.insert': 'Вставить',
+  'ed.link.tip': 'Быстрее: выдели текст и вставь скопированную ссылку — текст сам станет ссылкой',
 
   // ===== Редактор: панель форматирования и вставки
   'ed.added': 'Заметка добавлена',
@@ -2002,6 +2003,7 @@ button.tag{border:0;background:none;padding:0}
 .ed-panes:not(.split) .preview.visual{position:static;max-height:none}
 .link-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
 .link-bar label{font-size:13px;color:var(--muted)}
+.link-bar .link-tip{flex:1 1 100%;font-size:12.5px;line-height:1.4;color:var(--muted)}.link-bar .link-tip[hidden]{display:none}
 .link-bar input{flex:1;min-width:180px;border:1px solid var(--line);background:var(--raised);border-radius:8px;padding:6px 9px}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bar .spacer{flex:1}
@@ -2122,7 +2124,8 @@ button.tag{border:0;background:none;padding:0}
 .stack{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
 .stack i{display:block;height:100%}
 .s-new{background:var(--line-strong)} .s-learn{background:var(--hard)} .s-know{background:var(--accent)} .s-solid{background:var(--kt)}
-.prog-row .nums{font:12px var(--f-mono);color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.prog-row .nums{font:12px var(--f-mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.prog-row .nums .due{display:block;color:var(--kt)}   /* «N к повтору» — второй строкой: в одну строку подпись вылезала за край карточки */
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
@@ -4044,7 +4047,7 @@ function accountPanelHtml() {
     </div>` : ''}
     ${A.status ? `<p class="hint" style="margin-top:10px">${esc(A.status)}</p>` : ''}
     ${window.NOTES_LEGAL ? `<p class="hint legal-links" style="margin-top:12px">${tt('acc.docs')} <a href="${window.NOTES_LEGAL.privacy}" target="_blank" rel="noopener">${tt('login.privacy')}</a> ·
-      <a href="${window.NOTES_LEGAL.consent}" target="_blank" rel="noopener">${tt('acc.consent')}</a>${window.NOTES_LEGAL.terms ? ` · <a href="${window.NOTES_LEGAL.terms}" target="_blank" rel="noopener">${tt('land.foot.terms')}</a>` : ''}</p>` : ''}
+      <a href="${window.NOTES_LEGAL.consent}" target="_blank" rel="noopener">${tt('acc.consent')}</a>${window.NOTES_LEGAL.terms ? ` · <a href="${window.NOTES_LEGAL.terms}" target="_blank" rel="noopener">${tt('land.foot.terms')}</a>` : ''}${window.NOTES_LEGAL.offer ? ` · <a href="${window.NOTES_LEGAL.offer}" target="_blank" rel="noopener">${tt('land.foot.offer')}</a>` : ''}</p>` : ''}
   </details>`;
 }
 // картинки при импорте из Evernote меняют вид ссылки (enex:… → адрес загруженной картинки или пометка) — при сравнении не в счёт
@@ -5873,7 +5876,7 @@ function renderEditor(box) {
         <div class="bar"><span class="lbl">${tt('ed.answer')}</span><span class="spacer"></span>
           <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">${tt('ed.tab.split')}</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">${tt('ed.tab.vis')}</button></div></div>
         ${toolbarHtml()}
-        <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">${tt('ed.link.url')}</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">${tt('ed.link.insert')}</button><button class="btn" type="button" id="link-cancel">${tt('btn.cancel')}</button></div>
+        <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">${tt('ed.link.url')}</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">${tt('ed.link.insert')}</button><button class="btn" type="button" id="link-cancel">${tt('btn.cancel')}</button><div class="link-tip" id="link-tip" hidden>${tt('ed.link.tip')}</div></div>
         <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="${tt('ed.body.label')}" placeholder="${tt('ed.body.ph')}">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="${tt('ed.vis.label')}" data-empty="${tt('ed.vis.ph')}">${renderMd(d.body)}</div>` : ''}
@@ -5912,7 +5915,7 @@ function renderEditor(box) {
     ta.addEventListener('paste', e => {
       const url = pastedUrl(e.clipboardData), a0 = ta.selectionStart, a1 = ta.selectionEnd, sel = ta.value.slice(a0, a1);
       if (!url || !sel.trim() || sel.includes('\n') || pastedUrl(sel)) return;
-      e.preventDefault();
+      e.preventDefault(); store.set('tipLinkPaste', true);
       const lead = sel.match(/^\s*/)[0], trail = sel.match(/\s*$/)[0];
       const md = `${lead}[${sel.trim().replace(/([\[\]])/g, '\\$1')}](${url})${trail}`;
       if (!document.execCommand('insertText', false, md)) { ta.setRangeText(md, a0, a1, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
@@ -5950,6 +5953,13 @@ function renderEditor(box) {
       e.preventDefault(); visImgDrop(vis, img);
     });
     vis.addEventListener('input', () => { const img = vis._dropAfter; vis._dropAfter = null; if (img && vis.contains(img)) visImgDrop(vis, img); });
+    // Backspace в начале пункта списка (маркер или квадратик чек-листа) убирает только маркер: пункт становится обычной строкой, курсор остаётся в её начале.
+    // Склеивает с предыдущей строкой уже следующий Backspace (браузер сразу склеивал, и курсор «перепрыгивал» наверх)
+    vis.addEventListener('beforeinput', e => {
+      if (e.inputType !== 'deleteContentBackward' || e.defaultPrevented || !e.cancelable) return;
+      const li = visCaretLiStart(vis); if (!li) return;
+      e.preventDefault(); visUnlist(vis, li);
+    });
     vis.addEventListener('beforeinput', e => { if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); histStep(vis, e.inputType === 'historyUndo' ? -1 : 1); } });
     vis.addEventListener('input', e => visAutoFormat(e, vis));
     vis.addEventListener('input', () => histSoon(vis));
@@ -5990,6 +6000,7 @@ function renderEditor(box) {
       const url = pastedUrl(e.clipboardData), sl = getSelection(), selText = sl.toString();
       if (url && !sl.isCollapsed && selText.trim() && !selText.includes('\n') && !pastedUrl(selText) && !closestIn(vis, 'pre')) {
         // selected text + a link in the clipboard → the selection becomes the link's text
+        store.set('tipLinkPaste', true);
         document.execCommand('createLink', false, url);
         const a = closestIn(vis, 'a') || [...vis.querySelectorAll('a')].find(x => x.getAttribute('href') === url && sl.containsNode(x, true));
         if (a) { const r = document.createRange(); r.setStartAfter(a); r.collapse(true); sl.removeAllRanges(); sl.addRange(r); }
@@ -6006,7 +6017,7 @@ function renderEditor(box) {
     const b = e.target.closest('[data-md]'); if (!b) return;
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
     if (b.dataset.md === 'cloze' && !plusOn()) { showPlanDialog('plus'); return; }   // пропуски — «тренировка плюс» (Pro)
-    if (E.pane === 'vis' && vis) visAction(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
+    if (E.pane === 'vis' && vis) visActionKeep(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
     requestAnimationFrame(refreshTb);
   });
   // pressed state of toolbar buttons follows the caret
@@ -6193,10 +6204,15 @@ function mdAction(act, ta) {
       return insertBlock(ta, t, 10, sel.replace(/\n$/, '').length);
     }
     case 'link': {
+      if (linkTipDue()) toast(tt('ed.link.tip'), { label: tt('btn.ok'), fn() {} });   // с кнопкой тост висит 6 секунд, а не 2 — успеть прочитать
       const isUrl = /^(https?:\/\/|www\.)\S+$/.test(sel.trim());
       if (isUrl) { const lt = tt('ed.ins.linktext'), t = `[${lt}](${sel.trim()})`; return replaceRange(ta, s, e, t, s + 1, s + 1 + lt.length); }
       const label = sel || tt('ed.ins.linktext'); const t = `[${label}](https://)`;
-      return replaceRange(ta, s, e, t, s + label.length + 3, s + label.length + 11);
+      const p0 = s + label.length + 3, p1 = p0 + 8;
+      replaceRange(ta, s, e, t, p0, p1);
+      // в буфере ссылка — сразу вместо «https://», пока человек ничего не тронул
+      clipUrl().then(u => { if (u && ta.value.slice(p0, p1) === 'https://' && ta.selectionStart === p0 && ta.selectionEnd === p1) replaceRange(ta, p0, p1, u, p0 + u.length, p0 + u.length); });
+      return;
     }
     case 'img': {
       if (uploadReady()) { pickImages(); return; }
@@ -6343,8 +6359,49 @@ function closestIn(vis, sel) {
   }
   if (n && n.nodeType !== 1) n = n.parentElement; const hit = n?.closest(sel); return hit && vis.contains(hit) ? hit : null; }
 function exec(cmd, val) { try { return document.execCommand(cmd, false, val); } catch { return false; } }
+// пункт списка, в самом начале которого стоит курсор (без выделения); иначе null
+function visCaretLiStart(vis) {
+  const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return null;
+  const li = closestIn(vis, 'li'); if (!li) return null;
+  const r = document.createRange(); r.setStart(li, 0); r.setEnd(sel.anchorNode, sel.anchorOffset);
+  const before = r.cloneContents(); if (before.textContent.replace(/[\u200b]/g, '') || before.querySelector('img')) return null;
+  return li;
+}
+// убрать список у пункта: вложенный — на уровень выше, обычный — в обычную строку (на месте, курсор там же); картинки и текст не трогаем
+function visUnlist(vis, li) {
+  li.classList.remove('task'); delete li.dataset.checked;
+  const parentLi = li.parentElement && li.parentElement.parentElement && li.parentElement.parentElement.closest('li');
+  if (parentLi && vis.contains(parentLi)) exec('outdent');
+  else {
+    exec(li.parentElement && li.parentElement.tagName === 'OL' ? 'insertOrderedList' : 'insertUnorderedList');
+    const n = getSelection().anchorNode; if (n && (n === vis || n.parentNode === vis)) exec('formatBlock', 'p');   // осталась «голая» строка прямо в редакторе — оборачиваем в абзац
+  }
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+// Кнопка панели не должна двигать страницу: после execCommand браузер сам «показывает курсор» и прокручивает (у пустого пункта списка — куда попало),
+// а при открытии клавиатуры прокручивает ещё раз — страница прыгала. Короткое время после нажатия держим прежнюю прокрутку, если курсор и так на виду
+function visActionKeep(act, vis) {
+  const box = $('#reader'), top = box.scrollTop;
+  visAction(act, vis);
+  const until = Date.now() + 800;
+  const hold = () => {
+    if (Date.now() > until) { box.removeEventListener('scroll', hold); return; }
+    const cur = box.scrollTop; if (cur === top) return;
+    const sel = getSelection(); if (!sel.rangeCount) return;
+    let r = sel.getRangeAt(0).getClientRects()[0];
+    if (!r || (!r.height && !r.width)) { const n = sel.anchorNode; const el = n && (n.nodeType === 1 ? n : n.parentElement); r = el && el.getBoundingClientRect(); }   // пустой пункт списка — прямоугольника у курсора нет
+    if (!r) return;
+    const bb = box.getBoundingClientRect(), tb = box.querySelector('.md-toolbar'), min = Math.max(bb.top, tb ? tb.getBoundingClientRect().bottom : bb.top), d = cur - top;
+    const lineEnd = r.top + Math.min(r.height, 28);   // у большого блока (пустой редактор) смотрим только первую строку
+    if (r.top + d >= min && lineEnd + d <= bb.bottom) box.scrollTop = top;   // на старом месте курсор виден — не двигаем; не виден (его закрыла клавиатура) — пусть будет по-браузерному
+  };
+  const stop = () => { box.removeEventListener('scroll', hold); for (const t of ['touchstart', 'wheel', 'pointerdown', 'keydown']) box.removeEventListener(t, stop, true); };
+  box.addEventListener('scroll', hold);
+  for (const t of ['touchstart', 'wheel', 'pointerdown', 'keydown']) box.addEventListener(t, stop, true);   // человек сам прокручивает — не мешаем
+  setTimeout(stop, 900);
+}
 function visAction(act, vis) {
-  vis.focus();
+  vis.focus({ preventScroll: true });   // без preventScroll браузер прокручивал страницу к редактору при каждом нажатии на кнопку панели (прыжки у списка)
   if (act !== 'undo' && act !== 'redo') histRecord(vis);
   const sel = getSelection(); const text = sel.toString();
   switch (act) {
@@ -6368,6 +6425,8 @@ function visAction(act, vis) {
       if (!lis.length) { const li = closestIn(vis, 'li'); if (li) lis = [li]; }
       if (!lis.length) return;
       const on = !lis.every(li => li.classList.contains('task'));
+      // «отжал» чек-лист на пустом пункте (только квадратик) — список исчезает совсем, а не становится маркированным
+      if (!on && lis.length === 1 && !lis[0].textContent.replace(/[\u200b\s]/g, '') && !lis[0].querySelector('img')) { visUnlist(vis, lis[0]); return; }
       lis.forEach(li => { li.classList.toggle('task', on); if (on) li.dataset.checked = li.dataset.checked || 'false'; else delete li.dataset.checked; });
       vis.dispatchEvent(new Event('input', { bubbles: true })); return;
     }
@@ -6384,7 +6443,9 @@ function visAction(act, vis) {
       saveSel();
       const lb = $('#link-bar'); lb.dataset.mode = 'link'; lb.hidden = false;
       $('#link-label').textContent = tt('ed.link.url');
+      const tip = $('#link-tip'); if (tip) tip.hidden = !linkTipDue();
       const inp = $('#link-url'); inp.placeholder = 'https://'; inp.inputMode = 'url'; inp.value = /^https?:\/\//.test(text.trim()) ? text.trim() : ''; inp.focus();
+      if (!inp.value) clipUrl().then(u => { if (u && !lb.hidden && lb.dataset.mode === 'link' && !inp.value) { inp.value = u; inp.select(); } });
       return;
     }
     case 'img': {
@@ -6392,6 +6453,7 @@ function visAction(act, vis) {
       if (uploadReady()) { pickImages(); return; }
       const lb = $('#link-bar'); lb.dataset.mode = 'img'; lb.hidden = false;
       $('#link-label').textContent = tt('ed.img.file');
+      if ($('#link-tip')) $('#link-tip').hidden = true;
       const inp = $('#link-url'); inp.placeholder = tt('ed.ins.imgname'); inp.inputMode = 'text'; inp.value = text.trim().replace(/^img\//, ''); inp.focus();
       return;
     }
@@ -6581,6 +6643,11 @@ function mdColor(ta, c) {
   replaceRange(ta, s, e, t, s, s + t.length);
 }
 
+// Подсказка про быструю вставку ссылки (выделил текст → «Вставить» с ссылкой в буфере → текст стал ссылкой): один раз, при первом нажатии на «Ссылка».
+// Кто уже пользовался вставкой (или видел подсказку) — больше не показываем
+// ссылка из буфера обмена (если там одна ссылка) — подставляем в поле адреса; нет доступа или другое содержимое — пусто
+const clipUrl = async () => { try { return pastedUrl(await navigator.clipboard.readText()); } catch (_) { return ''; } };
+const linkTipDue = () => { if (store.get('tipLinkPaste', false)) return false; store.set('tipLinkPaste', true); return true; };
 // the clipboard (or a string) holds just one link: http(s)://…, www.…, mailto:… or a link to another note
 function pastedUrl(src) {
   const t = (typeof src === 'string' ? src : src?.getData('text/plain') || '').trim();
@@ -7228,9 +7295,17 @@ function wirePlanPanel() {
   $('#renew-on') && ($('#renew-on').onclick = flip(true));
   $('#renew-agree') && ($('#renew-agree').onchange = () => { $('#renew-on').disabled = !$('#renew-agree').checked; });   // включить снова — только с согласием
 }
+// «Pro» у названия; у Free — ничего. Пока тариф не получен (нет связи, сервер не ответил) — остаётся то, что было известно на этом устройстве:
+// значок не пропадает от обновления страницы без интернета, а появляется сразу, до ответа сервера
+function brandPro() {
+  const bp = $('#brand-pro'); if (!bp || window.NOTES_FLAVOR !== 'public' || !S.uid) return;
+  const key = 'pro.' + S.uid;
+  if (S.plan) { const on = planOn() && !!S.plan.pro; store.set(key, on); bp.hidden = !on; }
+  else bp.hidden = !store.get(key, false);
+}
 // пробный Pro заканчивается через 2 дня — одно напоминание (черновик текста, согласовать с Александром)
 function renderPlanBar() {
-  const bp = $('#brand-pro'); if (bp) bp.hidden = !(window.NOTES_FLAVOR === 'public' && planOn() && S.plan.pro);   // «Pro» у названия; у Free — ничего
+  brandPro();
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
@@ -7550,7 +7625,7 @@ function progressHtml() {
     const pct = Math.round(100 * (c.know + c.solid) / all);
     return `<div class="prog-row"><div class="nm">${esc(s.title)}</div>
       <div class="stack" title="${tt('pr.stack', { n: c.new, learn: c.learn, know: c.know, solid: c.solid })}"><i class="s-solid" style="width:${w('solid')}"></i><i class="s-know" style="width:${w('know')}"></i><i class="s-learn" style="width:${w('learn')}"></i></div>
-      <div class="nums">${pct}% · ${tt('pr.cards', { n: all })}${due ? ` · <span style="color:var(--kt)">${tt('pr.due', { n: due })}</span>` : ''}</div></div>`;
+      <div class="nums">${pct}% · ${tt('pr.cards', { n: all })}${due ? `<span class="due">${tt('pr.due', { n: due })}</span>` : ''}</div></div>`;
   }).join('');
   const allT = tot.new + tot.learn + tot.know + tot.solid;
   return `
@@ -7647,6 +7722,8 @@ function effLook() {
   return { theme: t && (!t[2] || keep) ? p.theme : 'forest', mode: ['light', 'dark'].includes(p.mode) ? p.mode : 'system', oled: p.oled && keep };
 }
 function applyLook() {
+  // настройки аккаунта ещё не пришли (тариф или другое событие успели раньше) — остаётся вид из aw.look, который поставил ранний скрипт; иначе на миг «Лес»
+  if (!S.loaded.settings && store.get('look', null)) return;
   const l = effLook(), r = document.documentElement;
   if (l.theme === 'forest') delete r.dataset.palette; else r.dataset.palette = l.theme;
   if (l.mode === 'system') delete r.dataset.theme; else r.dataset.theme = l.mode;
@@ -7881,7 +7958,7 @@ async function boot() {
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
   fbCheck(true);   // ответы разработчика на свои сообщения (ReteNote)
-  loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
+  brandPro(); loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
     S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort }]; }));
