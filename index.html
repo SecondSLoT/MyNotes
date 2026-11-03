@@ -634,6 +634,7 @@ window.STR = {
   'tr.same.due': 'срок не меняется',
   'tr.next': 'повтор {when}',
   'tr.end': 'Завершить',
+  'tr.gone': 'Заметку удалили на другом устройстве — карточка пропущена',
   'tr.again': 'ещё раз',
   'tr.drop.title': 'Карточка останется в заметках, но перестанет попадать в тренировку. Вернуть можно в «Прогрессе» или в самой заметке.',
   'tr.rev.hint': '⇄ По ответу вспомни вопрос',
@@ -948,6 +949,8 @@ window.STR = {
   'imp.r.imgfail': 'изображений не загрузилось: {n}',
   'imp.r.imgfail.links': '(в заметках остались прежние ссылки на них)',
   'imp.r.skipped': 'ещё {n} {n|заметка|заметки|заметок} — в Pro (в бесплатной версии до {limit})',
+  'imp.r.bad': 'повреждённых записей пропущено: {n}',
+  'imp.restored': 'Из копии',
   'imp.r.done': 'Готово: {list}.',
   'imp.r.failed': 'Импорт прервался: {why}. Можно выбрать файл и запустить ещё раз.',
   'enex.none': 'В выбранном нет файлов .enex из Evernote.',
@@ -2106,6 +2109,10 @@ button.tag{border:0;background:none;padding:0}
 .g1{background:var(--again-soft);color:var(--again)}
 .g2{background:var(--hard-soft);color:var(--hard)}
 .g3{background:var(--good-soft);color:var(--good)}
+/* кнопки оценки липнут к низу поверх длинного ответа: подложка непрозрачная, иначе текст просвечивает сквозь «мягкие» цвета */
+.grade.g1{background:linear-gradient(var(--again-soft),var(--again-soft)),var(--bg)}
+.grade.g2{background:linear-gradient(var(--hard-soft),var(--hard-soft)),var(--bg)}
+.grade.g3{background:linear-gradient(var(--good-soft),var(--good-soft)),var(--bg)}
 .grade:hover{border-color:currentColor}
 .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
 .stat{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px}
@@ -2447,7 +2454,7 @@ const store = {
 /* ---------- state ---------- */
 const S = {
   db: null, uid: null, canWrite: true,
-  sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), srsLog: new Map(), settings: { newPerDay: 10 },
+  sections: new Map(), notes: new Map(), trash: new Map(), srs: new Map(), srsLog: new Map(), srsLogRaw: new Map(), settings: { newPerDay: 10 },
   loaded: { sections: false, notes: false, settings: false },
   searchHere: store.get('searchHere', false),
   mode: window.BOOT_MODE || 'lib', section: store.get('section', 'all'), noteId: window.BOOT_READ || store.get('note', null), q: '', tag: null,
@@ -4118,6 +4125,38 @@ function accountPanelHtml() {
 }
 // изображения при импорте из Evernote меняют вид ссылки (enex:… → адрес загруженной изображения или пометка) — при сравнении не в счёт
 const bodyKey = b => (b || '').replace(/!\[[^\]]*\]\([^)]*\)|\*\(изображение[^)]*из Evernote не перенесена\)\*/g, '\u{1F5BC}');   // не текст интерфейса
+/* Копия из файла — чужой или повреждённый ввод: приводим к виду, который понимает страница. Битые записи пропускаем (их число — d.dropped), годные грузим;
+   заметки без существующего раздела складываем в раздел «Из копии» — иначе они пропали бы из дерева. Идентификаторы без «/» (из них строится путь записи). */
+function sanitizeBackup(d) {
+  const okId = x => typeof x === 'string' && x.length > 0 && x.length <= 80 && !/[\/\u0000]/.test(x) && x !== '.' && x !== '..';
+  const isObj = x => x && typeof x === 'object' && !Array.isArray(x);
+  const str = (x, max) => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '').slice(0, max);
+  const isoOk = x => typeof x === 'string' && !isNaN(Date.parse(x));
+  let dropped = 0;
+  const secs = [], ids = new Set();
+  for (const sc of d.sections) {
+    if (!isObj(sc) || !okId(sc.id) || ids.has(sc.id)) { dropped++; continue; }
+    ids.add(sc.id); secs.push(Object.assign({}, sc, { title: str(sc.title, 300) || tt('note.untitled') }));
+  }
+  for (const sc of secs) { if (sc.parent != null && (!ids.has(sc.parent) || sc.parent === sc.id)) sc.parent = null; if (typeof sc.order !== 'number' || !isFinite(sc.order)) sc.order = 0; }
+  const RESTORED = 'restored'; let lost = false;
+  const notes = [], seen = new Set();
+  for (const n of d.notes) {
+    if (!isObj(n) || !okId(n.id) || seen.has(n.id)) { dropped++; continue; }
+    seen.add(n.id);
+    const c = Object.assign({}, n, { title: str(n.title, 500), body: str(n.body, 500000), tags: [...new Set((Array.isArray(n.tags) ? n.tags : typeof n.tags === 'string' ? n.tags.split(',') : []).map(t => normTagText(str(t, 200))).filter(Boolean))] });
+    if (typeof c.order !== 'number' || !isFinite(c.order)) c.order = 0;
+    for (const k of ['created', 'updated']) if (!isoOk(c[k])) delete c[k];
+    if (!(typeof c.section === 'string' && ids.has(c.section))) { c.section = RESTORED; lost = true; }
+    notes.push(c);
+  }
+  if (lost && !ids.has(RESTORED)) secs.push({ id: RESTORED, title: tt('imp.restored'), order: 9999, parent: null });
+  const srs = {}; for (const [id, v] of Object.entries(isObj(d.srs) ? d.srs : {})) { if (okId(id) && isObj(v)) srs[id] = v; else dropped++; }
+  d.sections = secs; d.notes = notes; d.srs = srs; d.dropped = dropped;
+  if (!isObj(d.settings)) delete d.settings;
+  if (!isObj(d.log)) delete d.log;
+  return d;
+}
 function importDiff(d) {
   const sameNote = (a, b) => a.title === b.title && bodyKey(a.body) === bodyKey(b.body) && a.section === b.section
     && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001');
@@ -4258,7 +4297,7 @@ async function saveBackup() {
       used.add(nm); images[u] = 'images/' + nm; files.push({ name: 'images/' + nm, data: new Blob([bytes]), crc: crc32(bytes) });
     }
     const data = { format: 'android-notes', version: 2, exportedAt: new Date().toISOString(),
-      sections: [...S.sections.values()], notes, srs, settings: S.settings, images };
+      sections: [...S.sections.values()], notes, srs, settings: S.settings, log: Object.fromEntries(S.srsLog), images };
     files.unshift({ name: 'notes.json', data: new TextEncoder().encode(JSON.stringify(data, null, 1)), deflate: true });
     const blob = await zipBlob(files);
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -4460,6 +4499,7 @@ function enmlToMd(enml, media) {
 }
 // files: [{ path: ['Папка', 'Подпапка', 'Блокнот.enex'], text }] → резервная копия (как в «Импорт из файла») + изображения
 function enexToBackup(files) {
+  const idSeen = new Map();
   const sections = new Map(), notes = [], images = {}, warn = [];
   const rootOrder = Math.max(0, ...[...S.sections.values()].filter(x => !x.parent).map(x => x.order ?? 0)) + 1;
   const secId = path => 'ev' + md5hex('sec:' + path.join('/')).slice(0, 14);
@@ -4501,7 +4541,10 @@ function enexToBackup(files) {
         title = line ? (line.length > 80 ? line.slice(0, 79).replace(/\s+\S*$/, '') + '…' : line) : (title || tt('note.untitled'));
       }
       for (const m of Object.values(media)) if (body.includes('enex:' + m.hash)) images[m.hash] = m;
-      notes.push({ id: 'ev' + md5hex(`note:${f.path.join('/')}|${title}|${created}`).slice(0, 14), section: sec, title, body,
+      // id из пути, названия и даты создания (повторный импорт — без дублей). Одинаковые название и время (до секунды) бывают — клиппер, копии:
+      // первая заметка сохраняет прежний id, следующие — с номером по порядку в файле, иначе остальные пропали бы молча
+      const idBase = `note:${f.path.join('/')}|${title}|${created}`, idN = idSeen.get(idBase) || 0; idSeen.set(idBase, idN + 1);
+      notes.push({ id: 'ev' + md5hex(idN ? `${idBase}|${idN}` : idBase).slice(0, 14), section: sec, title, body,
         tags: [...n.querySelectorAll('tag')].map(t => t.textContent.trim().replace(/\s+/g, '_')).filter(Boolean),
         order: i, created, updated, pinned: false });
     });
@@ -4536,7 +4579,8 @@ function wireDataPanel() {
       let d;
       if (/\.zip$/i.test(f.name) || /zip/.test(f.type)) { S.dataPanel = { status: tt('zip.reading') }; renderProg(); d = await zipToBackup(f); }
       else d = JSON.parse(await f.text());
-      if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
+      if (!d || d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
+      sanitizeBackup(d);
       e.target.value = '';
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
     } catch { S.dataPanel = { status: tt('backup.bad') }; renderProg(); }
@@ -4597,6 +4641,15 @@ function wireDataPanel() {
       if (S.uid) {
         await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
         if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
+        // журнал ответов (статистика, серия дней): берём только дни, которых здесь ещё нет, — повторная загрузка и загрузка в тот же аккаунт ничего не задваивают
+        for (const [m, x] of Object.entries(d.log || {})) {
+          if (!/^\d{4}-\d\d$/.test(m)) continue;
+          const have = S.srsLog.get(m)?.days || {}, add = {};
+          for (const [day, v] of Object.entries(x?.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(day) && !have[day] && v && typeof v === 'object') add[day] = v;
+          if (!Object.keys(add).length) continue;
+          const id = m + '_imp', next = { days: Object.assign({}, S.srsLogRaw.get(id)?.days, add) };
+          S.srsLogRaw.set(id, next); rebuildLog(); await logCol().doc(id).set(next);
+        }
       }
       const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
       const replaced = notes.length - added;
@@ -4607,6 +4660,7 @@ function wireDataPanel() {
       if (srs.length) parts.push(tt('imp.r.srs', { n: srs.length }));
       if (upOk) parts.push(tt('imp.r.img', { n: upOk }));
       if (upFail) parts.push(tt('imp.r.imgfail', { n: upFail }) + (fromEn ? '' : ' ' + tt('imp.r.imgfail.links')));
+      if (d.dropped) parts.push(tt('imp.r.bad', { n: d.dropped }));
       if (skipped) parts.push(tt('imp.r.skipped', { n: skipped, limit: planLimit('notes') }));
       S.dataPanel = { status: tt('imp.r.done', { list: parts.join(', ') }) };
     } catch (err) { S.dataPanel = { status: tt('imp.r.failed', { why: err?.message || err }) }; }
@@ -8006,14 +8060,17 @@ function startSession(ids, kind, label) {
   S.train = { queue: ids.slice(), i: 0, kind, label, shown: false, results: new Map(), done: false, total: ids.length };
   setMode('train');
 }
+// карточку «на сегодня» уже оценили на другом устройстве, пока шла эта сессия (срок ушёл за сегодня, а мы её ещё не отвечали) — повторно не спрашиваем
+const answeredElsewhere = id => { const T = S.train, s = S.srs.get(id); return !!(T && T.kind === 'review' && !T.results.has(id) && s && s.introduced && s.due > today()); };
 function renderSession(root) {
   const T = S.train;
   if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
   sessionClass();
   const id = T.queue[T.i]; const n = noteOfCard(id), cz = clozeOfCard(id);
   const rev = isReverse(id);
-  if (!n || (String(id).includes('~c') && !cz) || (rev && !cardsOf(n).includes(id))) { T.i++; renderSession(root); return; }   // заметку удалили, пропуск исправили, «в обе стороны» выключили — дальше
+  if (!n || answeredElsewhere(id) || (String(id).includes('~c') && !cz) || (rev && !cardsOf(n).includes(id))) { if (!T.results.has(id)) T.total = Math.max(T.results.size, T.total - 1); T.i++; T.shown = false; renderSession(root); return; }   // заметку удалили, пропуск исправили, «в обе стороны» выключили — дальше
   const answered = new Set([...T.results.keys()]).size;
+  T.sig = n.title + '\u0001' + n.body;   // чтобы заметить правку этой заметки на другом устройстве (refreshSession)
   const prev = S.srs.get(id); const free = T.kind === 'free';
   const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? tt('tr.same.due') : tt('tr.next', { when: ivlText(r.ivl) }); };
   root.innerHTML = `<div class="session">
@@ -8082,14 +8139,39 @@ const cardTitle = cid => { const n = noteOfCard(cid); return n ? n.title + (cloz
    { days: { 'ГГГГ-ММ-ДД': { n, g1, g2, g3, fresh, rn, r3 } } } — rn / r3: ответы по уже знакомым карточкам и из них «знаю»
    (доля «помню знакомое»). Для статистики (Pro) и будущей настройки FSRS под человека. */
 const logCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('log');
+/* У каждого устройства свой документ журнала на месяц — «<ГГГГ-ММ>_<устройство>»: два устройства пишут в разные документы, и ничьи счётчики не теряются
+   (раньше был один документ на месяц, последняя запись затирала чужую). Сводка за месяц (S.srsLog) — сумма по всем документам месяца, включая старый
+   «<ГГГГ-ММ>» без устройства. Документы старше LOG_KEEP_MONTHS месяцев ненужны (календарь — 18 недель, серия дней — не дольше года) — удаляются (pruneLog). */
+const LOG_KEEP_MONTHS = 13;
+const logDevice = () => { let d = store.get('dev', ''); if (!d) { d = Math.random().toString(36).slice(2, 8); store.set('dev', d); } return d; };
+const logOwnId = m => m + '_' + logDevice();
+function rebuildLog() {
+  const out = new Map();
+  for (const [id, x] of S.srsLogRaw) {
+    const m = id.slice(0, 7), dst = out.get(m) || { days: {} };
+    for (const [d, v] of Object.entries(x?.days || {})) {
+      const t = dst.days[d] || (dst.days[d] = { n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0 });
+      for (const k of Object.keys(t)) t[k] += v[k] || 0;
+    }
+    out.set(m, dst);
+  }
+  S.srsLog = out;
+}
+let logPruned = false;
+function pruneLog() {
+  if (logPruned || !S.db || !S.uid) return; logPruned = true;
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - LOG_KEEP_MONTHS);
+  const cut = dstr(d).slice(0, 7);
+  for (const id of S.srsLogRaw.keys()) if (id.slice(0, 7) < cut) logCol().doc(id).delete().catch(() => {});
+}
 function logAnswer(g, wasNew) {
   if (!S.db || !S.uid) return;
-  const t = today(), m = t.slice(0, 7), cur = S.srsLog.get(m) || { days: {} };
+  const t = today(), id = logOwnId(t.slice(0, 7)), cur = S.srsLogRaw.get(id) || { days: {} };
   const day = Object.assign({ n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0 }, cur.days[t]);
   day.n++; day['g' + g]++; if (wasNew) day.fresh++; else { day.rn++; if (g === 3) day.r3++; }
   const next = { days: Object.assign({}, cur.days, { [t]: day }) };
-  S.srsLog.set(m, next);
-  logCol().doc(m).set(next).catch(() => {});
+  S.srsLogRaw.set(id, next); rebuildLog();
+  logCol().doc(id).set(next).catch(() => {});
 }
 async function gradeCurrent(g) {
   const T = S.train; const id = T.queue[T.i];
@@ -8396,13 +8478,23 @@ function updateBadge() {
 
 /* ---------- data wiring ---------- */
 const srsCol = () => S.db.doc(`data/users/${S.uid}/srs`).collection('cards');
+// Заметку правят или удаляют на другом устройстве, пока идёт сессия: карточка на экране обновляется (показанный ответ остаётся показанным),
+// удалённая — пропускается с подсказкой. Пока человек сам правит карточку или вводит тег — экран не трогаем.
+function refreshSession() {
+  const T = S.train; if (!T || T.done || S.editing || S.tagEdit) return;
+  const id = T.queue[T.i]; if (id == null) return;
+  const n = noteOfCard(id);
+  if (!n) { toast(tt('tr.gone')); renderSession($('#train')); return; }
+  if (answeredElsewhere(id)) { renderSession($('#train')); return; }
+  if (T.sig !== n.title + '\u0001' + n.body) renderSession($('#train'));
+}
 let rerenderT;
 function rerender() {
   clearTimeout(rerenderT);
   rerenderT = setTimeout(() => {
     updateBadge(); maybeOnboard();
     if (S.mode === 'lib') { renderRail(); renderList(); if (!S.editing) renderReader(); }
-    else if (S.mode === 'train' && !S.train) renderTrain();
+    else if (S.mode === 'train') { if (!S.train) renderTrain(); else refreshSession(); }
     else if (S.mode === 'prog') renderProg();
   }, 40);
 }
@@ -8555,7 +8647,7 @@ async function boot() {
   }, e => { $('#items').innerHTML = `<div class="empty-state">${tt('boot.failed')}</div>`; });
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
-    logCol().onSnapshot(snap => { S.srsLog = new Map(snap.docs.map(d => [d.id, d.data()])); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
+    logCol().onSnapshot(snap => { S.srsLogRaw = new Map(snap.docs.map(d => [d.id, d.data()])); rebuildLog(); pruneLog(); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
     db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); applyLook(); rerender(); }, () => {});
   }
 }
@@ -8630,7 +8722,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
