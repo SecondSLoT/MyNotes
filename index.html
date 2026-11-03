@@ -507,6 +507,8 @@ window.STR = {
   'btn.no': 'Нет',
   'ed.draft.drop': 'Удалить черновик',
   'ed.title': 'Вопрос / заголовок',
+  'ed.title.need': 'Напиши заголовок — без него заметку не сохранить',
+  'ed.revived': 'Заметку «{title}» удалили на другом устройстве во время правки — она возвращена из корзины вместе с правкой',
   'ed.sec': 'Раздел',
   'ed.tags': 'Теги через пробел',
   'ed.answer': 'Ответ',
@@ -2419,6 +2421,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 (() => {
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
+const noteTitle = n => (n?.title || '').trim() || tt('note.untitled');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let helpN = 0;
 // «?» к подписи: [кнопка, текст]; текст ставится строкой ниже, открывается по нажатию
@@ -2730,8 +2733,7 @@ async function trashNotes(ids, undoable = true) {
   if (!done.length) return;
   if (done.includes(S.noteId) && S.section !== 'trash') { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); }
   rerender(); updateBadge();
-  let ok = true;
-  for (const id of done) ok = (await write(() => S.db.collection('notes').doc(id).update({ deleted: now }), null)) && ok;
+  const ok = await writeAll(done.map(id => () => S.db.collection('notes').doc(id).update({ deleted: now })));
   if (!ok) { toast(tt('trash.move.failed')); return; }
   const msg = done.length > 1 ? tt('trash.moved.n', { n: done.length }) : tt('trash.moved');
   if (undoable) toast(msg, { label: tt('btn.undo'), fn: () => restoreNotes(done) }); else toast(msg);
@@ -2749,17 +2751,19 @@ async function restoreNotes(ids) {
   }
   if (!done.length) return;
   rerender(); updateBadge();
-  for (const id of done) { const n = S.notes.get(id); await write(() => S.db.collection('notes').doc(id).update({ deleted: null, section: n.section }), null); }
+  await writeAll(done.map(id => { const sec = S.notes.get(id).section; return () => S.db.collection('notes').doc(id).update({ deleted: null, section: sec }); }));
   toast(done.length > 1 ? tt('trash.restored.n', { n: done.length }) : tt('trash.restored', { section: S.sections.get(S.notes.get(done[0])?.section)?.title || '' }));
 }
 async function purgeNotes(ids, quiet) {
   const foreign = ids.filter(id => !canPurge(S.trash.get(id)));   // общий раздел: навсегда удаляет только владелец
   if (foreign.length) { if (!quiet) toast(tt('trash.purge.foreign')); ids = ids.filter(id => !foreign.includes(id)); if (!ids.length) return; }
+  const cards = [];
   for (const id of ids) {
     S.trash.delete(id);
-    await write(() => S.db.collection('notes').doc(id).delete(), null);
-    if (S.uid) for (const c of [...S.srs.keys()].filter(k => baseId(k) === id)) { S.srs.delete(c); try { await srsCol().doc(c).delete(); } catch {} }   // и карточки пропусков
+    if (S.uid) for (const c of [...S.srs.keys()].filter(k => baseId(k) === id)) { S.srs.delete(c); cards.push(c); }   // и карточки пропусков
   }
+  await writeAll(ids.map(id => () => S.db.collection('notes').doc(id).delete()));
+  if (cards.length) await Promise.allSettled(cards.map(c => Promise.resolve().then(() => srsCol().doc(c).delete())));
   if (ids.includes(S.noteId)) { S.noteId = null; $('#lib').classList.remove('reading'); }
   rerender();
   if (!quiet) toast(ids.length > 1 ? tt('trash.purged.n', { n: ids.length }) : tt('trash.purged'));
@@ -3279,7 +3283,7 @@ function openStage(soft) {   // soft — переход к соседней за
   const tipN = soft ? 2 : +store.get('stage.tips', 0) || 0; if (tipN < 2) store.set('stage.tips', tipN + 1);
   const nb = S.nbr || {}, nav = !!(nb.prev || nb.next);
   const ov = document.createElement('div'); ov.id = 'stage'; ov.className = 'stage';
-  ov.innerHTML = `<div class="stage-scroll"><div class="stage-text md"><h1 class="stage-title">${esc(n.title)}</h1>${md.innerHTML}</div></div>
+  ov.innerHTML = `<div class="stage-scroll"><div class="stage-text md"><h1 class="stage-title">${esc(noteTitle(n))}</h1>${md.innerHTML}</div></div>
     <div class="stage-bar"${soft?.bar ? '' : ' hidden'}>
       ${nav ? `<div class="stage-row"><button type="button" data-st="prev" aria-label="${tt('stage.prev')}" title="${tt('stage.prev')}" ${nb.prev ? '' : 'disabled'}>‹</button><span class="stage-pos">${esc(nb.pos || '')}</span><button type="button" data-st="next" aria-label="${tt('stage.next')}" title="${tt('stage.next')}" ${nb.next ? '' : 'disabled'}>›</button></div>` : ''}
       <div class="stage-row"><button type="button" data-st="fs-" aria-label="${tt('stage.smaller')}" title="${tt('stage.smaller')}">A−</button><button type="button" data-st="fs+" aria-label="${tt('stage.bigger')}" title="${tt('stage.bigger')}">A+</button>
@@ -3726,7 +3730,7 @@ function renderList() {
       ${S.select ? `<span class="selbox" aria-hidden="true">${S.select.has(n.id) ? '✓' : ''}</span>` : ''}
       ${reorder ? `<span class="grip" data-grip="${esc(n.id)}" title="${tt('list.grip')}" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span>` : ''}
       <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''} ${S.canWrite && !S.select && FINE ? 'draggable="true"' : ''}>
-        <span class="t">${n.pinned ? `<span class="star" title="${tt('list.star')}">★</span>` : ''}${hl(n.title, terms)}</span>
+        <span class="t">${n.pinned ? `<span class="star" title="${tt('list.star')}">★</span>` : ''}${hl(noteTitle(n), terms)}</span>
         ${terms ? `<span class="snip">${snippet(n, terms)}</span>` : ''}
         <span class="meta">${srsPill(n.id)}${showSec && n.section !== S.section ? `<span class="pill" title="${esc(secPath(n.section))}">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${(n.tags || []).map(t => `<span class="tag">#${esc(t)}</span>`).join(' ')}${whenHtml(n)}</span>
       </button>
@@ -3768,7 +3772,7 @@ function renderTrashList(list) {
   $('#items').innerHTML = head + (list.length ? list.map(n => `
     <div class="row-item" data-id="${esc(n.id)}">
       <button class="item" data-id="${esc(n.id)}" aria-current="${n.id === S.noteId}">
-        <span class="t">${esc(n.title)}</span>
+        <span class="t">${esc(noteTitle(n))}</span>
         <span class="meta"><span class="pill">${esc(S.sections.get(n.section)?.title || tt('trash.sec.gone'))}</span>${n.deletedBy && spaceOfNote(n) ? `<span class="hint">${tt('trash.deleted.by', { name: esc(personName(n.deletedBy) || tt('trash.member')) })}</span>` : ''}<span class="hint">${tt('trash.left', { n: daysLeft(n) })}</span></span>
       </button>
       ${S.canWrite && canEditIn(spaceOfNote(n)) ? `<div class="tr-acts"><button class="btn" data-restore="${esc(n.id)}">${tt('trash.restore')}</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">${tt('trash.purge')}</button>` : ''}</div>` : ''}
@@ -4673,13 +4677,15 @@ async function relearn(ids) {
     S.srs.set(id, next);
   }
   rerender(); updateBadge();
-  if (S.db && S.uid) for (const id of ids) { try { await srsCol().doc(id).set(S.srs.get(id)); } catch { toast(tt('err.nostore')); return; } }
+  if (S.db && S.uid) { try { await Promise.all(ids.map(id => srsCol().doc(id).set(S.srs.get(id)))); } catch { toast(tt('err.nostore')); return; } }
   const msg = ids.length > 1 ? tt('relearn.n', { n: ids.length }) : tt('relearn.one');
   toast(msg, { label: tt('btn.undo2'), fn: async () => {
+    const jobs = [];
     for (const [id, prev] of before) {
       if (prev) S.srs.set(id, prev); else S.srs.delete(id);
-      if (S.db && S.uid) { try { prev ? await srsCol().doc(id).set(prev) : await srsCol().doc(id).delete(); } catch {} }
+      if (S.db && S.uid) jobs.push(Promise.resolve().then(() => prev ? srsCol().doc(id).set(prev) : srsCol().doc(id).delete()));
     }
+    await Promise.allSettled(jobs);
     rerender(); updateBadge(); toast(tt('undone'));
   } });
 }
@@ -4700,12 +4706,14 @@ async function updateTags(id, tags) {
 }
 async function setTagForMany(ids, tag, on) {
   tag = on ? normTag(tag) : tag; if (!tag) return;
+  const jobs = [];   // все разом — shim отправит пачками (writeAll)
   for (const id of ids) {
     const n = S.notes.get(id); if (!n) continue;
     const cur = n.tags || [];
-    if (on && !cur.includes(tag)) await updateTags(id, cur.concat(tag));
-    if (!on && cur.includes(tag)) await updateTags(id, cur.filter(x => x !== tag));
+    if (on && !cur.includes(tag)) jobs.push(updateTags(id, cur.concat(tag)));
+    if (!on && cur.includes(tag)) jobs.push(updateTags(id, cur.filter(x => x !== tag)));
   }
+  await Promise.all(jobs);
   refreshTagViews();
 }
 function refreshTagViews() {
@@ -4868,14 +4876,17 @@ async function bulkMenuAct(act, b) {
   if (act === 'bulk-move') {
     closeMenu(); const sec = b.dataset.sec; let order = Math.max(0, ...sectionList(sec).map(x => x.order ?? 0));
     if (ids.some(id => S.notes.has(id) && spaceMoveTarget(S.notes.get(id), sec))) { toast(tt('bulk.space')); return; }
-    let okAll = true;
-    for (const id of ids) { const n = S.notes.get(id); if (!n || n.section === sec) continue; order += 1; n.section = sec; n.order = order; const o = order; okAll = (await write(() => S.db.collection('notes').doc(id).update({ section: sec, order: o, updated: new Date().toISOString() }), null)) && okAll; }
+    const fns = [], now = new Date().toISOString();
+    for (const id of ids) { const n = S.notes.get(id); if (!n || n.section === sec) continue; order += 1; n.section = sec; n.order = order; const o = order; fns.push(() => S.db.collection('notes').doc(id).update({ section: sec, order: o, updated: now })); }
+    const okAll = await writeAll(fns);
     toast(okAll ? tt('bulk.moved', { section: S.sections.get(sec)?.title || '', n: ids.length }) : tt('bulk.moved.part')); renderRail(); renderList(); return;
   }
   if (act === 'bulk-relearn') { closeMenu(); relearn(ids); return; }
   if (act === 'bulk-ref-on' || act === 'bulk-ref-off') {
     closeMenu(); const val = act === 'bulk-ref-on';
-    for (const id of ids) { const n = S.notes.get(id); if (!n || !!n.ref === val) continue; n.ref = val; await write(() => S.db.collection('notes').doc(id).update({ ref: val, updated: new Date().toISOString() }), null); }
+    const fns = [], now = new Date().toISOString();
+    for (const id of ids) { const n = S.notes.get(id); if (!n || !!n.ref === val) continue; n.ref = val; fns.push(() => S.db.collection('notes').doc(id).update({ ref: val, updated: now })); }
+    await writeAll(fns);
     toast(tt(val ? 'ref.off.n' : 'ref.on.n', { n: ids.length })); rerender(); return;
   }
   if (act === 'bulk-del-yes') {
@@ -4943,7 +4954,7 @@ function wireTagsPanel(root) {
     S.tagMgr = null;
     if (!to || to === from) { renderProg(); return; }
     const ex = allTags().find(([x]) => x.toLowerCase() === to.toLowerCase() && x !== from); if (ex) to = ex[0];
-    for (const n of [...S.notes.values()].filter(n => (n.tags || []).includes(from))) await updateTags(n.id, n.tags.map(x => x === from ? to : x));
+    await Promise.all([...S.notes.values()].filter(n => (n.tags || []).includes(from)).map(n => updateTags(n.id, n.tags.map(x => x === from ? to : x))));
     if (S.tag === from) S.tag = to;
     toast(`#${from} → #${to}`); refreshTagViews();
   };
@@ -5161,7 +5172,7 @@ menuEl.addEventListener('change', e => {
     const had = ids.filter(id => (S.notes.get(id)?.tags || []).includes(tag)).map(id => [id, S.notes.get(id).tags.indexOf(tag)]);
     setTagForMany(ids, tag, false).then(() => {
       renderMenu();
-      if (had.length) toast(tt('tag.removed', { tag }) + (had.length > 1 ? tt('tag.removed.n', { n: had.length }) : ''), { label: tt('btn.undo'), fn: async () => { for (const [id, i] of had) { const n = S.notes.get(id); if (!n) continue; const t = (n.tags || []).filter(x => x !== tag); t.splice(Math.min(i, t.length), 0, tag); await updateTags(id, t); } refreshTagViews(); if (S.menu) renderMenu(); toast(tt('tag.restored', { tag })); } });
+      if (had.length) toast(tt('tag.removed', { tag }) + (had.length > 1 ? tt('tag.removed.n', { n: had.length }) : ''), { label: tt('btn.undo'), fn: async () => { await Promise.all(had.map(([id, i]) => { const n = S.notes.get(id); if (!n) return true; const t = (n.tags || []).filter(x => x !== tag); t.splice(Math.min(i, t.length), 0, tag); return updateTags(id, t); })); refreshTagViews(); if (S.menu) renderMenu(); toast(tt('tag.restored', { tag })); } });
     });
   } else setTagForMany(ids, tag, true).then(() => renderMenu());
 });
@@ -5329,7 +5340,7 @@ const ART_STEP = 30, ART_CHARS = 300000;
 const artSig = (all, title) => S.artLimit + '|' + all.map(n => n.id + ':' + (n.updated || '') + ':' + (n.title || '').length + ':' + (n.body || '').length).join('|') + '|' + title + '|' + (S.q || '');
 function artNoteHtml(n, i) {
   return `<section class="art-note" id="art-${esc(n.id)}" data-id="${esc(n.id)}">
-      <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(n.title)}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="${tt('art.open.title')}">${tt('art.open')}</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">${tt('art.edit')}</button>` : ''}</span></div>
+      <div class="art-head"><h2><span class="num">${i + 1}.</span>${esc(noteTitle(n))}</h2><span class="art-acts"><button data-art-open="${esc(n.id)}" title="${tt('art.open.title')}">${tt('art.open')}</button>${S.canWrite ? `<button data-art-edit="${esc(n.id)}">${tt('art.edit')}</button>` : ''}</span></div>
       <div class="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('art.noanswer')}</p>`}</div>
     </section>`;
 }
@@ -5363,7 +5374,7 @@ function renderArticle(box, scrollTop) {
     <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
     <div class="eyebrow"><span>${tt('list.readall.label')}</span><button class="sec-link" id="art-close">${tt('art.close')}</button></div>
     <h1>${esc(title)}</h1>
-    ${all.length ? `<details class="art-toc" ${all.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: all.length })}</summary><ol>${all.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(n.title)}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
+    ${all.length ? `<details class="art-toc" ${all.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: all.length })}</summary><ol>${all.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(noteTitle(n))}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
     ${list.map((n, i) => artNoteHtml(n, i)).join('')}
     ${artTail(list.length, all.length)}`;
   artWire(box, terms);
@@ -5442,7 +5453,7 @@ function renderTrashed(box, n) {
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button></div>
     <div class="eyebrow">${tt('trash.was', { section: esc(secPath(n.section) || tt('trash.sec.gone')) })}</div>
-    <h1>${esc(n.title)}</h1>
+    <h1>${esc(noteTitle(n))}</h1>
     ${S.canWrite ? `<div class="trash-banner"><span>${tt('trash.banner', { n: daysLeft(n) })}${n.deletedBy && spaceOfNote(n) ? ' ' + tt('trash.banner.by', { name: esc(personName(n.deletedBy) || tt('trash.member')) }) : ''}</span>${canEditIn(spaceOfNote(n)) ? '<button class="btn primary" id="tr-restore">' + tt('trash.restore') + '</button>' : ''}${canPurge(n) ? '<button class="btn danger" id="tr-purge">' + tt('trash.purge') + '</button>' : ''}</div>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('note.empty')}</p>`}</div>`;
   enhance($('#md'), null);
@@ -5489,7 +5500,7 @@ function renderReader(scrollTop) {
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>‹</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>›</button></span></div>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))} ↳</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
-    <h1>${esc(n.title)}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
+    <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${(n.body || '').trim() ? `<button class="btn icon-btn" id="find-in" title="${tt('find.title.key', { mod: MOD })}" aria-label="${tt('find.title')}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg></button><button class="btn icon-btn" id="stage-in" title="${tt('stage.open')}" aria-label="${tt('stage.open')}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>` : ''}${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}${trainable(n) ? `<button class="btn" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</span></div>
@@ -6193,7 +6204,7 @@ function renderEditor(box) {
       if (E.leaving) openNote(E.leaving.id, E.leaving.dir);
       return;
     }
-    if (!d.title.trim()) { E.leaving = null; return; }
+    if (!d.title.trim()) { E.leaving = null; toast(tt('ed.title.need')); $('#ed-title')?.focus(); return; }
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const prev = S.notes.get(id);
@@ -6216,13 +6227,18 @@ function renderEditor(box) {
       if (E.leaving) openNote(E.leaving.id, E.leaving.dir);
       return;
     }
-    const order = prev ? prev.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
-    const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: prev?.created || now, updated: now };
-    if (prev?.pinned) doc.pinned = true;
+    // пока правил, заметку удалили на другом устройстве (она уже в корзине): сохранение возвращает её с нашей правкой —
+    // правка важнее удаления (как и без интернета), но говорим об этом: там удаление молча отменится (03.11, находка 39)
+    let was = prev;
+    const revived = !prev && E.id && S.trash.get(id);
+    if (revived) { was = Object.assign({}, revived); delete was.deleted; delete was.deletedBy; }
+    const order = was ? was.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
+    const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: was?.created || now, updated: now };
+    if (was?.pinned) doc.pinned = true;
     const stay = E.stay; E.stay = false;
     const A = !stay && E.id ? editorAnchor(E) : null;
     const wasNew = !E.id;
-    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
+    const ok = await write(() => S.db.collection('notes').doc(id).set(doc), revived ? null : mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
     if (!ok) {
       E.leaving = null;   // не сохранилось — остаёмся в редакторе (переход на другую заметку отменён)
       // общий раздел: пока правил, стал читателем / у владельца кончился Pro / раздел перестал быть общим — текст не пропадает, копией себе
@@ -6230,7 +6246,8 @@ function renderEditor(box) {
       return;
     }
     E.base = editBase(doc);   // «Сохранить и остаться» (Ctrl+S): дальше сравниваем с только что сохранённым
-    S.notes.set(id, Object.assign({ id }, prev || {}, doc));
+    if (revived) { S.trash.delete(id); toast(tt('ed.revived', { title: doc.title }), { label: tt('btn.ok'), fn() {} }); updateBadge(); renderRail(); }
+    S.notes.set(id, Object.assign({ id }, was || {}, doc));
     dropDraft(E.id); if (wasNew) dropDraft(null);
     S.noteId = id; store.set('note', id);
     if (stay) { E.id = id; S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = tt('ed.editing'); renderList(); return; }
@@ -7876,6 +7893,17 @@ async function write(fn, okMsg) {
     return false;
   }
 }
+// много записей разом (массовые действия): не ждём каждую по очереди — shim ReteNote отправляет записи одного такта пачками
+// (batch PocketBase, до 50 операций за запрос), Firestore — параллельно. Ошибка — одна подсказка, как у write
+// (03.11: «Выбрать все» на 200 заметках шло 200 запросами по очереди — 17 с при задержке сети 60 мс)
+async function writeAll(fns, okMsg) {
+  if (!S.db) { toast(tt('store.none')); return false; }
+  const res = await Promise.allSettled(fns.map(f => { try { return f(); } catch (e) { return Promise.reject(e); } }));
+  const bad = res.find(r => r.status === 'rejected');
+  if (bad) return write(() => { throw bad.reason; }, null);
+  if (okMsg) toast(okMsg);
+  return true;
+}
 function renderLib() { renderRail(); renderList(); renderReader(); }
 
 /* ---------- training ---------- */
@@ -8564,7 +8592,7 @@ window.addEventListener('popstate', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
