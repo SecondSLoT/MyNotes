@@ -8715,8 +8715,19 @@ function histSync() {
 }
 function navStart() {
   if (NAV.ready) return; NAV.ready = true;
-  history.replaceState({ nav: navNow() }, '');
+  const had = history.state;   // после обновления страницы запись и её признак «первая» уже есть
+  history.replaceState({ nav: navNow(), root: had?.nav ? !!had.root : true }, '');
 }
+// «назад» в самой первой записи истории уходит с сайта, даже когда открыто окно: пока что-то открыто, ставим позади него защитную запись
+// (back закрывает окно и возвращает запись); закрыли окно кнопкой — защитную молча убираем
+const layerOpen = () => !!(STAGE.on || S.menu || document.body.classList.contains('secs-open') || document.querySelector('.help-overlay:not([hidden])') || S.editing || S.select);
+function guardCheck() {
+  if (!NAV.ready || NAV.popping) return;
+  const hs = history.state, open = layerOpen();
+  if (open && hs?.root) history.pushState({ nav: navNow(), guard: true }, '');
+  else if (!open && hs?.guard) { NAV.popping = true; history.back(); setTimeout(() => { NAV.popping = false; }, 80); }
+}
+['click', 'keyup', 'touchend'].forEach(ev => document.addEventListener(ev, () => { setTimeout(guardCheck, 0); setTimeout(guardCheck, 350); }, { capture: true, passive: true }));
 ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => { if (S.loaded?.notes) navStart(); }, { capture: true, passive: true }));
 new MutationObserver(histSync).observe($('#lib'), { attributes: true, attributeFilter: ['class'] });
 // something "on top" (menu, help, editor, selection) is closed by back instead of leaving the note
@@ -8734,7 +8745,8 @@ function closeTopLayer() {
 window.addEventListener('popstate', e => {
   if (!NAV.ready) { if (!S.loaded?.notes) return; NAV.ready = true; }   // «назад» сразу после обновления страницы, ещё ни одного касания
   const here = navNow();
-  if (closeTopLayer()) { history.pushState({ nav: here }, ''); return; }
+  // защитная запись — только если окно было открыто на самой первой записи
+  if (closeTopLayer()) { history.pushState(e.state?.root && navKey(e.state.nav) === navKey(here) ? { nav: here, guard: true } : { nav: here }, ''); return; }
   const st = e.state?.nav; if (!st) return;
   NAV.popping = true;
   try {
