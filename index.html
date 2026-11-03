@@ -1668,7 +1668,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .icon-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
 .list-head .icon-btn span{display:none}
 .list-head .icon-btn{padding:6px 9px}
-.list-head{gap:6px}
+.list-head{gap:6px;flex-wrap:wrap}
 .art-toc{margin:4px 0 26px;border:1px solid var(--line);border-radius:10px;background:var(--raised)}
 .art-toc summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px}
 .art-toc ol{margin:0;padding:4px 14px 12px 36px;columns:2 260px;column-gap:28px;font-size:14px}
@@ -1700,6 +1700,12 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .findbar{width:100%;max-width:520px;box-sizing:border-box;padding:5px 6px 5px 10px}.findbar input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none;padding:4px 0}
 .findbar input::-webkit-search-cancel-button{display:none}.findbar .fcount{color:var(--muted);white-space:nowrap;font-size:12px}.findbar button:disabled{opacity:.4}
 @media (max-width:760px){.hitbar{top:60px}
+  body.editing .top{display:none}
+  body.editing .lib{height:100%}
+  body.editing.kb{overflow:hidden}
+  body.editing.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
+/* телефон в альбомной ориентации (шире 760 px, но ниже 500): при правке верхняя панель тоже прячется — иначе редактору остаётся треть экрана */
+@media (max-height:500px) and (pointer:coarse){
   body.editing .top{display:none}
   body.editing .lib{height:100%}
   body.editing.kb{overflow:hidden}
@@ -2293,6 +2299,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 }
 .modes svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .modes .ml{white-space:nowrap}
+.modes.modes-ico .ml{display:none}.modes.modes-ico button{padding-inline:10px}
 /* «Настройки» и «Справка» подписаны, когда хватает ширины; иначе — только иконки */
 @media (max-width:1180px){.modes .ml-opt{display:none}.modes #m-prog,.modes #help-btn{padding-inline:10px}}
 @media (max-width:400px){.modes button{padding-inline:7px;gap:4px;font-size:14px}.modes svg{width:16px;height:16px}.modes #m-prog,.modes #help-btn{padding-inline:7px}.top .brand{gap:6px}}
@@ -3432,6 +3439,18 @@ function setMode(m) {
   sessionClass(); histSync();
 }
 document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+// панель режимов не помещается в строку (крупный шрифт в системе, узкое окно): подписи прячем, остаются значки — иначе «Справка» уезжает за экран
+function fitModes() {
+  const m = document.querySelector('.modes'), top = m && m.parentElement; if (!top || !top.offsetParent) return;
+  const was = m.classList.contains('modes-ico'); m.classList.remove('modes-ico');
+  // справа панель может заходить на поле отступа шапки, оставляя до края экрана ~12 px (на 360 px подписи так помещаются; 03.11: на CI шрифт чуть шире — подписи пропадали зря)
+  const cs = getComputedStyle(top), room = top.clientWidth - parseFloat(cs.paddingLeft) - 4;
+  const need = m.offsetWidth > room + 1; m.classList.toggle('modes-ico', need);
+  if (need !== was) m.dispatchEvent(new Event('fit'));
+}
+window.addEventListener('resize', fitModes); fitModes();
+if (window.ResizeObserver) new ResizeObserver(fitModes).observe(document.querySelector('.top'));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitModes);
 
 let toastT;
 function toast(msg, action) {
@@ -8473,7 +8492,7 @@ setInterval(dayTick, 60000);
 function updateBadge() {
   if (!S.loaded?.notes) return;
   const rq = reviewQueue(); const n = rq.due.length + rq.fresh.length;
-  const b = $('#due-badge'); b.textContent = n; b.hidden = !n;
+  const b = $('#due-badge'); b.textContent = n; b.hidden = !n; fitModes();
 }
 
 /* ---------- data wiring ---------- */
@@ -8681,7 +8700,9 @@ function closeTopLayer() {
   if (STAGE.on) { closeStage(); return true; }
   if (S.menu) { closeMenu(); return true; }
   if (closeSecSheet()) return true;
-  if (!$('#help').hidden) { $('#help-close').click(); return true; }
+  // окна «Тариф», «Поделиться», «Перенести…», приглашение, история, обратная связь — по своей кнопке закрытия
+  const dlgs = document.querySelectorAll('.help-overlay:not([hidden])'), dlg = dlgs[dlgs.length - 1];
+  if (dlg) { const c = dlg.querySelector('#help-close, #plan-no, #share-done, #move-no, #join-no, #ver-close, #fb-cancel'); if (c) c.click(); else dlg.hidden = true; return true; }
   if (S.editing) { const f = $('#edit-overlay #ed') || $('#ed'); if (f) { f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); return true; } }
   if (S.select) { setSelectMode(false); return true; }
   return false;
@@ -8704,6 +8725,17 @@ window.addEventListener('popstate', e => {
     }
   } finally { setTimeout(() => { NAV.popping = false; }, 0); }
 });
+
+/* Tab в открытом окне (справка, тариф, «Поделиться», история…) ходит по кругу внутри него: раньше фокус уходил на список и поле поиска под затемнением */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab' || e.defaultPrevented) return;
+  const ovs = document.querySelectorAll('.help-overlay:not([hidden])'), ov = ovs[ovs.length - 1]; if (!ov) return;
+  const f = [...ov.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(x => x.getClientRects().length && getComputedStyle(x).visibility !== 'hidden');
+  if (!f.length) return;
+  const i = f.indexOf(document.activeElement), last = f.length - 1;
+  if (i < 0 || (e.shiftKey ? i === 0 : i === last)) { e.preventDefault(); f[i < 0 || !e.shiftKey ? 0 : last].focus(); }
+}, true);
 
 /* ---------- help ---------- */
 (() => {
