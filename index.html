@@ -1493,7 +1493,7 @@ window.tt = function (key, p) {
   --bg:#f3f4ef; --surface:#fbfbf8; --raised:#ffffff; --ink:#1c201d; --muted:#5f6862; --faint:#8b938d;
   --line:#dcdfd7; --line-strong:#c4c9bf;
   --accent:#2f6b55; --accent-ink:#ffffff; --accent-soft:#e1ece5;
-  --kt:#6b4fd8; --kt-soft:#ece8fb;
+  --kt:#b8560c; --kt-ink:#ffffff; --kt-soft:color-mix(in srgb,var(--kt) 14%,var(--raised));   /* цвет «тренировки» — у каждой темы свой */
   --again:#b5442f; --again-soft:#f6e3de; --hard:#a8700f; --hard-soft:#f6ecd8; --good:#2f6b55; --good-soft:#dfece4;
   --code-bg:#eef0ea; --mark:#f3e39a;
   --tc-red:#c62828; --tc-orange:#c25e00; --tc-green:#2e7d32; --tc-blue:#1565c0; --tc-purple:#7b1fa2; --tc-gray:#7a807b;
@@ -1512,7 +1512,7 @@ window.tt = function (key, p) {
   --bg:#121513; --surface:#171b18; --raised:#1d221f; --ink:#e4e8e3; --muted:#a1aaa3; --faint:#78817a;
   --line:#2a302c; --line-strong:#3a423d;
   --accent:#7cc4a3; --accent-ink:#0f1a14; --accent-soft:#1f3229;
-  --kt:#a993ff; --kt-soft:#2a2442;
+  --kt:#f0a45c; --kt-ink:#101010;
   --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
   --code-bg:#1b201d; --mark:#5b4f17;
   --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
@@ -1522,7 +1522,7 @@ window.tt = function (key, p) {
   --bg:#121513; --surface:#171b18; --raised:#1d221f; --ink:#e4e8e3; --muted:#a1aaa3; --faint:#78817a;
   --line:#2a302c; --line-strong:#3a423d;
   --accent:#7cc4a3; --accent-ink:#0f1a14; --accent-soft:#1f3229;
-  --kt:#a993ff; --kt-soft:#2a2442;
+  --kt:#f0a45c; --kt-ink:#101010;
   --again:#ef8a74; --again-soft:#3a2420; --hard:#e2b45c; --hard-soft:#372c18; --good:#7cc4a3; --good-soft:#1f3229;
   --code-bg:#1b201d; --mark:#5b4f17;
   --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
@@ -1531,57 +1531,75 @@ window.tt = function (key, p) {
 /* Цветовые темы (26.10): data-palette на <html> — фон, серые и акцент; цвета смысла (оценки, выделение, цвет текста, код) общие.
    «Лес» — без атрибута (переменные выше). Светлая/тёмная — data-theme (light | dark | нет — как в системе); data-oled — чёрный фон в тёмной. */
 :root[data-palette="sea"]{
+  --kt:#c93a63; --kt-ink:#ffffff;
   --bg:#eef2f5; --surface:#f8fafc; --raised:#ffffff; --ink:#17212b; --muted:#566676; --faint:#8b97a2;
   --line:#d6dee6; --line-strong:#bbc4cc; --accent:#1f6aa5; --accent-ink:#ffffff; --accent-soft:#dde9f4; --code-bg:#edeff2;}
 @media (prefers-color-scheme: dark){:root[data-palette="sea"]:not([data-theme="light"]){
+  --kt:#f08aa8; --kt-ink:#101010;
   --bg:#0f141a; --surface:#141b22; --raised:#1a222b; --ink:#e2e9f0; --muted:#9aa9b8; --faint:#697581;
   --line:#26313c; --line-strong:#404b55; --accent:#6fb2ec; --accent-ink:#08131d; --accent-soft:#1a2b3b; --code-bg:#1e252c;}}
 :root[data-palette="sea"][data-theme="dark"]{
+  --kt:#f08aa8; --kt-ink:#101010;
   --bg:#0f141a; --surface:#141b22; --raised:#1a222b; --ink:#e2e9f0; --muted:#9aa9b8; --faint:#697581;
   --line:#26313c; --line-strong:#404b55; --accent:#6fb2ec; --accent-ink:#08131d; --accent-soft:#1a2b3b; --code-bg:#1e252c;}
 :root[data-palette="plum"]{
+  --kt:#14786d; --kt-ink:#ffffff;
   --bg:#f3f1f6; --surface:#faf9fc; --raised:#ffffff; --ink:#211b29; --muted:#665d72; --faint:#9791a0;
   --line:#e0dbe7; --line-strong:#c5c0cc; --accent:#6a4bb5; --accent-ink:#ffffff; --accent-soft:#ebe5f6; --code-bg:#efeef1;}
 @media (prefers-color-scheme: dark){:root[data-palette="plum"]:not([data-theme="light"]){
+  --kt:#62cfc0; --kt-ink:#101010;
   --bg:#141218; --surface:#1a171f; --raised:#211d27; --ink:#ebe6f2; --muted:#aaa1b6; --faint:#766f7f;
   --line:#2e2936; --line-strong:#484350; --accent:#b39cf0; --accent-ink:#160f24; --accent-soft:#2b2340; --code-bg:#24212a;}}
 :root[data-palette="plum"][data-theme="dark"]{
+  --kt:#62cfc0; --kt-ink:#101010;
   --bg:#141218; --surface:#1a171f; --raised:#211d27; --ink:#ebe6f2; --muted:#aaa1b6; --faint:#766f7f;
   --line:#2e2936; --line-strong:#484350; --accent:#b39cf0; --accent-ink:#160f24; --accent-soft:#2b2340; --code-bg:#24212a;}
 :root[data-palette="terra"]{
+  --kt:#22708e; --kt-ink:#ffffff;
   --bg:#f6f1ea; --surface:#fcf9f4; --raised:#ffffff; --ink:#2a1f17; --muted:#76665a; --faint:#a3978c;
   --line:#e7ddd1; --line-strong:#cdc2b7; --accent:#b04f2a; --accent-ink:#ffffff; --accent-soft:#f5e2d7; --code-bg:#f1eee9;}
 @media (prefers-color-scheme: dark){:root[data-palette="terra"]:not([data-theme="light"]){
+  --kt:#6dc4e0; --kt-ink:#101010;
   --bg:#17120f; --surface:#1d1713; --raised:#241d18; --ink:#f0e7de; --muted:#b5a597; --faint:#7e7267;
   --line:#352b24; --line-strong:#4f453e; --accent:#f0956b; --accent-ink:#2a120a; --accent-soft:#3b2419; --code-bg:#28211d;}}
 :root[data-palette="terra"][data-theme="dark"]{
+  --kt:#6dc4e0; --kt-ink:#101010;
   --bg:#17120f; --surface:#1d1713; --raised:#241d18; --ink:#f0e7de; --muted:#b5a597; --faint:#7e7267;
   --line:#352b24; --line-strong:#4f453e; --accent:#f0956b; --accent-ink:#2a120a; --accent-soft:#3b2419; --code-bg:#28211d;}
 :root[data-palette="rose"]{
+  --kt:#4558cc; --kt-ink:#ffffff;
   --bg:#f7f0f1; --surface:#fdf8f9; --raised:#ffffff; --ink:#2a1c20; --muted:#7a6168; --faint:#a69398;
   --line:#ecdde0; --line-strong:#d1c2c5; --accent:#b4466b; --accent-ink:#ffffff; --accent-soft:#f6e0e7; --code-bg:#f2edee;}
 @media (prefers-color-scheme: dark){:root[data-palette="rose"]:not([data-theme="light"]){
+  --kt:#8fa0f5; --kt-ink:#101010;
   --bg:#171214; --surface:#1d1719; --raised:#251d20; --ink:#f2e6ea; --muted:#b8a2a9; --faint:#807075;
   --line:#362a2e; --line-strong:#504448; --accent:#f08fae; --accent-ink:#2b0f19; --accent-soft:#3d2029; --code-bg:#282123;}}
 :root[data-palette="rose"][data-theme="dark"]{
+  --kt:#8fa0f5; --kt-ink:#101010;
   --bg:#171214; --surface:#1d1719; --raised:#251d20; --ink:#f2e6ea; --muted:#b8a2a9; --faint:#807075;
   --line:#362a2e; --line-strong:#504448; --accent:#f08fae; --accent-ink:#2b0f19; --accent-soft:#3d2029; --code-bg:#282123;}
 :root[data-palette="graphite"]{
+  --kt:#3567cf; --kt-ink:#ffffff;
   --bg:#f2f2f2; --surface:#fafafa; --raised:#ffffff; --ink:#1a1a1a; --muted:#616161; --faint:#949494;
   --line:#dedede; --line-strong:#c3c3c3; --accent:#2b2b2b; --accent-ink:#ffffff; --accent-soft:#e6e6e6; --code-bg:#efefef;}
 @media (prefers-color-scheme: dark){:root[data-palette="graphite"]:not([data-theme="light"]){
+  --kt:#8fb0f5; --kt-ink:#101010;
   --bg:#0b0b0b; --surface:#121212; --raised:#191919; --ink:#ececec; --muted:#a3a3a3; --faint:#6e6e6e;
   --line:#272727; --line-strong:#434343; --accent:#e6e6e6; --accent-ink:#111111; --accent-soft:#262626; --code-bg:#1d1d1d;}}
 :root[data-palette="graphite"][data-theme="dark"]{
+  --kt:#8fb0f5; --kt-ink:#101010;
   --bg:#0b0b0b; --surface:#121212; --raised:#191919; --ink:#ececec; --muted:#a3a3a3; --faint:#6e6e6e;
   --line:#272727; --line-strong:#434343; --accent:#e6e6e6; --accent-ink:#111111; --accent-soft:#262626; --code-bg:#1d1d1d;}
 :root[data-palette="sepia"]{
+  --kt:#2f7040; --kt-ink:#ffffff;
   --bg:#f1e7d0; --surface:#f7efdc; --raised:#fbf5e6; --ink:#3b2f1e; --muted:#7a6a52; --faint:#a4967e;
   --line:#e0d2b4; --line-strong:#c9bb9f; --accent:#8a5a1f; --accent-ink:#fff8ea; --accent-soft:#ecdcb9; --code-bg:#eee5d2;}
 @media (prefers-color-scheme: dark){:root[data-palette="sepia"]:not([data-theme="light"]){
+  --kt:#86c98a; --kt-ink:#101010;
   --bg:#1a160f; --surface:#201b13; --raised:#272118; --ink:#e9dcc2; --muted:#ae9f84; --faint:#7a6f5b;
   --line:#3a3224; --line-strong:#524a3a; --accent:#d9a65e; --accent-ink:#24180a; --accent-soft:#3a2e1c; --code-bg:#2a251c;}}
 :root[data-palette="sepia"][data-theme="dark"]{
+  --kt:#86c98a; --kt-ink:#101010;
   --bg:#1a160f; --surface:#201b13; --raised:#272118; --ink:#e9dcc2; --muted:#ae9f84; --faint:#7a6f5b;
   --line:#3a3224; --line-strong:#524a3a; --accent:#d9a65e; --accent-ink:#24180a; --accent-soft:#3a2e1c; --code-bg:#2a251c;}
 @media (prefers-color-scheme: dark){:root[data-oled]:not([data-theme="light"]){ --bg:#000000; --surface:#070707; --raised:#0f0f0f; --line:#222222; --line-strong:#333333; --code-bg:#0c0c0c; }}
@@ -1614,7 +1632,7 @@ a{color:var(--accent)}
 .modes{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--rad-pill);padding:3px}
 .modes button{border:0;background:none;padding:6px 14px;border-radius:var(--rad-pill);color:var(--muted);font-weight:500;display:flex;gap:6px;align-items:center}
 .modes button[aria-pressed="true"]{background:var(--raised);color:var(--ink);box-shadow:var(--sh-key)}
-.badge{font:500 11px/1 var(--f-mono);background:var(--kt);color:var(--on-accent);border-radius:var(--rad-pill);padding:3px 6px}
+.badge{font:500 11px/1 var(--f-mono);background:var(--kt);color:var(--kt-ink);border-radius:var(--rad-pill);padding:3px 6px}
 .badge[hidden]{display:none}
 .search{flex:1;min-width:200px;max-width:520px;margin-left:auto;position:relative}
 .search input{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--raised);border-radius:var(--rad-pill);padding:8px 36px 8px 14px}
@@ -2316,8 +2334,8 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .sec .tools{margin-left:auto;display:flex;gap:4px;flex:none}
 .sec .tools span{display:grid;place-items:center;width:34px;height:30px;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--raised);color:var(--ink);font-size:15px;line-height:1}
 .sec .tools span[aria-disabled="true"]{opacity:.3}
-.chip.chip-tree{padding-inline:11px;font-size:15px;line-height:1;position:sticky;left:0;z-index:1;flex:none;box-shadow:-10px 0 0 6px var(--bg),8px 0 10px -6px rgba(0,0,0,.25)}
-.chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;left:-17px;width:18px;background:var(--bg)}
+.chip.chip-tree{padding-inline:11px;font-size:15px;line-height:1;position:sticky;left:0;z-index:1;flex:none;box-shadow:-10px 0 0 6px var(--surface),8px 0 10px -6px rgba(0,0,0,.25)}
+.chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;left:-17px;width:17px;background:var(--surface)}
 @media (max-width:760px){
   .top{gap:10px}
   .search{order:3;flex-basis:100%;max-width:none;margin-left:0}
@@ -2416,8 +2434,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 .color-grid button{height:32px;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-grid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 /* игровой: цвет раздела, огонёк серии, кольцо прогресса */
-:root[data-skin="play"] .sdot{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:var(--rad-s);font:800 12px/1 var(--f-body);background:var(--faint);color:var(--on-accent)}
-:root[data-skin="play"] .sec[data-sc] .sdot{background:var(--sc)}
+:root[data-skin="play"] .sec[data-sc] .sdot{display:block;flex:none;width:10px;height:10px;border-radius:50%;background:var(--sc)}
 :root[data-skin="play"] .sec.tree[data-sc][aria-current="true"]{background:color-mix(in srgb,var(--sc) 16%,var(--raised));box-shadow:inset 0 0 0 2px var(--sc)}
 :root[data-skin="play"] .card[data-sc]{border-top:10px solid var(--sc)}
 :root[data-skin="play"] .streak:not([hidden]){display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:5px 10px;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--flame) 14%,var(--bg));color:var(--hard);font:800 14px/1 var(--f-display)}
@@ -2427,6 +2444,18 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .ring .bignum{position:relative;font-size:34px}
 :root[data-skin="play"] .chip[data-sc]{border-color:var(--sc)}
 :root[data-skin="play"] .chip[data-sc][aria-pressed="true"]{background:var(--sc);border-color:var(--sc);color:var(--on-accent)}
+.grp-h .fico{width:15px;height:15px;flex:none;vertical-align:-3px;margin-right:6px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8;stroke-linejoin:round}
+:root[data-skin="play"] .row-item:has(.grip) .item{padding-left:34px}
+:root[data-skin="play"] .row-item .grip{left:16px}
+/* два ряда чипов на телефоне читаются по-разному: разделы — «папки» на подложке, теги — пунктирные метки с # */
+.chips-row .fico{width:14px;height:14px;flex:none;vertical-align:-2px;margin-right:5px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8;stroke-linejoin:round}
+.chips-row .chip[aria-pressed="true"] .fico{fill:none;stroke:currentColor}
+.chips-row{background:var(--surface)}
+.tagbar .chip{border:1px dashed var(--line-strong);background:transparent;border-radius:var(--rad-s);font-family:var(--f-mono);font-size:12px;padding:3px 9px}
+.tagbar .chip[aria-pressed="true"]{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+:root[data-skin="play"] .tagbar .chip{border-width:2px;font-weight:600}
+:root[data-skin="play"] .tagbar .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+:root[data-skin="play"] .chips-row .chip[aria-pressed="true"] .fico{stroke:var(--on-accent)}
 </style>
 
 <div class="app">
@@ -3617,6 +3646,7 @@ function toggleFolder(id, open) { if (open ?? collapsed.has(id)) collapsed.delet
 function revealFolder(id) { let ch = false; for (const a of ancestors(id)) if (collapsed.delete(a)) ch = true; if (ch) store.set('collapsed', [...collapsed]); }
 let addingSection = false, renamingSection = null;
 // значки «Все заметки», «Избранное», «Недавние», «Корзина» — в стиле иконок шапки
+const FOLDER_ICO = '<svg class="fico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>';   // цвет — от темы (--accent)
 const VICO = {
   all: '<svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg>',
   fav: '<svg viewBox="0 0 24 24"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.1L12 16.3l-4.6 2.4.9-5.1-3.8-3.6 5.2-.8z"/></svg>',
@@ -3641,7 +3671,7 @@ function renderRail() {
     const k = hasKids(s.id);
     rows.push(`<button class="sec tree" style="--d:${depth}"${scAttr(s.id)} data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="${tt('tree.sec.title')}">`
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${tt(collapsed.has(s.id) ? 'tree.expand' : 'tree.collapse')}"` : ''}>▶</span>`
-      + `<span class="sdot" aria-hidden="true">${esc([...s.title.trim()][0] || '')}</span>${d.get(s.id) ? `<span class="due" title="${tt('tree.due')}"></span>` : ''}<span class="name">${esc(s.title)}</span>`
+      + `<span class="sdot" aria-hidden="true"></span>${d.get(s.id) ? `<span class="due" title="${tt('tree.due')}"></span>` : ''}<span class="name">${esc(s.title)}</span>`
       + `${s.train ? `<span class="trn" title="${tt('tree.train')}">◎</span>` : ''}`
       + (() => { const sp = spacesList().find(x => x.root === s.id); return sp ? `<span class="shr" title="${esc(sp.role === 'owner' ? tt('tree.space.mine', { members: sp.members.length ? sp.members.map(m => m.name).join(', ') : tt('tree.space.nobody') }) : tt('tree.space.other', { owner: sp.owner.name }))}">👥</span>` : ''; })()
       + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
@@ -3655,7 +3685,7 @@ function renderRail() {
   $('#rail').innerHTML = rows.join('');
   // phone: drill-down — the current level and its children
   const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
-  const chip = x => `<button class="chip"${scAttr(x.id)} data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${spacesList().some(z => z.root === x.id) ? ' 👥' : ''}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
+  const chip = x => `<button class="chip"${scAttr(x.id)} data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${FOLDER_ICO}${esc(x.title)}${spacesList().some(z => z.root === x.id) ? ' 👥' : ''}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
   const chips = (ctx
     ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="${tt('chips.up')}">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : tt('chips.all'))}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
     : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">${tt('chips.all')}</button>`, `<button class="chip" data-sec="fav" aria-pressed="${S.section === 'fav'}">★</button>`, `<button class="chip" data-sec="recent" aria-pressed="${S.section === 'recent'}">${tt('sec.recent')}</button>`].concat(kids(null).map(chip), [`<button class="chip" data-sec="trash" aria-pressed="${S.section === 'trash'}">${tt('sec.trash')}${S.trash.size ? ' ' + S.trash.size : ''}</button>`]))
@@ -3914,7 +3944,7 @@ function renderList() {
   const want = [terms ? null : S.noteId, S.flash, S.renaming?.id].map(id => id ? list.findIndex(n => n.id === id) : -1).reduce((a, b) => Math.max(a, b), -1);
   if (want >= S.listLimit) S.listLimit = want + LIST_STEP;
   const shown = list.length > S.listLimit + LIST_STEP / 4 ? list.slice(0, S.listLimit) : list;
-  $('#items').innerHTML = shown.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="${tt('list.group.open', { section: esc(secPath(n.section)) })}"><span>${n.section === S.section ? '' : '📁 '}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
+  $('#items').innerHTML = shown.map(n => (grouped && n.section !== prevSec ? (prevSec = n.section, `<button type="button" class="grp-h" data-grp="${esc(n.section)}" title="${tt('list.group.open', { section: esc(secPath(n.section)) })}"><span>${n.section === S.section ? '' : FOLDER_ICO}${esc(relPath(n.section))}</span><span class="n">${gcount.get(n.section)}</span></button>`) : '') + (S.renaming?.id === n.id ? `
     <form class="row-item rename-form" data-id="${esc(n.id)}">
       <label class="lbl" for="rename-input">${tt('rename.label')}</label>
       <textarea id="rename-input" rows="1" autocomplete="off" enterkeyhint="done">${esc(S.renaming.draft)}</textarea>
