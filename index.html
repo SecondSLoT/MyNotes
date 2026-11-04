@@ -185,7 +185,6 @@ window.STR = {
   'help.title': 'Как всё устроено',
   'list.readall': 'Подряд',
   'list.new': '+ Заметка',
-  'list.count': '{n} {n|заметка|заметки|заметок}',
   'list.all': 'Все заметки',
   'list.loading': 'Загружаю заметки…',
   'reader.empty': 'Выбери заметку слева или найди её через поиск',
@@ -386,6 +385,8 @@ window.STR = {
   'ref.off.n': 'Убрано из тренировки: {n}',
   'ref.on.n': 'Возвращено в тренировку: {n}',
   'tags.more': 'ещё {n}',
+  'tags.show': 'Показать теги',
+  'tags.hide': 'Скрыть теги',
   'tags.help': 'Переименование меняет тег во всех заметках сразу. Если переименовать в уже существующий тег, они сольются в один',
   'tags.title': 'Теги',
   'tags.del.ask': 'Убрать <b>#{tag}</b> из {n} {n|заметки|заметок|заметок}?',
@@ -1767,14 +1768,14 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 @media (max-width:760px){.hitbar{top:60px}
   body.editing .top{display:none}
   body.editing .lib{height:100%}
-  body.editing.kb{overflow:hidden}
-  body.editing.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
+  body.kb{overflow:hidden}
+  body.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
 /* телефон в альбомной ориентации (шире 760 px, но ниже 500): при правке верхняя панель тоже прячется — иначе редактору остаётся треть экрана */
 @media (max-height:500px) and (pointer:coarse){
   body.editing .top{display:none}
   body.editing .lib{height:100%}
-  body.editing.kb{overflow:hidden}
-  body.editing.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
+  body.kb{overflow:hidden}
+  body.kb .app{height:var(--vvh,100%);transform:translateY(var(--vvt,0px))}}
 .items{overflow:auto;flex:1;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .rail{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
 .item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding-block:11px;padding-inline:16px;color:var(--ink)}
@@ -2449,6 +2450,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .row-item:has(.grip) .item{padding-left:34px}
 :root[data-skin="play"] .row-item .grip{left:16px}
 /* два ряда чипов на телефоне читаются по-разному: разделы — «папки» на подложке, теги — пунктирные метки с # */
+.chips-row,.tagbar{overflow-y:hidden;overscroll-behavior-x:contain}   /* без этого полоска дёргалась по вертикали на телефоне (тени кнопок выше строки) */
 .chips-row .fico{width:14px;height:14px;flex:none;vertical-align:-2px;margin-right:5px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8;stroke-linejoin:round}
 .chips-row .chip[aria-pressed="true"] .fico{fill:none;stroke:currentColor}
 .chips-row{background:var(--surface)}
@@ -2463,8 +2465,8 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
   .chips-row{padding-block:6px}
   .tagbar{padding-block:6px}
   .list-head{padding-block:6px}
-  .list-head:not(.searching) h2{display:none}
-  .list-head .count{font-size:0}.list-head .count::after{content:attr(data-full);font:12px var(--f-mono)}
+  .list-head{flex-wrap:nowrap}   /* название сжимается с «…», кнопки не переносятся на вторую строку */
+  .list-head h2{flex:0 1 auto}.list-head .count{flex:none}
   .list-head #sort-btn{margin-left:auto}
   .list-head #read-all{margin-left:0}
   #new-note{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:12;padding:12px 20px;border-radius:var(--rad-pill);background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;box-shadow:var(--sh-pop)}
@@ -2506,7 +2508,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
-      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
+      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
       <div class="backup-bar" id="space-bar" role="status" hidden></div>
@@ -3671,6 +3673,7 @@ const VICO = {
   recent: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>',
   trash: '<svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5M10 11v5.5M14 11v5.5"/></svg>',
 };
+let chipSeen = null;   // для какого раздела полоска уже прокручена к выбранному чипу
 function renderRail() {
   const { c, d } = sectionCounts();
   const favN = [...S.notes.values()].filter(n => n.pinned).length;
@@ -3710,6 +3713,8 @@ function renderRail() {
     .concat(S.canWrite ? [`<button class="chip chip-add" id="chip-add" aria-label="${tt('chips.add')}" title="${tt('chips.add')}">+</button>`] : []);
   chips.unshift(`<button class="chip chip-tree" id="chip-tree" aria-label="${tt('chips.tree.label')}" title="${tt('chips.tree')}">☰</button>`);
   $('#chips').innerHTML = chips.join('');
+  const row = $('#chips'), cur = row.querySelector('.chip[aria-pressed="true"]');
+  if (cur && chipSeen !== S.section) { chipSeen = S.section; const rr = row.getBoundingClientRect(), cr = cur.getBoundingClientRect(); row.scrollLeft += cr.left - rr.left - (rr.width - cr.width) / 2; }
   if (addingSection) $('#new-sec-name')?.focus();
   if (renamingSection) { const i = $('#rename-sec'); i?.focus(); i?.select(); }
 }
@@ -3931,10 +3936,11 @@ function renderList() {
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
-  $('#list-count').textContent = list.length; $('#list-count').dataset.full = tt('list.count', { n: list.length }); $('.list-head').classList.toggle('searching', !!S.q.trim());
+  $('#list-count').textContent = list.length;
   const tags = allTags();
   const tb = $('#tagbar');
-  tb.hidden = !tags.length || !!terms;
+  tb.hidden = !tags.length || !!terms || !tagsShown();
+  syncTagsBtn(tags.length && !terms);
   tb.innerHTML = tags.map(([t, c]) => `<button class="chip" data-tag="${esc(t)}" aria-pressed="${S.tag === t}">#${esc(t)} <span class="tag">${c}</span></button>`).join('')
     + (S.canWrite ? `<button class="chip chip-manage" id="tags-manage" title="${tt('tags.manage.title')}">${tt('tags.manage')}</button>` : '');
   fitTags();
@@ -5186,6 +5192,13 @@ async function bulkMenuAct(act, b) {
   }
 }
 
+/* строка тегов можно свернуть кнопкой в шапке списка (экономит место); выбор запоминается на устройстве, по умолчанию: на телефоне свёрнута, на компьютере открыта */
+function tagsShown() { const v = store.get('tagbar', null); return v == null ? !matchMedia('(max-width:760px)').matches : !!v; }
+function syncTagsBtn(has) {
+  const b = $('#tags-btn'); if (!b) return;
+  const on = tagsShown(); b.hidden = !has;
+  b.setAttribute('aria-pressed', String(on)); b.title = b.ariaLabel = tt(on ? 'tags.hide' : 'tags.show');
+}
 /* строка тегов на компьютере — не больше двух рядов, остальное за «ещё N» (на телефоне — один ряд с прокруткой, CSS).
    Самые частые теги — первые; выбранный тег виден всегда. «ещё N» раскрывает все, «Свернуть» — обратно (S.tagsAll) */
 function fitTags() {
@@ -5615,6 +5628,7 @@ $('#q').addEventListener('keydown', e => {
 });
 
 /* ---------- read the whole list as one article ---------- */
+$('#tags-btn').addEventListener('click', () => { store.set('tagbar', !tagsShown()); const tb = $('#tagbar'); tb.hidden = !tb.querySelector('[data-tag]') || !tagsShown(); syncTagsBtn(true); fitTags(); });
 $('#sort-btn').addEventListener('click', e => {
   if (S.menu?.kind === 'sort') { closeMenu(); return; }
   S.menu = { kind: 'sort', id: S.section, anchor: e.currentTarget }; renderMenu();
@@ -5772,7 +5786,10 @@ if (window.visualViewport) {
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
 function renderReader(scrollTop) {
+  const wasEditing = document.body.classList.contains('editing');
   document.body.classList.toggle('editing', !!S.editing);
+  // вышли из редактора с открытой клавиатурой: убрать фокус (клавиатура закрывается), иначе на телефоне видимая область остаётся сдвинутой и шапка уезжает за верх экрана
+  if (wasEditing && !S.editing) { const ae = document.activeElement; if (ae && ae !== document.body && /^(INPUT|TEXTAREA)$/.test(ae.tagName) || ae?.isContentEditable) ae.blur(); window.scrollTo(0, 0); }
   const ov = $('#edit-overlay');
   if (S.editing?.overlay) { // editing a card from the training session: the same editor, in a sheet over the session
     if (ov.hidden) { ov.hidden = false; ov.scrollTop = 0; document.body.classList.add('sheet-open'); }
