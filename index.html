@@ -8721,9 +8721,23 @@ function navStart() {
 // «назад» в самой первой записи истории уходит с сайта, даже когда открыто окно: пока что-то открыто, ставим позади него защитную запись
 // (back закрывает окно и возвращает запись); закрыли окно кнопкой — защитную молча убираем
 const layerOpen = () => !!(STAGE.on || S.menu || document.body.classList.contains('secs-open') || document.querySelector('.help-overlay:not([hidden])') || S.editing || S.select);
+// Chrome умеет закрывать окна жестом «назад» без записей истории — CloseWatcher: нет анимации возврата, окно закрывается сразу;
+// без него (Safari, Firefox, старый Chrome) остаётся защитная запись
+function cwSync(open) {
+  if (!window.CloseWatcher) return false;
+  if (open && !NAV.cw) {
+    try {
+      const w = new CloseWatcher();
+      w.onclose = () => { if (NAV.cw === w) NAV.cw = null; if (layerOpen()) closeTopLayer(); setTimeout(guardCheck, 0); };
+      NAV.cw = w;
+    } catch (e) { return false; }
+  } else if (!open && NAV.cw) { const w = NAV.cw; NAV.cw = null; try { w.destroy(); } catch (e) {} }
+  return !!NAV.cw || !open;
+}
 function guardCheck() {
   if (!NAV.ready || NAV.popping) return;
   const hs = history.state, open = layerOpen();
+  if (cwSync(open) && !hs?.guard) return;
   if (open && hs?.root) history.pushState({ nav: navNow(), guard: true }, '');
   else if (!open && hs?.guard) { NAV.popping = true; history.back(); setTimeout(() => { NAV.popping = false; }, 80); }
 }
@@ -8790,7 +8804,7 @@ document.addEventListener('keydown', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { NAV, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
