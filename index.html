@@ -185,6 +185,7 @@ window.STR = {
   'help.title': 'Как всё устроено',
   'list.readall': 'Подряд',
   'list.new': '+ Заметка',
+  'list.count': '{n} {n|заметка|заметки|заметок}',
   'list.all': 'Все заметки',
   'list.loading': 'Загружаю заметки…',
   'reader.empty': 'Выбери заметку слева или найди её через поиск',
@@ -2335,7 +2336,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .sec .tools span{display:grid;place-items:center;width:34px;height:30px;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--raised);color:var(--ink);font-size:15px;line-height:1}
 .sec .tools span[aria-disabled="true"]{opacity:.3}
 .chip.chip-tree{padding-inline:11px;font-size:15px;line-height:1;position:sticky;left:0;z-index:1;flex:none;box-shadow:-10px 0 0 6px var(--surface),8px 0 10px -6px rgba(0,0,0,.25)}
-.chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;left:-17px;width:17px;background:var(--surface)}
+.chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;right:calc(100% + 2px);width:18px;background:var(--surface)}   /* 2px — рамка кнопки лежит снаружи padding-box: подложка не должна её срезать */
 @media (max-width:760px){
   .top{gap:10px}
   .search{order:3;flex-basis:100%;max-width:none;margin-left:0}
@@ -2456,6 +2457,23 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .tagbar .chip{border-width:2px;font-weight:600}
 :root[data-skin="play"] .tagbar .chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 :root[data-skin="play"] .chips-row .chip[aria-pressed="true"] .fico{stroke:var(--on-accent)}
+/* телефон: компактнее шапка и списки, «+ Заметка» внизу, без дубля названия раздела (оно уже в чипах), кнопки списка — рядом */
+@media (max-width:760px){
+  .top{padding-block:8px}
+  .chips-row{padding-block:6px}
+  .tagbar{padding-block:6px}
+  .list-head{padding-block:6px}
+  .list-head:not(.searching) h2{display:none}
+  .list-head .count{font-size:0}.list-head .count::after{content:attr(data-full);font:12px var(--f-mono)}
+  .list-head #sort-btn{margin-left:auto}
+  .list-head #read-all{margin-left:0}
+  #new-note{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:12;padding:12px 20px;border-radius:var(--rad-pill);background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;box-shadow:var(--sh-pop)}
+  #new-note:hover{border-color:var(--accent);filter:brightness(1.05)}
+  #items{padding-bottom:84px}
+}
+:root[data-skin="play"] .row-item{border-bottom:0}
+:root[data-skin="play"] .item{margin-block:4px}
+@media (max-width:760px){:root[data-skin="play"] #new-note{border-color:var(--accent);box-shadow:0 4px 0 var(--edge),var(--sh-pop)}}
 </style>
 
 <div class="app">
@@ -3913,7 +3931,7 @@ function renderList() {
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
-  $('#list-count').textContent = list.length;
+  $('#list-count').textContent = list.length; $('#list-count').dataset.full = tt('list.count', { n: list.length }); $('.list-head').classList.toggle('searching', !!S.q.trim());
   const tags = allTags();
   const tb = $('#tagbar');
   tb.hidden = !tags.length || !!terms;
