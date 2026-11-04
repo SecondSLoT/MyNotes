@@ -744,6 +744,18 @@ window.STR = {
   'look.light': 'Светлая',
   'look.dark': 'Тёмная',
   'look.colors': 'Цвета',
+  'sec.color': 'Цвет раздела',
+  'sec.color.none': 'Без цвета',
+  'sec.color.saved': 'Цвет раздела сохранён',
+  'col.orange': 'Оранжевый',
+  'col.violet': 'Фиолетовый',
+  'col.teal': 'Бирюзовый',
+  'col.pink': 'Розовый',
+  'col.blue': 'Синий',
+  'col.green': 'Зелёный',
+  'col.red': 'Красный',
+  'col.gray': 'Серый',
+  'streak.title': 'Серия: {n|день|дня|дней} подряд',
   'look.skin': 'Стиль',
   'look.skin.classic': 'Классический',
   'look.skin.play': 'Игровой',
@@ -1493,7 +1505,8 @@ window.tt = function (key, p) {
   /* Радиусы, тени и служебные цвета — единые токены (скины меняют только их) */
   --rad-xs:4px; --rad-s:6px; --rad-m:8px; --rad-l:10px; --rad-xl:12px; --rad-2xl:16px; --rad-pill:999px;
   --sh-key:0 1px 2px rgba(0,0,0,.08); --sh-pop:0 10px 28px rgba(0,0,0,.16); --sh-modal:0 20px 60px rgba(0,0,0,.25);
-  --star:#d49b1f; --on-accent:#fff; --paper:#fff; --diff-add:#2f9e5b; --diff-del:#d0473a;
+  --sc-orange:#f2711c; --sc-violet:#7c5cff; --sc-teal:#14a89a; --sc-pink:#ec4c8a; --sc-blue:#2f8fdb; --sc-green:#2f9e5b; --sc-red:#e0483a; --sc-gray:#7a807b;
+  --flame:#ff5a26; --star:#d49b1f; --on-accent:#fff; --paper:#fff; --diff-add:#2f9e5b; --diff-del:#d0473a;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#121513; --surface:#171b18; --raised:#1d221f; --ink:#e4e8e3; --muted:#a1aaa3; --faint:#78817a;
@@ -2395,11 +2408,31 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .grade.g3{background:var(--good);color:var(--accent-ink);border-color:var(--good);box-shadow:0 4px 0 var(--edge)}
 :root[data-skin="play"] .grade.g3:active{box-shadow:0 1px 0 var(--edge)}
 :root[data-skin="play"] .grade.g1,:root[data-skin="play"] .grade.g2{border-color:currentColor}
+.sdot,.streak{display:none}
+.ring{display:contents}
+[data-sc="orange"]{--sc:var(--sc-orange)}[data-sc="violet"]{--sc:var(--sc-violet)}[data-sc="teal"]{--sc:var(--sc-teal)}[data-sc="pink"]{--sc:var(--sc-pink)}
+[data-sc="blue"]{--sc:var(--sc-blue)}[data-sc="green"]{--sc:var(--sc-green)}[data-sc="red"]{--sc:var(--sc-red)}[data-sc="gray"]{--sc:var(--sc-gray)}
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 10px 10px}
+.color-grid button{height:32px;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
+.color-grid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+/* игровой: цвет раздела, огонёк серии, кольцо прогресса */
+:root[data-skin="play"] .sdot{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:var(--rad-s);font:800 12px/1 var(--f-body);background:var(--faint);color:var(--on-accent)}
+:root[data-skin="play"] .sec[data-sc] .sdot{background:var(--sc)}
+:root[data-skin="play"] .sec.tree[data-sc][aria-current="true"]{background:color-mix(in srgb,var(--sc) 16%,var(--raised));box-shadow:inset 0 0 0 2px var(--sc)}
+:root[data-skin="play"] .card[data-sc]{border-top:10px solid var(--sc)}
+:root[data-skin="play"] .streak:not([hidden]){display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:5px 10px;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--flame) 14%,var(--bg));color:var(--hard);font:800 14px/1 var(--f-display)}
+:root[data-skin="play"] .streak svg{width:16px;height:16px;fill:var(--flame)}
+:root[data-skin="play"] .ring{display:grid;place-items:center;position:relative;width:96px;height:96px;flex:none;border-radius:50%;background:conic-gradient(var(--kt) var(--p),var(--line) 0)}
+:root[data-skin="play"] .ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--raised)}
+:root[data-skin="play"] .ring .bignum{position:relative;font-size:34px}
+:root[data-skin="play"] .chip[data-sc]{border-color:var(--sc)}
+:root[data-skin="play"] .chip[data-sc][aria-pressed="true"]{background:var(--sc);border-color:var(--sc);color:var(--on-accent)}
 </style>
 
 <div class="app">
   <header class="top">
     <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span><span class="brand-pro" id="brand-pro" hidden>Pro</span></div>
+    <span class="streak" id="streak" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c1 3.2 4.8 5.2 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2 .9-3.4 2-4.6.2 1.6 1 2.6 2 3 0-3.2-.6-5.6.8-8.4z"/></svg><b id="streak-n">0</b></span>
     <span class="sync-badge" id="sync-badge" role="status" hidden></span>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
@@ -2740,6 +2773,17 @@ function tree() {
 }
 function kids(pid) { return tree().by.get(pid || null) || []; }
 const alphaKids = pid => !!pid && S.sections.get(pid)?.subSort === 'title';   // подразделы по алфавиту — ручной порядок не действует
+// Цвет раздела (sections.color — один из SEC_COLORS; подразделы без своего цвета берут цвет ближайшего родителя). Рисует его игровой стиль,
+// классический вид цвет не показывает (docs/skins.md)
+const SEC_COLORS = [['orange', tt('col.orange')], ['violet', tt('col.violet')], ['teal', tt('col.teal')], ['pink', tt('col.pink')], ['blue', tt('col.blue')], ['green', tt('col.green')], ['red', tt('col.red')], ['gray', tt('col.gray')]];
+function secColor(id) { for (let x = id, i = 0; x && i < 20; x = parentOf(x), i++) { const c = S.sections.get(x)?.color; if (c && SEC_COLORS.some(k => k[0] === c)) return c; } return ''; }
+const scAttr = id => { const c = secColor(id); return c ? ` data-sc="${c}"` : ''; };
+async function setSecColor(id, color) {
+  const f = S.sections.get(id); if (!f) return;
+  const was = f.color; f.color = color || null; rerender();
+  const ok = await write(() => S.db.collection('sections').doc(id).update({ color: f.color }), tt('sec.color.saved'));
+  if (!ok) { f.color = was; rerender(); }
+}
 async function setSubSort(id, mode) {
   const f = S.sections.get(id); if (!f) return;
   const was = f.subSort; f.subSort = mode === 'title' ? 'title' : null; renderRail();
@@ -3595,9 +3639,9 @@ function renderRail() {
       continue;
     }
     const k = hasKids(s.id);
-    rows.push(`<button class="sec tree" style="--d:${depth}" data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="${tt('tree.sec.title')}">`
+    rows.push(`<button class="sec tree" style="--d:${depth}"${scAttr(s.id)} data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="${tt('tree.sec.title')}">`
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${tt(collapsed.has(s.id) ? 'tree.expand' : 'tree.collapse')}"` : ''}>▶</span>`
-      + `${d.get(s.id) ? `<span class="due" title="${tt('tree.due')}"></span>` : ''}<span class="name">${esc(s.title)}</span>`
+      + `<span class="sdot" aria-hidden="true">${esc([...s.title.trim()][0] || '')}</span>${d.get(s.id) ? `<span class="due" title="${tt('tree.due')}"></span>` : ''}<span class="name">${esc(s.title)}</span>`
       + `${s.train ? `<span class="trn" title="${tt('tree.train')}">◎</span>` : ''}`
       + (() => { const sp = spacesList().find(x => x.root === s.id); return sp ? `<span class="shr" title="${esc(sp.role === 'owner' ? tt('tree.space.mine', { members: sp.members.length ? sp.members.map(m => m.name).join(', ') : tt('tree.space.nobody') }) : tt('tree.space.other', { owner: sp.owner.name }))}">👥</span>` : ''; })()
       + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
@@ -3611,7 +3655,7 @@ function renderRail() {
   $('#rail').innerHTML = rows.join('');
   // phone: drill-down — the current level and its children
   const ctx = S.section === 'all' || !S.sections.has(S.section) ? null : hasKids(S.section) ? S.section : parentOf(S.section);
-  const chip = x => `<button class="chip" data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${spacesList().some(z => z.root === x.id) ? ' 👥' : ''}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
+  const chip = x => `<button class="chip"${scAttr(x.id)} data-sec="${esc(x.id)}" aria-pressed="${S.section === x.id}">${esc(x.title)}${spacesList().some(z => z.root === x.id) ? ' 👥' : ''}${hasKids(x.id) && x.id !== ctx ? ' ›' : ''}</button>`;
   const chips = (ctx
     ? [`<button class="chip chip-up" data-up="${esc(parentOf(ctx) || 'all')}" aria-label="${tt('chips.up')}">‹ ${esc(parentOf(ctx) ? S.sections.get(parentOf(ctx)).title : tt('chips.all'))}</button>`, chip(S.sections.get(ctx))].concat(kids(ctx).map(chip))
     : [`<button class="chip" data-sec="all" aria-pressed="${S.section === 'all'}">${tt('chips.all')}</button>`, `<button class="chip" data-sec="fav" aria-pressed="${S.section === 'fav'}">★</button>`, `<button class="chip" data-sec="recent" aria-pressed="${S.section === 'recent'}">${tt('sec.recent')}</button>`].concat(kids(null).map(chip), [`<button class="chip" data-sec="trash" aria-pressed="${S.section === 'trash'}">${tt('sec.trash')}${S.trash.size ? ' ' + S.trash.size : ''}</button>`]))
@@ -5193,7 +5237,11 @@ function renderSecMenu() {
   const sub = sec ? subtree(sec.id) : new Set();
   const count = sec ? [...S.notes.values()].filter(n => sub.has(n.section)).length : 0;
   const list = sec ? kids(parentOf(sec.id)) : []; const idx = sec ? list.findIndex(x => x.id === sec.id) : -1;
-  if (M.mode === 'rename' || M.mode === 'new' || M.mode === 'sub') {
+  if (M.mode === 'color') {
+    menuEl.innerHTML = `<div class="ask u-muted">${tt('sec.color')}</div><div class="color-grid">${SEC_COLORS.map(([k, l]) => `<button type="button" data-act="sec-color-set" data-pick="${k}" data-sc="${k}" aria-label="${l}" title="${l}" aria-pressed="${sec.color === k}"></button>`).join('')}</div>
+      <button data-act="sec-color-set" data-pick="" role="menuitem"><span class="ico">${sec.color ? '' : '✓'}</span>${tt('sec.color.none')}</button>
+      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem"><span class="ico">←</span>${tt('btn.back')}</button>`;
+  } else if (M.mode === 'rename' || M.mode === 'new' || M.mode === 'sub') {
     menuEl.innerHTML = `<form class="menu-form" id="sec-form"><label class="ask u-muted" for="sec-name">${M.mode === 'new' ? tt('chips.add') : M.mode === 'sub' ? tt('sec.sub.in', { section: esc(sec.title) }) : tt('tree.sec.name')}</label>
       <input id="sec-name" value="${esc(sec && M.mode === 'rename' ? sec.title : '')}" placeholder="${tt('sec.name.ph')}" autocomplete="off">
       <div class="ask-row"><button class="yes-ok" type="submit">${tt(M.mode === 'new' ? 'btn.create' : 'btn.save')}</button><button type="button" data-act="sec-cancel">${tt('btn.cancel')}</button></div></form>`;
@@ -5228,6 +5276,7 @@ function renderSecMenu() {
       : `<button data-act="sec-both" role="menuitem" aria-checked="${!!sec.both}" title="${tt('sec.both.title')}"><span class="ico">${sec.both ? '☑' : '☐'}</span>${tt('sec.both')}${plusOn() ? '' : ' · Pro'}</button>`;
     menuEl.innerHTML = `<div class="ask u-muted" >${esc(sec.title)} · ${count}</div>
       <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>${tt('tags.rename')}</button>
+      <button data-act="sec-color" role="menuitem"><span class="ico">●</span>${tt('sec.color')}</button>
       <button data-act="sec-sub" role="menuitem"><span class="ico">+</span>${tt('sec.sub.new')}</button>
       <button data-act="sec-up" role="menuitem" ${idx <= 0 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}><span class="ico">↑</span>${tt('tree.up')}</button>
       <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}><span class="ico">↓</span>${tt('tree.down')}</button>
@@ -5383,6 +5432,8 @@ menuEl.addEventListener('click', async e => {
   if (S.menu.kind === 'sort') { if (act === 'sort-set') { const sec = S.menu.id; closeMenu(); setSortMode(sec, b.dataset.sort); } return; }
   if (S.menu.kind === 'sec') {
     if (act === 'sec-rename') { S.menu.mode = 'rename'; renderMenu(); }
+    else if (act === 'sec-color') { S.menu.mode = 'color'; renderMenu(); }
+    else if (act === 'sec-color-set') { const id = S.menu.id; closeMenu(); setSecColor(id, b.dataset.pick); }
     else if (act === 'sec-cancel') closeMenu();
     else if (act === 'sec-del') { S.menu.mode = 'confirmDel'; renderMenu(); }
     else if (act === 'sec-back') { S.menu.mode = 'main'; renderMenu(); }
@@ -8131,7 +8182,7 @@ function renderTrain() {
     <section class="panel">
       ${(h => `<h3>${tt('tr.today')}${h[0]}</h3>${h[1]}`)(help(tt('tr.today.help')))}
       <div class="today">
-        <div class="bignum">${total}</div>
+        <div class="ring" style="--p:${Math.round(100 * answeredToday() / Math.max(1, answeredToday() + total))}%"><div class="bignum">${total}</div></div>
         <div class="split"><span>${tt('tr.due', { n: rq.due.length })}</span><span>${tt('tr.fresh', { n: rq.fresh.length, of: S.settings.newPerDay ?? 10 })} <span class="hint">${tt('tr.fresh.total', { n: rq.freshTotal })}</span></span>${(f => `<span class="ahead" id="ahead">${tt('tr.ahead', { tomorrow: f.tomorrow, week: f.week })}</span>`)(dueAhead())}</div>
         <button class="btn primary big" id="start-review" ${total ? '' : 'disabled'}>${tt(total ? 'tr.start' : 'tr.done')}</button>
       </div>
@@ -8182,8 +8233,8 @@ function renderSession(root) {
   const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? tt('tr.same.due') : tt('tr.next', { when: ivlText(r.ivl) }); };
   root.innerHTML = `<div class="session">
     <div class="sbar"><button class="btn" id="s-end">${tt('tr.end')}</button><div class="track"><i style="--w:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
-    <div class="card">
-      <div class="eyebrow eyebrow" >${esc(S.sections.get(n.section)?.title || '')} ${cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? `<span class="pill u-again" >${tt('tr.again')}</span>` : ''}${S.canWrite ? `<button class="drop-card" id="drop-card" title="${tt('tr.drop.title')}">${tt('bulk.ref.on')}</button>` : ''}</div>
+    <div class="card"${scAttr(n.section)}>
+      <div class="eyebrow" >${esc(S.sections.get(n.section)?.title || '')} ${cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? `<span class="pill u-again" >${tt('tr.again')}</span>` : ''}${S.canWrite ? `<button class="drop-card" id="drop-card" title="${tt('tr.drop.title')}">${tt('bulk.ref.on')}</button>` : ''}</div>
       ${rev ? `<p class="hint rev-hint">${tt('tr.rev.hint')}</p><div class="ans md rev-q" id="ans">${renderMd(n.body)}</div>${T.shown ? `<div class="q rev-a">${softBreaks(n.title)}</div>` : ''}`
         : `<div class="q">${softBreaks(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="${tt('tr.edit.title')}">${tt('tr.edit')}</button>` : ''}</div>`}
       ${S.canWrite ? tagRowHtml(n.id, 'train') : ''}
@@ -8262,7 +8313,7 @@ function rebuildLog() {
     }
     out.set(m, dst);
   }
-  S.srsLog = out;
+  S.srsLog = out; if ($('#streak')) updateBadge();   // огонёк серии в шапке
 }
 let logPruned = false;
 function pruneLog() {
@@ -8340,6 +8391,13 @@ document.addEventListener('keydown', e => {
 /* ---------- статистика тренировки («тренировка плюс», Pro; в MyNotes — всегда) ----------
    Прогноз на 30 дней (по срокам карточек), календарь занятий и серия дней подряд (журнал ответов), доля «знаю» по знакомым
    карточкам за 30 дней, трудные карточки (FSRS: трудность и ошибки). Без Pro при включённых тарифах — заглушка «в Pro». */
+// серия дней подряд (журнал ответов): сегодня ещё не занимался — считается с вчера
+function streakNow() {
+  const t = today(), days = {}; for (const m of S.srsLog.values()) Object.assign(days, m.days || {});
+  let streak = 0; for (let d = days[t]?.n ? t : addDays(t, -1); days[d]?.n; d = addDays(d, -1)) streak++;
+  return streak;
+}
+function answeredToday() { const t = today(); let n = 0; for (const m of S.srsLog.values()) n += m.days?.[t]?.n || 0; return n; }
 function trainStats() {
   const t = today(), ahead = Array.from({ length: 30 }, (_, i) => ({ d: addDays(t, i), n: 0 }));
   const hard = [];
@@ -8351,7 +8409,7 @@ function trainStats() {
   }
   hard.sort((a, b) => b.lapses - a.lapses || b.d - a.d);
   const days = {}; for (const m of S.srsLog.values()) Object.assign(days, m.days || {});
-  let streak = 0; for (let d = days[t]?.n ? t : addDays(t, -1); days[d]?.n; d = addDays(d, -1)) streak++;
+  const streak = streakNow();
   let rn = 0, r3 = 0, n30 = 0; for (let i = 0; i < 30; i++) { const x = days[addDays(t, -i)]; if (x) { rn += x.rn || 0; r3 += x.r3 || 0; n30 += x.n || 0; } }
   return { ahead, hard: hard.slice(0, 10), days, streak, recall: rn ? Math.round(r3 * 100 / rn) : null, rn, n30 };
 }
@@ -8584,7 +8642,8 @@ setInterval(dayTick, 60000);
 function updateBadge() {
   if (!S.loaded?.notes) return;
   const rq = reviewQueue(); const n = rq.due.length + rq.fresh.length;
-  const b = $('#due-badge'); b.textContent = n; b.hidden = !n; fitModes();
+  const b = $('#due-badge'); b.textContent = n; b.hidden = !n;
+  const sk = $('#streak'), st = streakNow(); sk.hidden = !st; $('#streak-n').textContent = st; sk.title = tt('streak.title', { n: st }); fitModes();
 }
 
 /* ---------- data wiring ---------- */
@@ -8626,7 +8685,7 @@ async function maybeOnboard() {
     await Promise.all([
       S.db.collection('notes').doc('welcome').set({ section: 'start', title: tt('onb.welcome'), body: WELCOME_MD, tags: [], ref: false, order: 1, created: now, updated: now }),
       S.db.collection('notes').doc('example-card').set({ section: 'train-demo', title: tt('onb.example'), body: EXAMPLE_MD, tags: [tt('onb.tag')], ref: false, order: 2, created: now, updated: now }),
-      S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings || { newPerDay: 10 }, { onboarded: true })),
+      S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings || { newPerDay: 10 }, { onboarded: true, skin: 'play' })),
     ]);
     S.onboarded = true;
     window.NOTES_SIGNUP?.();   // новый человек — цель «регистрация» в Метрике лендинга (если там было согласие на cookie)
@@ -8746,7 +8805,7 @@ async function boot() {
   brandPro(); loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
-    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort }]; }));
+    S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort, color: v.color }]; }));
     S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
@@ -8872,7 +8931,7 @@ document.addEventListener('keydown', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { NAV, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { NAV, updateBadge, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
