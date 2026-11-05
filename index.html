@@ -194,10 +194,12 @@ window.STR = {
   'nav.prog': 'Настройки',
   'nav.help.title': 'Справка: как всё устроено (клавиша ?)',
   'nav.help': 'Справка',
+  'search.kbd': 'Нажмите /, чтобы перейти к поиску',
   'search.label': 'Поиск по заметкам',
   'search.placeholder': 'Поиск по заметкам…',
   'rail.label': 'Разделы',
   'rail.resize.label': 'Ширина панели разделов',
+  'list.resize.label': 'Ширина колонки заметок',
   'rail.resize.title': 'Потяни, чтобы изменить ширину. Двойной клик — вернуть как было',
   'list.label': 'Список заметок',
   'list.sort': 'Сортировка',
@@ -596,6 +598,7 @@ window.STR = {
   'img.loaded': 'Изображение загружено',
   'img.queued': 'Нет связи — изображение сохранено на этом устройстве и загрузится, когда она появится',
   'img.nogh': 'Чтобы вставлять изображения, подключи GitHub: ⚙ Настройки → Изображения',
+  'img.resize': 'Потяните, чтобы изменить размер',
   'img.alt': 'Иллюстрация из заметки',
   'img.fail': 'Изображение не загрузилось — нажми, чтобы повторить',
   'img.camera': 'Сфотографировать',
@@ -772,10 +775,10 @@ window.STR = {
   'look.skin.classic': 'Classic',
   'look.skin.play': 'Modern',
   'look.skin.saved': 'Стиль сохранён',
-  'look.home': 'Главная на телефоне',
+  'look.home': 'Разделы и заметки',
   'look.home.list': 'Список',
   'look.home.tiles': 'Плитки',
-  'look.home.saved': 'Главная сохранена',
+  'look.home.saved': 'Вид сохранён',
   'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
   'home.up': 'На уровень выше',
   'home.notes': 'Заметки раздела',
@@ -783,7 +786,6 @@ window.STR = {
   'home.flat': 'Все заметки',
   'home.newsec': 'Раздел',
   'home.folders': 'Папками',
-  'home.more': 'Показать ещё {n}',
   'look.oled': 'Чёрный фон в тёмной теме',
   'look.oled.help': 'Фон становится совсем чёрным — на телефонах с OLED-экраном это экономит батарею. Действует только в тёмной теме',
   'look.mode.saved': 'Тема сохранена',
@@ -1663,7 +1665,8 @@ a{color:var(--accent)}
 .status{font-size:12px;color:var(--faint)}
 
 /* library */
-.lib{flex:1;min-height:0;display:grid;grid-template-columns:var(--rail-w,230px) minmax(280px,360px) minmax(0,1fr);position:relative}
+.lib{flex:1;min-height:0;display:grid;grid-template-columns:var(--rail-w,230px) var(--list-w,minmax(280px,360px)) minmax(0,1fr);position:relative}
+.rail-resizer.list-resizer{left:calc(var(--rail-w,230px) + var(--list-w,360px) - 4px)}
 .rail-resizer{position:absolute;top:0;bottom:0;left:calc(var(--rail-w,230px) - 4px);width:8px;cursor:col-resize;z-index:5;touch-action:none}
 .rail-resizer::after{content:'';position:absolute;top:0;bottom:0;left:3px;width:2px;background:transparent;transition:background .15s}
 .rail-resizer:hover::after,.rail-resizer.dragging::after{background:var(--accent)}
@@ -2011,6 +2014,10 @@ button.tag{border:0;background:none;padding:0}
 .md img{max-width:100%;height:auto;border-radius:var(--rad-s);border:1px solid var(--line);background:var(--paper);display:block;margin:6px 0 14px}
 .md img.img-fail,.visual img.img-fail{box-sizing:border-box;width:100%;min-height:96px;font-size:0;color:transparent;background:var(--raised);border:1px dashed var(--line-strong);cursor:pointer}   /* изображение не загрузилось — рамка с подписью, а не пустота; font-size:0 прячет alt, подпись — из data-fail */
 .md img.img-fail::after,.visual img.img-fail::after{content:attr(data-fail);display:block;box-sizing:border-box;width:100%;padding:38px 14px 0;text-align:center;font:13px/1.4 var(--f-body);color:var(--muted)}
+.img-grip{position:absolute;left:var(--x);top:var(--y);width:22px;height:22px;margin:-14px 0 0 -14px;border-radius:var(--rad-s);background:var(--accent);border:2px solid var(--raised);box-shadow:var(--sh-pop);cursor:nwse-resize;touch-action:none;z-index:5}
+.img-grip[hidden]{display:none}
+.grip-host{position:relative}
+.md img[width],.visual img[width]{height:auto}
 .visual img{cursor:pointer;display:inline-block;vertical-align:bottom;max-width:calc(100% - 6px)}   /* строчное изображение: курсор после него — справа снизу, как в документе */.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
 .md blockquote{margin:0 0 1em;padding-left:14px;border-left:3px solid var(--line-strong);color:var(--muted)}
 .md table{border-collapse:collapse;display:block;overflow-x:auto;margin:0 0 1em}
@@ -2436,7 +2443,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
   --edge:color-mix(in srgb,var(--accent) 62%,#000);--edge-soft:var(--line-strong)}
 :root[data-skin="play"] body{font-weight:500}
 :root[data-skin="play"] .brand,:root[data-skin="play"] .brand b{font-weight:700}
-:root[data-skin="play"] .btn{border:2px solid var(--line-strong);border-radius:var(--rad-l);font-weight:700;transition:transform .08s,background-color .08s}
+:root[data-skin="play"] .btn{border:2px solid var(--line-strong);border-radius:var(--rad-xl);font-weight:700;transition:transform .08s,background-color .08s}
 :root[data-skin="play"] .btn:active:not(:disabled){transform:translateY(1px)}
 :root[data-skin="play"] .btn.primary{border-color:var(--accent)}
 :root[data-skin="play"] .btn.primary:active:not(:disabled){filter:none}
@@ -2460,13 +2467,19 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 :root[data-skin="play"] .track{height:14px;border-radius:7px}
 :root[data-skin="play"] .track i{border-radius:7px;box-shadow:inset 0 -4px 0 var(--edge)}
-:root[data-skin="play"] .grade{border-width:2px;border-radius:var(--rad-xl);font-weight:800}
+:root[data-skin="play"] .grade{border-width:2px;border-radius:var(--rad-2xl);font-weight:800}
+:root[data-skin="play"] .btn.big{border-radius:var(--rad-2xl)}
 :root[data-skin="play"] .grade:active{transform:translateY(1px)}
 :root[data-skin="play"] .grade.g3{background:var(--good);color:var(--accent-ink);border-color:var(--good)}
 :root[data-skin="play"] .grade.g1,:root[data-skin="play"] .grade.g2{border-color:currentColor}
 .sdot{display:none}
 /* главная с плитками (телефон, settings.home = 'tiles') */
-body.home-view .chips-row,body.home-view .list-head,body.home-view #tagbar,body.home-view #scopebar,body.home-view #new-note{display:none!important}
+body.home-view .chips-row,body.home-view #scopebar,body.home-view #new-note{display:none!important}
+.home-top{padding:12px 12px 0;display:flex;flex-direction:column;gap:12px}
+.home-top[hidden]{display:none}
+body.home-view .list-head h2{display:flex;align-items:center;gap:8px;min-width:0}
+.ttl-up{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.list-head .home-up{width:34px;height:34px}
 .home{padding:12px 12px 92px;display:flex;flex-direction:column;gap:14px}
 button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--rad-2xl);background:var(--raised);border:1px solid var(--line);text-align:left;color:var(--ink);font:inherit;cursor:pointer}
 .home-train .pring{--rs:58px}
@@ -2508,19 +2521,48 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .tl-more:hover,.tl-more:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent);outline:none}
 .tile[data-sec] .tl-due{margin-right:30px}
 .ntile .tl-name.nt{padding-right:22px}
-.home-links{display:flex;flex-wrap:wrap;gap:8px}   /* все ссылки видны сразу — корзина не прячется за прокруткой */
-.home-links .chip{flex:none;display:inline-flex;align-items:center;gap:6px}
-.home-links .chip .n{font-size:12px;color:var(--muted)}
+.home-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}   /* плитки-ссылки в пол-экрана, низкие — по высоте текста */
+.hl{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border-radius:var(--rad-xl);border:1px solid var(--line);background:var(--raised);color:var(--ink);font:600 14px/1.2 var(--f-body);text-align:left;cursor:pointer}
+.hl .hl-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hl .n{font-size:12px;color:var(--muted)}
+.hl-add{border-style:dashed;color:var(--muted)}
+.hl .ico{display:grid;place-items:center;flex:none;color:var(--sc,var(--accent))}
+.hl .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ntile.picked{outline:2px solid var(--accent);outline-offset:-2px}
+.tl-check{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:var(--rad-s);border:2px solid var(--line-strong);background:var(--raised)}
+.ntile.picked .tl-check{background:var(--accent);border-color:var(--accent)}
+.tl-acts{display:flex;gap:6px;flex-wrap:wrap}
+.tl-acts .btn{padding:6px 10px;font-size:13px}
 .home-links .ico{display:inline-grid;place-items:center}
 .home-links .ico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tl-grp{display:flex;align-items:center;gap:8px;padding:8px 2px 0;color:var(--muted);font:600 13px/1.3 var(--f-body)}
 .tl-grp .fico{width:16px;height:16px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8}
 .tl-grp[data-sc] .fico{fill:color-mix(in srgb,var(--sc) 22%,var(--raised));stroke:var(--sc)}
 .tl-gname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tl-more{align-self:center}
+.tl-sentinel{height:1px}
 #home-all .fico{width:18px;height:18px;margin-right:6px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8}
 .home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
 .home-bar .btn{flex:1;padding-block:12px;font-size:16px}
+/* компьютер с плитками (05.11): в колонке разделов и в колонке заметок плитки; колонка шире 300 px — по две квадратные, уже — по одной, высота по содержимому */
+.rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
+body.desk-tiles #items{container-type:inline-size}
+body.desk-tiles .home{padding-bottom:16px}
+body.desk-tiles .list-head{flex-wrap:nowrap}
+body.desk-tiles .list-head h2{display:block;flex:0 1 auto}
+body.desk-tiles .list-head #new-note{font-size:0;width:36px;height:36px;padding:0;display:inline-grid!important;place-items:center}   /* узкая колонка: «+ Заметка» — просто «+», текст остаётся для чтения с экрана */
+body.desk-tiles .list-head #new-note::after{content:'+';font:700 20px/1 var(--f-body)}
+body.desk-tiles .tiles{grid-template-columns:minmax(0,1fr)}
+body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
+@container (min-width:300px){
+  body.desk-tiles .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.desk-tiles .tiles>.tile{aspect-ratio:1}
+  body.desk-tiles .home-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.rail-up{display:flex;align-items:center;gap:8px;min-width:0}
+.rail-up .ttl-up{font:600 17px var(--f-display);flex:1}
+.rail-up .ttl-up.cur{color:var(--accent)}
+.tile[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
+.hl[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--sc,var(--accent))}
 .sec-hero{display:flex;align-items:center;gap:14px;margin:12px 12px 4px;padding:14px 16px;border-radius:var(--rad-xl);background:var(--raised);border:1px solid var(--line)}
 .sec-hero[hidden]{display:none}
 .sec-hero .pring{--rs:56px}
@@ -2542,6 +2584,7 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 }
 /* подсказка с горячими клавишами в редакторе — только там, где есть клавиатура; на телефоне её нет (для живой правки — короткая без клавиш) */
 .touch-hint{display:none}
+@media (hover:none) and (pointer:coarse){.search kbd{display:none}}   /* «/» — горячая клавиша поиска, без клавиатуры не нужна */
 @media (max-width:760px),(hover:none) and (pointer:coarse){.grade kbd{display:none}}   /* цифры 1/2/3 — подсказка клавиш, на телефоне не нужны и наезжали на текст */
 @media (max-width:760px),(hover:none) and (pointer:coarse){.kbd-hint{display:none}.touch-hint{display:inline}}
 /* огонёк серии дней — в обоих стилях (в «Игровом» плашкой); на телефоне справа в строке с названием, на компьютере — в конце шапки, с «N дней» */
@@ -2589,9 +2632,12 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .color-grid button{height:32px;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-grid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 /* игровой: цвет раздела, огонёк серии, кольцо прогресса */
-:root[data-skin="play"] .sec[data-sc] .sdot{display:block;flex:none;width:10px;height:10px;border-radius:50%;background:var(--sc)}
+/* Modern, дерево разделов: название в цветном прямоугольнике цвета раздела (вместо точки) */
+:root[data-skin="play"] .sec[data-sc] .name{background:color-mix(in srgb,var(--sc) 16%,var(--raised));color:color-mix(in srgb,var(--sc) 60%,var(--ink));padding:3px 9px;border-radius:var(--rad-m);flex:0 1 auto}
+:root[data-skin="play"] .sec[data-sc][aria-current="true"] .name{background:var(--sc);color:var(--on-accent)}
+:root[data-skin="play"] .sec[data-sc][aria-current="true"]{background:none;box-shadow:none}   /* выбранный — залитый прямоугольник названия, без второй рамки */
 :root[data-skin="play"] .sec.tree[data-sc][aria-current="true"]{background:color-mix(in srgb,var(--sc) 16%,var(--raised));box-shadow:inset 0 0 0 2px var(--sc)}
-:root[data-skin="play"] .card[data-sc]{border-top:10px solid var(--sc)}
+:root[data-skin="play"] .card[data-sc]{border-color:color-mix(in srgb,var(--sc) 35%,var(--line));box-shadow:inset 0 10px 0 var(--sc),0 4px 0 color-mix(in srgb,var(--sc) 25%,var(--line));padding-top:calc(clamp(18px,4vw,32px) + 10px)}
 :root[data-skin="play"] .streak:not([hidden]){display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--flame) 14%,var(--bg));color:var(--hard);font:800 14px/1 var(--f-display)}
 :root[data-skin="play"] .streak svg{width:16px;height:16px;fill:var(--flame)}
 :root[data-skin="play"] .pring{--rw:11}
@@ -2601,21 +2647,28 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 :root[data-skin="play"] .home-train .ht-t span{color:color-mix(in srgb,var(--accent-ink) 82%,var(--accent))}
 :root[data-skin="play"] .tile{border:0;border-radius:var(--rad-2xl);background:color-mix(in srgb,var(--sc,var(--accent)) 14%,var(--raised))}
 :root[data-skin="play"] .tile .fico{display:none}
+:root[data-skin="play"] .hl{border:0;border-radius:var(--rad-2xl);padding:10px 12px;background:color-mix(in srgb,var(--sc,var(--accent)) 16%,var(--raised));font-weight:800;color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
+:root[data-skin="play"] .hl .ico{width:32px;height:32px;border-radius:var(--rad-m);background:var(--sc,var(--accent));color:var(--on-accent);font:800 18px/1 var(--f-display)}
+:root[data-skin="play"] .hl-add{background:none;border:2px dashed var(--line-strong);color:var(--muted)}
+:root[data-skin="play"] .hl-add .ico{background:var(--line);color:var(--ink)}
 :root[data-skin="play"] .tl-ltr{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--rad-m);background:var(--sc,var(--accent));color:var(--on-accent);font:800 17px/1 var(--f-display)}
 :root[data-skin="play"] .tile{background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised))}
 :root[data-skin="play"] .ntile{background:color-mix(in srgb,var(--sc,var(--accent)) 8%,var(--raised));box-shadow:inset 0 4px 0 var(--sc,var(--accent))}
 :root[data-skin="play"] .ntile .tl-name{color:var(--ink)}
+:root[data-skin="play"] .tile[data-sec][aria-current="true"]{box-shadow:inset 0 0 0 3px var(--sc,var(--accent))}
+:root[data-skin="play"] .ntile[aria-current="true"]{box-shadow:inset 0 4px 0 var(--sc,var(--accent)),inset 0 0 0 2px var(--sc,var(--accent))}
+:root[data-skin="play"] .rail-up .ttl-up.cur{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink))}
 :root[data-skin="play"] .home-up{border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised))}
 :root[data-skin="play"] .tl-grp{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink));font-weight:800}
 :root[data-skin="play"] .sec-h h3{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
 :root[data-skin="play"] .tile .lbar{height:6px;background:var(--raised)}
 :root[data-skin="play"] .tile .tl-name{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
-:root[data-skin="play"] .home-bar .btn{border-radius:var(--rad-xl);font-weight:800}
+:root[data-skin="play"] .home-bar .btn{border-radius:var(--rad-2xl);font-weight:800}
 :root[data-skin="play"] .sec-hero{border:0;border-radius:var(--rad-2xl);background:color-mix(in srgb,var(--sc,var(--accent)) 14%,var(--raised))}
 :root[data-skin="play"] .sec-hero .pr-track{stroke:var(--raised)}
 :root[data-skin="play"] .lbar{height:6px;background:color-mix(in srgb,var(--sc,var(--good)) 14%,var(--line))}
 :root[data-skin="play"] .item[data-sc] .lbar i{background:var(--sc)}
-:root[data-skin="play"] .r-cta .btn{border-radius:var(--rad-xl);font-weight:800;padding:11px 20px}
+:root[data-skin="play"] .r-cta .btn{border-radius:var(--rad-2xl);font-weight:800;padding:11px 20px}
 :root[data-skin="play"] .note-head[data-sc] .sec-link{color:color-mix(in srgb,var(--sc) 70%,var(--ink));background:color-mix(in srgb,var(--sc) 16%,var(--raised));border-radius:var(--rad-m);padding:5px 10px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:800}
 @media (max-width:760px){
   :root[data-skin="play"] .lib.reading .note-head[data-sc]{background:color-mix(in srgb,var(--sc) 14%,var(--surface));margin:-14px -16px 18px;padding:14px 16px 4px;border-radius:0 0 var(--rad-2xl) var(--rad-2xl)}
@@ -2658,6 +2711,8 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 :root[data-skin="play"] .item{margin-block:4px}
 :root[data-skin="play"] .goto{right:20px;bottom:12px}
 :root[data-skin="play"] .row-item .more{top:12px;right:18px}
+:root[data-skin="play"] .item[data-sc]{box-shadow:inset 0 4px 0 var(--sc),inset 0 0 0 2px var(--line)}
+:root[data-skin="play"] .item[data-sc][aria-current="true"]{box-shadow:inset 0 4px 0 var(--sc),inset 0 0 0 2px var(--accent)}   /* как у плиток: полоска цвета раздела сверху */
 .more:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}   /* карточка в Modern уже строки на 10 px с каждой стороны — «в разделе» внутри неё */
 @media (max-width:760px){:root[data-skin="play"] #new-note{border-color:var(--accent);box-shadow:var(--sh-pop)}}
 </style>
@@ -2676,7 +2731,7 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
     </nav>
     <div class="search" id="search-box">
       <input id="q" type="search" placeholder="Поиск по заметкам…" autocomplete="off" aria-label="Поиск по заметкам">
-      <kbd>/</kbd>
+      <kbd title="Нажмите /, чтобы перейти к поиску">/</kbd>
     </div>
   </header>
   <script>/* a reload keeps the tab's history entry: show the screen it was on from the first paint, so notes don't flash (setMode clears data-boot) */
@@ -2691,10 +2746,12 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
     <div class="sheet-bg" id="sheet-bg"></div>
     <aside class="rail" id="rail" aria-label="Разделы"></aside>
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
+    <div class="rail-resizer list-resizer" id="list-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина колонки заметок" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
       <div class="sec-hero" id="sec-hero" hidden></div>
-      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
+      <div class="home-top" id="home-top" hidden></div>
+      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note" title="+ Заметка">+ Заметка</button></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
       <div class="backup-bar" id="space-bar" role="status" hidden></div>
@@ -3034,9 +3091,28 @@ const SEC_COLORS = [['orange', tt('col.orange')], ['violet', tt('col.violet')], 
 const AUTO_COLORS = SEC_COLORS.map(k => k[0]).filter(c => c !== 'gray');
 let autoColorCache = { t: null, m: null };
 function autoColor(id) {
-  const t = tree(); if (autoColorCache.t !== t || autoColorCache.sig !== t.sig) { autoColorCache = { t, sig: t.sig, m: new Map(homeLevel().map((s, i) => [s.id, AUTO_COLORS[i % AUTO_COLORS.length]])) }; }
+  const t = tree(); if (autoColorCache.t !== t || autoColorCache.sig !== t.sig) { const lv = homeLevel(), used = new Set(lv.map(x => x.color).filter(Boolean)), m = new Map(); let k = 0;
+    for (const x of lv) { if (x.color) continue; let c = AUTO_COLORS.find(z => !used.has(z)); if (!c) c = AUTO_COLORS[k++ % AUTO_COLORS.length]; used.add(c); m.set(x.id, c); }   // свободный цвет, которого ещё нет у соседей
+    autoColorCache = { t, sig: t.sig, m }; }
   for (let x = id, i = 0; x && i < 20; x = parentOf(x), i++) { const c = autoColorCache.m.get(x); if (c) return c; }
   return '';
+}
+/* автоматический цвет закрепляем за разделом (пишем sections.color один раз): иначе при удалении или переносе соседа цвета «переезжают» (05.11).
+   Только разделы уровня главной, только свои (в чужом общем разделе — без записи, цвет считается на лету) */
+let pinT = null; const pinned = new Set();
+function pinAutoColorsSoon() { if (window.NOTES_TEST) return; clearTimeout(pinT); pinT = setTimeout(pinAutoColors, 1200); }   // в тестах — только явным вызовом T.pinAutoColors (фоновая запись сбивала бы подготовленное состояние)
+function pinAutoColors() {
+  if (!S.db || !S.canWrite || !S.loaded.sections) return;
+  if (S.mode !== 'lib') return;   // запись разделов перерисовывает открытые настройки (сбивала ответ «Пароль задан») — закрепим, когда вернёмся к заметкам
+  const fns = [];
+  for (const sec of homeLevel()) {
+    if (sec.color || pinned.has(sec.id)) continue;
+    const sp = spaceOfSection(sec.id); if (sp && sp.role !== 'owner') continue;
+    const c = autoColor(sec.id); if (!c) continue;
+    pinned.add(sec.id); sec.color = c;
+    fns.push(() => S.db.collection('sections').doc(sec.id).update({ color: c }));
+  }
+  if (fns.length) writeAll(fns);
 }
 function secColor(id) { for (let x = id, i = 0; x && i < 20; x = parentOf(x), i++) { const c = S.sections.get(x)?.color; if (c && SEC_COLORS.some(k => k[0] === c)) return c; } return autoColor(id); }
 const scAttr = id => { const c = secColor(id); return c ? ` data-sc="${c}"` : ''; };
@@ -3085,6 +3161,7 @@ async function migrateTree() {
 }
 
 const FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+const WIDE = window.matchMedia('(min-width:1101px)');   // три колонки (компьютер)
 /* ---------- virtual views, trash, favourites, recent, sorting ---------- */
 const VIRTUAL = { all: tt('list.all'), fav: tt('sec.fav'), recent: tt('sec.recent'), trash: tt('sec.trash') };
 const isVirtual = id => Object.prototype.hasOwnProperty.call(VIRTUAL, id);
@@ -3559,10 +3636,39 @@ function noGhHint() { if (window.NOTES_STANDALONE) toast(tt('img.nogh')); }
 /* ---------- изображения в «Визуально»: выделить и удалить ---------- */
 function visImgSel(vis, img) {
   vis.querySelectorAll('img.vsel').forEach(i => i.classList.remove('vsel'));
-  if (!img) return;
-  img.classList.add('vsel');
+  if (!img) { imgGrip(vis, null); return; }
+  img.classList.add('vsel'); imgGrip(vis, img);
   // курсор сразу после изображения: на телефоне «стереть» на клавиатуре удалит его (там нет keydown с Backspace — только beforeinput)
   const r = document.createRange(); r.setStartAfter(img); r.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+}
+/* размер изображения мышкой или пальцем (05.11): у выделенного изображения в «Визуально» — уголок справа внизу, тянешь — меняется ширина
+   (атрибут width → в Markdown «![подпись|320](…)»). Уголок — вне contenteditable (в обёртке редактора), в текст не попадает */
+function imgGrip(vis, img) {
+  let g = document.getElementById('img-grip');
+  if (!img) { if (g) g.hidden = true; return; }
+  const host = vis.parentElement; if (!host) return;
+  if (!g) {
+    g = document.createElement('div'); g.id = 'img-grip'; g.className = 'img-grip'; g.title = tt('img.resize'); g.setAttribute('aria-hidden', 'true');
+    g.addEventListener('pointerdown', e => {
+      const im = g._img, v = g._vis; if (!im || !v) return;
+      e.preventDefault(); e.stopPropagation(); g.setPointerCapture(e.pointerId); histRecord(v);   // прежний размер — в историю: Ctrl+Z вернёт
+      const x0 = e.clientX, w0 = im.getBoundingClientRect().width, max = v.clientWidth - 6;
+      const mv = ev => { const w = Math.round(Math.max(40, Math.min(max, w0 + ev.clientX - x0))); im.setAttribute('width', w); placeGrip(); };
+      const up = () => { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up);
+        histRecord(v); v.dispatchEvent(new Event('input', { bubbles: true })); };
+      g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+    });
+  }
+  if (g.parentElement !== host) host.appendChild(g);
+  if (getComputedStyle(host).position === 'static') host.classList.add('grip-host');
+  g._img = img; g._vis = vis; g.hidden = false; placeGrip();
+  if (!vis._gripWired) { vis._gripWired = true; vis.addEventListener('scroll', () => placeGrip(), { passive: true }); vis.addEventListener('input', () => placeGrip()); window.addEventListener('scroll', () => placeGrip(), { passive: true }); }
+}
+function placeGrip() {
+  const g = document.getElementById('img-grip'); if (!g || g.hidden || !g._img) return;
+  if (!g._img.isConnected || !g._img.classList.contains('vsel')) { g.hidden = true; return; }
+  const r = g._img.getBoundingClientRect(), h = g.parentElement.getBoundingClientRect();
+  g.style.setProperty('--x', `${r.right - h.left + g.parentElement.scrollLeft}px`); g.style.setProperty('--y', `${r.bottom - h.top + g.parentElement.scrollTop}px`);
 }
 const VIS_BLOCK = /^(P|LI|H[1-6]|BLOCKQUOTE|PRE|DIV|UL|OL|TABLE|HR)$/;
 // изображение рядом с курсором в сторону dir (-1 — перед ним, для Backspace; 1 — после, для Delete): между ними только пустой текст.
@@ -3613,6 +3719,12 @@ function renderMd(src) {
     try { marked.use({ extensions: [{ name: 'cloze', level: 'inline', start(src) { const i = src.indexOf('{{'); return i < 0 ? undefined : i; },
       tokenizer(src) { const m = /^\{\{([^{}\n]+?)\}\}/.exec(src); if (m && m[1].trim()) return { type: 'cloze', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) }; },
       renderer(t) { return `<span class="cloze" data-c="${clozeHash(t.text)}">${this.parser.parseInline(t.tokens)}</span>`; } }] }); } catch {}
+    // размер изображения (05.11): ![подпись|320](адрес) — ширина 320 px (как в Obsidian); без числа — как раньше, по ширине текста
+    try { marked.use({ renderer: { image(href, title, text) {
+      const t = href && typeof href === 'object' ? href : { href, title, text };
+      const m = /^(.*?)\s*\|\s*(\d{2,4})\s*$/.exec(t.text || ''); if (!m) return false;
+      return `<img src="${esc(t.href || '')}" alt="${esc(m[1])}" width="${Math.min(4000, +m[2])}"${t.title ? ` title="${esc(t.title)}"` : ''}>`;
+    } } }); } catch {}
     try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
   }
   // пустой пункт чек-листа «- [ ]» marked показывает текстом: даём ему невидимый символ, чтобы вышел квадратик
@@ -3890,6 +4002,8 @@ const VICO = {
 };
 let chipJump = false;   // раздел выбран во всплывающем списке (☰): полоску разделов прокрутить к его чипу; от простых нажатий на чипы она не двигается
 function renderRail() {
+  document.body.classList.toggle('desk-tiles', deskTiles());
+  if (deskTiles() && !S.secSheet) { renderRailTiles(); return; }
   const { c, d } = sectionCounts();
   const favN = [...S.notes.values()].filter(n => n.pinned).length;
   const virt = (id, ico, n) => `<button class="sec virt" data-sec="${id}" aria-current="${S.section === id}"><span class="ico" aria-hidden="true">${ico}</span><span class="name">${VIRTUAL[id]}</span>${n != null ? `<span class="n">${n}</span>` : ''}</button>`;
@@ -3973,6 +4087,11 @@ $('#sheet-bg').addEventListener('click', () => { if (S.menu) closeMenu(); closeS
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.secSheet && !S.menu && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) closeSecSheet(); });
 window.matchMedia('(max-width:1100px)').addEventListener('change', e => { if (!e.matches) closeSecSheet(); });
 $('#rail').addEventListener('click', e => {
+  if (document.body.classList.contains('desk-tiles') && !S.secSheet) {   // колонка разделов плитками
+    const m = e.target.closest('[data-secmore]'); if (m) { e.stopPropagation(); if (S.menu?.id === m.dataset.secmore) closeMenu(); else openSecMenu(m.dataset.secmore, m); return; }
+    if (e.target.closest('[data-rail-up]')) { const p = parentOf(railCtx()); selectSection(p && p !== homeRoot() ? p : 'all'); return; }   // как ← на телефоне
+    const hl = e.target.closest('[data-hl]'); if (hl) { if (hl.dataset.hl === 'add') openSecMenu(null, hl, 'new'); else selectSection(hl.dataset.hl); return; }
+  }
   if (e.target.closest('#secs-close')) { closeSecSheet(); return; }
   if (e.target.closest('#secs-edit')) { S.secSheet.edit = !S.secSheet.edit; addingSection = false; renderRail(); return; }
   const t = e.target.closest('[data-toggle]'); if (t) { e.stopPropagation(); toggleFolder(t.dataset.toggle); return; }
@@ -4043,18 +4162,17 @@ async function placeFolder(id, target, where) {
   const ok = await write(() => S.db.collection('sections').doc(id).update({ parent, order }), null);
   if (!ok) { Object.assign(f, was); rerender(); }
 }
-/* ---------- resizable sections rail ---------- */
-(() => {
-  const lib = $('#lib'), h = $('#rail-resizer'); if (!h) return;
-  const MIN = 160, MAX = 480, DEF = 230;
-  const clamp = w => Math.round(Math.min(MAX, Math.max(MIN, w)));
-  const apply = w => lib.style.setProperty('--rail-w', clamp(w) + 'px');
-  apply(store.get('railW', DEF));
+/* ---------- resizable columns: sections rail and notes list (компьютер) ---------- */
+function makeResizer(h, col, cssVar, key, MIN, maxOf, DEF) {
+  if (!h) return;
+  const lib = $('#lib'), clamp = w => Math.round(Math.min(maxOf(), Math.max(MIN, w)));
+  const apply = w => lib.style.setProperty(cssVar, clamp(w) + 'px');
+  apply(store.get(key, DEF));
   let x0 = 0, w0 = 0;
   h.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
     e.preventDefault(); h.setPointerCapture(e.pointerId);
-    x0 = e.clientX; w0 = $('#rail').getBoundingClientRect().width;
+    x0 = e.clientX; w0 = col().getBoundingClientRect().width;
     h.classList.add('dragging'); document.body.classList.add('resizing-rail');
   });
   h.addEventListener('pointermove', e => { if (h.hasPointerCapture(e.pointerId)) apply(w0 + e.clientX - x0); });
@@ -4062,17 +4180,23 @@ async function placeFolder(id, target, where) {
     if (!h.classList.contains('dragging')) return;
     h.classList.remove('dragging'); document.body.classList.remove('resizing-rail');
     try { h.releasePointerCapture(e.pointerId); } catch {}
-    store.set('railW', clamp($('#rail').getBoundingClientRect().width));
+    store.set(key, clamp(col().getBoundingClientRect().width));
   };
   h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
-  h.addEventListener('dblclick', () => { apply(DEF); store.set('railW', DEF); });
+  h.addEventListener('dblclick', () => { apply(DEF); store.set(key, DEF); });
   h.addEventListener('keydown', e => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const w = clamp($('#rail').getBoundingClientRect().width + (e.key === 'ArrowRight' ? 16 : -16));
-    apply(w); store.set('railW', w);
+    const w = clamp(col().getBoundingClientRect().width + (e.key === 'ArrowRight' ? 16 : -16));
+    apply(w); store.set(key, w);
   });
-})();
+  window.addEventListener('resize', () => apply(store.get(key, DEF)));   // окно сузили — колонка не съедает заметку
+}
+makeResizer($('#rail-resizer'), () => $('#rail'), '--rail-w', 'railW', 160, () => 480, 230);
+// ширина колонки заметок: заметке справа оставляем не меньше 420 px
+makeResizer($('#list-resizer'), () => $('.lib > .list'), '--list-w', 'listW', 300, () => Math.max(300, Math.min(760, innerWidth - $('#rail').getBoundingClientRect().width - 420)), 360);
+$('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.tile[data-sec]'); if (!b || !S.canWrite) return; e.preventDefault(); openSecMenu(b.dataset.sec, b.querySelector('.tl-more') || b); });
+WIDE.addEventListener('change', () => { renderRail(); renderList(); });
 $('#rail').addEventListener('dblclick', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { renamingSection = b.dataset.sec; renderRail(); } });
 $('#rail').addEventListener('submit', async e => {
   e.preventDefault();
@@ -4115,7 +4239,7 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { S.tileFlat = id === 'all'; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
+function selectSection(id) { S.tileFlat = id === 'all'; S.tileLimit = 0; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -4163,63 +4287,101 @@ function renderSecHero(terms) {
 // не выбрано вручную — в Modern плитки, в Classic список (решено 05.11)
 const homePref = () => S.settings?.home === 'tiles' || S.settings?.home === 'list' ? S.settings.home : lookPrefs().skin === 'play' ? 'tiles' : 'list';
 const homeOn = () => isPhone() && homePref() === 'tiles';
-const homeShown = () => homeOn() && S.mode === 'lib' && !S.q && !S.tag && (isVirtual(S.section) || S.sections.has(S.section));
+// компьютер (> 1100 px) с плитками: три колонки остаются — в первой плитки разделов, во второй плитки заметок, справа заметка (05.11)
+const deskTiles = () => WIDE.matches && homePref() === 'tiles' && !window.NOTES_DESK_LIST;   // NOTES_DESK_LIST — только тесты pb_* (их сценарии — для списка)
+const homeShown = () => (homeOn() || deskTiles()) && S.mode === 'lib' && !S.q && (isVirtual(S.section) || S.sections.has(S.section));
 function goHome() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
 // уровень главной: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы (и его заметки)
 function homeRoot() { let r = null; for (let lv = kids(null); lv.length === 1 && hasKids(lv[0].id); lv = kids(r)) r = lv[0].id; return r; }
 function homeLevel() { return kids(homeRoot()); }
 const tileLetter = t => ((t || '').trim().match(/[\p{L}\p{N}]/u) || ['•'])[0].toUpperCase();
-function renderHome() {
+let tileIO = null;   // подгрузка плиток «Все заметки» при прокрутке (по LIST_STEP)
+/* плитки: шапка списка (название, число, теги, сортировка, «читать подряд», выбор) — та же, что в списке; в разделе название с ← ведёт уровнем выше.
+   Над шапкой на главной — плашка тренировки и плитки-ссылки (все разделы, избранное, недавние, корзина, + раздел) */
+/* плитка раздела: главная телефона и колонка разделов на компьютере (плитки) */
+function secTileHtml(s, rq, sel) { const st = secStats(s.id, rq), tr = isTrainFolder(s.id);
+    return `<button class="tile" data-sec="${esc(s.id)}"${scAttr(s.id)} aria-current="${S.section === s.id}">${S.canWrite && !sel ? `<span class="tl-more" role="button" tabindex="0" data-secmore="${esc(s.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}<span class="tl-top"><span class="tl-ico">${FOLDER_ICO}<b class="tl-ltr">${esc(tileLetter(s.title))}</b></span>${st.today ? `<span class="tl-due" title="${tt('tree.due.n', { n: st.today })}">${st.today}</span>` : ''}</span>`
+      + `<span class="tl-name">${esc(s.title)}${spacesList().some(z => z.root === s.id) ? ' 👥' : ''}</span>${tr && st.cards ? `<span class="lbar"><i style="--w:${Math.round(st.pct * 100)}%"></i></span>` : ''}`
+      + `<span class="tl-sub">${tt('notes.n', { n: st.notes })}${tr && st.cards ? ' · ' + Math.round(st.pct * 100) + '%' : ''}</span></button>`; }
+// плитки-ссылки: телефон — «Все разделы» (шторка), избранное, недавние, корзина, + раздел; компьютер — вместо шторки «Все заметки»
+function homeLinksHtml(desk) {
+  return `<div class="home-links">${[desk ? ['all', VICO.all, VIRTUAL.all, S.notes.size] : ['tree', VICO.all, tt('chips.tree'), ''], ['fav', VICO.fav, VIRTUAL.fav, ''], ['recent', VICO.recent, VIRTUAL.recent, ''], ['trash', VICO.trash, VIRTUAL.trash, S.trash.size || '']].map(([k, i, l, n]) => `<button class="hl" data-hl="${k}"${{ fav: ' data-sc="orange"', recent: ' data-sc="blue"', trash: ' data-sc="gray"' }[k] || ''}${desk ? ` aria-current="${S.section === k}"` : ''}><span class="ico" aria-hidden="true">${i}</span><span class="hl-t">${esc(l)}</span>${n ? `<span class="n">${n}</span>` : ''}</button>`).join('')}${S.canWrite ? `<button class="hl hl-add" data-hl="add" title="${tt('chips.add')}"><span class="ico" aria-hidden="true">+</span><span class="hl-t">${tt('home.newsec')}</span></button>` : ''}</div>`;
+}
+/* компьютер с плитками: колонка разделов — плитки уровня, где выбранный раздел (раздел с подразделами — его подразделы, иначе соседи);
+   на верхнем уровне сверху плитки-ссылки, ниже — ← и название родителя (нажатие — уровнем выше) */
+function railCtx() { const r = homeRoot(), s = S.sections.has(S.section) ? S.section : null; const c = !s ? r : hasKids(s) ? s : parentOf(s); return c || r; }
+function renderRailTiles() {
+  const rq = reviewQueue(), ctx = railCtx(), atTop = ctx === homeRoot();
+  const sec = ctx ? S.sections.get(ctx) : null, list = kids(ctx);
+  $('#rail').innerHTML = `<div class="rail-tiles">${atTop ? homeLinksHtml(true) : `<div class="rail-up"${scAttr(ctx)}><button class="home-up" data-rail-up="1" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up${S.section === ctx ? ' cur' : ''}" data-sec="${esc(ctx)}">${esc(sec?.title || '')}</button></div>`}`
+    + (list.length ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}</div>` : '') + `</div>`;
+}
+function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
-  if (virt) S.tileFlat = true;
-  const secTile = s => { const st = secStats(s.id, rq), tr = isTrainFolder(s.id);
-    return `<button class="tile" data-sec="${esc(s.id)}"${scAttr(s.id)}>${S.canWrite ? `<span class="tl-more" role="button" tabindex="0" data-secmore="${esc(s.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}<span class="tl-top"><span class="tl-ico">${FOLDER_ICO}<b class="tl-ltr">${esc(tileLetter(s.title))}</b></span>${st.today ? `<span class="tl-due" title="${tt('tree.due.n', { n: st.today })}">${st.today}</span>` : ''}</span>`
-      + `<span class="tl-name">${esc(s.title)}${spacesList().some(z => z.root === s.id) ? ' 👥' : ''}</span>${tr && st.cards ? `<span class="lbar"><i style="--w:${Math.round(st.pct * 100)}%"></i></span>` : ''}`
-      + `<span class="tl-sub">${tt('notes.n', { n: st.notes })}${tr && st.cards ? ' · ' + Math.round(st.pct * 100) + '%' : ''}</span></button>`; };
-  const noteTile = n => `<button class="tile ntile" data-note="${esc(n.id)}"${scAttr(n.section)}>${S.canWrite ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
-    + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span><span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`;
-  const flat = !!S.tileFlat;
+  const desk = deskTiles(), flat = desk || virt || !!S.tag || !!S.tileFlat, sel = !!S.select;   // компьютер: подразделы — в колонке разделов, здесь все заметки раздела
+  const secTile = s => secTileHtml(s, rq, sel);
+  const trash = S.section === 'trash';
+  const noteTile = n => `<${trash ? 'div' : 'button'} class="tile ntile${sel && S.select.has(n.id) ? ' picked' : ''}" data-note="${esc(n.id)}"${S.noteId === n.id ? ' aria-current="true"' : ''}${scAttr(n.section)}${sel ? ` aria-pressed="${S.select.has(n.id)}"` : ''}>${S.canWrite && !sel && !trash ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}${sel ? '<span class="tl-check" aria-hidden="true"></span>' : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
+    + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span>`
+    + (trash ? `<span class="tl-meta"><span class="pill">${esc(S.sections.get(n.section)?.title || tt('trash.sec.gone'))}</span></span>${S.canWrite && canEditIn(spaceOfNote(n)) ? `<span class="tl-acts"><button class="btn" data-restore="${esc(n.id)}">${tt('trash.restore')}</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">${tt('trash.purge')}</button>` : ''}</span>` : ''}</div>`
+      : `<span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`);
+  const all = (cl || currentList()).list;
   const subs = flat ? [] : sid ? kids(sid) : homeLevel();
-  const notes = flat ? [] : sid ? currentList().list.filter(n => n.section === sid) : [];
+  const notes = flat ? [] : sid ? all.filter(n => n.section === sid) : [];
   // «Все заметки»: все заметки раздела вместе с подразделами (на главной — все) карточками; подраздел — разделителем, как в списке
   let flatHtml = '';
   if (flat) {
-    const all = currentList().list, ti = tree().idx, own = atHome ? homeRoot() : S.section;
-    const lim = S.tileLimit || LIST_STEP, shownN = all.slice().sort((x, y) => (ti.get(x.section) ?? 1e9) - (ti.get(y.section) ?? 1e9)).slice(0, lim);
+    const ti = tree().idx, own = atHome ? homeRoot() : virt ? null : S.section;
+    const lim = S.tileLimit || LIST_STEP, ord = virt ? all : all.slice().sort((x, y) => (ti.get(x.section) ?? 1e9) - (ti.get(y.section) ?? 1e9)), shownN = ord.slice(0, lim);
     const rel = sec => { const chain = []; let x = sec; while (x && x !== own) { chain.unshift(S.sections.get(x)?.title || ''); x = parentOf(x); } return chain.join(' › ') || tt('list.group.own'); };
-    const groups = []; for (const n of shownN) { const g = groups[groups.length - 1]; if (g && g.sec === n.section) g.notes.push(n); else groups.push({ sec: n.section, notes: [n] }); }
-    const one = groups.length === 1 && groups[0].sec === own;   // в разделе без подразделов разделитель не нужен
+    const groups = []; for (const n of shownN) { const g = groups[groups.length - 1]; if (!virt && g && g.sec === n.section) g.notes.push(n); else if (virt && g) g.notes.push(n); else groups.push({ sec: virt ? null : n.section, notes: [n] }); }
+    const one = virt || groups.length === 1 && groups[0].sec === own;   // в разделе без подразделов разделитель не нужен
     flatHtml = groups.map(g => `${one ? '' : `<div class="tl-grp"${scAttr(g.sec)}><span class="tl-gico">${FOLDER_ICO}</span><span class="tl-gname">${esc(rel(g.sec))}</span></div>`}<div class="tiles">${g.notes.map(noteTile).join('')}</div>`).join('')
-      + (all.length > shownN.length ? `<button class="btn tl-more" id="tl-more">${tt('home.more', { n: all.length - shownN.length })}</button>` : '')
-      + (all.length ? '' : `<p class="hint home-empty">${tt('home.empty')}</p>`);
+      + (all.length > shownN.length ? '<div class="tl-sentinel" id="tl-sentinel" aria-hidden="true"></div>' : '')   // дальше — подгрузка при прокрутке
+      + (all.length ? '' : `<p class="hint home-empty">${tt(trash ? 'trash.none' : 'home.empty')}</p>`);
   }
-  const links = `<div class="home-links">${[['tree', '☰', tt('chips.tree')], ['fav', VICO.fav, VIRTUAL.fav], ['recent', VICO.recent, VIRTUAL.recent], ['trash', VICO.trash, VIRTUAL.trash]].map(([k, i, l]) => `<button class="chip" data-hl="${k}"><span class="ico" aria-hidden="true">${i}</span>${esc(l)}${k === 'trash' && S.trash.size ? ` <span class="n">${S.trash.size}</span>` : ''}</button>`).join('')}${S.canWrite ? `<button class="chip chip-add" data-hl="add" title="${tt('chips.add')}" aria-label="${tt('chips.add')}">+ ${tt('home.newsec')}</button>` : ''}</div>`;
-  const head = virt ? `<div class="home-h sec-h"><button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><h3>${esc(VIRTUAL[S.section])}</h3><span>${tt('notes.n', { n: currentList().list.length })}</span></div>`
-    : atHome ? `${links}<div class="home-h"><h3>${tt(S.tileFlat ? 'list.all' : 'rail.label')}</h3><span>${tt('notes.n', { n: S.notes.size })}</span></div>`
-    : `<div class="home-h sec-h"${scAttr(sid)}><button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><h3>${esc(sec?.title || '')}${spacesList().some(z => z.root === sid) ? ' 👥' : ''}</h3><span>${tt('notes.n', { n: secStats(sid, rq).notes })}</span></div>`;
+  // шапка: на главной — «Разделы» / «Все заметки»; в разделе и в избранном/недавних/корзине — ← и название (нажатие тоже назад)
+  const lh = $('.list-head');
+  if (sid && !atHome && secColor(sid)) lh.setAttribute('data-sc', secColor(sid)); else lh.removeAttribute('data-sc');
+  const ttl = atHome ? tt(flat ? 'list.all' : 'rail.label') + (S.tag ? ` · #${S.tag}` : '') : (virt ? VIRTUAL[S.section] : (sec?.title || '') + (spacesList().some(z => z.root === sid) ? ' 👥' : '')) + (S.tag ? ` · #${S.tag}` : '');
+  $('#list-title').innerHTML = atHome || desk ? esc(ttl) : `<button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>`;
+  $('#list-count').textContent = flat ? all.length : atHome ? S.notes.size : secStats(sid, rq).notes;
+  const top = $('#home-top');
+  top.hidden = !atHome || desk;
+  top.innerHTML = atHome && !desk ? `${total ? `<button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button>` : ''}
+    ${homeLinksHtml(false)}` : '';
+  const trashHead = trash && all.length && S.canWrite && all.some(canPurge) ? `<div class="trash-tools"><span>${tt('trash.info', { n: TRASH_DAYS })}</span><span class="spacer"></span>${S.emptyAsk ? `<button class="btn danger" id="trash-empty-yes">${tt('btn.delete')}</button><button class="btn" id="trash-empty-no">${tt('btn.cancel')}</button>` : `<button class="btn" id="trash-empty">${tt('trash.empty')}</button>`}</div>` : '';
   $('#items').innerHTML = `<div class="home">
-    ${atHome && total ? `<button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button>` : ''}
-    ${head}
+    ${trashHead}
     ${subs.length ? `<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
     ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>` : ''}
     ${flatHtml}
     ${!flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
-    <div class="home-bar">${virt ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>
+    ${sel || desk ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite && !trash ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
   </div>`;
+  renderBulkBar(sel ? all : []);
+  $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
+  $('#trash-empty-no') && ($('#trash-empty-no').onclick = () => { S.emptyAsk = false; renderList(); });
+  $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.values()].filter(canPurge).map(n => n.id)); });
   $('#home-train') && ($('#home-train').onclick = () => setMode('train'));
-  $('#home-up') && ($('#home-up').onclick = () => { const p = sid && parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); });
-  $('#items').querySelectorAll('[data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
+  const up = () => { if (virt || !sid) { goHome(); return; } const p = parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); };
+  $('#home-up') && ($('#home-up').onclick = up); $('#ttl-up') && ($('#ttl-up').onclick = up);
+  top.querySelectorAll('[data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
   $('#home-all') && ($('#home-all').onclick = () => { S.tileFlat = !flat; S.tileLimit = 0; renderList(); histSync(); window.scrollTo(0, 0); });
-  $('#tl-more') && ($('#tl-more').onclick = () => { S.tileLimit = (S.tileLimit || LIST_STEP) + LIST_STEP; renderList(); });
+  tileIO?.disconnect(); tileIO = null;
+  const sn = $('#tl-sentinel');
+  if (sn && 'IntersectionObserver' in window) { tileIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { tileIO.disconnect(); S.tileLimit = (S.tileLimit || LIST_STEP) + LIST_STEP; renderList(); } }, { rootMargin: '800px 0px' }); tileIO.observe(sn); }
   $('#home-new') && ($('#home-new').onclick = () => $('#new-note').click());
-  // ⋮ на плитке, долгое нажатие и правая кнопка — то же меню, что в списке (заметка) и в дереве (раздел)
-  const tileMenu = b => { if (!S.canWrite) return false; if (b.dataset.sec) openSecMenu(b.dataset.sec, b.querySelector('.tl-more') || b); else openMenu(b.dataset.note, b.querySelector('.tl-more') || b); return true; };
+  // ⋮ на плитке, долгое нажатие и правая кнопка — то же меню, что в списке (заметка) и в дереве (раздел); в режиме выбора — отметить
+  const tileMenu = b => { if (!S.canWrite || sel || trash) return false; if (b.dataset.sec) openSecMenu(b.dataset.sec, b.querySelector('.tl-more') || b); else openMenu(b.dataset.note, b.querySelector('.tl-more') || b); return true; };
   $('#items').querySelectorAll('.tile[data-sec], .tile[data-note]').forEach(b => {
     let t = null, fired = false, st = null;
     b.onclick = e => { if (fired) { fired = false; return; } const m = e.target.closest('[data-secmore]'); if (m) { e.stopPropagation(); if (S.menu?.id === m.dataset.secmore) closeMenu(); else openSecMenu(m.dataset.secmore, m); return; }
-      if (e.target.closest('[data-more]')) return;   // ⋮ заметки — общий обработчик #items
-      if (b.dataset.sec) selectSection(b.dataset.sec); else openNote(b.dataset.note); };
+      if (e.target.closest('[data-more], [data-restore], [data-purge]')) return;   // ⋮ заметки и кнопки корзины — общие обработчики #items
+      if (b.dataset.sec) { selectSection(b.dataset.sec); return; }
+      if (sel) { toggleSelect(b.dataset.note, e.shiftKey); return; }
+      if (!trash) openNote(b.dataset.note); };
     b.oncontextmenu = e => { e.preventDefault(); clearTimeout(t); fired = tileMenu(b); };
     b.onpointerdown = e => { st = { x: e.clientX, y: e.clientY }; fired = false; clearTimeout(t); t = setTimeout(() => { fired = tileMenu(b); }, 500); };
     b.onpointermove = e => { if (st && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10) clearTimeout(t); };
@@ -4230,7 +4392,7 @@ function renderList() {
   if (!S.loaded.notes) return;
   renderBackupBar(); renderInstallBar();
   const hv = homeShown(); document.body.classList.toggle('home-view', hv);
-  if (hv) { renderSecHero(true); renderHome(); return; }
+  if (!hv) { $('#home-top').hidden = true; $('.list-head').removeAttribute('data-sc'); }
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
@@ -4246,6 +4408,7 @@ function renderList() {
   const sortable = !terms && S.section !== 'trash' && S.section !== 'recent';
   const sb = $('#sort-btn'); if (sb) { sb.hidden = !sortable; const m = sortMode(S.section); sb.setAttribute('aria-pressed', String(sortable && m !== 'manual')); sb.title = tt('sort.current', { mode: (SORTS.find(x => x[0] === m) || SORTS[0])[1].toLowerCase() }); }
   $('#select-btn').hidden = S.section === 'trash' && !terms;
+  if (hv) { renderSecHero(true); renderHome(cl); return; }
   if (S.section === 'trash' && !terms) { renderTrashList(list); return; }
   if (!list.length) {
     renderBulkBar([]);
@@ -5946,7 +6109,7 @@ $('#read-all').addEventListener('click', () => {
   renderReader(true);
 });
 function markListCurrent(id) {
-  document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
+  document.querySelectorAll('#items .item, #items .ntile').forEach(i => i.setAttribute('aria-current', String((i.dataset.id || i.dataset.note) === id)));
 }
 function scrollArticleTo(el) {
   const box = $('#reader'); const bar = box.querySelector('.mbar');
@@ -6052,7 +6215,7 @@ function openNote(id, dir) {
   if (!S._following) S.linkBack = null;
   S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null; if (S.notes.has(id)) touchRecent(id);
   $('#lib').classList.add('reading');
-  document.querySelectorAll('#items .item').forEach(i => i.setAttribute('aria-current', String(i.dataset.id === id)));
+  document.querySelectorAll('#items .item, #items .ntile').forEach(i => i.setAttribute('aria-current', String((i.dataset.id || i.dataset.note) === id)));
   renderReader(true); histSync();
 }
 function setupHits(box) {
@@ -6697,7 +6860,7 @@ function renderEditor(box) {
     vis.addEventListener('keydown', e => {
       const sel = vis.querySelector('img.vsel');
       if (sel && (e.key === 'Backspace' || e.key === 'Delete')) { e.preventDefault(); visImgDrop(vis, sel); return; }
-      if (!['Shift', 'Control', 'Meta', 'Alt', 'Unidentified'].includes(e.key)) visImgSel(vis, null);
+      if (!['Shift', 'Control', 'Meta', 'Alt', 'Unidentified'].includes(e.key) && !e.ctrlKey && !e.metaKey) visImgSel(vis, null);   // Ctrl+Z при выделенном изображении — отмена, а не снятие выделения
     });
     vis.addEventListener('beforeinput', e => {
       if (e.inputType !== 'deleteContentBackward' && e.inputType !== 'deleteContentForward') { visImgSel(vis, null); return; }
@@ -7216,7 +7379,8 @@ function mdInline(nodes) {
       // ссылка, у которой текст — сам адрес (из <https://…> или голого адреса), остаётся голым адресом, а не [адрес](адрес)
       s += label === href && /^(https?:\/\/|mailto:)\S+$/i.test(href) && !/[<>()]/.test(href) ? href : `[${label}](${href})`;
     }
-    else if (t === 'IMG') s += `![${n.getAttribute('alt') === tt('img.alt') ? '' : (n.getAttribute('alt') || '')}](${n.dataset.src || n.getAttribute('src') || ''})`;
+    else if (t === 'IMG') { const al = (n.getAttribute('alt') === tt('img.alt') ? '' : (n.getAttribute('alt') || '')).replace(/\s*\|\s*\d{2,4}\s*$/, ''), w = parseInt(n.getAttribute('width'), 10);
+      s += `![${al}${w > 0 ? '|' + w : ''}](${n.dataset.src || n.getAttribute('src') || ''})`; }
     else if (t === 'BR') s += '\n';   // перенос строки в Markdown и есть перенос (breaks: true)
     else if (t === 'INPUT') continue;
     else if (BLOCK_TAGS.has(t)) s += '\n\n' + mdBlock(n).replace(/^/gm, '\u0001') + '\n\n';   // \u0001 — строки готовой разметки: начало строки не экранировать (mdBlocks)
@@ -8535,7 +8699,7 @@ async function writeAll(fns, okMsg) {
   if (okMsg) toast(okMsg);
   return true;
 }
-function renderLib() { renderRail(); renderList(); renderReader(); }
+function renderLib() { renderRail(); renderList(); renderReader(); pinAutoColorsSoon(); }
 
 /* ---------- training ---------- */
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -9236,7 +9400,7 @@ async function boot() {
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
     S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort, color: v.color }]; }));
-    S.loaded.sections = true; rerender(); updateBadge(); migrateTree();
+    S.loaded.sections = true; rerender(); updateBadge(); migrateTree(); pinAutoColorsSoon();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
     const act = new Map(), tr = new Map();
@@ -9362,7 +9526,7 @@ document.addEventListener('keydown', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { NAV, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { NAV, renderRail, pinAutoColors, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
