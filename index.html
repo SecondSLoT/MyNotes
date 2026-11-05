@@ -780,7 +780,10 @@ window.STR = {
   'home.up': 'На уровень выше',
   'home.notes': 'Заметки раздела',
   'home.empty': 'Здесь пока пусто',
-  'home.aslist': 'Списком',
+  'home.flat': 'Все заметки',
+  'home.newsec': 'Раздел',
+  'home.folders': 'Папками',
+  'home.more': 'Показать ещё {n}',
   'look.oled': 'Чёрный фон в тёмной теме',
   'look.oled.help': 'Фон становится совсем чёрным — на телефонах с OLED-экраном это экономит батарею. Действует только в тёмной теме',
   'look.mode.saved': 'Тема сохранена',
@@ -2500,6 +2503,22 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .home-up{width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--raised);color:var(--ink);display:grid;place-items:center;padding:0}
 .home-up .chev{width:20px;height:20px}
 .home-empty{text-align:center;padding:30px 0}
+.tile{position:relative}
+.tl-more{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:var(--rad-m);display:grid;place-items:center;color:var(--muted);font-size:18px;line-height:1;z-index:1}
+.tl-more:hover,.tl-more:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent);outline:none}
+.tile[data-sec] .tl-due{margin-right:30px}
+.ntile .tl-name.nt{padding-right:22px}
+.home-links{display:flex;flex-wrap:wrap;gap:8px}   /* все ссылки видны сразу — корзина не прячется за прокруткой */
+.home-links .chip{flex:none;display:inline-flex;align-items:center;gap:6px}
+.home-links .chip .n{font-size:12px;color:var(--muted)}
+.home-links .ico{display:inline-grid;place-items:center}
+.home-links .ico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tl-grp{display:flex;align-items:center;gap:8px;padding:8px 2px 0;color:var(--muted);font:600 13px/1.3 var(--f-body)}
+.tl-grp .fico{width:16px;height:16px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8}
+.tl-grp[data-sc] .fico{fill:color-mix(in srgb,var(--sc) 22%,var(--raised));stroke:var(--sc)}
+.tl-gname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-more{align-self:center}
+#home-all .fico{width:18px;height:18px;margin-right:6px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8}
 .home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
 .home-bar .btn{flex:1;padding-block:12px;font-size:16px}
 .sec-hero{display:flex;align-items:center;gap:14px;margin:12px 12px 4px;padding:14px 16px;border-radius:var(--rad-xl);background:var(--raised);border:1px solid var(--line)}
@@ -2587,6 +2606,7 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 :root[data-skin="play"] .ntile{background:color-mix(in srgb,var(--sc,var(--accent)) 8%,var(--raised));box-shadow:inset 0 4px 0 var(--sc,var(--accent))}
 :root[data-skin="play"] .ntile .tl-name{color:var(--ink)}
 :root[data-skin="play"] .home-up{border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised))}
+:root[data-skin="play"] .tl-grp{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink));font-weight:800}
 :root[data-skin="play"] .sec-h h3{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
 :root[data-skin="play"] .tile .lbar{height:6px;background:var(--raised)}
 :root[data-skin="play"] .tile .tl-name{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
@@ -2636,7 +2656,9 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 }
 :root[data-skin="play"] .row-item{border-bottom:0}
 :root[data-skin="play"] .item{margin-block:4px}
-:root[data-skin="play"] .goto{right:20px;bottom:12px}   /* карточка в Modern уже строки на 10 px с каждой стороны — «в разделе» внутри неё */
+:root[data-skin="play"] .goto{right:20px;bottom:12px}
+:root[data-skin="play"] .row-item .more{top:12px;right:18px}
+.more:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}   /* карточка в Modern уже строки на 10 px с каждой стороны — «в разделе» внутри неё */
 @media (max-width:760px){:root[data-skin="play"] #new-note{border-color:var(--accent);box-shadow:var(--sh-pop)}}
 </style>
 
@@ -3812,7 +3834,7 @@ function setMode(m) {
   if (m === 'train') renderTrain(); if (m === 'prog') { renderProg(); loadPlan(); } if (m === 'lib') renderLib();
   sessionClass(); histSync();
 }
-document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && homeOn() && !homeShown()) goHome(); else setMode(b.dataset.mode); }));
+document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && homeOn() && (S.section !== 'all' || S.tileFlat || S.q || S.tag)) goHome(); else setMode(b.dataset.mode); }));
 // панель режимов не помещается в строку (крупный шрифт в системе, узкое окно): подписи прячем, остаются значки — иначе «Справка» уезжает за экран
 function fitModes() {
   const m = document.querySelector('.modes'), top = m && m.parentElement; if (!top || !top.offsetParent) return;
@@ -4093,7 +4115,7 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { if (id === 'all') S.homeAll = true; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
+function selectSection(id) { S.tileFlat = id === 'all'; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -4141,39 +4163,68 @@ function renderSecHero(terms) {
 // не выбрано вручную — в Modern плитки, в Classic список (решено 05.11)
 const homePref = () => S.settings?.home === 'tiles' || S.settings?.home === 'list' ? S.settings.home : lookPrefs().skin === 'play' ? 'tiles' : 'list';
 const homeOn = () => isPhone() && homePref() === 'tiles';
-const homeShown = () => homeOn() && S.mode === 'lib' && !S.homeAll && !S.q && !S.tag && (S.section === 'all' || S.sections.has(S.section));
-function goHome() { S.homeAll = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
+const homeShown = () => homeOn() && S.mode === 'lib' && !S.q && !S.tag && (isVirtual(S.section) || S.sections.has(S.section));
+function goHome() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
 // уровень главной: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы (и его заметки)
 function homeRoot() { let r = null; for (let lv = kids(null); lv.length === 1 && hasKids(lv[0].id); lv = kids(r)) r = lv[0].id; return r; }
 function homeLevel() { return kids(homeRoot()); }
 const tileLetter = t => ((t || '').trim().match(/[\p{L}\p{N}]/u) || ['•'])[0].toUpperCase();
 function renderHome() {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
-  const atHome = S.section === 'all', sid = atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
+  const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
+  if (virt) S.tileFlat = true;
   const secTile = s => { const st = secStats(s.id, rq), tr = isTrainFolder(s.id);
-    return `<button class="tile" data-sec="${esc(s.id)}"${scAttr(s.id)}><span class="tl-top"><span class="tl-ico">${FOLDER_ICO}<b class="tl-ltr">${esc(tileLetter(s.title))}</b></span>${st.today ? `<span class="tl-due" title="${tt('tree.due.n', { n: st.today })}">${st.today}</span>` : ''}</span>`
+    return `<button class="tile" data-sec="${esc(s.id)}"${scAttr(s.id)}>${S.canWrite ? `<span class="tl-more" role="button" tabindex="0" data-secmore="${esc(s.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}<span class="tl-top"><span class="tl-ico">${FOLDER_ICO}<b class="tl-ltr">${esc(tileLetter(s.title))}</b></span>${st.today ? `<span class="tl-due" title="${tt('tree.due.n', { n: st.today })}">${st.today}</span>` : ''}</span>`
       + `<span class="tl-name">${esc(s.title)}${spacesList().some(z => z.root === s.id) ? ' 👥' : ''}</span>${tr && st.cards ? `<span class="lbar"><i style="--w:${Math.round(st.pct * 100)}%"></i></span>` : ''}`
       + `<span class="tl-sub">${tt('notes.n', { n: st.notes })}${tr && st.cards ? ' · ' + Math.round(st.pct * 100) + '%' : ''}</span></button>`; };
-  const noteTile = n => `<button class="tile ntile" data-note="${esc(n.id)}"${scAttr(n.section)}><span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
+  const noteTile = n => `<button class="tile ntile" data-note="${esc(n.id)}"${scAttr(n.section)}>${S.canWrite ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
     + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span><span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`;
-  const subs = sid ? kids(sid) : homeLevel();
-  const notes = sid ? currentList().list.filter(n => n.section === sid) : [];
-  const head = atHome ? `<div class="home-h"><h3>${tt('rail.label')}</h3><span>${tt('notes.n', { n: S.notes.size })}</span></div>`
+  const flat = !!S.tileFlat;
+  const subs = flat ? [] : sid ? kids(sid) : homeLevel();
+  const notes = flat ? [] : sid ? currentList().list.filter(n => n.section === sid) : [];
+  // «Все заметки»: все заметки раздела вместе с подразделами (на главной — все) карточками; подраздел — разделителем, как в списке
+  let flatHtml = '';
+  if (flat) {
+    const all = currentList().list, ti = tree().idx, own = atHome ? homeRoot() : S.section;
+    const lim = S.tileLimit || LIST_STEP, shownN = all.slice().sort((x, y) => (ti.get(x.section) ?? 1e9) - (ti.get(y.section) ?? 1e9)).slice(0, lim);
+    const rel = sec => { const chain = []; let x = sec; while (x && x !== own) { chain.unshift(S.sections.get(x)?.title || ''); x = parentOf(x); } return chain.join(' › ') || tt('list.group.own'); };
+    const groups = []; for (const n of shownN) { const g = groups[groups.length - 1]; if (g && g.sec === n.section) g.notes.push(n); else groups.push({ sec: n.section, notes: [n] }); }
+    const one = groups.length === 1 && groups[0].sec === own;   // в разделе без подразделов разделитель не нужен
+    flatHtml = groups.map(g => `${one ? '' : `<div class="tl-grp"${scAttr(g.sec)}><span class="tl-gico">${FOLDER_ICO}</span><span class="tl-gname">${esc(rel(g.sec))}</span></div>`}<div class="tiles">${g.notes.map(noteTile).join('')}</div>`).join('')
+      + (all.length > shownN.length ? `<button class="btn tl-more" id="tl-more">${tt('home.more', { n: all.length - shownN.length })}</button>` : '')
+      + (all.length ? '' : `<p class="hint home-empty">${tt('home.empty')}</p>`);
+  }
+  const links = `<div class="home-links">${[['tree', '☰', tt('chips.tree')], ['fav', VICO.fav, VIRTUAL.fav], ['recent', VICO.recent, VIRTUAL.recent], ['trash', VICO.trash, VIRTUAL.trash]].map(([k, i, l]) => `<button class="chip" data-hl="${k}"><span class="ico" aria-hidden="true">${i}</span>${esc(l)}${k === 'trash' && S.trash.size ? ` <span class="n">${S.trash.size}</span>` : ''}</button>`).join('')}${S.canWrite ? `<button class="chip chip-add" data-hl="add" title="${tt('chips.add')}" aria-label="${tt('chips.add')}">+ ${tt('home.newsec')}</button>` : ''}</div>`;
+  const head = virt ? `<div class="home-h sec-h"><button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><h3>${esc(VIRTUAL[S.section])}</h3><span>${tt('notes.n', { n: currentList().list.length })}</span></div>`
+    : atHome ? `${links}<div class="home-h"><h3>${tt(S.tileFlat ? 'list.all' : 'rail.label')}</h3><span>${tt('notes.n', { n: S.notes.size })}</span></div>`
     : `<div class="home-h sec-h"${scAttr(sid)}><button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><h3>${esc(sec?.title || '')}${spacesList().some(z => z.root === sid) ? ' 👥' : ''}</h3><span>${tt('notes.n', { n: secStats(sid, rq).notes })}</span></div>`;
   $('#items').innerHTML = `<div class="home">
     ${atHome && total ? `<button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button>` : ''}
     ${head}
     ${subs.length ? `<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
     ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>` : ''}
-    ${!subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
-    <div class="home-bar"><button class="btn" id="home-all">${tt(atHome ? 'list.all' : 'home.aslist')}</button>${S.canWrite ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>
+    ${flatHtml}
+    ${!flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
+    <div class="home-bar">${virt ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>
   </div>`;
   $('#home-train') && ($('#home-train').onclick = () => setMode('train'));
-  $('#home-up') && ($('#home-up').onclick = () => { const p = parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); });
-  $('#home-all').onclick = () => { S.homeAll = true; renderList(); histSync(); };
+  $('#home-up') && ($('#home-up').onclick = () => { const p = sid && parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); });
+  $('#items').querySelectorAll('[data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
+  $('#home-all') && ($('#home-all').onclick = () => { S.tileFlat = !flat; S.tileLimit = 0; renderList(); histSync(); window.scrollTo(0, 0); });
+  $('#tl-more') && ($('#tl-more').onclick = () => { S.tileLimit = (S.tileLimit || LIST_STEP) + LIST_STEP; renderList(); });
   $('#home-new') && ($('#home-new').onclick = () => $('#new-note').click());
-  $('#items').querySelectorAll('.tile[data-sec]').forEach(b => b.onclick = () => selectSection(b.dataset.sec));
-  $('#items').querySelectorAll('.tile[data-note]').forEach(b => b.onclick = () => openNote(b.dataset.note));
+  // ⋮ на плитке, долгое нажатие и правая кнопка — то же меню, что в списке (заметка) и в дереве (раздел)
+  const tileMenu = b => { if (!S.canWrite) return false; if (b.dataset.sec) openSecMenu(b.dataset.sec, b.querySelector('.tl-more') || b); else openMenu(b.dataset.note, b.querySelector('.tl-more') || b); return true; };
+  $('#items').querySelectorAll('.tile[data-sec], .tile[data-note]').forEach(b => {
+    let t = null, fired = false, st = null;
+    b.onclick = e => { if (fired) { fired = false; return; } const m = e.target.closest('[data-secmore]'); if (m) { e.stopPropagation(); if (S.menu?.id === m.dataset.secmore) closeMenu(); else openSecMenu(m.dataset.secmore, m); return; }
+      if (e.target.closest('[data-more]')) return;   // ⋮ заметки — общий обработчик #items
+      if (b.dataset.sec) selectSection(b.dataset.sec); else openNote(b.dataset.note); };
+    b.oncontextmenu = e => { e.preventDefault(); clearTimeout(t); fired = tileMenu(b); };
+    b.onpointerdown = e => { st = { x: e.clientX, y: e.clientY }; fired = false; clearTimeout(t); t = setTimeout(() => { fired = tileMenu(b); }, 500); };
+    b.onpointermove = e => { if (st && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10) clearTimeout(t); };
+    b.onpointerup = b.onpointercancel = b.onpointerleave = () => clearTimeout(t);
+  });
 }
 function renderList() {
   if (!S.loaded.notes) return;
@@ -8958,7 +9009,7 @@ function lookPanelHtml() {
   </section>`;
 }
 function wireLookPanel(root) {
-  root.querySelectorAll('[data-look-home]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ home: b.dataset.lookHome }, tt('look.home.saved')); S.homeAll = false; renderProg(); });
+  root.querySelectorAll('[data-look-home]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ home: b.dataset.lookHome }, tt('look.home.saved')); S.tileFlat = false; renderProg(); });
   root.querySelectorAll('[data-look-skin]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ skin: b.dataset.lookSkin }, tt('look.skin.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-mode]').forEach(b => b.onclick = async () => { await saveSettings({ mode: b.dataset.lookMode }, tt('look.mode.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-theme]').forEach(b => b.onclick = async () => {
@@ -9204,8 +9255,8 @@ async function boot() {
 /* ---------- browser history: the phone's back gesture walks back through opened notes ---------- */
 var NAV = { ready: false, popping: false, t: 0 };
 const isPhone = () => window.matchMedia('(max-width:760px)').matches;
-function navNow() { return { m: S.mode, s: S.section, h: homeShown() ? 1 : 0, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
-const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0, st.h ? 1 : 0].join('|') : '';
+function navNow() { return { m: S.mode, s: S.section, h: homeShown() ? (S.tileFlat ? 2 : 1) : 0, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
+const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0, st.h || 0].join('|') : '';
 function histSync() {
   if (!NAV || !NAV.ready || NAV.popping) return;
   // a microtask, not a timer: the entry must be pushed before the browser paints the new note,
@@ -9273,7 +9324,7 @@ window.addEventListener('popstate', e => {
     if (st.m !== S.mode) setMode(st.m);
     if (st.m === 'lib') {
       if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s);
-      if (S.homeAll === !!st.h) { S.homeAll = !st.h; renderList(); }   // главная с плитками ↔ «Все заметки» списком
+      if (st.h && S.tileFlat !== (st.h === 2)) { S.tileFlat = st.h === 2; renderList(); }   // плитки: папками ↔ все заметки
       if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
         openNote(st.n);
         const r = listRow(st.n); if (r) scrollWithin($('#items'), r);
@@ -9311,7 +9362,7 @@ document.addEventListener('keydown', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { NAV, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { NAV, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
