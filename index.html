@@ -238,7 +238,11 @@ window.STR = {
   'tree.root.title': 'Перетащи сюда раздел, чтобы вынести его на верхний уровень',
   'tree.expand': 'Развернуть',
   'tree.collapse': 'Свернуть',
-  'tree.due': 'Есть карточки к повторению',
+  'tree.due.n': 'Ждут сегодня: {n}',
+  'sec.hero.sub': '{n} {n|заметка|заметки|заметок} · выучено {learned} из {cards}',
+  'sec.hero.today': '{n} {n|ждёт|ждут|ждут} сегодня',
+  'learn.hint': 'Выучено — карточки, которые повторяются раз в {days} дней и реже',
+  'learn.note': 'Выучено на {n}%',
   'tree.train': 'Тренировка включена для всего раздела',
   'tree.space.mine': 'Общий раздел: {members}',
   'tree.space.nobody': 'пока никого',
@@ -504,6 +508,7 @@ window.STR = {
   'ed.vis.ph': 'Пиши ответ прямо здесь',
   'ed.hint.keys': '{mod}+B жирный · {mod}+I курсив · {mod}+E код · {mod}+K ссылка',
   'ed.hint.live': 'правки сохраняются сами и сразу видны остальным · {mod}+Z — отменить свою правку · Esc — готово',
+  'ed.hint.live.touch': 'правки сохраняются сами и сразу видны остальным',
   'ed.hint.save': '{mod}+S — сохранить · Esc или {mod}+Enter — сохранить и закрыть',
   'ed.del.ask': 'Переместить заметку в корзину?',
   'btn.no': 'Нет',
@@ -620,6 +625,10 @@ window.STR = {
   'tr.due': 'к повторению: <b>{n}</b>',
   'tr.fresh': 'новых сегодня: <b>{n}</b> из {of}',
   'tr.fresh.total': '(всего не изучено: {n})',
+  'tr.eta': '≈ {n} {n|минута|минуты|минут}',
+  'tr.side.week': 'Неделя',
+  'tr.side.secs': 'Сегодня по разделам',
+  'tr.side.recall': 'ответов «знаю» за месяц',
   'tr.ahead': 'дальше: завтра — <b>{tomorrow}</b>, за неделю — <b>{week}</b>',
   'tr.start': 'Начать повторение',
   'tr.done': 'На сегодня всё',
@@ -647,7 +656,7 @@ window.STR = {
   'tr.space': 'пробел',
   'tr.key': 'Клавиша {n}',
   'tr.g1': 'Не знаю',
-  'tr.g2': 'Плаваю',
+  'tr.g2': 'С трудом',
   'tr.g3': 'Знаю',
   'tr.grade.hint': 'Под оценкой написано, когда карточка снова попадёт в повторение',
   'tr.grade.keys': 'Оценивать можно клавишами 1, 2, 3',
@@ -757,12 +766,20 @@ window.STR = {
   'col.green': 'Зелёный',
   'col.red': 'Красный',
   'col.gray': 'Серый',
-  'streak.title': 'Серия: {n|день|дня|дней} подряд',
+  'streak.title': 'Серия: {n} {n|день|дня|дней} подряд',
+  'streak.days': '{n|день|дня|дней}',
   'look.skin': 'Стиль',
   'look.skin.classic': 'Классический',
   'look.skin.play': 'Игровой',
   'look.skin.help': 'Игровой стиль — крупные скруглённые карточки, объёмные кнопки и яркие акценты. Цвета и светлая/тёмная тема работают в обоих',
   'look.skin.saved': 'Стиль сохранён',
+  'look.home': 'Главная на телефоне',
+  'look.home.list': 'Список',
+  'look.home.tiles': 'Плитки',
+  'look.home.help': 'Плитки — карточка тренировки и разделы цветными плитками с прогрессом. Список — сразу все заметки',
+  'look.home.saved': 'Главная сохранена',
+  'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
+  'home.train.done': 'На сегодня всё',
   'look.oled': 'Чёрный фон в тёмной теме',
   'look.oled.help': 'Фон становится совсем чёрным — на телефонах с OLED-экраном это экономит батарею. Действует только в тёмной теме',
   'look.mode.saved': 'Тема сохранена',
@@ -1217,7 +1234,7 @@ window.STR = {
   'dbg.lim.unset': 'Лимиты — как у всех',
 
   // ===== Первый вход: приветственная заметка (Markdown)
-  'welcome.md': 'ReteNote — место для любых заметок: идеи, конспекты, списки дел, рецепты, рабочие записи. А если что-то нужно не просто записать, а **запомнить** — включи тренировку, и заметки превратятся в карточки для повторения.\n\n## Заметки\n- **Разделы** — слева (на телефоне — строка сверху). «+ Раздел» создаёт новый, внутри можно делать подразделы, разделы перетаскиваются мышкой.\n- **«+ Заметка»** — новая заметка в открытом разделе. Двойной клик по тексту или клавиша **E** — редактировать прямо в этом месте.\n- В редакторе три режима: **Визуально**, **Markdown** и **Рядом**. Есть заголовки, списки и чек-листы, цвет текста, таблицы, код, ссылки на другие заметки. Изображение можно просто вставить из буфера.\n- В «Визуально» разметка срабатывает сама: напиши `**жирный**`, `- пункт` или `# Заголовок` и нажми пробел.\n- **★** — избранное. **Поиск** сверху понимает формы слов, `"точные фразы"`, `-исключения` и `#теги`.\n- Удалённые заметки {days} дней лежат в **корзине**.\n\n## Тренировка — по желанию\nПригодится, если нужно выучить: термины, вопросы к экзамену или собеседованию, иностранные слова.\n- Включается для раздела целиком: меню раздела (⋮ или правый клик) → «Тренировка». Остальные разделы остаются обычными заметками.\n- **Заголовок заметки — это вопрос, текст — ответ.** Вспомни ответ, открой его и честно оцени: «Не знаю», «Плаваю» или «Знаю». Чем лучше помнишь, тем реже карточка будет возвращаться.\n- Как это выглядит — в разделе **«Пример тренировки»**. Не нужно — просто удали его.\n\n## Резервная копия\n⚙ **Настройки → Резервное копирование и перенос**: все заметки одним файлом — скачать себе и загрузить обратно. Заметки видны только тебе. В настройках же — «Обратная связь»: напиши, если что-то не так.\n\nЭту заметку можно отредактировать или удалить.',
+  'welcome.md': 'ReteNote — место для любых заметок: идеи, конспекты, списки дел, рецепты, рабочие записи. А если что-то нужно не просто записать, а **запомнить** — включи тренировку, и заметки превратятся в карточки для повторения.\n\n## Заметки\n- **Разделы** — слева (на телефоне — строка сверху). «+ Раздел» создаёт новый, внутри можно делать подразделы, разделы перетаскиваются мышкой.\n- **«+ Заметка»** — новая заметка в открытом разделе. Двойной клик по тексту или клавиша **E** — редактировать прямо в этом месте.\n- В редакторе три режима: **Визуально**, **Markdown** и **Рядом**. Есть заголовки, списки и чек-листы, цвет текста, таблицы, код, ссылки на другие заметки. Изображение можно просто вставить из буфера.\n- В «Визуально» разметка срабатывает сама: напиши `**жирный**`, `- пункт` или `# Заголовок` и нажми пробел.\n- **★** — избранное. **Поиск** сверху понимает формы слов, `"точные фразы"`, `-исключения` и `#теги`.\n- Удалённые заметки {days} дней лежат в **корзине**.\n\n## Тренировка — по желанию\nПригодится, если нужно выучить: термины, вопросы к экзамену или собеседованию, иностранные слова.\n- Включается для раздела целиком: меню раздела (⋮ или правый клик) → «Тренировка». Остальные разделы остаются обычными заметками.\n- **Заголовок заметки — это вопрос, текст — ответ.** Вспомни ответ, открой его и честно оцени: «Не знаю», «С трудом» или «Знаю». Чем лучше помнишь, тем реже карточка будет возвращаться.\n- Как это выглядит — в разделе **«Пример тренировки»**. Не нужно — просто удали его.\n\n## Резервная копия\n⚙ **Настройки → Резервное копирование и перенос**: все заметки одним файлом — скачать себе и загрузить обратно. Заметки видны только тебе. В настройках же — «Обратная связь»: напиши, если что-то не так.\n\nЭту заметку можно отредактировать или удалить.',
   'example.md': '**Интервальное повторение** — способ запоминать надолго: материал повторяют через растущие промежутки времени — через день, через три, через неделю…\n\nПовторение приходится как раз на момент, когда знание начинает забываться, поэтому оно закрепляется лучше, чем при зубрёжке подряд.\n\n*Это пример карточки: заголовок — вопрос, этот текст — ответ. Удали её, когда добавишь свои.*',
   'onb.mine': 'Мои заметки',
   'onb.demo': 'Пример тренировки',
@@ -1256,7 +1273,7 @@ window.STR = {
   'help.train': 'Тренировка',
   'help.train.1': 'Если что-то нужно выучить — термины, слова, билеты, — включи тренировку для раздела: «Тренировать заметки раздела» в его меню. Заголовок заметки станет вопросом, текст — ответом',
   'help.train.2': 'Дальше заметки напоминают о себе сами: на вкладке «Тренировка» — карточки, у которых подошёл срок, и порция новых (по умолчанию 10 в день, меняется в «Настройках» ⚙)',
-  'help.train.3': 'Вспомни ответ сам, нажми «Показать ответ» и честно оцени себя: <b>Знаю</b> — карточка вернётся позже; <b>Плаваю</b> — вспомнил с трудом, вернётся раньше; <b>Не знаю</b> — повторится в конце этой же сессии и завтра. Под кнопкой написано, когда карточка вернётся',
+  'help.train.3': 'Вспомни ответ сам, нажми «Показать ответ» и честно оцени себя: <b>Знаю</b> — карточка вернётся позже; <b>С трудом</b> — вспомнил с трудом, вернётся раньше; <b>Не знаю</b> — повторится в конце этой же сессии и завтра. Под кнопкой написано, когда карточка вернётся',
   'help.train.4': 'Расписание считает алгоритм FSRS: он зовёт повторить, пока ты ещё не забыл. Повторений получается меньше, а забывается не больше',
   'help.train.5': 'Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span>',
   'help.train.6': '<b>Пропуски</b> — выдели слово или фразу в заметке и нажми <b>[…]</b>: в тренировке этот кусок скрыт, остальной текст виден. А «Спрашивать в обе стороны» в меню раздела добавляет обратные карточки: показан ответ, вспомни вопрос',
@@ -1350,7 +1367,7 @@ window.STR = {
   'lp.train.11': 'Английский',
   'lp.train.12': 'Показать ответ',
   'lp.train.13': 'Не знаю<small>повтор завтра</small>',
-  'lp.train.14': 'Плаваю<small>повтор завтра</small>',
+  'lp.train.14': 'С трудом<small>повтор завтра</small>',
   'lp.train.15': 'Знаю<small>через 4 дня</small>',
   'lp.train.16': 'Попробуй: вспомни ответ и открой его',
   'lp.train.17': 'Пропуски в тексте',
@@ -1443,7 +1460,7 @@ window.STR = {
   'lp.hero.label.1': 'Повторения с растущими промежутками: сегодня, завтра, через 4 дня, через 2 недели, через полтора месяца',
   'lp.hero.alt.1': 'ReteNote на компьютере: разделы, список заметок и открытая заметка с чек-листом и таблицей',
   'lp.hero.alt.2': 'ReteNote на компьютере в тёмной теме',
-  'lp.hero.alt.3': 'Карточка тренировки на телефоне: вопрос, ответ и оценки «Не знаю», «Плаваю», «Знаю»',
+  'lp.hero.alt.3': 'Карточка тренировки на телефоне: вопрос, ответ и оценки «Не знаю», «С трудом», «Знаю»',
   'lp.hero.alt.4': 'Карточка тренировки на телефоне в тёмной теме',
   'lp.notes.alt.1': 'Редактор заметки: панель форматирования, текст с кодом',
   'lp.notes.alt.2': 'Редактор заметки в тёмной теме',
@@ -1654,9 +1671,14 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .sec:hover{background:var(--surface)}
 .sec[aria-current="true"]{background:var(--accent-soft);color:var(--ink);font-weight:500}
 .sec .n{margin-left:auto;font:12px var(--f-mono);color:var(--faint);font-variant-numeric:tabular-nums}
-.sec .due{width:6px;height:6px;border-radius:50%;background:var(--kt);flex:none}
+.sec .n.due{font:700 11px/1 var(--f-body);color:var(--kt-ink);background:var(--kt);border-radius:var(--rad-pill);padding:3px 7px;min-width:20px;text-align:center}
 .sec .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sec.tree{padding-left:calc(4px + var(--d,0) * 16px)}
+.sec.tree{padding-left:calc(4px + var(--d,0) * var(--ind,16px));position:relative}
+/* вложенность: тонкие вертикальные линии под стрелкой каждого уровня выше (как направляющие в редакторах кода) и верхний уровень жирнее */
+.sec.tree::before{content:'';position:absolute;top:0;bottom:0;left:var(--g0,13px);width:calc(var(--d,0) * var(--ind,16px));pointer-events:none;
+  background:repeating-linear-gradient(to right,var(--line-strong) 0 1px,transparent 1px var(--ind,16px))}
+.sec.tree.lv0{font-weight:600}
+.sec.tree:not(.lv0) .name{font-size:.96em}
 .sec .caret{flex:none;width:18px;height:18px;display:grid;place-items:center;border-radius:var(--rad-xs);color:var(--faint);font-size:12px;transition:transform .15s}
 .sec .caret.open{transform:rotate(90deg)}
 .sec .caret:hover{background:var(--line);color:var(--ink)}
@@ -2305,7 +2327,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   body.secs-open .sheet-bg{display:block}
   body.secs-open .rail .sheet-head{display:flex}
   body.secs-open .rail .sec{padding-block:10px;font-size:15px}
-  body.secs-open .rail .sec.tree{padding-left:calc(6px + var(--d,0) * 18px)}
+  body.secs-open .rail .sec.tree{--ind:18px;--g0:14px}
   body.secs-open .rail .sec .caret{width:28px;height:28px;margin:-6px -4px -6px -6px;font-size:13px}
   body.secs-open .rail .trash-row{margin-top:10px}
 }
@@ -2341,9 +2363,14 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .chip.chip-tree{padding-inline:11px;font-size:15px;line-height:1;position:sticky;left:0;z-index:1;flex:none;box-shadow:-10px 0 0 6px var(--surface),8px 0 10px -6px rgba(0,0,0,.25)}
 .chip.chip-tree::before{content:'';position:absolute;top:-12px;bottom:-12px;right:calc(100% + 2px);width:18px;background:var(--surface)}   /* 2px — рамка кнопки лежит снаружи padding-box: подложка не должна её срезать */
 #search-btn{display:none}
+/* кнопка поиска (телефон) — в строке с названием приложения, справа; крупная, отдельно от панели меню */
+.top-btn{width:40px;height:40px;flex:none;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--surface);color:var(--ink);place-items:center;padding:0}
+.top-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.top-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 @media (max-width:760px){
   .top{gap:10px}
-  #search-btn{display:grid}body:not(.mode-lib) #search-btn{display:none}
+  #search-btn{display:grid;margin-left:auto}body:not(.mode-lib) #search-btn{display:none}
+  .streak:not([hidden]) ~ #search-btn{margin-left:0}
   .search{order:3;flex-basis:100%;max-width:none;margin-left:0;display:none}
   body.sq-open .search{display:block}
   .search input{padding-block:4px}
@@ -2374,7 +2401,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
 .modes.modes-ico .ml{display:none}.modes.modes-ico button{padding-inline:10px}
 /* «Настройки» и «Справка» подписаны, когда хватает ширины; иначе — только иконки */
 @media (max-width:1180px){.modes .ml-opt{display:none}.modes #m-prog,.modes #help-btn{padding-inline:10px}}
-@media (max-width:400px){.modes button{padding-inline:5px;gap:3px;font-size:14px}.modes svg{width:16px;height:16px}.modes #m-prog,.modes #help-btn,.modes #search-btn{padding-inline:4px}.modes{gap:0;padding:2px}.modes.modes-ico button[data-mode]{padding-inline:7px}.top .brand{gap:6px}}
+@media (max-width:400px){.modes button{padding-inline:7px;gap:4px;font-size:14px}.modes svg{width:16px;height:16px}.modes #m-prog,.modes #help-btn{padding-inline:7px}.top .brand{gap:6px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 /* Служебные классы вместо style="" (!important — как у встроенного стиля: перебивают любые селекторы) */
@@ -2433,8 +2460,93 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .grade:active{transform:translateY(3px);box-shadow:0 1px 0 currentColor}
 :root[data-skin="play"] .grade.g3{background:var(--good);color:var(--accent-ink);border-color:var(--good)}
 :root[data-skin="play"] .grade.g1,:root[data-skin="play"] .grade.g2{border-color:currentColor}
-.sdot,.streak{display:none}
-.ring{display:contents}
+.sdot{display:none}
+/* главная с плитками (телефон, settings.home = 'tiles') */
+body.home-view .chips-row,body.home-view .list-head,body.home-view #tagbar,body.home-view #scopebar,body.home-view #new-note{display:none!important}
+.home{padding:12px 12px 92px;display:flex;flex-direction:column;gap:14px}
+button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--rad-2xl);background:var(--raised);border:1px solid var(--line);text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.home-train .pring{--rs:58px}
+.home-train .pr-in b{font:700 16px var(--f-display)}
+.ht-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ht-t b{font:600 17px var(--f-display)}
+.ht-t span{color:var(--muted);font-size:14px}
+.home-train .chev{width:22px;height:22px}
+.home-h{display:flex;justify-content:space-between;align-items:baseline;padding:6px 2px 0}
+.home-h h3{margin:0;font:600 18px var(--f-display)}
+.home-h span{color:var(--muted);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;align-items:stretch;gap:8px;text-align:left;padding:14px;border-radius:var(--rad-xl);background:var(--raised);border:1px solid var(--line);color:var(--ink);min-width:0;font:inherit;cursor:pointer}
+.tl-top{display:flex;justify-content:space-between;align-items:flex-start;min-height:24px}
+.tile .fico{width:24px;height:24px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8;stroke-linejoin:round}
+.tile[data-sc] .fico{fill:color-mix(in srgb,var(--sc) 22%,var(--raised));stroke:var(--sc)}
+.tl-due{font:700 12px/1 var(--f-body);background:var(--kt);color:var(--kt-ink);border-radius:var(--rad-pill);padding:4px 8px}
+.tl-name{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .lbar{display:block;width:auto}
+.tile[data-sc] .lbar i{background:var(--sc)}
+.tl-sub{font-size:12px;color:var(--muted)}
+.home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
+.home-bar .btn{flex:1;padding-block:12px;font-size:16px}
+.sec-hero{display:flex;align-items:center;gap:14px;margin:12px 12px 4px;padding:14px 16px;border-radius:var(--rad-xl);background:var(--raised);border:1px solid var(--line)}
+.sec-hero[hidden]{display:none}
+.sec-hero .pring{--rs:56px}
+.sec-hero .pr-in b{font:700 13px var(--f-display)}
+.sec-hero[data-sc] .pring{--kt:var(--sc)}
+.sh-t{min-width:0}
+.sh-name{font:600 19px/1.2 var(--f-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh-sub{color:var(--muted);font-size:13px;margin-top:4px}
+.sh-sub b{color:var(--kt);font-weight:700}
+@media (max-width:760px){.sec-hero{display:none}}
+.lbar{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle;flex:none}
+.lbar i{display:block;height:100%;width:var(--w);background:var(--good);border-radius:3px}
+.r-cta{display:flex;gap:10px;margin:-8px 0 22px}
+@media (max-width:760px){
+  .lib.reading .r-cta{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
+  .lib.reading .r-cta .btn{flex:1;padding-block:12px;font-size:16px}
+  .lib.reading .r-cta #drill{flex:1.4}
+  .lib.reading .reader .doc:has(.r-cta){padding-bottom:84px}
+}
+/* подсказка с горячими клавишами в редакторе — только там, где есть клавиатура; на телефоне её нет (для живой правки — короткая без клавиш) */
+.touch-hint{display:none}
+@media (max-width:760px),(hover:none) and (pointer:coarse){.kbd-hint{display:none}.touch-hint{display:inline}}
+/* огонёк серии дней — в обоих стилях (в «Игровом» плашкой); на телефоне справа в строке с названием, на компьютере — в конце шапки, с «N дней» */
+.streak[hidden]{display:none}
+.streak:not([hidden]){display:inline-flex;align-items:center;gap:4px;color:var(--hard);font:700 14px/1 var(--f-body);white-space:nowrap}
+.streak svg{width:16px;height:16px;flex:none;fill:var(--flame)}
+.streak .st-days{font-weight:600}
+@media (min-width:761px){.top .streak{order:9}}
+@media (max-width:760px){.top .streak{margin-left:auto}.streak .st-days{display:none}}
+/* кольцо прогресса (ringHtml): дуга со скруглёнными концами на бледной дорожке; оба стиля, «Игровой» толще */
+.pring{position:relative;width:var(--rs,96px);aspect-ratio:1;flex:none;--rw:7}
+.pring svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
+.pring circle{fill:none;stroke-width:var(--rw)}
+.pr-track{stroke:color-mix(in srgb,var(--kt) 14%,var(--line))}
+.pr-arc{stroke:var(--kt);stroke-linecap:round;transition:stroke-dasharray .4s}
+.pr-in{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.pring .bignum{font-size:34px}
+/* боковая колонка тренировки (компьютер): неделя, сегодня по разделам, доля «знаю» */
+.s-aside{display:none}
+@media (min-width:1100px){
+  .session.with-aside{max-width:1120px;display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:24px;row-gap:14px;align-items:start}
+  .session.with-aside > *{grid-column:1}
+  .session.with-aside > .s-aside{grid-column:2;grid-row:1 / span 6;display:flex;flex-direction:column;gap:14px;position:sticky;top:84px}
+}
+.s-box{background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-xl);padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.s-box h4{margin:0;font:600 13px var(--f-body);color:var(--muted)}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;font-size:12px;color:var(--muted)}
+.wk i{display:block;height:26px;border-radius:var(--rad-s);background:var(--line);margin-top:4px}
+.wk .on i{background:var(--accent)}
+.wk .now i{box-shadow:0 0 0 2px var(--raised),0 0 0 4px var(--flame)}
+.wk .now.on i{background:var(--flame)}
+.ss-row{display:flex;align-items:flex-start;gap:10px;font-size:14px;font-weight:600}
+.ss-row .nm-w{flex:1;min-width:0}
+.ss-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss-row .bar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--sc,var(--accent)) 16%,var(--line));margin-top:5px;overflow:hidden}
+.ss-row .bar i{display:block;height:100%;width:var(--w);background:var(--sc,var(--accent));border-radius:3px}
+.ss-row .n{font:600 13px var(--f-mono);color:var(--muted)}
+.s-box.s-recall{flex-direction:row;align-items:center;gap:12px;font-size:14px;color:var(--muted)}
+.s-recall b{font:700 30px/1 var(--f-display);color:var(--good)}
+.sbar .streak{margin-left:0}
+.eta{color:var(--muted);font-size:14px}
 [data-sc="orange"]{--sc:var(--sc-orange)}[data-sc="violet"]{--sc:var(--sc-violet)}[data-sc="teal"]{--sc:var(--sc-teal)}[data-sc="pink"]{--sc:var(--sc-pink)}
 [data-sc="blue"]{--sc:var(--sc-blue)}[data-sc="green"]{--sc:var(--sc-green)}[data-sc="red"]{--sc:var(--sc-red)}[data-sc="gray"]{--sc:var(--sc-gray)}
 .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 10px 10px}
@@ -2444,11 +2556,32 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .sec[data-sc] .sdot{display:block;flex:none;width:10px;height:10px;border-radius:50%;background:var(--sc)}
 :root[data-skin="play"] .sec.tree[data-sc][aria-current="true"]{background:color-mix(in srgb,var(--sc) 16%,var(--raised));box-shadow:inset 0 0 0 2px var(--sc)}
 :root[data-skin="play"] .card[data-sc]{border-top:10px solid var(--sc)}
-:root[data-skin="play"] .streak:not([hidden]){display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:5px 10px;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--flame) 14%,var(--bg));color:var(--hard);font:800 14px/1 var(--f-display)}
+:root[data-skin="play"] .streak:not([hidden]){display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--flame) 14%,var(--bg));color:var(--hard);font:800 14px/1 var(--f-display)}
 :root[data-skin="play"] .streak svg{width:16px;height:16px;fill:var(--flame)}
-:root[data-skin="play"] .ring{display:grid;place-items:center;position:relative;width:96px;height:96px;flex:none;border-radius:50%;background:conic-gradient(var(--kt) var(--p),var(--line) 0)}
-:root[data-skin="play"] .ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--raised)}
-:root[data-skin="play"] .ring .bignum{position:relative;font-size:34px}
+:root[data-skin="play"] .pring{--rw:11}
+:root[data-skin="play"] .home-train{background:var(--accent);color:var(--accent-ink);border:0}
+:root[data-skin="play"] .home-train .pring{--kt:var(--accent-ink)}
+:root[data-skin="play"] .home-train .pr-track{stroke:color-mix(in srgb,var(--accent-ink) 28%,var(--accent))}
+:root[data-skin="play"] .home-train .ht-t span{color:color-mix(in srgb,var(--accent-ink) 82%,var(--accent))}
+:root[data-skin="play"] .tile{border:0;border-radius:var(--rad-2xl);background:color-mix(in srgb,var(--sc,var(--accent)) 14%,var(--raised))}
+:root[data-skin="play"] .tile .fico{width:30px;height:30px}
+:root[data-skin="play"] .tile .lbar{height:6px;background:var(--raised)}
+:root[data-skin="play"] .tile .tl-name{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
+:root[data-skin="play"] .home-bar .btn{border-radius:var(--rad-xl);font-weight:800}
+:root[data-skin="play"] .sec-hero{border:0;border-radius:var(--rad-2xl);background:color-mix(in srgb,var(--sc,var(--accent)) 14%,var(--raised))}
+:root[data-skin="play"] .sec-hero .pr-track{stroke:var(--raised)}
+:root[data-skin="play"] .lbar{height:6px;background:color-mix(in srgb,var(--sc,var(--good)) 14%,var(--line))}
+:root[data-skin="play"] .item[data-sc] .lbar i{background:var(--sc)}
+:root[data-skin="play"] .r-cta .btn{border-radius:var(--rad-xl);font-weight:800;padding:11px 20px}
+:root[data-skin="play"] .note-head[data-sc] .sec-link{color:color-mix(in srgb,var(--sc) 70%,var(--ink));background:color-mix(in srgb,var(--sc) 16%,var(--raised));border-radius:var(--rad-m);padding:5px 10px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:800}
+@media (max-width:760px){
+  :root[data-skin="play"] .lib.reading .note-head[data-sc]{background:color-mix(in srgb,var(--sc) 14%,var(--surface));margin:-14px -16px 18px;padding:14px 16px 4px;border-radius:0 0 var(--rad-2xl) var(--rad-2xl)}
+}
+:root[data-skin="play"] .pr-track{stroke:color-mix(in srgb,var(--kt) 18%,var(--raised))}
+:root[data-skin="play"] .s-box{border-width:2px;border-radius:var(--rad-2xl)}
+:root[data-skin="play"] .wk i{border-radius:var(--rad-m);height:30px}
+:root[data-skin="play"] .s-recall{background:color-mix(in srgb,var(--good) 14%,var(--raised));border-color:transparent}
+:root[data-skin="play"] .card .ans{border-top-width:2px}
 :root[data-skin="play"] .chip[data-sc]{border-color:var(--sc)}
 :root[data-skin="play"] .chip[data-sc][aria-pressed="true"]{background:var(--sc);border-color:var(--sc);color:var(--on-accent)}
 .grp-h .fico{width:15px;height:15px;flex:none;vertical-align:-3px;margin-right:6px;fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.8;stroke-linejoin:round}
@@ -2486,13 +2619,13 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 <div class="app">
   <header class="top">
     <div class="brand" aria-label="MyNotes">‹/›<span><b>My</b>Notes</span><span class="brand-pro" id="brand-pro" hidden>Pro</span></div>
-    <span class="streak" id="streak" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c1 3.2 4.8 5.2 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2 .9-3.4 2-4.6.2 1.6 1 2.6 2 3 0-3.2-.6-5.6.8-8.4z"/></svg><b id="streak-n">0</b></span>
+    <span class="streak" id="streak" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c1 3.2 4.8 5.2 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2 .9-3.4 2-4.6.2 1.6 1 2.6 2 3 0-3.2-.6-5.6.8-8.4z"/></svg><b id="streak-n">0</b><span class="st-days" id="streak-d"></span></span>
     <span class="sync-badge" id="sync-badge" role="status" hidden></span>
+    <button id="search-btn" class="top-btn" type="button" aria-pressed="false" title="Поиск по заметкам" aria-label="Поиск по заметкам"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></button>
     <nav class="modes" aria-label="Режим">
       <button id="m-lib" data-mode="lib" aria-pressed="true" title="Заметки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l3.5 3.5v13.5H6z"/><path d="M14.5 3.5V7H18M9 11.5h6M9 15h6"/></svg><span class="ml">Заметки</span></button>
       <button id="m-train" data-mode="train" aria-pressed="false" title="Тренировка"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="13" height="12" rx="2"/><path d="M7.5 4.5h11a2 2 0 0 1 2 2v10"/><path d="M8 13.5l1.8 1.8L13 12"/></svg><span class="ml">Тренировка</span><span class="badge" id="due-badge" hidden>0</span></button>
       <button id="m-prog" data-mode="prog" aria-pressed="false" title="Настройки" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span class="ml ml-opt">Настройки</span></button>
-      <button id="search-btn" type="button" aria-pressed="false" title="Поиск по заметкам" aria-label="Поиск по заметкам"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></button>
       <button id="help-btn" type="button" aria-haspopup="dialog" title="Справка: как всё устроено (клавиша ?)" aria-label="Справка"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4"/><path d="M12 16.9v.1"/></svg><span class="ml ml-opt">Справка</span></button>
     </nav>
     <div class="search" id="search-box">
@@ -2514,6 +2647,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
     <div class="rail-resizer" id="rail-resizer" role="separator" aria-orientation="vertical" aria-label="Ширина панели разделов" title="Потяни, чтобы изменить ширину. Двойной клик — вернуть как было" tabindex="0"></div>
     <section class="list" aria-label="Список заметок">
       <div class="chips-row" id="chips"></div>
+      <div class="sec-hero" id="sec-hero" hidden></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note">+ Заметка</button></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
@@ -2576,7 +2710,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
         <ul>
           <li>Если что-то нужно выучить — термины, слова, билеты, — включи тренировку для раздела: «Тренировать заметки раздела» в его меню. Заголовок заметки станет вопросом, текст — ответом</li>
           <li>Дальше заметки напоминают о себе сами: на вкладке «Тренировка» — карточки, у которых подошёл срок, и порция новых (по умолчанию 10 в день, меняется в «Настройках» ⚙)</li>
-          <li>Вспомни ответ сам, нажми «Показать ответ» и честно оцени себя: <b>Знаю</b> — карточка вернётся позже; <b>Плаваю</b> — вспомнил с трудом, вернётся раньше; <b>Не знаю</b> — повторится в конце этой же сессии и завтра. Под кнопкой написано, когда карточка вернётся</li>
+          <li>Вспомни ответ сам, нажми «Показать ответ» и честно оцени себя: <b>Знаю</b> — карточка вернётся позже; <b>С трудом</b> — вспомнил с трудом, вернётся раньше; <b>Не знаю</b> — повторится в конце этой же сессии и завтра. Под кнопкой написано, когда карточка вернётся</li>
           <li>Расписание считает алгоритм FSRS: он зовёт повторить, пока ты ещё не забыл. Повторений получается меньше, а забывается не больше</li>
           <li>Метки в списке заметок: <span class="pill new">новая</span> <span class="pill due">повторить</span> <span class="pill learn">↻ 3 дн</span> (через сколько дней повтор) <span class="pill ref">вне тренировки</span> <span class="pill empty">без ответа</span></li>
           <li><b>Пропуски</b> — выдели слово или фразу в заметке и нажми <b>[…]</b>: в тренировке этот кусок скрыт, остальной текст виден. А «Спрашивать в обе стороны» в меню раздела добавляет обратные карточки: показан ответ, вспомни вопрос</li>
@@ -2691,6 +2825,18 @@ function clozeOfCard(cid) {   // текст пропуска карточки (�
 }
 const noteDue = n => cardsOf(n).some(isDue);
 const cardsOfIds = ids => ids.flatMap(id => cardsOf(S.notes.get(id)));
+/* «выучено»: карточка с интервалом от месяца (решено 05.11: 30 дней); у заметки — средняя доля по её карточкам (интервал ÷ 30, не больше 1) */
+const LEARNED_DAYS = 30;
+const cardLearn = c => { const s = S.srs.get(c); return s && s.introduced ? Math.min(1, (s.ivl || 0) / LEARNED_DAYS) : 0; };
+function noteLearn(n) { const cs = cardsOf(n); return cs.length ? cs.reduce((a, c) => a + cardLearn(c), 0) / cs.length : 0; }
+/* раздел с подразделами: заметок, карточек, выучено (интервал ≥ 30 дн), ждут сегодня (к повторению и новые на сегодня — как в тренировке) */
+function secStats(sid, rq) {
+  const sub = subtree(sid), out = { notes: 0, cards: 0, learned: 0, today: 0, pct: 0 };
+  for (const n of S.notes.values()) if (sub.has(n.section)) { out.notes++; for (const c of cardsOf(n)) { out.cards++; const s = S.srs.get(c); if (s?.introduced && s.ivl >= LEARNED_DAYS) out.learned++; } }
+  rq = rq || reviewQueue(); for (const c of rq.due.concat(rq.fresh)) { const n = noteOfCard(c); if (n && sub.has(n.section)) out.today++; }
+  out.pct = out.cards ? out.learned / out.cards : 0;
+  return out;
+}
 
 /* Расписание — FSRS-4.5 (решено 25.10: для всех, бесплатно). Память о карточке: s — прочность (через сколько дней вероятность вспомнить
    упадёт до 90%), d — трудность 1…10. Наши оценки: 1 «не знаю» = Again, 2 «плаваю» = Hard, 3 «знаю» = Good.
@@ -2756,6 +2902,12 @@ function stage(id) {
   if (st.every(x => x === 'new')) return 'new';
   if (st.includes('new')) return 'learn';
   return STAGES[Math.min(...st.map(x => STAGES.indexOf(x)))];
+}
+/* тонкая полоска «насколько выучена заметка» в списке — у заметок, которые уже тренировали */
+function learnBar(n) {
+  if (!trainable(n) || !cardsOf(n).some(c => S.srs.get(c)?.introduced)) return '';
+  const p = Math.round(noteLearn(n) * 100);
+  return `<span class="lbar" title="${tt('learn.note', { n: p })}"><i style="--w:${p}%"></i></span>`;
 }
 function srsPill(id) {
   const n = S.notes.get(id), cs = n ? cardsOf(n) : [];
@@ -3627,7 +3779,7 @@ function setMode(m) {
   if (m === 'train') renderTrain(); if (m === 'prog') { renderProg(); loadPlan(); } if (m === 'lib') renderLib();
   sessionClass(); histSync();
 }
-document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && homeOn() && !homeShown()) goHome(); else setMode(b.dataset.mode); }));
 // панель режимов не помещается в строку (крупный шрифт в системе, узкое окно): подписи прячем, остаются значки — иначе «Справка» уезжает за экран
 function fitModes() {
   const m = document.querySelector('.modes'), top = m && m.parentElement; if (!top || !top.offsetParent) return;
@@ -3698,14 +3850,14 @@ function renderRail() {
       continue;
     }
     const k = hasKids(s.id);
-    rows.push(`<button class="sec tree" style="--d:${depth}"${scAttr(s.id)} data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="${tt('tree.sec.title')}">`
+    rows.push(`<button class="sec tree${depth ? '' : ' lv0'}" style="--d:${depth}"${scAttr(s.id)} data-sec="${esc(s.id)}" ${S.canWrite && FINE ? 'draggable="true"' : ''} aria-current="${S.section === s.id}" ${k ? `aria-expanded="${!collapsed.has(s.id)}"` : ''} title="${tt('tree.sec.title')}">`
       + `<span class="caret ${k ? (collapsed.has(s.id) ? '' : 'open') : 'none'}" ${k ? `data-toggle="${esc(s.id)}" title="${tt(collapsed.has(s.id) ? 'tree.expand' : 'tree.collapse')}"` : ''}>▶</span>`
-      + `<span class="sdot" aria-hidden="true"></span>${d.get(s.id) ? `<span class="due" title="${tt('tree.due')}"></span>` : ''}<span class="name">${esc(s.title)}</span>`
+      + `<span class="sdot" aria-hidden="true"></span><span class="name">${esc(s.title)}</span>`
       + `${s.train ? `<span class="trn" title="${tt('tree.train')}">◎</span>` : ''}`
       + (() => { const sp = spacesList().find(x => x.root === s.id); return sp ? `<span class="shr" title="${esc(sp.role === 'owner' ? tt('tree.space.mine', { members: sp.members.length ? sp.members.map(m => m.name).join(', ') : tt('tree.space.nobody') }) : tt('tree.space.other', { owner: sp.owner.name }))}">👥</span>` : ''; })()
       + (ed ? (() => { const sib = kids(p), i = sib.findIndex(x => x.id === s.id);
           return `<span class="tools"><span role="button" data-sec-act="up" aria-label="${tt('tree.up')}" aria-disabled="${i <= 0 || alphaKids(p)}">↑</span><span role="button" data-sec-act="down" aria-label="${tt('tree.down')}" aria-disabled="${i >= sib.length - 1 || alphaKids(p)}">↓</span><span role="button" data-sec-act="menu" aria-label="${tt('tree.menu')}">⋯</span></span>`; })()
-        : `<span class="n">${c.get(s.id) || 0}</span>`) + `</button>`);
+        : d.get(s.id) ? `<span class="n due" title="${tt('tree.due.n', { n: d.get(s.id) })}">${d.get(s.id)}</span>` : `<span class="n">${c.get(s.id) || 0}</span>`) + `</button>`);
   }
   rows.push(addingSection
     ? `<form class="inline-form" id="add-sec-form"><input id="new-sec-name" placeholder="${tt('tree.sec.name')}" aria-label="${tt('tree.new.name')}"><button class="btn">OK</button></form>`
@@ -3908,7 +4060,7 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
+function selectSection(id) { if (id === 'all') S.homeAll = true; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -3938,13 +4090,55 @@ function renderScopeBar(cl) {
   bar.hidden = false;
   bar.innerHTML = `<span class="lbl">${tt('search.scope')}</span><div class="seg"><button data-scope="all" aria-pressed="${!S.searchHere}">${tt('search.everywhere')} <span class="tag">${cl.allN}</span></button><button data-scope="here" aria-pressed="${!!S.searchHere}">${name} <span class="tag">${cl.hereN}</span></button></div>`;
 }
+/* плашка раздела над списком (компьютер, раздел с тренировкой): кольцо «выучено %», заметок, ждут сегодня */
+function renderSecHero(terms) {
+  const h = $('#sec-hero'); if (!h) return;
+  const sid = S.section, on = !terms && S.sections.has(sid) && isTrainFolder(sid);
+  h.hidden = !on; if (!on) { h.innerHTML = ''; return; }
+  const st = secStats(sid), sc = scAttr(sid);
+  if (sc) h.setAttribute('data-sc', secColor(sid)); else h.removeAttribute('data-sc');
+  h.innerHTML = `${ringHtml(st.pct, `<b>${Math.round(st.pct * 100)}%</b>`, 'sm')}<div class="sh-t"><div class="sh-name">${esc(S.sections.get(sid).title)}</div>`
+    + `<div class="sh-sub">${tt('sec.hero.sub', { n: st.notes, learned: st.learned, cards: st.cards })}${st.today ? ` · <b>${tt('sec.hero.today', { n: st.today })}</b>` : ''}</div></div>`;
+  h.title = tt('learn.hint', { days: LEARNED_DAYS });
+}
+/* главная на телефоне — плитками (настройка «Оформление → Главная на телефоне», settings.home = 'tiles'): карточка тренировки с кольцом,
+   плитки разделов (цвет, «ждут сегодня», полоска «выучено»), внизу «Все заметки» и «+ Заметка». Показывается вместо «Все заметки»;
+   «Все заметки» и чип «Все» — обычный список, «Заметки» в меню — снова главная */
+// не выбрано вручную — в «Игровом» плитки, в «Классическом» список (решено 05.11)
+const homePref = () => S.settings?.home === 'tiles' || S.settings?.home === 'list' ? S.settings.home : lookPrefs().skin === 'play' ? 'tiles' : 'list';
+const homeOn = () => isPhone() && homePref() === 'tiles';
+const homeShown = () => homeOn() && S.mode === 'lib' && S.section === 'all' && !S.homeAll && !S.q && !S.tag;
+function goHome() { S.homeAll = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
+// уровень плиток: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы
+function homeLevel() { let lv = kids(null); while (lv.length === 1 && hasKids(lv[0].id)) lv = kids(lv[0].id); return lv; }
+function renderHome() {
+  const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
+  const trains = sectionsSorted().some(s => s.train);
+  const tile = s => { const st = secStats(s.id, rq), tr = isTrainFolder(s.id);
+    return `<button class="tile" data-sec="${esc(s.id)}"${scAttr(s.id)}><span class="tl-top">${FOLDER_ICO}${st.today ? `<span class="tl-due" title="${tt('tree.due.n', { n: st.today })}">${st.today}</span>` : ''}</span>`
+      + `<span class="tl-name">${esc(s.title)}</span>${tr && st.cards ? `<span class="lbar"><i style="--w:${Math.round(st.pct * 100)}%"></i></span>` : ''}`
+      + `<span class="tl-sub">${tt('notes.n', { n: st.notes })}${tr && st.cards ? ' · ' + Math.round(st.pct * 100) + '%' : ''}</span></button>`; };
+  $('#items').innerHTML = `<div class="home">
+    ${trains ? `<button class="home-train" id="home-train">${ringHtml(a + total ? a / (a + total) : 1, `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${total ? tt('home.train.sub', { n: total, m: etaMin(total) }) : tt('home.train.done')}</span></span>${CH_R}</button>` : ''}
+    <div class="home-h"><h3>${tt('rail.label')}</h3><span>${tt('notes.n', { n: S.notes.size })}</span></div>
+    <div class="tiles">${homeLevel().map(tile).join('')}</div>
+    <div class="home-bar"><button class="btn" id="home-all">${tt('list.all')}</button>${S.canWrite ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>
+  </div>`;
+  $('#home-train') && ($('#home-train').onclick = () => setMode('train'));
+  $('#home-all').onclick = () => { S.homeAll = true; renderList(); histSync(); };
+  $('#home-new') && ($('#home-new').onclick = () => $('#new-note').click());
+  $('#items').querySelectorAll('.tile').forEach(b => b.onclick = () => selectSection(b.dataset.sec));
+}
 function renderList() {
   if (!S.loaded.notes) return;
   renderBackupBar(); renderInstallBar();
+  const hv = homeShown(); document.body.classList.toggle('home-view', hv);
+  if (hv) { renderSecHero(true); renderHome(); return; }
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
   $('#list-count').textContent = list.length;
+  renderSecHero(terms);
   const tags = allTags();
   const tb = $('#tagbar');
   tb.hidden = !tags.length || !!terms || !tagsShown();
@@ -3985,10 +4179,10 @@ function renderList() {
     <div class="row-item${reorder ? ' can-drag' : ''}${S.select ? ' selecting' : ''}${S.select?.has(n.id) ? ' selected' : ''}" data-id="${esc(n.id)}" data-sec="${esc(n.section)}">
       ${S.select ? `<span class="selbox" aria-hidden="true">${S.select.has(n.id) ? '✓' : ''}</span>` : ''}
       ${reorder ? `<span class="grip" data-grip="${esc(n.id)}" title="${tt('list.grip')}" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span>` : ''}
-      <button class="item" data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''} ${S.canWrite && !S.select && FINE ? 'draggable="true"' : ''}>
+      <button class="item"${scAttr(n.section)} data-id="${esc(n.id)}" aria-current="${!S.select && n.id === S.noteId}" ${S.select ? `aria-pressed="${S.select.has(n.id)}"` : ''} ${S.canWrite && !S.select && FINE ? 'draggable="true"' : ''}>
         <span class="t">${n.pinned ? `<span class="star" title="${tt('list.star')}">★</span>` : ''}${hl(noteTitle(n), terms)}</span>
         ${terms ? `<span class="snip">${snippet(n, terms)}</span>` : ''}
-        <span class="meta">${srsPill(n.id)}${showSec && n.section !== S.section ? `<span class="pill" title="${esc(secPath(n.section))}">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${tagsMeta(n.tags)}${whenHtml(n)}</span>
+        <span class="meta">${srsPill(n.id)}${learnBar(n)}${showSec && n.section !== S.section ? `<span class="pill" title="${esc(secPath(n.section))}">${esc(S.sections.get(n.section)?.title || '—')}</span>` : ''}${tagsMeta(n.tags)}${whenHtml(n)}</span>
       </button>
       ${S.canWrite && !S.select ? `<button class="more" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu" aria-expanded="${S.menu?.id === n.id}">⋮</button>` : ''}
       ${(terms || S.tag) && !S.select ? `<button class="goto" data-goto="${esc(n.id)}" title="${tt('list.goto.title')}">${tt('list.goto')}</button>` : ''}
@@ -5835,11 +6029,14 @@ function renderReader(scrollTop) {
     : s && s.introduced ? `<span class="hint">${tt('reader.srs', { seen: s.seen || 0, lapses: s.lapses || 0, next: s.due <= today() ? tt('ivl.today') : s.due.split('-').reverse().join('.') })}</span>` : '';
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
+    <div class="note-head"${scAttr(n.section)}>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))} ↳</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
-      <span class="actions">${(n.body || '').trim() ? `<button class="btn icon-btn" id="find-in" title="${tt('find.title.key', { mod: MOD })}" aria-label="${tt('find.title')}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg></button><button class="btn icon-btn" id="stage-in" title="${tt('stage.open')}" aria-label="${tt('stage.open')}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>` : ''}${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}${trainable(n) ? `<button class="btn" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</span></div>
+      <span class="actions">${(n.body || '').trim() ? `<button class="btn icon-btn" id="find-in" title="${tt('find.title.key', { mod: MOD })}" aria-label="${tt('find.title')}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg></button><button class="btn icon-btn" id="stage-in" title="${tt('stage.open')}" aria-label="${tt('stage.open')}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>` : ''}${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}</span></div>
+    </div>
+    ${trainable(n) || S.canWrite ? `<div class="r-cta">${trainable(n) ? `<button class="btn primary" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</div>` : ''}
     ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>${tt('draft.has', { time: hhmm(getDraft(n.id).ts) })}</span><button class="btn primary" id="dr-cont">${tt('draft.continue')}</button></div>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('reader.noanswer')}</p>`}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
@@ -6343,7 +6540,7 @@ function renderEditor(box) {
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="${tt('ed.body.label')}" placeholder="${tt('ed.body.ph')}">${esc(d.body)}</textarea>` : ''}
           ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="${tt('ed.vis.label')}" data-empty="${tt('ed.vis.ph')}">${renderMd(d.body)}</div>` : ''}
         </div>
-        <span class="hint">${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>
+        <span class="hint kbd-hint">${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>${E.live ? `<span class="hint touch-hint">${tt('ed.hint.live.touch')}</span>` : ''}
       </div>
       <div class="bar">
         ${E.live ? `<button class="btn primary" type="submit">${tt('btn.done')}</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary" type="submit">${tt('btn.save')}</button>
@@ -8258,6 +8455,20 @@ function freePool(o) {
   if (o.order === 'weak') ids = ids.map(id => [id, weakness(id) + Math.random() * 0.3]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
   return o.limit ? ids.slice(0, o.limit) : ids;
 }
+/* кольцо прогресса: p — доля 0…1, inner — что внутри (число, проценты); одно на тренировку, разделы и плитки */
+function ringHtml(p, inner, cls = '') {
+  const r = 42, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, +p || 0));
+  return `<div class="pring ${cls}" data-p="${Math.round(v * 100)}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="pr-track" cx="50" cy="50" r="${r}"/>${v > 0 ? `<circle class="pr-arc" cx="50" cy="50" r="${r}" stroke-dasharray="${(c * v).toFixed(1)} ${c.toFixed(1)}"/>` : ''}</svg><div class="pr-in">${inner}</div></div>`;
+}
+/* сколько минут займёт повторение: средние секунды на ответ из журнала за 30 дней (время от показа карточки до оценки, не больше 2 мин);
+   пока замеров меньше 10 — 35 с на карточку */
+const ETA_DEFAULT_SEC = 35;
+function avgAnswerSec() {
+  const t = today(); let sec = 0, n = 0;
+  for (const m of S.srsLog.values()) for (const [d, x] of Object.entries(m.days || {})) if (daysBetween(d, t) < 30) { sec += x.tsec || 0; n += x.tn || 0; }
+  return n >= 10 ? sec / n : ETA_DEFAULT_SEC;
+}
+const etaMin = cards => Math.max(1, Math.round(cards * avgAnswerSec() / 60));
 function renderTrain() {
   const root = $('#train');
   if (S.train) { renderSession(root); return; }
@@ -8269,8 +8480,8 @@ function renderTrain() {
     <section class="panel">
       ${(h => `<h3>${tt('tr.today')}${h[0]}</h3>${h[1]}`)(help(tt('tr.today.help')))}
       <div class="today">
-        <div class="ring" style="--p:${Math.round(100 * answeredToday() / Math.max(1, answeredToday() + total))}%"><div class="bignum">${total}</div></div>
-        <div class="split"><span>${tt('tr.due', { n: rq.due.length })}</span><span>${tt('tr.fresh', { n: rq.fresh.length, of: S.settings.newPerDay ?? 10 })} <span class="hint">${tt('tr.fresh.total', { n: rq.freshTotal })}</span></span>${(f => `<span class="ahead" id="ahead">${tt('tr.ahead', { tomorrow: f.tomorrow, week: f.week })}</span>`)(dueAhead())}</div>
+        ${(a => ringHtml(a + total ? a / (a + total) : 0, `<div class="bignum">${total}</div>`, 'today-ring'))(answeredToday())}
+        <div class="split"><span>${tt('tr.due', { n: rq.due.length })}</span><span>${tt('tr.fresh', { n: rq.fresh.length, of: S.settings.newPerDay ?? 10 })} <span class="hint">${tt('tr.fresh.total', { n: rq.freshTotal })}</span></span>${(f => `<span class="ahead" id="ahead">${tt('tr.ahead', { tomorrow: f.tomorrow, week: f.week })}</span>`)(dueAhead())}${total ? `<span class="eta" id="eta">${tt('tr.eta', { n: etaMin(total) })}</span>` : ''}</div>
         <button class="btn primary big" id="start-review" ${total ? '' : 'disabled'}>${tt(total ? 'tr.start' : 'tr.done')}</button>
       </div>
       ${!S.uid ? `<p class="notice u-m14-0" >${tt('tr.anon')}</p>` : ''}
@@ -8307,6 +8518,34 @@ function startSession(ids, kind, label) {
 }
 // карточку «на сегодня» уже оценили на другом устройстве, пока шла эта сессия (срок ушёл за сегодня, а мы её ещё не отвечали) — повторно не спрашиваем
 const answeredElsewhere = id => { const T = S.train, s = S.srs.get(id); return !!(T && T.kind === 'review' && !T.results.has(id) && s && s.introduced && s.due > today()); };
+const FLAME_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c1 3.2 4.8 5.2 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2 .9-3.4 2-4.6.2 1.6 1 2.6 2 3 0-3.2-.6-5.6.8-8.4z"/></svg>';
+/* сегодня по разделам: сколько карточек раздела уже отвечено сегодня и сколько всего положено (отвечено + ждут) */
+function todayBySection() {
+  const t = today(), rq = reviewQueue(), m = new Map();
+  const add = (c, done) => { const n = noteOfCard(c); if (!n) return; const x = m.get(n.section) || { id: n.section, done: 0, total: 0 }; x.total++; if (done) x.done++; m.set(n.section, x); };
+  for (const [c, s] of S.srs) if (s && s.last === t) add(c, true);
+  for (const c of rq.due.concat(rq.fresh)) add(c, false);
+  return [...m.values()].sort((a, b) => b.total - a.total || b.done - a.done);
+}
+/* доля «знаю» среди знакомых карточек за 30 дней — из журнала (статистика, «тренировка плюс») */
+function recall30() {
+  const t = today(); let rn = 0, r3 = 0;
+  for (const m of S.srsLog.values()) for (const [d, x] of Object.entries(m.days || {})) if (daysBetween(d, t) < 30) { rn += x.rn || 0; r3 += x.r3 || 0; }
+  return rn ? Math.round(r3 * 100 / rn) : null;
+}
+/* боковая колонка тренировки (видна на широком экране): неделя занятий, сегодня по разделам, доля «знаю» */
+function sessionAside() {
+  const t = today(), wk = tt('date.weekdays').split(' '), dow = (new Date(t + 'T12:00').getDay() + 6) % 7, days = {};
+  for (const m of S.srsLog.values()) Object.assign(days, m.days || {});
+  const week = wk.map((w, i) => { const d = addDays(t, i - dow); return `<div class="${days[d]?.n ? 'on' : ''}${d === t ? ' now' : ''}">${w}<i></i></div>`; }).join('');
+  const secs = todayBySection().slice(0, 6).map(x => `<div class="ss-row"${scAttr(x.id)}><div class="nm-w"><div class="nm">${esc(S.sections.get(x.id)?.title || '')}</div><div class="bar"><i style="--w:${Math.round(100 * x.done / Math.max(1, x.total))}%"></i></div></div><span class="n">${x.done}/${x.total}</span></div>`).join('');
+  const rc = plusOn() ? recall30() : null;
+  return `<aside class="s-aside">
+    <div class="s-box"><h4>${tt('tr.side.week')}</h4><div class="wk">${week}</div></div>
+    ${secs ? `<div class="s-box"><h4>${tt('tr.side.secs')}</h4>${secs}</div>` : ''}
+    ${rc != null ? `<div class="s-box s-recall"><b>${rc}%</b><span>${tt('tr.side.recall')}</span></div>` : ''}
+  </aside>`;
+}
 function renderSession(root) {
   const T = S.train;
   if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
@@ -8315,11 +8554,14 @@ function renderSession(root) {
   const rev = isReverse(id);
   if (!n || answeredElsewhere(id) || (String(id).includes('~c') && !cz) || (rev && !cardsOf(n).includes(id))) { if (!T.results.has(id)) T.total = Math.max(T.results.size, T.total - 1); T.i++; T.shown = false; renderSession(root); return; }   // заметку удалили, пропуск исправили, «в обе стороны» выключили — дальше
   const answered = new Set([...T.results.keys()]).size;
+  if (T.qId !== id) { T.qId = id; T.qAt = Date.now(); }   // время ответа — от показа карточки
   T.sig = n.title + '\u0001' + n.body;   // чтобы заметить правку этой заметки на другом устройстве (refreshSession)
   const prev = S.srs.get(id); const free = T.kind === 'free';
   const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? tt('tr.same.due') : tt('tr.next', { when: ivlText(r.ivl) }); };
-  root.innerHTML = `<div class="session">
-    <div class="sbar"><button class="btn" id="s-end">${tt('tr.end')}</button><div class="track"><i style="--w:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span></div>
+  const stk = streakNow();
+  root.innerHTML = `<div class="session with-aside">
+    <div class="sbar"><button class="btn" id="s-end">${tt('tr.end')}</button><div class="track"><i style="--w:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span>${stk ? `<span class="streak" title="${tt('streak.title', { n: stk })}">${FLAME_ICO}<b>${stk}</b></span>` : ''}</div>
+    ${sessionAside()}
     <div class="card"${scAttr(n.section)}>
       <div class="eyebrow" >${esc(S.sections.get(n.section)?.title || '')} ${cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? `<span class="pill u-again" >${tt('tr.again')}</span>` : ''}${S.canWrite ? `<button class="drop-card" id="drop-card" title="${tt('tr.drop.title')}">${tt('bulk.ref.on')}</button>` : ''}</div>
       ${rev ? `<p class="hint rev-hint">${tt('tr.rev.hint')}</p><div class="ans md rev-q" id="ans">${renderMd(n.body)}</div>${T.shown ? `<div class="q rev-a">${softBreaks(n.title)}</div>` : ''}`
@@ -8395,7 +8637,7 @@ function rebuildLog() {
   for (const [id, x] of S.srsLogRaw) {
     const m = id.slice(0, 7), dst = out.get(m) || { days: {} };
     for (const [d, v] of Object.entries(x?.days || {})) {
-      const t = dst.days[d] || (dst.days[d] = { n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0 });
+      const t = dst.days[d] || (dst.days[d] = { n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0, tsec: 0, tn: 0 });
       for (const k of Object.keys(t)) t[k] += v[k] || 0;
     }
     out.set(m, dst);
@@ -8409,11 +8651,12 @@ function pruneLog() {
   const cut = dstr(d).slice(0, 7);
   for (const id of S.srsLogRaw.keys()) if (id.slice(0, 7) < cut) logCol().doc(id).delete().catch(() => {});
 }
-function logAnswer(g, wasNew) {
+function logAnswer(g, wasNew, sec) {
   if (!S.db || !S.uid) return;
   const t = today(), id = logOwnId(t.slice(0, 7)), cur = S.srsLogRaw.get(id) || { days: {} };
   const day = Object.assign({ n: 0, g1: 0, g2: 0, g3: 0, fresh: 0, rn: 0, r3: 0 }, cur.days[t]);
   day.n++; day['g' + g]++; if (wasNew) day.fresh++; else { day.rn++; if (g === 3) day.r3++; }
+  if (sec > 0) { day.tsec = Math.round((day.tsec || 0) + Math.min(120, sec)); day.tn = (day.tn || 0) + 1; }   // для оценки «~N минут»
   const next = { days: Object.assign({}, cur.days, { [t]: day }) };
   S.srsLogRaw.set(id, next); rebuildLog();
   logCol().doc(id).set(next).catch(() => {});
@@ -8422,7 +8665,7 @@ async function gradeCurrent(g) {
   const T = S.train; const id = T.queue[T.i];
   T.results.set(id, T.results.has(id) ? Math.min(T.results.get(id), g) : g);
   if (g === 1) T.queue.push(id);
-  logAnswer(g, !S.srs.get(id)?.introduced);
+  logAnswer(g, !S.srs.get(id)?.introduced, T.qId === id && T.qAt ? (Date.now() - T.qAt) / 1000 : 0);
   const next = schedule(S.srs.get(id), g, T.kind === 'free');
   S.srs.set(id, next);
   T.i++; T.shown = false;
@@ -8656,6 +8899,8 @@ function lookPanelHtml() {
   return `<section class="panel" id="look-panel"><h3>${tt('look.title')}</h3>
     ${(h => `<div class="opt-row u-mt10"><span class="lbl u-mr6">${tt('look.skin')}</span><div class="seg seg-wrap" id="look-skin">
       ${[['classic', tt('look.skin.classic')], ['play', tt('look.skin.play')]].map(([k, l]) => `<button type="button" data-look-skin="${k}" aria-pressed="${p.skin === k}">${l}</button>`).join('')}</div>${h[0]}</div>${h[1]}`)(help(tt('look.skin.help')))}
+    ${(h => `<div class="opt-row u-mt10"><span class="lbl u-mr6">${tt('look.home')}</span><div class="seg seg-wrap" id="look-home">
+      ${[['list', tt('look.home.list')], ['tiles', tt('look.home.tiles')]].map(([k, l]) => `<button type="button" data-look-home="${k}" aria-pressed="${homePref() === k}">${l}</button>`).join('')}</div>${h[0]}</div>${h[1]}`)(help(tt('look.home.help')))}
     <div class="opt-row u-mt10" ><span class="lbl u-mr6" >${tt('look.mode')}</span><div class="seg seg-wrap" id="look-mode">
       ${[['system', tt('look.system')], ['light', tt('look.light')], ['dark', tt('look.dark')]].map(([k, l]) => `<button type="button" data-look-mode="${k}" aria-pressed="${p.mode === k}">${l}</button>`).join('')}</div></div>
     <div class="lbl u-m16-8" >${tt('look.colors')}</div>
@@ -8667,6 +8912,7 @@ function lookPanelHtml() {
   </section>`;
 }
 function wireLookPanel(root) {
+  root.querySelectorAll('[data-look-home]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ home: b.dataset.lookHome }, tt('look.home.saved')); S.homeAll = false; renderProg(); });
   root.querySelectorAll('[data-look-skin]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ skin: b.dataset.lookSkin }, tt('look.skin.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-mode]').forEach(b => b.onclick = async () => { await saveSettings({ mode: b.dataset.lookMode }, tt('look.mode.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-theme]').forEach(b => b.onclick = async () => {
@@ -8730,7 +8976,7 @@ function updateBadge() {
   if (!S.loaded?.notes) return;
   const rq = reviewQueue(); const n = rq.due.length + rq.fresh.length;
   const b = $('#due-badge'); b.textContent = n; b.hidden = !n;
-  const sk = $('#streak'), st = streakNow(); sk.hidden = !st; $('#streak-n').textContent = st; sk.title = tt('streak.title', { n: st }); fitModes();
+  const sk = $('#streak'), st = streakNow(); sk.hidden = !st; $('#streak-n').textContent = st; $('#streak-d').textContent = tt('streak.days', { n: st }); sk.title = tt('streak.title', { n: st }); fitModes();
 }
 
 /* ---------- data wiring ---------- */
@@ -8912,8 +9158,8 @@ async function boot() {
 /* ---------- browser history: the phone's back gesture walks back through opened notes ---------- */
 var NAV = { ready: false, popping: false, t: 0 };
 const isPhone = () => window.matchMedia('(max-width:760px)').matches;
-function navNow() { return { m: S.mode, s: S.section, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
-const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0].join('|') : '';
+function navNow() { return { m: S.mode, s: S.section, h: homeShown() ? 1 : 0, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
+const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0, st.h ? 1 : 0].join('|') : '';
 function histSync() {
   if (!NAV || !NAV.ready || NAV.popping) return;
   // a microtask, not a timer: the entry must be pushed before the browser paints the new note,
@@ -8981,6 +9227,7 @@ window.addEventListener('popstate', e => {
     if (st.m !== S.mode) setMode(st.m);
     if (st.m === 'lib') {
       if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s);
+      if (S.homeAll === !!st.h) { S.homeAll = !st.h; renderList(); }   // главная с плитками ↔ «Все заметки» списком
       if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
         openNote(st.n);
         const r = listRow(st.n); if (r) scrollWithin($('#items'), r);
@@ -9018,7 +9265,7 @@ document.addEventListener('keydown', e => {
   });
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
-if (window.NOTES_TEST) window.T = { NAV, updateBadge, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
+if (window.NOTES_TEST) window.T = { NAV, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
   enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
 boot();
 })();
