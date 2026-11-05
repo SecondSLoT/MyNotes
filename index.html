@@ -1961,7 +1961,7 @@ button.tag{border:0;background:none;padding:0}
 .doc .eyebrow{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .doc h1{font:600 clamp(20px,2.4vw,26px)/1.25 var(--f-display);letter-spacing:-.005em;margin:10px 0 12px;text-wrap:balance}
 .doc .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
-.doc .actions{margin-left:auto;display:flex;gap:6px}
+.doc .actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .mbar{display:none}
 @keyframes slideNext{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes slidePrev{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
@@ -2501,7 +2501,7 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .r-cta{display:flex;gap:10px;margin:-8px 0 22px}
 @media (max-width:760px){
   .lib.reading .r-cta{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
-  .lib.reading .r-cta .btn{flex:1;padding-block:12px;font-size:16px}
+  .lib.reading .r-cta .btn{flex:1;min-width:0;padding:12px 8px;font-size:16px;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
   .lib.reading .r-cta #drill{flex:1.4}
   .lib.reading .reader .doc:has(.r-cta){padding-bottom:84px}
 }
@@ -6030,7 +6030,7 @@ function renderReader(scrollTop) {
   box.innerHTML = `
     <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
     <div class="note-head"${scAttr(n.section)}>
-    <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))} ↳</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
+    <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))}</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
     ${S.canWrite || (n.tags || []).length ? tagRowHtml(n.id, 'reader') : ''}
     <div class="row">${srsPill(n.id)}${srsLine}
