@@ -430,6 +430,7 @@ window.STR = {
   'sec.top': 'Верхний уровень',
   'sec.train': 'Тренировать заметки раздела',
   'sec.sub.new': 'Новый подраздел',
+  'sec.sub.tile': 'Подраздел',
   'sec.move': 'Переместить в…',
   'sec.del': 'Удалить раздел',
   'tags.rename.label': 'Новое имя тега',
@@ -768,6 +769,10 @@ window.STR = {
   'col.blue': 'Синий',
   'col.green': 'Зелёный',
   'col.red': 'Красный',
+  'col.yellow': 'Жёлтый',
+  'col.indigo': 'Индиго',
+  'col.lime': 'Салатовый',
+  'col.brown': 'Коричневый',
   'col.gray': 'Серый',
   'streak.title': 'Серия: {n} {n|день|дня|дней} подряд',
   'streak.days': '{n|день|дня|дней}',
@@ -780,6 +785,11 @@ window.STR = {
   'look.home.tiles': 'Плитки',
   'look.home.saved': 'Вид сохранён',
   'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
+  'home.train.hide': 'Скрыть плашку',
+  'home.train.hidden': 'Плашка скрыта, вернуть можно в «Настройки → Оформление»',
+  'look.trainbar': 'Плашка тренировки',
+  'look.trainbar.on': 'Плашка тренировки включена',
+  'look.trainbar.off': 'Плашка тренировки скрыта',
   'home.up': 'На уровень выше',
   'home.notes': 'Заметки раздела',
   'home.empty': 'Здесь пока пусто',
@@ -810,7 +820,7 @@ window.STR = {
   'pay.extend.month': 'Продлить на месяц — {price}',
   'pay.extend.year': 'Продлить на год — {price}',
   'pay.auto.agree': 'Я согласен на автоматические списания согласно условиям <a href="/offer.html" target="_blank" rel="noopener">оферты</a>',
-  'pay.auto.info': 'Периодичность списаний — по выбранному сроку: {month} раз в месяц или {year} раз в год. Списываем накануне дня окончания оплаченного срока, около 10:00 по Москве, с той же карты; за 3 дня напомним в приложении. Отключить можно в любой момент: «Настройки → Тариф». Только для карт российских банков',
+  'pay.auto.info': 'Периодичность списаний — по выбранному сроку: {month} раз в месяц или {year} раз в год. Списываем накануне дня окончания оплаченного срока, около 10:00 по Москве, с той же карты; за сутки до списания напомним в приложении. Отключить можно в любой момент: «Настройки → Тариф». Только для карт российских банков',
   'plan.auto.info.month': 'Периодичность списаний: {sum} раз в месяц — накануне дня окончания оплаченного срока, около 10:00 по Москве, с карты, которой оплачен Pro. Отключить можно в любой момент здесь же',
   'plan.auto.info.year': 'Периодичность списаний: {sum} раз в год — накануне дня окончания оплаченного срока, около 10:00 по Москве, с карты, которой оплачен Pro. Отключить можно в любой момент здесь же',
   'pay.via': 'Оплата через Robokassa.',
@@ -1530,7 +1540,7 @@ window.tt = function (key, p) {
   /* Радиусы, тени и служебные цвета — единые токены (скины меняют только их) */
   --rad-xs:4px; --rad-s:6px; --rad-m:8px; --rad-l:10px; --rad-xl:12px; --rad-2xl:16px; --rad-pill:999px;
   --sh-key:0 1px 2px rgba(0,0,0,.08); --sh-pop:0 10px 28px rgba(0,0,0,.16); --sh-modal:0 20px 60px rgba(0,0,0,.25);
-  --sc-orange:#f2711c; --sc-violet:#7c5cff; --sc-teal:#14a89a; --sc-pink:#ec4c8a; --sc-blue:#2f8fdb; --sc-green:#2f9e5b; --sc-red:#e0483a; --sc-gray:#7a807b;
+  --sc-orange:#f2711c; --sc-violet:#7c5cff; --sc-teal:#14a89a; --sc-pink:#ec4c8a; --sc-blue:#2f8fdb; --sc-green:#2f9e5b; --sc-red:#e0483a; --sc-yellow:#d9a000; --sc-indigo:#4f5bd5; --sc-lime:#79a51f; --sc-brown:#9b6b43; --sc-gray:#7a807b;
   --flame:#ff5a26; --star:#d49b1f; --on-accent:#fff; --paper:#fff; --diff-add:#2f9e5b; --diff-del:#d0473a;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -1553,6 +1563,13 @@ window.tt = function (key, p) {
   --tc-red:#ff8a80; --tc-orange:#ffb366; --tc-green:#8bd88f; --tc-blue:#7cbcff; --tc-purple:#d59af0; --tc-gray:#9aa39c;
   --hl-kw:#c39bff; --hl-str:#9fd49a; --hl-num:#f0b071; --hl-com:#78817a; --hl-type:#86c0ea; --hl-attr:#ee9bb5;
   color-scheme:dark}
+/* ночью цвета разделов приглушены: яркие заливки на тёмном фоне резали глаз (08.11) */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sc-orange:#c9803f; --sc-violet:#8d82d9; --sc-teal:#4a9d92; --sc-pink:#c36f93; --sc-blue:#5f98c6; --sc-green:#5fa079; --sc-red:#c4706a;
+  --sc-yellow:#b99a45; --sc-indigo:#7480cc; --sc-lime:#8aa65a; --sc-brown:#a38064; --sc-gray:#868c87}}
+:root[data-theme="dark"]{
+  --sc-orange:#c9803f; --sc-violet:#8d82d9; --sc-teal:#4a9d92; --sc-pink:#c36f93; --sc-blue:#5f98c6; --sc-green:#5fa079; --sc-red:#c4706a;
+  --sc-yellow:#b99a45; --sc-indigo:#7480cc; --sc-lime:#8aa65a; --sc-brown:#a38064; --sc-gray:#868c87}
 /* Цветовые темы (26.10): data-palette на <html> — фон, серые и акцент; цвета смысла (оценки, выделение, цвет текста, код) общие.
    «Лес» — без атрибута (переменные выше). Светлая/тёмная — data-theme (light | dark | нет — как в системе); data-oled — чёрный фон в тёмной. */
 :root[data-palette="sea"]{
@@ -1997,7 +2014,7 @@ button.tag{border:0;background:none;padding:0}
 .md h3,.md h4,.md h5,.md h6{font:600 16.5px/1.35 var(--f-body);margin:1.35em 0 .4em}
 .md > :is(h1,h2,h3,h4,h5,h6):first-child{margin-top:.2em}
 .md > :is(h1,h2):first-child{border-top:0;padding-top:0}
-.tb .hl{font:700 13px/1 var(--f-body);letter-spacing:-.02em}.tb .hl small{font-size:9px;font-weight:700;margin-left:1px}
+.tb .tb-h{font:700 13px/1 var(--f-body);letter-spacing:-.02em}.tb .tb-h small{font-size:9px;font-weight:700;margin-left:1px}
 .md ul,.md ol{padding-left:1.4em;margin:0 0 .9em}
 .md li{margin:.15em 0}
 .md li>p{margin:0 0 .3em}
@@ -2049,7 +2066,8 @@ button.tag{border:0;background:none;padding:0}
 @media (max-width:760px){.md-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.md-toolbar::-webkit-scrollbar{display:none}.tb-group{flex:none}.md-toolbar .tb-end{margin-left:0}}
 .tb-end{margin-left:auto}
 .tb{width:32px;height:30px;border:0;border-radius:var(--rad-s);background:none;color:var(--muted);display:grid;place-items:center;font:15px/1 var(--f-body);padding:0}
-.tb:hover{background:var(--surface);color:var(--ink)}
+@media (hover:hover){.tb:hover{background:var(--surface);color:var(--ink)}}   /* на телефоне :hover залипает после касания — кнопки H1/H2 «светились» без включения (08.11) */
+button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* системная подсветка касания — большое пятно, налезало на соседние кнопки */
 .tb.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
 .tb:active{background:var(--accent-soft)}
 .tb b{font-weight:700}.tb i{font-family:Georgia,serif;font-style:italic;font-size:16px}.tb s{text-decoration-thickness:1.5px}
@@ -2093,8 +2111,8 @@ button.tag{border:0;background:none;padding:0}
 .ed-panes.split{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));align-items:start}
 .ed-panes.split .preview{position:sticky;top:48px;max-height:calc(100vh - 140px);overflow:auto}
 .field textarea#ed-body{overflow:hidden}
-.md ul:has(> li > input[type=checkbox]){list-style:none;padding-left:.3em}
-.md li > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
+.md ul:has(> li > input[type=checkbox]),.md ul:has(> li > p:first-child > input[type=checkbox]){list-style:none;padding-left:.3em}   /* пункт с картинкой или абзацами — «рыхлый»: чекбокс внутри <p>, маркер • дублировал его (08.11) */
+.md li > input[type=checkbox],.md li > p:first-child > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
 .visual ul:has(> li.task),.visual ol:has(> li.task){padding-left:.3em}
 .visual li.task{list-style:none;position:relative;padding-left:1.55em}
 .visual li{min-height:1.55em}
@@ -2476,6 +2494,15 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 /* главная с плитками (телефон, settings.home = 'tiles') */
 body.home-view .chips-row,body.home-view #scopebar,body.home-view #new-note{display:none!important}
 .home-top{padding:12px 12px 0;display:flex;flex-direction:column;gap:12px}
+.home-top.in-items{padding:0 0 12px}
+.home-train-wrap,.sec-hero.in-home{position:relative}
+.home .sec-hero.in-home{display:flex;margin:0}
+.ht-x{position:absolute;top:6px;right:8px;width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:inherit;opacity:.6;font:400 20px/1 var(--f-body);cursor:pointer;display:grid;place-items:center;padding:0}
+.ht-x:hover{opacity:1}
+.home-train-wrap .home-train{width:100%;padding-right:36px}
+.home-train-wrap .home-train .ht-t{min-width:0;flex:1}
+.home-train-wrap .home-train .ht-t span,.home-train-wrap .home-train .ht-t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* узкая колонка: подпись в одну строку, не налезает на крестик */
+.rail-tiles .home-train-wrap{margin-bottom:8px}
 .home-top[hidden]{display:none}
 body.home-view .list-head h2{display:flex;align-items:center;gap:8px;min-width:0}
 .ttl-up{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -2526,6 +2553,11 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .hl .hl-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hl .n{font-size:12px;color:var(--muted)}
 .hl-add{border-style:dashed;color:var(--muted)}
+.tile.tile-add{border:2px dashed var(--line-strong);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;font:800 15px var(--f-body);cursor:pointer;min-height:64px;box-shadow:none}
+.tile.tile-add:hover{color:var(--ink);border-color:var(--muted)}
+:root[data-skin="play"] .tile.tile-add,.tile.tile-add{background:none;border:2px dashed var(--line-strong);aspect-ratio:auto;min-height:64px;height:auto;align-self:stretch;flex-direction:row;color:var(--muted)}
+:root[data-skin="play"] .tile.tile-add .ico{width:32px;height:32px;border-radius:var(--rad-m);background:var(--line);color:var(--ink);display:grid;place-items:center}
+.tile.tile-add .ico{font:800 22px/1 var(--f-body)}
 .hl .ico{display:grid;place-items:center;flex:none;color:var(--sc,var(--accent))}
 .hl .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ntile.picked{outline:2px solid var(--accent);outline-offset:-2px}
@@ -2541,7 +2573,8 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .tl-gname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tl-sentinel{height:1px}
 #home-all .fico{width:18px;height:18px;margin-right:6px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8}
-.home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
+.home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:transparent;pointer-events:none}   /* без подложки (08.11): кнопки сами плотные */
+.home-bar .btn{pointer-events:auto;box-shadow:var(--sh-pop)}
 .home-bar .btn{flex:1;padding-block:12px;font-size:16px}
 /* компьютер с плитками (05.11): в колонке разделов и в колонке заметок плитки; колонка шире 300 px — по две квадратные, уже — по одной, высота по содержимому */
 .rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
@@ -2549,14 +2582,18 @@ body.desk-tiles #items{container-type:inline-size}
 body.desk-tiles .home{padding-bottom:16px}
 body.desk-tiles .list-head{flex-wrap:nowrap}
 body.desk-tiles .list-head h2{display:block;flex:0 1 auto}
-body.desk-tiles .list-head #new-note{font-size:0;width:36px;height:36px;padding:0;display:inline-grid!important;place-items:center}   /* узкая колонка: «+ Заметка» — просто «+», текст остаётся для чтения с экрана */
-body.desk-tiles .list-head #new-note::after{content:'+';font:700 20px/1 var(--f-body)}
+body.desk-tiles .list-head #new-note{font-size:0;line-height:0;width:34px;height:34px;padding:0;display:inline-flex!important;align-items:center;justify-content:center}   /* узкая колонка: «+ Заметка» — просто «+», текст остаётся для чтения с экрана */
+body.desk-tiles .list-head #new-note::after{content:'+';font:700 22px/1 var(--f-body);display:block;margin-top:-2px}
+body.desk-tiles .list-head .icon-btn{width:34px;height:34px;padding:0;justify-content:center}
 body.desk-tiles .tiles{grid-template-columns:minmax(0,1fr)}
 body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 @container (min-width:300px){
   body.desk-tiles .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
   body.desk-tiles .tiles>.tile{aspect-ratio:1}
   body.desk-tiles .home-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container (min-width:560px){   /* совсем широко — по три в ряд (08.11) */
+  body.desk-tiles .tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 .rail-up{display:flex;align-items:center;gap:8px;min-width:0}
 .rail-up .ttl-up{font:600 17px var(--f-display);flex:1}
@@ -2577,6 +2614,13 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 .lbar i{display:block;height:100%;width:var(--w);background:var(--good);border-radius:3px}
 .r-cta{display:flex;gap:10px;margin:-8px 0 22px}
 @media (max-width:760px){
+  /* редактор: «Сохранить / Отмена» закреплены внизу, как «Редактировать» в чтении (08.11) */
+  #ed > .bar{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);flex-wrap:nowrap}
+  #ed > .bar .btn{padding:12px 16px;font-size:16px}
+  #ed{padding-bottom:84px}
+  /* «Рядом» на телефоне: каждое окно ограничено по высоте и прокручивается само */
+  .ed-panes.split #ed-body{max-height:38vh;overflow:auto!important}
+  .ed-panes.split .preview{position:static;max-height:38vh;overflow:auto}
   .lib.reading .r-cta{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
   .lib.reading .r-cta .btn{flex:1;min-width:0;padding:12px 8px;font-size:16px;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
   .lib.reading .r-cta #drill{flex:1.4}
@@ -2627,7 +2671,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 .sbar .streak{margin-left:0}
 .eta{color:var(--muted);font-size:14px}
 [data-sc="orange"]{--sc:var(--sc-orange)}[data-sc="violet"]{--sc:var(--sc-violet)}[data-sc="teal"]{--sc:var(--sc-teal)}[data-sc="pink"]{--sc:var(--sc-pink)}
-[data-sc="blue"]{--sc:var(--sc-blue)}[data-sc="green"]{--sc:var(--sc-green)}[data-sc="red"]{--sc:var(--sc-red)}[data-sc="gray"]{--sc:var(--sc-gray)}
+[data-sc="blue"]{--sc:var(--sc-blue)}[data-sc="green"]{--sc:var(--sc-green)}[data-sc="red"]{--sc:var(--sc-red)}[data-sc="yellow"]{--sc:var(--sc-yellow)}[data-sc="indigo"]{--sc:var(--sc-indigo)}[data-sc="lime"]{--sc:var(--sc-lime)}[data-sc="brown"]{--sc:var(--sc-brown)}[data-sc="gray"]{--sc:var(--sc-gray)}
 .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 10px 10px}
 .color-grid button{height:32px;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-grid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
@@ -2668,7 +2712,8 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .sec-hero .pr-track{stroke:var(--raised)}
 :root[data-skin="play"] .lbar{height:6px;background:color-mix(in srgb,var(--sc,var(--good)) 14%,var(--line))}
 :root[data-skin="play"] .item[data-sc] .lbar i{background:var(--sc)}
-:root[data-skin="play"] .r-cta .btn{border-radius:var(--rad-2xl);font-weight:800;padding:11px 20px}
+:root[data-skin="play"] .r-cta .btn{border-radius:var(--rad-2xl);font-weight:800;padding:11px 12px;overflow-wrap:normal;word-break:normal;hyphens:none;white-space:nowrap;font-size:15px}   /* «Редактировать» не переносится по слогам (08.11) */
+:root[data-skin="play"] .lib.reading .r-cta #drill{flex:1.1}
 :root[data-skin="play"] .note-head[data-sc] .sec-link{color:color-mix(in srgb,var(--sc) 70%,var(--ink));background:color-mix(in srgb,var(--sc) 16%,var(--raised));border-radius:var(--rad-m);padding:5px 10px;text-transform:none;letter-spacing:0;font-size:13px;font-weight:800}
 @media (max-width:760px){
   :root[data-skin="play"] .lib.reading .note-head[data-sc]{background:color-mix(in srgb,var(--sc) 14%,var(--surface));margin:-14px -16px 18px;padding:14px 16px 4px;border-radius:0 0 var(--rad-2xl) var(--rad-2xl)}
@@ -2715,6 +2760,26 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .item[data-sc][aria-current="true"]{box-shadow:inset 0 4px 0 var(--sc),inset 0 0 0 2px var(--accent)}   /* как у плиток: полоска цвета раздела сверху */
 .more:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}   /* карточка в Modern уже строки на 10 px с каждой стороны — «в разделе» внутри неё */
 @media (max-width:760px){:root[data-skin="play"] #new-note{border-color:var(--accent);box-shadow:var(--sh-pop)}}
+/* ===== Modern: единая система кнопок-иконок, шапка и «К списку» (08.11) ===== */
+:root[data-skin="play"] .icon-btn svg,:root[data-skin="play"] .modes svg{stroke-width:2.2;stroke-linecap:round}
+:root[data-skin="play"] .icon-btn svg{width:18px;height:18px}
+:root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
+:root[data-skin="play"] .list-head .icon-btn[aria-pressed="true"]{background:var(--sc,var(--accent));border-color:var(--sc,var(--accent));color:var(--on-accent)}
+:root[data-skin="play"] .list-head #new-note{width:40px;height:40px;border-radius:var(--rad-xl)}
+:root[data-skin="play"] .list-head h2{color:color-mix(in srgb,var(--sc,var(--ink)) 62%,var(--ink))}
+:root[data-skin="play"] .list-head[data-sc] .ttl-up{color:color-mix(in srgb,var(--sc) 62%,var(--ink));font-weight:800}
+:root[data-skin="play"] .ttl-up{cursor:pointer}
+:root[data-skin="play"] .top-btn{border-radius:var(--rad-xl);background:color-mix(in srgb,var(--accent) 14%,var(--raised));color:var(--accent)}
+:root[data-skin="play"] .top-btn svg{stroke-width:2.4}
+:root[data-skin="play"] .modes button svg{width:20px;height:20px;stroke-width:2.2}
+:root[data-skin="play"] #m-prog,:root[data-skin="play"] #help-btn{color:var(--muted)}
+:root[data-skin="play"] #m-prog:hover,:root[data-skin="play"] #help-btn:hover{color:var(--ink)}
+:root[data-skin="play"] .back{background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));border-radius:var(--rad-xl);font-weight:800}
+@media (max-width:1100px){
+  :root[data-skin="play"] .mbar .back{padding:9px 16px;font-size:15px}
+  :root[data-skin="play"] .mnav button{width:42px;height:38px;border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 16%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));font-weight:800}
+  :root[data-skin="play"] .mnav .mpos{font-weight:800}
+}
 </style>
 
 <div class="app">
@@ -3085,14 +3150,15 @@ function kids(pid) { return tree().by.get(pid || null) || []; }
 const alphaKids = pid => !!pid && S.sections.get(pid)?.subSort === 'title';   // подразделы по алфавиту — ручной порядок не действует
 // Цвет раздела (sections.color — один из SEC_COLORS; подразделы без своего цвета берут цвет ближайшего родителя). Рисует его игровой стиль,
 // классический вид цвет не показывает (docs/skins.md)
-const SEC_COLORS = [['orange', tt('col.orange')], ['violet', tt('col.violet')], ['teal', tt('col.teal')], ['pink', tt('col.pink')], ['blue', tt('col.blue')], ['green', tt('col.green')], ['red', tt('col.red')], ['gray', tt('col.gray')]];
+const SEC_COLORS = [['orange', tt('col.orange')], ['violet', tt('col.violet')], ['teal', tt('col.teal')], ['pink', tt('col.pink')], ['blue', tt('col.blue')], ['green', tt('col.green')], ['red', tt('col.red')], ['yellow', tt('col.yellow')], ['indigo', tt('col.indigo')], ['lime', tt('col.lime')], ['brown', tt('col.brown')], ['gray', tt('col.gray')]];
 /* цвет раздела: свой или от предка; не выбран нигде — автоматический: разделы уровня главной (homeLevel) по очереди получают цвета палитры
-   (без серого), подразделы — цвет своего раздела. Так плитки и метки разные и без ручного выбора (05.11) */
+   (без серого), подразделы — цвет своего раздела. Так плитки и метки разные и без ручного выбора (05.11); цветов 11, при нехватке — наименее частый (08.11) */
 const AUTO_COLORS = SEC_COLORS.map(k => k[0]).filter(c => c !== 'gray');
 let autoColorCache = { t: null, m: null };
 function autoColor(id) {
-  const t = tree(); if (autoColorCache.t !== t || autoColorCache.sig !== t.sig) { const lv = homeLevel(), used = new Set(lv.map(x => x.color).filter(Boolean)), m = new Map(); let k = 0;
-    for (const x of lv) { if (x.color) continue; let c = AUTO_COLORS.find(z => !used.has(z)); if (!c) c = AUTO_COLORS[k++ % AUTO_COLORS.length]; used.add(c); m.set(x.id, c); }   // свободный цвет, которого ещё нет у соседей
+  const t = tree(); if (autoColorCache.t !== t || autoColorCache.sig !== t.sig) { const lv = homeLevel(), used = new Set(lv.map(x => x.color).filter(Boolean)), m = new Map(); 
+    for (const x of lv) { if (x.color) continue; let c = AUTO_COLORS.find(z => !used.has(z)); if (!c) { const cnt = z => lv.filter(y => (y.color || m.get(y.id)) === z).length; c = AUTO_COLORS.reduce((b, z) => cnt(z) < cnt(b) ? z : b); }   // свободный цвет, которого ещё нет у соседей; все заняты — наименее частый (иначе каждый новый раздел получал бы первый)
+      used.add(c); m.set(x.id, c); }
     autoColorCache = { t, sig: t.sig, m }; }
   for (let x = id, i = 0; x && i < 20; x = parentOf(x), i++) { const c = autoColorCache.m.get(x); if (c) return c; }
   return '';
@@ -3506,7 +3572,8 @@ function replaceInEditor(from, to) {
   if (vis) vis.querySelectorAll(`img[data-src="${CSS.escape(from)}"]`).forEach(img => { if (to) img.dataset.src = to; else img.closest('p')?.childNodes.length === 1 ? img.closest('p').remove() : img.remove(); });
 }
 // put an image into the open editor right away (as a local preview) and upload it in the background
-function insertUpload(file) {
+// at — позиция курсора, запомненная при нажатии кнопки «изображение» (пока выбирают файл, поле теряет фокус и выделение — на телефоне вставка уходила в конец)
+function insertUpload(file, at) {
   if ((!S.editing && !$('#te-body')) || !file) return;
   const type = imgType(file), why = imgReject(file, type);
   if (why) { toast(tt('img.failed', { why })); return; }
@@ -3516,6 +3583,7 @@ function insertUpload(file) {
   const ta = $('#ed-body') || $('#te-body'), vis = $('#ed-prev');
   if (S.editing?.pane === 'vis' && vis) {
     // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
+    if (at?.range) savedRange = at.range;
     vis.focus(); restoreSel();
     const sel = getSelection(); let block = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
     if (block && !vis.contains(block)) block = null;
@@ -3527,7 +3595,7 @@ function insertUpload(file) {
     const r = document.createRange(); r.setStart(para.nextSibling, 0); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); saveSel();
     vis.dispatchEvent(new Event('input', { bubbles: true }));
   } else if (ta) {
-    const s0 = ta.selectionStart, e0 = ta.selectionEnd, v = ta.value;
+    const s0 = at?.s ?? ta.selectionStart, e0 = at?.e ?? ta.selectionEnd, v = ta.value;
     const pre = !s0 || v[s0 - 1] === '\n' ? '' : '\n\n', post = v[e0] === '\n' ? '\n' : '\n\n';
     const text = `${pre}![](${key})${post}`;
     replaceRange(ta, s0, e0, text, s0 + text.length);
@@ -3613,10 +3681,11 @@ function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.t
 // изображение: на телефоне — выбор «Сфотографировать» (камера сразу) или «Выбрать изображения» (галерея и файлы, можно несколько);
 // Android с выбором нескольких файлов камеру не предлагает, поэтому отдельный пункт. На компьютере — сразу выбор файлов
 function pickImages() {
+  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { range: savedRange?.cloneRange?.() } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
   const go = cam => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     if (cam) inp.setAttribute('capture', 'environment'); else inp.multiple = true;
-    inp.onchange = () => { for (const f of inp.files) insertUpload(f); };
+    inp.onchange = () => { let at = keep; for (const f of inp.files) { insertUpload(f, at); at = null; } };
     inp.click();
   };
   if (!matchMedia('(pointer:coarse)').matches) return go(false);
@@ -4270,9 +4339,23 @@ function renderScopeBar(cl) {
   bar.innerHTML = `<span class="lbl">${tt('search.scope')}</span><div class="seg"><button data-scope="all" aria-pressed="${!S.searchHere}">${tt('search.everywhere')} <span class="tag">${cl.allN}</span></button><button data-scope="here" aria-pressed="${!!S.searchHere}">${name} <span class="tag">${cl.hereN}</span></button></div>`;
 }
 /* плашка раздела над списком (компьютер, раздел с тренировкой): кольцо «выучено %», заметок, ждут сегодня */
+const trainBarOn = () => S.settings?.trainBar !== false;   // «Плашка тренировки»: можно скрыть крестиком, вернуть — «Настройки → Оформление»
+function trainBarHtml(total, a) {
+  if (!total || !trainBarOn()) return '';
+  return `<div class="home-train-wrap"><button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button><button class="ht-x" id="ht-x" aria-label="${tt('home.train.hide')}" title="${tt('home.train.hide')}">×</button></div>`;
+}
+function secHeroHtml(sid) {
+  const st = secStats(sid), sc = scAttr(sid);
+  return `<div class="sec-hero in-home"${sc} title="${esc(tt('learn.hint', { days: LEARNED_DAYS }))}">${ringHtml(st.pct, `<b>${Math.round(st.pct * 100)}%</b>`, 'sm')}<div class="sh-t"><div class="sh-name">${esc(S.sections.get(sid).title)}</div>`
+    + `<div class="sh-sub">${tt('sec.hero.sub', { n: st.notes, learned: st.learned, cards: st.cards })}${st.today ? ` · <b>${tt('sec.hero.today', { n: st.today })}</b>` : ''}</div></div><button class="ht-x" id="ht-x" aria-label="${tt('home.train.hide')}" title="${tt('home.train.hide')}">×</button></div>`;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#ht-x')) { saveSettings({ trainBar: false }, tt('home.train.hidden')); renderList(); renderRail(); return; }
+  if (e.target.closest('#home-train')) setMode('train');
+});
 function renderSecHero(terms) {
   const h = $('#sec-hero'); if (!h) return;
-  const sid = S.section, on = !terms && S.sections.has(sid) && isTrainFolder(sid);
+  const sid = S.section, on = trainBarOn() && !terms && S.sections.has(sid) && isTrainFolder(sid);
   h.hidden = !on; if (!on) { h.innerHTML = ''; return; }
   const st = secStats(sid), sc = scAttr(sid);
   if (sc) h.setAttribute('data-sc', secColor(sid)); else h.removeAttribute('data-sc');
@@ -4310,17 +4393,20 @@ function homeLinksHtml(desk) {
 /* компьютер с плитками: колонка разделов — плитки уровня, где выбранный раздел (раздел с подразделами — его подразделы, иначе соседи);
    на верхнем уровне сверху плитки-ссылки, ниже — ← и название родителя (нажатие — уровнем выше) */
 function railCtx() { const r = homeRoot(), s = S.sections.has(S.section) ? S.section : null; const c = !s ? r : hasKids(s) ? s : parentOf(s); return c || r; }
+const addSubTile = sid => `<button class="tile tile-add" data-addsub="${esc(sid)}" title="${tt('sec.sub.new')}"><span class="ico" aria-hidden="true">+</span>${tt('sec.sub.tile')}</button>`;
+document.addEventListener('click', e => { const b = e.target.closest('[data-addsub]'); if (b) { e.stopPropagation(); openSecMenu(b.dataset.addsub, b, 'sub'); } });
 function renderRailTiles() {
   const rq = reviewQueue(), ctx = railCtx(), atTop = ctx === homeRoot();
   const sec = ctx ? S.sections.get(ctx) : null, list = kids(ctx);
-  $('#rail').innerHTML = `<div class="rail-tiles">${atTop ? homeLinksHtml(true) : `<div class="rail-up"${scAttr(ctx)}><button class="home-up" data-rail-up="1" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up${S.section === ctx ? ' cur' : ''}" data-sec="${esc(ctx)}">${esc(sec?.title || '')}</button></div>`}`
-    + (list.length ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}</div>` : '') + `</div>`;
+  $('#rail').innerHTML = `<div class="rail-tiles">${atTop ? trainBarHtml(rq.due.length + rq.fresh.length, answeredToday()) + homeLinksHtml(true) : `<div class="rail-up"${scAttr(ctx)}><button class="home-up" data-rail-up="1" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up${S.section === ctx ? ' cur' : ''}" data-sec="${esc(ctx)}">${esc(sec?.title || '')}</button></div>`}`
+    + (list.length || (!atTop && S.canWrite && ctx) ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}${!atTop && S.canWrite && ctx ? addSubTile(ctx) : ''}</div>` : '') + `</div>`;
 }
 function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
   const desk = deskTiles(), flat = desk || virt || !!S.tag || !!S.tileFlat, sel = !!S.select;   // компьютер: подразделы — в колонке разделов, здесь все заметки раздела
   const secTile = s => secTileHtml(s, rq, sel);
+  const addSub = S.canWrite && !sel && !desk && sid && !virt && !atHome && !S.tag && !flat ? addSubTile(sid) : '';   // «+ Подраздел» — внутри раздела, как «создать в папке»
   const trash = S.section === 'trash';
   const noteTile = n => `<${trash ? 'div' : 'button'} class="tile ntile${sel && S.select.has(n.id) ? ' picked' : ''}" data-note="${esc(n.id)}"${S.noteId === n.id ? ' aria-current="true"' : ''}${scAttr(n.section)}${sel ? ` aria-pressed="${S.select.has(n.id)}"` : ''}>${S.canWrite && !sel && !trash ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}${sel ? '<span class="tl-check" aria-hidden="true"></span>' : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
     + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span>`
@@ -4345,16 +4431,17 @@ function renderHome(cl) {
   const lh = $('.list-head');
   if (sid && !atHome && secColor(sid)) lh.setAttribute('data-sc', secColor(sid)); else lh.removeAttribute('data-sc');
   const ttl = atHome ? tt(flat ? 'list.all' : 'rail.label') + (S.tag ? ` · #${S.tag}` : '') : (virt ? VIRTUAL[S.section] : (sec?.title || '') + (spacesList().some(z => z.root === sid) ? ' 👥' : '')) + (S.tag ? ` · #${S.tag}` : '');
-  $('#list-title').innerHTML = atHome || desk ? esc(ttl) : `<button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>`;
+  $('#list-title').innerHTML = atHome ? esc(ttl) : desk ? `<button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>` : `<button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>`;
   $('#list-count').textContent = flat ? all.length : atHome ? S.notes.size : secStats(sid, rq).notes;
-  const top = $('#home-top');
-  top.hidden = !atHome || desk;
-  top.innerHTML = atHome && !desk ? `${total ? `<button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button>` : ''}
-    ${homeLinksHtml(false)}` : '';
+  const top = $('#home-top'); top.hidden = true; top.innerHTML = '';
+  // закреплённые разделы и плашка тренировки — внутри прокручиваемой области, над плитками (иначе на телефоне съедают экран); кнопки списка остаются над ними (08.11)
+  const topHtml = (atHome && !desk ? `${trainBarHtml(total, a)}${homeLinksHtml(false)}` : '')
+    + (!atHome && !virt && sid && trainBarOn() && isTrainFolder(sid) && !S.q ? secHeroHtml(sid) : '');
   const trashHead = trash && all.length && S.canWrite && all.some(canPurge) ? `<div class="trash-tools"><span>${tt('trash.info', { n: TRASH_DAYS })}</span><span class="spacer"></span>${S.emptyAsk ? `<button class="btn danger" id="trash-empty-yes">${tt('btn.delete')}</button><button class="btn" id="trash-empty-no">${tt('btn.cancel')}</button>` : `<button class="btn" id="trash-empty">${tt('trash.empty')}</button>`}</div>` : '';
   $('#items').innerHTML = `<div class="home">
+    ${topHtml ? `<div class="home-top in-items">${topHtml}</div>` : ''}
     ${trashHead}
-    ${subs.length ? `<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
+    ${subs.length || addSub ? `<div class="tiles">${subs.map(secTile).join('')}${addSub}</div>` : ''}
     ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>` : ''}
     ${flatHtml}
     ${!flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
@@ -4364,10 +4451,9 @@ function renderHome(cl) {
   $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
   $('#trash-empty-no') && ($('#trash-empty-no').onclick = () => { S.emptyAsk = false; renderList(); });
   $('#trash-empty-yes') && ($('#trash-empty-yes').onclick = () => { S.emptyAsk = false; purgeNotes([...S.trash.values()].filter(canPurge).map(n => n.id)); });
-  $('#home-train') && ($('#home-train').onclick = () => setMode('train'));
   const up = () => { if (virt || !sid) { goHome(); return; } const p = parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); };
   $('#home-up') && ($('#home-up').onclick = up); $('#ttl-up') && ($('#ttl-up').onclick = up);
-  top.querySelectorAll('[data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
+  $('#items').querySelectorAll('.home-top [data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
   $('#home-all') && ($('#home-all').onclick = () => { S.tileFlat = !flat; S.tileLimit = 0; renderList(); histSync(); window.scrollTo(0, 0); });
   tileIO?.disconnect(); tileIO = null;
   const sn = $('#tl-sentinel');
@@ -6761,7 +6847,7 @@ async function keepOwnCopy(d) {
 document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
 $('#new-note').addEventListener('click', () => {
   if (planBlocks('notes')) return;
-  const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : lastFolder();
+  const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
   if (roRefuse(spaceOfSection(sec))) return;
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
   const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
@@ -6908,10 +6994,46 @@ function renderEditor(box) {
       if (visDirty) { visDirty = false; renderVis(); }
     });
     vis.addEventListener('keydown', e => visKeydown(e, vis));
-    vis.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+    // изображение в «Визуально»: перетаскивание мышью переносит (а не копирует), копировать и вырезать — Ctrl+C / Ctrl+X у выделенного изображения (08.11)
+    vis.addEventListener('dragstart', e => { const im = e.target.closest?.('img'); if (!im || !vis.contains(im)) return; vis._dragImg = im; e.dataTransfer.effectAllowed = 'move'; });
+    vis.addEventListener('dragend', () => { vis._dragImg = null; });
+    vis.addEventListener('dragover', e => { if (vis._dragImg || [...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+    vis.addEventListener('drop', e => {
+      const im = vis._dragImg; if (!im) return; vis._dragImg = null; e.preventDefault(); e.stopPropagation();
+      const r = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
+      if (!r || !vis.contains(r.startContainer) || im.contains(r.startContainer)) return;
+      histRecord(vis);
+      const old = im.closest('p'); im.remove(); if (old && old !== vis && !old.textContent.trim() && !old.querySelector('img')) old.remove();
+      let blk = r.startContainer; while (blk && blk.parentNode !== vis) blk = blk.parentNode;
+      const para = document.createElement('p'); para.appendChild(im);
+      if (blk) blk.after(para); else vis.appendChild(para);
+      if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
+      visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true }));
+    }, true);
+    const imgClip = (e, cut) => {
+      const im = vis.querySelector('img.vsel'); if (!im) return;
+      e.preventDefault(); const dt = e.clipboardData;
+      dt.setData('application/x-rn-img', JSON.stringify({ src: im.getAttribute('src'), ds: im.dataset.src || '', w: im.getAttribute('width') || '', alt: im.getAttribute('alt') || '' }));
+      dt.setData('text/plain', `![${im.getAttribute('alt') || ''}](${im.dataset.src || im.getAttribute('src')})`);
+      if (cut) { histRecord(vis); const p = im.closest('p'); im.remove(); if (p && p !== vis && !p.textContent.trim() && !p.querySelector('img')) p.remove(); imgGrip(vis, null); vis.dispatchEvent(new Event('input', { bubbles: true })); }
+    };
+    vis.addEventListener('copy', e => imgClip(e, false));
+    vis.addEventListener('cut', e => imgClip(e, true));
     vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
     vis.addEventListener('paste', e => {
       histRecord(vis);
+      const rn = e.clipboardData?.getData('application/x-rn-img');
+      if (rn) {
+        try {
+          const d = JSON.parse(rn); e.preventDefault(); saveSel(); restoreSel();
+          const sel = getSelection(); let blk = sel.rangeCount ? sel.getRangeAt(0).startContainer : null; if (blk && !vis.contains(blk)) blk = null;
+          while (blk && blk.parentNode !== vis) blk = blk.parentNode;
+          const im = document.createElement('img'); im.src = d.src; im.alt = d.alt; if (d.ds) im.dataset.src = d.ds; if (d.w) im.setAttribute('width', d.w);
+          const para = document.createElement('p'); para.appendChild(im); if (blk) blk.after(para); else vis.appendChild(para);
+          if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
+          visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+        } catch {}
+      }
       const f = imageFiles(e.clipboardData);
       if (f.length) { e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } saveSel(); f.forEach(insertUpload); return; }
       e.preventDefault();
@@ -7114,7 +7236,7 @@ function toolbarHtml() {
   const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="${tt('tb.label')}">
     <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}</div>
-    <div class="tb-group">${b('h1', '<span class="hl">H<small>1</small></span>', tt('tb.h1', { mod: MOD }))}${b('h2', '<span class="hl">H<small>2</small></span>', tt('tb.h2', { mod: MOD }))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
+    <div class="tb-group">${b('h1', '<span class="tb-h">H<small>1</small></span>', tt('tb.h1', { mod: MOD }))}${b('h2', '<span class="tb-h">H<small>2</small></span>', tt('tb.h2', { mod: MOD }))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
     <div class="tb-group">${b('block', ICO.block, tt('tb.block', { mod: MOD }))}${b('link', ICO.link, tt('tb.link', { mod: MOD }))}${b('note', ICO.note, tt('tb.note'))}${b('img', ICO.img, tt('tb.img'))}${b('table', ICO.table, tt('tb.table'))}${b('hr', ICO.hr, tt('tb.hr'))}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', tt('tb.cloze') + (plusOn() ? '' : tt('tb.pro')), plusOn() ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, tt('tb.undo', { mod: MOD }))}${b('redo', ICO.redo, tt('tb.redo', { mod: MOD }))}</div>
   </div>`;
@@ -8634,7 +8756,9 @@ function renderPlanBar() {
   const bar = $('#plan-bar'); if (!bar) return;
   const P = S.plan, end = P && planOn() && P.pro && !P.forever && P.until ? Date.parse(String(P.until).replace(' ', 'T')) : 0;
   const paid = P?.source === 'paid', key = 'planRemind.' + (S.uid || '');
-  if (!end || end - Date.now() > (paid ? (P.autorenew ? 4 : 3) : 2) * 864e5 || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
+  // без автопродления — за 2 дня до конца; с автопродлением — ровно за сутки до списания (10:00 по Москве в день списания, P.renewDate)
+  const from = P?.autorenew && P.renewDate ? Date.parse(P.renewDate + 'T10:00:00+03:00') - 864e5 : end - 2 * 864e5;
+  if (!end || Date.now() < from || end < Date.now() || store.get(key, '') === P.until) { bar.hidden = true; bar.innerHTML = ''; return; }
   bar.innerHTML = P.autorenew && P.priceNotice?.willStop ? `<p>${tt('planbar.price', { date: esc(planDate(P.renewDate)), old: rub(P.priceNotice.old), now: rub(P.priceNotice.now), until: esc(planDate(P.until)) })}</p>
     <div class="bar"><button class="btn" type="button" id="plan-bar-ok">${tt('btn.ok')}</button></div>`
   : P.autorenew ? `<p>${tt(P.renewPeriod === 'year' ? 'planbar.auto.year' : 'planbar.auto.month', { date: esc(planDate(P.renewDate || P.until)), sum: rub(P.renewAmount) })}</p>
@@ -9169,6 +9293,7 @@ function lookPanelHtml() {
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
         <span class="sw-c"><i style="--a:${c[0]}"><b style="--a:${c[2]}"></b></i><i style="--a:${c[1]}"><b style="--a:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
+    <div class="look-oled"><label><input type="checkbox" id="look-trainbar" ${trainBarOn() ? 'checked' : ''}> ${tt('look.trainbar')}</label></div>
     ${showPro ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> ${tt('look.oled')}</label>${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}${h[0]}</div>${h[1]}`)(help(tt('look.oled.help'))) : ''}
   </section>`;
 }
@@ -9183,6 +9308,8 @@ function wireLookPanel(root) {
     if (cur && cur[2] && !proOn() && !confirm(tt('look.change.ask', { theme: cur[1] }))) return;
     await saveSettings({ theme: b.dataset.lookTheme }, tt('look.colors.saved')); applyLook(); renderProg();
   });
+  const tb = root.querySelector('#look-trainbar');
+  if (tb) tb.onchange = async () => { await saveSettings({ trainBar: tb.checked }, tt(tb.checked ? 'look.trainbar.on' : 'look.trainbar.off')); };
   const o = root.querySelector('#look-oled');
   if (o) o.onchange = async () => {
     if (o.checked && !proOn()) { o.checked = false; showPlanDialog('themes'); return; }   // выключить можно всегда, включить — с Pro
