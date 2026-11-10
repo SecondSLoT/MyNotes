@@ -600,6 +600,11 @@ window.STR = {
   'img.queued': 'Нет связи — изображение сохранено на этом устройстве и загрузится, когда она появится',
   'img.nogh': 'Чтобы вставлять изображения, подключи GitHub: ⚙ Настройки → Изображения',
   'img.resize': 'Потяните, чтобы изменить размер',
+  'img.act.copy': 'Копировать',
+  'img.act.cut': 'Вырезать',
+  'img.act.del': 'Удалить',
+  'img.act.copy.done': 'Изображение скопировано, вставьте его в нужное место',
+  'img.act.cut.done': 'Изображение вырезано, вставьте его в нужное место',
   'img.alt': 'Иллюстрация из заметки',
   'img.fail': 'Изображение не загрузилось — нажми, чтобы повторить',
   'img.camera': 'Сфотографировать',
@@ -785,13 +790,13 @@ window.STR = {
   'look.home.tiles': 'Плитки',
   'look.home.saved': 'Вид сохранён',
   'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
-  'home.train.hide': 'Скрыть плашку',
-  'home.train.hidden': 'Плашка скрыта, вернуть можно в «Настройки → Оформление»',
-  'look.trainbar': 'Плашка тренировки',
+  'look.trainbar': 'Показывать плашку тренировки',
+  'look.trainbar.help': 'На главной плашка появляется только когда на сегодня есть что тренировать; внутри раздела, добавленного в тренировку, она показывает его прогресс',
   'look.trainbar.on': 'Плашка тренировки включена',
   'look.trainbar.off': 'Плашка тренировки скрыта',
   'home.up': 'На уровень выше',
   'home.notes': 'Заметки раздела',
+  'home.subs': 'Подразделы',
   'home.empty': 'Здесь пока пусто',
   'home.flat': 'Все заметки',
   'home.newsec': 'Раздел',
@@ -2033,6 +2038,11 @@ button.tag{border:0;background:none;padding:0}
 .md img.img-fail::after,.visual img.img-fail::after{content:attr(data-fail);display:block;box-sizing:border-box;width:100%;padding:38px 14px 0;text-align:center;font:13px/1.4 var(--f-body);color:var(--muted)}
 .img-grip{position:absolute;left:var(--x);top:var(--y);width:22px;height:22px;margin:-14px 0 0 -14px;border-radius:var(--rad-s);background:var(--accent);border:2px solid var(--raised);box-shadow:var(--sh-pop);cursor:nwse-resize;touch-action:none;z-index:5}
 .img-grip[hidden]{display:none}
+.img-acts{position:absolute;left:var(--ax);top:var(--ay);z-index:5;display:flex;gap:6px;padding:4px;border-radius:var(--rad-xl);background:var(--raised);border:1px solid var(--line-strong);box-shadow:var(--sh-pop)}
+.img-acts[hidden]{display:none}
+.img-acts button{border:0;background:none;color:var(--ink);font:700 14px var(--f-body);padding:8px 12px;border-radius:var(--rad-l);min-height:36px}
+.img-acts button:active{background:var(--accent-soft)}
+.img-acts .danger{color:var(--again)}
 .grip-host{position:relative}
 .md img[width],.visual img[width]{height:auto}
 .visual img{cursor:pointer;display:inline-block;vertical-align:bottom;max-width:calc(100% - 6px)}   /* строчное изображение: курсор после него — справа снизу, как в документе */.visual img.vsel{outline:3px solid var(--accent);outline-offset:2px}
@@ -2497,9 +2507,7 @@ body.home-view .chips-row,body.home-view #scopebar,body.home-view #new-note{disp
 .home-top.in-items{padding:0 0 12px}
 .home-train-wrap,.sec-hero.in-home{position:relative}
 .home .sec-hero.in-home{display:flex;margin:0}
-.ht-x{position:absolute;top:6px;right:8px;width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:inherit;opacity:.6;font:400 20px/1 var(--f-body);cursor:pointer;display:grid;place-items:center;padding:0}
-.ht-x:hover{opacity:1}
-.home-train-wrap .home-train{width:100%;padding-right:36px}
+.home-train-wrap .home-train{width:100%}
 .home-train-wrap .home-train .ht-t{min-width:0;flex:1}
 .home-train-wrap .home-train .ht-t span,.home-train-wrap .home-train .ht-t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* узкая колонка: подпись в одну строку, не налезает на крестик */
 .rail-tiles .home-train-wrap{margin-bottom:8px}
@@ -2610,19 +2618,23 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 .sh-sub{color:var(--muted);font-size:13px;margin-top:4px}
 .sh-sub b{color:var(--kt);font-weight:700}
 @media (max-width:760px){.sec-hero{display:none}}
+#ed-del .ed-del-i{display:none}
+#ed-del .ed-del-i svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:520px){#ed-del .ed-del-t{display:none}#ed-del .ed-del-i{display:block}#ed-del{padding-inline:12px!important}}   /* не хватает места на «В корзину» — значок корзины (09.11) */
 .lbar{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle;flex:none}
 .lbar i{display:block;height:100%;width:var(--w);background:var(--good);border-radius:3px}
 .r-cta{display:flex;gap:10px;margin:-8px 0 22px}
 @media (max-width:760px){
   /* редактор: «Сохранить / Отмена» закреплены внизу, как «Редактировать» в чтении (08.11) */
-  #ed > .bar{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line);flex-wrap:nowrap}
-  #ed > .bar .btn{padding:12px 16px;font-size:16px}
+  #ed > .bar{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:transparent;pointer-events:none;flex-wrap:nowrap}   /* без подложки, как нижние кнопки списка (09.11) */
+  #ed > .bar .btn{padding:12px 16px;font-size:16px;white-space:nowrap;pointer-events:auto;box-shadow:var(--sh-pop)}
+  #ed > .bar .spacer{pointer-events:none}
   #ed{padding-bottom:84px}
   /* «Рядом» на телефоне: каждое окно ограничено по высоте и прокручивается само */
   .ed-panes.split #ed-body{max-height:38vh;overflow:auto!important}
   .ed-panes.split .preview{position:static;max-height:38vh;overflow:auto}
-  .lib.reading .r-cta{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
-  .lib.reading .r-cta .btn{flex:1;min-width:0;padding:12px 8px;font-size:16px;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
+  .lib.reading .r-cta{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:transparent;pointer-events:none}   /* без подложки (09.11) */
+  .lib.reading .r-cta .btn{pointer-events:auto;box-shadow:var(--sh-pop);flex:1;min-width:0;padding:12px 8px;font-size:16px;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
   .lib.reading .r-cta #drill{flex:1.4}
   .lib.reading .reader .doc:has(.r-cta){padding-bottom:84px}
 }
@@ -2774,6 +2786,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .modes button svg{width:20px;height:20px;stroke-width:2.2}
 :root[data-skin="play"] #m-prog,:root[data-skin="play"] #help-btn{color:var(--muted)}
 :root[data-skin="play"] #m-prog:hover,:root[data-skin="play"] #help-btn:hover{color:var(--ink)}
+:root[data-skin="play"] #m-prog[aria-pressed="true"],:root[data-skin="play"] #help-btn[aria-pressed="true"]{color:var(--accent-ink)}   /* выбранная шестерёнка — светлая на акцентной плашке (09.11) */
 :root[data-skin="play"] .back{background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));border-radius:var(--rad-xl);font-weight:800}
 @media (max-width:1100px){
   :root[data-skin="play"] .mbar .back{padding:9px 16px;font-size:15px}
@@ -3583,14 +3596,21 @@ function insertUpload(file, at) {
   const ta = $('#ed-body') || $('#te-body'), vis = $('#ed-prev');
   if (S.editing?.pane === 'vis' && vis) {
     // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
-    if (at?.range) savedRange = at.range;
+    { const rr = at?.pos ? visRangeAt(vis, at.pos) : at?.range; if (rr) savedRange = rr; }   // положение курсора — номером блока и смещением: пока выбирают файл, «Визуально» может перерисоваться
     vis.focus(); restoreSel();
     const sel = getSelection(); let block = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
     if (block && !vis.contains(block)) block = null;
     while (block && block.parentNode !== vis) block = block.parentNode;
     const para = document.createElement('p'); const img = document.createElement('img');
     img.src = localImages[key]; img.dataset.src = key; img.alt = ''; para.appendChild(img);
-    if (block && block !== vis) block.after(para); else vis.appendChild(para);
+    // курсор посреди абзаца — абзац делится, изображение встаёт на место курсора; в списке, таблице, цитате, коде — после блока
+    const rg = sel.rangeCount ? sel.getRangeAt(0) : null;
+    if (block && block !== vis && rg && /^(P|DIV)$/.test(block.nodeName) && block.contains(rg.startContainer)) {
+      const tail = document.createRange(); tail.setStart(rg.startContainer, rg.startOffset); tail.setEnd(block, block.childNodes.length);
+      const rest = block.cloneNode(false); rest.appendChild(tail.extractContents());
+      block.after(para); if (rest.textContent.trim() || rest.querySelector('img')) para.after(rest);
+      if (!block.textContent.trim() && !block.querySelector('img')) block.remove();
+    } else if (block && block !== vis) block.after(para); else vis.appendChild(para);
     if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
     const r = document.createRange(); r.setStart(para.nextSibling, 0); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); saveSel();
     vis.dispatchEvent(new Event('input', { bubbles: true }));
@@ -3681,7 +3701,7 @@ function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.t
 // изображение: на телефоне — выбор «Сфотографировать» (камера сразу) или «Выбрать изображения» (галерея и файлы, можно несколько);
 // Android с выбором нескольких файлов камеру не предлагает, поэтому отдельный пункт. На компьютере — сразу выбор файлов
 function pickImages() {
-  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { range: savedRange?.cloneRange?.() } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
+  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { pos: savedRange && $('#ed-prev') ? visPosOf($('#ed-prev'), savedRange) : null } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
   const go = cam => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     if (cam) inp.setAttribute('capture', 'environment'); else inp.multiple = true;
@@ -3712,9 +3732,29 @@ function visImgSel(vis, img) {
 }
 /* размер изображения мышкой или пальцем (05.11): у выделенного изображения в «Визуально» — уголок справа внизу, тянешь — меняется ширина
    (атрибут width → в Markdown «![подпись|320](…)»). Уголок — вне contenteditable (в обёртке редактора), в текст не попадает */
+// телефон: у выделенного изображения — «Копировать / Вырезать / Удалить» (на компьютере — Ctrl+C / X / Delete); вставка — обычным «Вставить» в поле (09.11)
+function imgData(im) { const d = { src: im.getAttribute('src'), ds: im.dataset.src || '', w: im.getAttribute('width') || '', alt: im.getAttribute('alt') || '' }; return { d, text: `![${d.alt}](${d.ds || d.src})` }; }
+function imgDrop(vis, im) { histRecord(vis); const p = im.closest('p'); im.remove(); if (p && p !== vis && !p.textContent.trim() && !p.querySelector('img')) p.remove(); imgGrip(vis, null); vis.dispatchEvent(new Event('input', { bubbles: true })); }
+function imgActs(host, show) {
+  let a = document.getElementById('img-acts');
+  if (!show || !matchMedia('(pointer:coarse)').matches) { if (a) a.hidden = true; return; }
+  if (!a) {
+    a = document.createElement('div'); a.id = 'img-acts'; a.className = 'img-acts';
+    a.innerHTML = `<button type="button" data-ia="copy">${tt('img.act.copy')}</button><button type="button" data-ia="cut">${tt('img.act.cut')}</button><button type="button" data-ia="del" class="danger">${tt('img.act.del')}</button>`;
+    a.addEventListener('pointerdown', e => e.preventDefault());
+    a.addEventListener('click', e => {
+      const b = e.target.closest('[data-ia]'), g = document.getElementById('img-grip'), im = g?._img, vis = g?._vis; if (!b || !im || !vis) return;
+      const k = b.dataset.ia, c = imgData(im);
+      if (k !== 'del') { S.imgBuf = c; try { navigator.clipboard?.writeText(c.text).catch(() => {}); } catch {} toast(tt(k === 'cut' ? 'img.act.cut.done' : 'img.act.copy.done')); }
+      if (k !== 'copy') imgDrop(vis, im);
+    });
+  }
+  if (a.parentElement !== host) host.appendChild(a);
+  a.hidden = false;
+}
 function imgGrip(vis, img) {
   let g = document.getElementById('img-grip');
-  if (!img) { if (g) g.hidden = true; return; }
+  if (!img) { if (g) g.hidden = true; imgActs(null, false); return; }
   const host = vis.parentElement; if (!host) return;
   if (!g) {
     g = document.createElement('div'); g.id = 'img-grip'; g.className = 'img-grip'; g.title = tt('img.resize'); g.setAttribute('aria-hidden', 'true');
@@ -3730,13 +3770,14 @@ function imgGrip(vis, img) {
   }
   if (g.parentElement !== host) host.appendChild(g);
   if (getComputedStyle(host).position === 'static') host.classList.add('grip-host');
-  g._img = img; g._vis = vis; g.hidden = false; placeGrip();
+  g._img = img; g._vis = vis; g.hidden = false; imgActs(host, true); placeGrip();
   if (!vis._gripWired) { vis._gripWired = true; vis.addEventListener('scroll', () => placeGrip(), { passive: true }); vis.addEventListener('input', () => placeGrip()); window.addEventListener('scroll', () => placeGrip(), { passive: true }); }
 }
 function placeGrip() {
   const g = document.getElementById('img-grip'); if (!g || g.hidden || !g._img) return;
-  if (!g._img.isConnected || !g._img.classList.contains('vsel')) { g.hidden = true; return; }
+  if (!g._img.isConnected || !g._img.classList.contains('vsel')) { g.hidden = true; imgActs(null, false); return; }
   const r = g._img.getBoundingClientRect(), h = g.parentElement.getBoundingClientRect();
+  const a = document.getElementById('img-acts'); if (a && !a.hidden) { a.style.setProperty('--ax', `${Math.max(4, r.left - h.left + g.parentElement.scrollLeft)}px`); a.style.setProperty('--ay', `${r.bottom - h.top + g.parentElement.scrollTop + 10}px`); }
   g.style.setProperty('--x', `${r.right - h.left + g.parentElement.scrollLeft}px`); g.style.setProperty('--y', `${r.bottom - h.top + g.parentElement.scrollTop}px`);
 }
 const VIS_BLOCK = /^(P|LI|H[1-6]|BLOCKQUOTE|PRE|DIV|UL|OL|TABLE|HR)$/;
@@ -4339,18 +4380,17 @@ function renderScopeBar(cl) {
   bar.innerHTML = `<span class="lbl">${tt('search.scope')}</span><div class="seg"><button data-scope="all" aria-pressed="${!S.searchHere}">${tt('search.everywhere')} <span class="tag">${cl.allN}</span></button><button data-scope="here" aria-pressed="${!!S.searchHere}">${name} <span class="tag">${cl.hereN}</span></button></div>`;
 }
 /* плашка раздела над списком (компьютер, раздел с тренировкой): кольцо «выучено %», заметок, ждут сегодня */
-const trainBarOn = () => S.settings?.trainBar !== false;   // «Плашка тренировки»: можно скрыть крестиком, вернуть — «Настройки → Оформление»
+const trainBarOn = () => S.settings?.trainBar !== false;   // «Плашка тренировки»: включается и выключается в «Настройки → Оформление» (по умолчанию включена)
 function trainBarHtml(total, a) {
   if (!total || !trainBarOn()) return '';
-  return `<div class="home-train-wrap"><button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button><button class="ht-x" id="ht-x" aria-label="${tt('home.train.hide')}" title="${tt('home.train.hide')}">×</button></div>`;
+  return `<div class="home-train-wrap"><button class="home-train" id="home-train">${ringHtml(a / (a + total), `<b>${total}</b>`, 'sm')}<span class="ht-t"><b>${tt('nav.train')}</b><span>${tt('home.train.sub', { n: total, m: etaMin(total) })}</span></span>${CH_R}</button></div>`;
 }
 function secHeroHtml(sid) {
   const st = secStats(sid), sc = scAttr(sid);
   return `<div class="sec-hero in-home"${sc} title="${esc(tt('learn.hint', { days: LEARNED_DAYS }))}">${ringHtml(st.pct, `<b>${Math.round(st.pct * 100)}%</b>`, 'sm')}<div class="sh-t"><div class="sh-name">${esc(S.sections.get(sid).title)}</div>`
-    + `<div class="sh-sub">${tt('sec.hero.sub', { n: st.notes, learned: st.learned, cards: st.cards })}${st.today ? ` · <b>${tt('sec.hero.today', { n: st.today })}</b>` : ''}</div></div><button class="ht-x" id="ht-x" aria-label="${tt('home.train.hide')}" title="${tt('home.train.hide')}">×</button></div>`;
+    + `<div class="sh-sub">${tt('sec.hero.sub', { n: st.notes, learned: st.learned, cards: st.cards })}${st.today ? ` · <b>${tt('sec.hero.today', { n: st.today })}</b>` : ''}</div></div></div>`;
 }
 document.addEventListener('click', e => {
-  if (e.target.closest('#ht-x')) { saveSettings({ trainBar: false }, tt('home.train.hidden')); renderList(); renderRail(); return; }
   if (e.target.closest('#home-train')) setMode('train');
 });
 function renderSecHero(terms) {
@@ -4388,25 +4428,26 @@ function secTileHtml(s, rq, sel) { const st = secStats(s.id, rq), tr = isTrainFo
       + `<span class="tl-sub">${tt('notes.n', { n: st.notes })}${tr && st.cards ? ' · ' + Math.round(st.pct * 100) + '%' : ''}</span></button>`; }
 // плитки-ссылки: телефон — «Все разделы» (шторка), избранное, недавние, корзина, + раздел; компьютер — вместо шторки «Все заметки»
 function homeLinksHtml(desk) {
-  return `<div class="home-links">${[desk ? ['all', VICO.all, VIRTUAL.all, S.notes.size] : ['tree', VICO.all, tt('chips.tree'), ''], ['fav', VICO.fav, VIRTUAL.fav, ''], ['recent', VICO.recent, VIRTUAL.recent, ''], ['trash', VICO.trash, VIRTUAL.trash, S.trash.size || '']].map(([k, i, l, n]) => `<button class="hl" data-hl="${k}"${{ fav: ' data-sc="orange"', recent: ' data-sc="blue"', trash: ' data-sc="gray"' }[k] || ''}${desk ? ` aria-current="${S.section === k}"` : ''}><span class="ico" aria-hidden="true">${i}</span><span class="hl-t">${esc(l)}</span>${n ? `<span class="n">${n}</span>` : ''}</button>`).join('')}${S.canWrite ? `<button class="hl hl-add" data-hl="add" title="${tt('chips.add')}"><span class="ico" aria-hidden="true">+</span><span class="hl-t">${tt('home.newsec')}</span></button>` : ''}</div>`;
+  return `<div class="home-links">${[desk ? ['all', VICO.all, VIRTUAL.all, S.notes.size] : ['tree', VICO.all, tt('chips.tree'), ''], ['fav', VICO.fav, VIRTUAL.fav, ''], ['recent', VICO.recent, VIRTUAL.recent, ''], ['trash', VICO.trash, VIRTUAL.trash, S.trash.size || '']].map(([k, i, l, n]) => `<button class="hl" data-hl="${k}"${{ fav: ' data-sc="orange"', recent: ' data-sc="blue"', trash: ' data-sc="gray"' }[k] || ''}${desk ? ` aria-current="${S.section === k}"` : ''}><span class="ico" aria-hidden="true">${i}</span><span class="hl-t">${esc(l)}</span>${n ? `<span class="n">${n}</span>` : ''}</button>`).join('')}</div>`;
 }
 /* компьютер с плитками: колонка разделов — плитки уровня, где выбранный раздел (раздел с подразделами — его подразделы, иначе соседи);
    на верхнем уровне сверху плитки-ссылки, ниже — ← и название родителя (нажатие — уровнем выше) */
 function railCtx() { const r = homeRoot(), s = S.sections.has(S.section) ? S.section : null; const c = !s ? r : hasKids(s) ? s : parentOf(s); return c || r; }
+const addTopTile = () => `<button class="tile tile-add" data-addtop="1" title="${tt('chips.add')}"><span class="ico" aria-hidden="true">+</span>${tt('home.newsec')}</button>`;   // «+ Раздел» — в конце списка разделов, не наверху (09.11)
 const addSubTile = sid => `<button class="tile tile-add" data-addsub="${esc(sid)}" title="${tt('sec.sub.new')}"><span class="ico" aria-hidden="true">+</span>${tt('sec.sub.tile')}</button>`;
-document.addEventListener('click', e => { const b = e.target.closest('[data-addsub]'); if (b) { e.stopPropagation(); openSecMenu(b.dataset.addsub, b, 'sub'); } });
+document.addEventListener('click', e => { const t = e.target.closest('[data-addtop]'); if (t) { e.stopImmediatePropagation(); openSecMenu(null, t, 'new'); return; } const b = e.target.closest('[data-addsub]'); if (b) { e.stopImmediatePropagation(); openSecMenu(b.dataset.addsub, b, 'sub'); } });
 function renderRailTiles() {
   const rq = reviewQueue(), ctx = railCtx(), atTop = ctx === homeRoot();
   const sec = ctx ? S.sections.get(ctx) : null, list = kids(ctx);
   $('#rail').innerHTML = `<div class="rail-tiles">${atTop ? trainBarHtml(rq.due.length + rq.fresh.length, answeredToday()) + homeLinksHtml(true) : `<div class="rail-up"${scAttr(ctx)}><button class="home-up" data-rail-up="1" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up${S.section === ctx ? ' cur' : ''}" data-sec="${esc(ctx)}">${esc(sec?.title || '')}</button></div>`}`
-    + (list.length || (!atTop && S.canWrite && ctx) ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}${!atTop && S.canWrite && ctx ? addSubTile(ctx) : ''}</div>` : '') + `</div>`;
+    + (list.length || S.canWrite ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}${S.canWrite ? (atTop ? addTopTile() : addSubTile(ctx)) : ''}</div>` : '') + `</div>`;
 }
 function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
   const desk = deskTiles(), flat = desk || virt || !!S.tag || !!S.tileFlat, sel = !!S.select;   // компьютер: подразделы — в колонке разделов, здесь все заметки раздела
   const secTile = s => secTileHtml(s, rq, sel);
-  const addSub = S.canWrite && !sel && !desk && sid && !virt && !atHome && !S.tag && !flat ? addSubTile(sid) : '';   // «+ Подраздел» — внутри раздела, как «создать в папке»
+  const addSub = S.canWrite && !sel && !desk && !virt && !S.tag && !flat ? (sid && !atHome ? addSubTile(sid) : addTopTile()) : '';   // «+ Подраздел» — внутри раздела, как «создать в папке»
   const trash = S.section === 'trash';
   const noteTile = n => `<${trash ? 'div' : 'button'} class="tile ntile${sel && S.select.has(n.id) ? ' picked' : ''}" data-note="${esc(n.id)}"${S.noteId === n.id ? ' aria-current="true"' : ''}${scAttr(n.section)}${sel ? ` aria-pressed="${S.select.has(n.id)}"` : ''}>${S.canWrite && !sel && !trash ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}${sel ? '<span class="tl-check" aria-hidden="true"></span>' : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
     + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span>`
@@ -4441,8 +4482,9 @@ function renderHome(cl) {
   $('#items').innerHTML = `<div class="home">
     ${topHtml ? `<div class="home-top in-items">${topHtml}</div>` : ''}
     ${trashHead}
-    ${subs.length || addSub ? `<div class="tiles">${subs.map(secTile).join('')}${addSub}</div>` : ''}
     ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>` : ''}
+    ${subs.length ? `${notes.length ? `<div class="home-h sub"><h3>${tt('home.subs')}</h3></div>` : ''}<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
+    ${addSub ? `<div class="tiles tiles-add">${addSub}</div>` : ''}
     ${flatHtml}
     ${!flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
     ${sel || desk ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite && !trash ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
@@ -6892,7 +6934,7 @@ function renderEditor(box) {
         ${E.live ? `<button class="btn primary" type="submit">${tt('btn.done')}</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary" type="submit">${tt('btn.save')}</button>
         <button class="btn" type="button" id="ed-cancel">${tt('btn.cancel')}</button>`}
         <span class="spacer"></span>
-        ${E.id ? (E.confirmDel ? `<span class="confirm">${tt('ed.del.ask')} <button class="btn danger" type="button" id="ed-del-yes">${tt('bulk.del')}</button><button class="btn" type="button" id="ed-del-no">${tt('btn.no')}</button></span>` : `<button class="btn danger" type="button" id="ed-del">${tt('bulk.del')}</button>`) : ''}
+        ${E.id ? (E.confirmDel ? `<span class="confirm">${tt('ed.del.ask')} <button class="btn danger" type="button" id="ed-del-yes">${tt('bulk.del')}</button><button class="btn" type="button" id="ed-del-no">${tt('btn.no')}</button></span>` : `<button class="btn danger" type="button" id="ed-del" title="${tt('bulk.del')}" aria-label="${tt('bulk.del')}"><span class="ed-del-t">${tt('bulk.del')}</span><span class="ed-del-i" aria-hidden="true">${VICO.trash}</span></button>`) : ''}
       </div>
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
@@ -7012,17 +7054,16 @@ function renderEditor(box) {
     }, true);
     const imgClip = (e, cut) => {
       const im = vis.querySelector('img.vsel'); if (!im) return;
-      e.preventDefault(); const dt = e.clipboardData;
-      dt.setData('application/x-rn-img', JSON.stringify({ src: im.getAttribute('src'), ds: im.dataset.src || '', w: im.getAttribute('width') || '', alt: im.getAttribute('alt') || '' }));
-      dt.setData('text/plain', `![${im.getAttribute('alt') || ''}](${im.dataset.src || im.getAttribute('src')})`);
-      if (cut) { histRecord(vis); const p = im.closest('p'); im.remove(); if (p && p !== vis && !p.textContent.trim() && !p.querySelector('img')) p.remove(); imgGrip(vis, null); vis.dispatchEvent(new Event('input', { bubbles: true })); }
+      e.preventDefault(); const dt = e.clipboardData, c = imgData(im);
+      dt.setData('application/x-rn-img', JSON.stringify(c.d)); dt.setData('text/plain', c.text); S.imgBuf = c;
+      if (cut) imgDrop(vis, im);
     };
     vis.addEventListener('copy', e => imgClip(e, false));
     vis.addEventListener('cut', e => imgClip(e, true));
     vis.addEventListener('drop', e => { const f = imageFiles(e.dataTransfer); if (!f.length) return; e.preventDefault(); if (!uploadReady()) { noGhHint(); return; } E.pane = 'vis'; vis.focus(); saveSel(); f.forEach(insertUpload); });
     vis.addEventListener('paste', e => {
       histRecord(vis);
-      const rn = e.clipboardData?.getData('application/x-rn-img');
+      const rn = e.clipboardData?.getData('application/x-rn-img') || (S.imgBuf && (e.clipboardData?.getData('text/plain') || '').trim() === S.imgBuf.text ? JSON.stringify(S.imgBuf.d) : '');   // на телефоне системное «Вставить» отдаёт только текст — узнаём по нему
       if (rn) {
         try {
           const d = JSON.parse(rn); e.preventDefault(); saveSel(); restoreSel();
@@ -7581,7 +7622,33 @@ function visPasteBig(vis, t) {
 }
 /* ---------- visual editor: formatting actions ---------- */
 let savedRange = null;
-function saveSel() { const sel = getSelection(); savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null; }
+// последнее положение курсора в «Визуально»: на телефоне нажатие кнопки панели снимает выделение раньше, чем сработает обработчик (09.11)
+// Range живой: при перерисовке «Визуально» он схлопывается, поэтому храним номер блока и смещение в тексте блока
+let lastVisPos = null, visFocusAt = 0;
+function visPosOf(v, r) {
+  let b = r.startContainer; while (b && b.parentNode !== v) b = b.parentNode; if (!b) return null;
+  const pre = document.createRange(); pre.setStart(b, 0); pre.setEnd(r.startContainer, r.startOffset);
+  return { bi: [...v.children].indexOf(b), off: pre.toString().length };
+}
+function visRangeAt(v, pos) {
+  const b = pos && v.children[pos.bi]; if (!b) return null;
+  const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT); let left = pos.off, n, last = null;
+  while ((n = w.nextNode())) { last = n; if (left <= n.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); return r; } left -= n.length; }
+  const r = document.createRange(); if (last) r.setStart(last, last.length); else r.setStart(b, 0); r.collapse(true); return r;
+}
+document.addEventListener('focusin', e => { if (e.target?.id === 'ed-prev') visFocusAt = Date.now(); });
+document.addEventListener('selectionchange', () => {
+  const v = $('#ed-prev'), sel = getSelection(); if (!v || !sel.rangeCount || !v.contains(sel.anchorNode)) return;
+  const r = sel.getRangeAt(0), pos = visPosOf(v, r); if (!pos) return;
+  // сразу после focus() браузер ставит курсор в начало — это не выбор человека, прежнее положение не затираем
+  if (r.collapsed && pos.bi <= 0 && !pos.off && Date.now() - visFocusAt < 150 && lastVisPos) return;
+  lastVisPos = pos;
+});
+function saveSel() {
+  const sel = getSelection(), v = $('#ed-prev');
+  if (sel.rangeCount && (!v || v.contains(sel.anchorNode))) savedRange = sel.getRangeAt(0).cloneRange();
+  else savedRange = v ? visRangeAt(v, lastVisPos) : null;
+}
 function restoreSel() { if (!savedRange) return; const sel = getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
 function closestIn(vis, sel) {
   const sl = getSelection(); let n = sl.anchorNode;
@@ -7714,7 +7781,9 @@ function visActionKeep(act, vis) {
   setTimeout(stop, 900);
 }
 function visAction(act, vis) {
-  vis.focus({ preventScroll: true });   // без preventScroll браузер прокручивал страницу к редактору при каждом нажатии на кнопку панели (прыжки у списка)
+  const hadSel = getSelection(), lost = !(hadSel.rangeCount && vis.contains(hadSel.anchorNode));   // телефон: нажатие кнопки сняло выделение — focus() поставил бы курсор в начало
+  vis.focus({ preventScroll: true });
+  if (lost) { const lr = visRangeAt(vis, lastVisPos); if (lr) { const sl = getSelection(); sl.removeAllRanges(); sl.addRange(lr); } }   // без preventScroll браузер прокручивал страницу к редактору при каждом нажатии на кнопку панели (прыжки у списка)
   if (act !== 'undo' && act !== 'redo') histRecord(vis);
   const sel = getSelection(); const text = sel.toString();
   switch (act) {
@@ -9293,7 +9362,7 @@ function lookPanelHtml() {
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
         <span class="sw-c"><i style="--a:${c[0]}"><b style="--a:${c[2]}"></b></i><i style="--a:${c[1]}"><b style="--a:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
-    <div class="look-oled"><label><input type="checkbox" id="look-trainbar" ${trainBarOn() ? 'checked' : ''}> ${tt('look.trainbar')}</label></div>
+    ${(h => `<div class="look-oled"><label><input type="checkbox" id="look-trainbar" ${trainBarOn() ? 'checked' : ''}> ${tt('look.trainbar')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.trainbar.help')))}
     ${showPro ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> ${tt('look.oled')}</label>${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}${h[0]}</div>${h[1]}`)(help(tt('look.oled.help'))) : ''}
   </section>`;
 }
