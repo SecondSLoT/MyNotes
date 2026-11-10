@@ -2685,7 +2685,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 [data-sc="orange"]{--sc:var(--sc-orange)}[data-sc="violet"]{--sc:var(--sc-violet)}[data-sc="teal"]{--sc:var(--sc-teal)}[data-sc="pink"]{--sc:var(--sc-pink)}
 [data-sc="blue"]{--sc:var(--sc-blue)}[data-sc="green"]{--sc:var(--sc-green)}[data-sc="red"]{--sc:var(--sc-red)}[data-sc="yellow"]{--sc:var(--sc-yellow)}[data-sc="indigo"]{--sc:var(--sc-indigo)}[data-sc="lime"]{--sc:var(--sc-lime)}[data-sc="brown"]{--sc:var(--sc-brown)}[data-sc="gray"]{--sc:var(--sc-gray)}
 .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 10px 10px}
-.color-grid button{height:32px;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
+.color-grid button{width:32px;height:32px;justify-self:center;border-radius:50%;border:2px solid var(--raised);background:var(--sc);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-grid button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 /* игровой: цвет раздела, огонёк серии, кольцо прогресса */
 /* Modern, дерево разделов: название в цветном прямоугольнике цвета раздела (вместо точки) */
@@ -6341,7 +6341,11 @@ function openNote(id, dir) {
   }
   S.article = false; $('#read-all')?.setAttribute('aria-pressed', 'false');
   if (!S._following) S.linkBack = null;
-  S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null; if (S.notes.has(id)) touchRecent(id);
+  S.noteId = id; S.editing = null; store.set('note', id); S.slide = dir || null;
+  // «Недавние» переупорядочиваются при каждом открытии: порядок листания замораживаем на момент открытия из списка (иначе всегда 1 / N и ходит между двумя заметками)
+  if (!dir || S.section !== 'recent') S.navFrozen = null;
+  if (S.section === 'recent' && !S.navFrozen) S.navFrozen = currentList().list.map(x => x.id);
+  if (S.notes.has(id)) touchRecent(id);
   $('#lib').classList.add('reading');
   document.querySelectorAll('#items .item, #items .ntile').forEach(i => i.setAttribute('aria-current', String((i.dataset.id || i.dataset.note) === id)));
   renderReader(true); histSync();
@@ -6411,7 +6415,7 @@ function renderReader(scrollTop) {
   if (!n) { box.innerHTML = `<div class="empty-state">${tt(S.loaded.notes ? 'reader.empty' : 'list.loading')}</div>`; return; }
   const s = S.srs.get(n.id); S.hitNav = null;
   const terms = S.q ? parseQuery(S.q) : null;
-  const nbr = (() => { const l = currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
+  const nbr = (() => { const l = S.section === 'recent' && S.navFrozen?.includes(n.id) ? S.navFrozen.map(id => ({ id })) : currentList().list; const i = l.findIndex(x => x.id === n.id); return { prev: i > 0 ? l[i - 1].id : null, next: i >= 0 && i < l.length - 1 ? l[i + 1].id : null, pos: i >= 0 ? `${i + 1} / ${l.length}` : '' }; })();
   const cards = cardsOf(n), multi = cards.length && cards[0] !== n.id;
   const srsLine = n.ref ? '' : multi ? (cs => cs.length ? `<span class="hint">${tt('reader.srs', { seen: cs.reduce((a, x) => a + (x.seen || 0), 0), lapses: cs.reduce((a, x) => a + (x.lapses || 0), 0), next: (d => d <= today() ? tt('ivl.today') : d.split('-').reverse().join('.'))(cs.map(x => x.due).sort()[0]) })}</span>` : '')(cards.map(c => S.srs.get(c)).filter(x => x && x.introduced && x.due))
     : s && s.introduced ? `<span class="hint">${tt('reader.srs', { seen: s.seen || 0, lapses: s.lapses || 0, next: s.due <= today() ? tt('ivl.today') : s.due.split('-').reverse().join('.') })}</span>` : '';
