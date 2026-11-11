@@ -855,6 +855,7 @@ window.STR = {
   'plan.h.get': 'Оформить Pro',
   'plan.h.nospace': 'Место закончилось',
   'plan.meter.space': 'Место',
+  'plan.meter.space.help': 'Место под заметки и изображения в них',
   'plan.h.free': 'В бесплатной версии — {what}',
   'plan.renew.paid': 'Pro действует до {date}. Оплаченный срок добавится к текущему',
   'plan.renew.trial': 'Пробный Pro действует до {date}. Оплаченный срок добавится к текущему',
@@ -1868,7 +1869,7 @@ button:has(>.chev){display:inline-grid;place-items:center;padding-block:0}
 .collab .inv{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px}.collab .inv input{flex:1;min-width:160px;font:13px var(--f-mono);padding:6px 8px;border-radius:var(--rad-m);border:1px solid var(--line-strong);background:var(--raised);color:inherit}
 .meters{display:flex;flex-direction:column;gap:10px;margin:12px 0}
 .meter{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}.meter .ml{font-weight:500}.meter .mv{justify-self:end;white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
-.meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.meter .help-t{grid-column:1/-1;margin:0}.meter .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.meter .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
 .meter.warn .mb i{background:var(--hard)}.meter.warn .mv{color:var(--hard)}
 .sync-badge{cursor:pointer;font-size:12px;line-height:1;padding:5px 9px;border-radius:var(--rad-pill);background:var(--hard-soft);color:var(--hard);white-space:nowrap;align-self:center}
 .item .when{margin-left:auto;font-size:12px;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -8406,15 +8407,16 @@ const planDate = s => { const d = new Date(String(s).replace(' ', 'T')); return 
 function planPanelHtml() {
   if (!planOn()) return '';
   const P = S.plan, pro = P.pro;
-  const meter = (label, used, lim, fmt = x => x) => {
+  const meter = (label, used, lim, fmt = x => x, hint = '') => {
+    const H = hint ? help(hint) : ['', ''];
     const pct = isFinite(lim) && lim ? Math.min(100, Math.round(used * 100 / lim)) : 0;
-    return `<div class="meter ${pct >= 90 ? 'warn' : ''}"><span class="ml">${label}</span><span class="mv">${fmt(used)}${isFinite(lim) ? ' ' + tt('plan.meter.of', { n: fmt(lim) }) : ' · ' + tt('plan.meter.unlimited')}</span>
-      ${isFinite(lim) ? `<span class="mb"><i style="--w:${pct}%"></i></span>` : ''}</div>`;
+    return `<div class="meter ${pct >= 90 ? 'warn' : ''}"><span class="ml">${label}${H[0]}</span><span class="mv">${fmt(used)}${isFinite(lim) ? ' ' + tt('plan.meter.of', { n: fmt(lim) }) : ' · ' + tt('plan.meter.unlimited')}</span>
+      ${isFinite(lim) ? `<span class="mb"><i style="--w:${pct}%"></i></span>` : ''}${H[1]}</div>`;
   };
   const sub = pro ? (P.forever ? tt('plan.sub.forever') : tt('plan.sub.until', { date: planDate(P.until) })) : tt('plan.sub.free');
   return `<details class="panel" id="plan-panel" ${S.planOpen ? 'open' : ''}>
     <summary>${tt('plan.title')} <span>· ${esc(sub)}</span></summary>
-    <div class="meters">${meter(tt('nav.lib'), planUsed('notes'), planLimit('notes'))}${meter(tt('rail.label'), planUsed('sections'), planLimit('sections'))}${meter(tt('plan.meter.space'), planUsed('bytes'), planLimit('bytes'), fmtBytes)}</div>
+    <div class="meters">${meter(tt('nav.lib'), planUsed('notes'), planLimit('notes'))}${meter(tt('rail.label'), planUsed('sections'), planLimit('sections'))}${meter(tt('plan.meter.space'), planUsed('bytes'), planLimit('bytes'), fmtBytes, tt('plan.meter.space.help'))}</div>
     ${pro && P.autorenew && !P.forever ? `${P.priceNotice ? `<p class="sub plan-price">${tt('plan.price.notice', { now: rub(P.priceNotice.now), old: rub(P.priceNotice.old), date: esc(planDate(P.priceNotice.offDate)) })}</p>` : ''}
       <p class="sub">${tt(P.renewPeriod === 'year' ? 'plan.auto.on.year' : 'plan.auto.on.month', { date: esc(planDate(P.renewDate || P.until)), sum: rub(P.renewAmount) })}</p>
       <div class="bar"><button class="btn" type="button" id="renew-off">${tt('plan.auto.off')}</button></div>`
