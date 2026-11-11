@@ -790,6 +790,10 @@ window.STR = {
   'look.home.tiles': 'Плитки',
   'look.home.saved': 'Вид сохранён',
   'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
+  'look.colorsecs': 'Цветные разделы',
+  'look.colorsecs.help': 'Разделы и их заметки окрашены в выбранные цвета. Если выключить, всё будет в цветах темы; выбранные цвета разделов сохраняются, и их можно вернуть этой же галочкой',
+  'look.colorsecs.on': 'Цветные разделы включены',
+  'look.colorsecs.off': 'Цветные разделы выключены',
   'look.trainbar': 'Показывать плашку тренировки',
   'look.trainbar.help': 'На главной плашка появляется только когда на сегодня есть что тренировать; внутри раздела, добавленного в тренировку, она показывает его прогресс',
   'look.trainbar.on': 'Плашка тренировки включена',
@@ -3194,7 +3198,9 @@ function pinAutoColors() {
   if (fns.length) writeAll(fns);
 }
 function secColor(id) { for (let x = id, i = 0; x && i < 20; x = parentOf(x), i++) { const c = S.sections.get(x)?.color; if (c && SEC_COLORS.some(k => k[0] === c)) return c; } return autoColor(id); }
-const scAttr = id => { const c = secColor(id); return c ? ` data-sc="${c}"` : ''; };
+// «Цветные разделы» (Modern): выключено — разделы в цветах темы, сам цвет раздела (sections.color) не трогаем, чтобы вернуть разноцветный вид
+const colorSecsOn = () => S.settings?.colorSecs !== false || document.documentElement.dataset.skin !== 'play';
+const scAttr = id => { if (!colorSecsOn()) return ''; const c = secColor(id); return c ? ` data-sc="${c}"` : ''; };
 async function setSecColor(id, color) {
   const f = S.sections.get(id); if (!f) return;
   const was = f.color; f.color = color || null; rerender();
@@ -6345,7 +6351,7 @@ function openNote(id, dir) {
   // «Недавние» переупорядочиваются при каждом открытии: порядок листания замораживаем на момент открытия из списка (иначе всегда 1 / N и ходит между двумя заметками)
   if (!dir || S.section !== 'recent') S.navFrozen = null;
   if (S.section === 'recent' && !S.navFrozen) S.navFrozen = currentList().list.map(x => x.id);
-  if (S.notes.has(id)) touchRecent(id);
+  if (S.notes.has(id) && S.section !== 'recent') touchRecent(id);   // в самих «Недавних» время захода не обновляем — иначе заметки постоянно переставляются
   $('#lib').classList.add('reading');
   document.querySelectorAll('#items .item, #items .ntile').forEach(i => i.setAttribute('aria-current', String((i.dataset.id || i.dataset.note) === id)));
   renderReader(true); histSync();
@@ -9366,6 +9372,7 @@ function lookPanelHtml() {
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
         <span class="sw-c"><i style="--a:${c[0]}"><b style="--a:${c[2]}"></b></i><i style="--a:${c[1]}"><b style="--a:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
+    ${p.skin === 'play' ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-colorsecs" ${S.settings?.colorSecs !== false ? 'checked' : ''}> ${tt('look.colorsecs')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.colorsecs.help'))) : ''}
     ${(h => `<div class="look-oled"><label><input type="checkbox" id="look-trainbar" ${trainBarOn() ? 'checked' : ''}> ${tt('look.trainbar')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.trainbar.help')))}
     ${showPro ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> ${tt('look.oled')}</label>${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}${h[0]}</div>${h[1]}`)(help(tt('look.oled.help'))) : ''}
   </section>`;
@@ -9381,6 +9388,8 @@ function wireLookPanel(root) {
     if (cur && cur[2] && !proOn() && !confirm(tt('look.change.ask', { theme: cur[1] }))) return;
     await saveSettings({ theme: b.dataset.lookTheme }, tt('look.colors.saved')); applyLook(); renderProg();
   });
+  const cs = root.querySelector('#look-colorsecs');
+  if (cs) cs.onchange = async () => { await saveSettings({ colorSecs: cs.checked }, tt(cs.checked ? 'look.colorsecs.on' : 'look.colorsecs.off')); renderProg(); };
   const tb = root.querySelector('#look-trainbar');
   if (tb) tb.onchange = async () => { await saveSettings({ trainBar: tb.checked }, tt(tb.checked ? 'look.trainbar.on' : 'look.trainbar.off')); };
   const o = root.querySelector('#look-oled');
