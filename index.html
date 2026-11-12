@@ -532,7 +532,7 @@ window.STR = {
   'ed.added': 'Заметка добавлена',
   'tb.label': 'Форматирование',
   'code.copy': 'Скопировать код',
-  'code.copied': '✓ Скопировано',
+  'code.copied': 'Скопировано',
   'code.copy.failed': 'Не получилось скопировать — выдели текст и скопируй вручную',
   'tb.bold': 'Жирный ({mod}+B)',
   'tb.italic': 'Курсив ({mod}+I)',
@@ -2004,9 +2004,10 @@ button.tag{border:0;background:none;padding:0}
 @keyframes slideNext{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes slidePrev{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes bump{0%,100%{transform:none}30%{transform:translateX(-8px)}60%{transform:translateX(6px)}}
-.doc.slide-in-next{animation:slideNext .22s ease-out}
-.doc.slide-in-prev{animation:slidePrev .22s ease-out}
-.doc.bump{animation:bump .3s ease-out}
+/* листается содержимое, строка с «← К списку» и ‹ › стоит на месте (12.11) */
+.doc.slide-in-next > :not(.mbar){animation:slideNext .22s ease-out}
+.doc.slide-in-prev > :not(.mbar){animation:slidePrev .22s ease-out}
+.doc.bump > :not(.mbar){animation:bump .3s ease-out}
 .back{display:none;border:0;background:none;color:var(--accent);padding:0;margin-bottom:12px;font-weight:500}
 
 .btn{border:1px solid var(--line-strong);background:var(--raised);border-radius:var(--rad-m);padding:6px 12px;font-weight:500;font-size:14px;color:var(--ink)}
@@ -2039,7 +2040,8 @@ button.tag{border:0;background:none;padding:0}
 .code-wrap{position:relative}.code-wrap pre{padding-right:46px}
 .code-copy{position:absolute;top:7px;right:7px;display:flex;align-items:center;gap:5px;height:28px;min-width:28px;padding:0 6px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--muted);font:500 12px var(--f-body);cursor:pointer;opacity:0;transition:opacity .15s,color .15s}
 .code-copy svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
-.code-copy .cc-done{display:none}.code-copy.done{color:var(--accent);opacity:1}.code-copy.done svg{display:none}.code-copy.done .cc-done{display:inline}
+/* скопировано — та же кнопка того же размера, значок меняется на галочку, без текста (12.11) */
+.code-copy{justify-content:center}.code-copy .cc-done{display:none}.code-copy.done{color:var(--accent);opacity:1}.code-copy.done > svg{display:none}.code-copy.done .cc-done{display:flex}.code-copy .cc-done svg{stroke-width:2;stroke-linecap:round}
 .code-wrap:hover .code-copy,.code-copy:focus-visible{opacity:1}.code-copy:hover{color:var(--ink);border-color:var(--line-strong)}
 @media (hover:none){.code-copy{opacity:.9;height:32px;min-width:32px;justify-content:center}}
 .md img{max-width:100%;height:auto;border-radius:var(--rad-s);border:1px solid var(--line);background:var(--paper);display:block;margin:6px 0 14px}
@@ -3891,7 +3893,7 @@ function addCodeCopy(root) {
     if (pre.parentElement?.classList.contains('code-wrap')) return;
     const w = document.createElement('div'); w.className = 'code-wrap'; pre.replaceWith(w); w.append(pre);
     const b = document.createElement('button'); b.type = 'button'; b.className = 'code-copy'; b.title = tt('code.copy'); b.setAttribute('aria-label', tt('code.copy'));
-    b.innerHTML = COPY_ICO + `<span class="cc-done">${tt('code.copied')}</span>`; w.append(b);
+    b.innerHTML = COPY_ICO + '<span class="cc-done" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"/></svg></span>'; w.append(b);
   });
 }
 async function copyText(t) {
@@ -3904,7 +3906,7 @@ document.addEventListener('click', async e => {
   e.preventDefault(); e.stopPropagation();
   const pre = b.parentElement.querySelector('pre'), code = pre?.querySelector('code') || pre;
   if (!code || !await copyText(code.textContent.replace(/\n$/, ''))) { toast(tt('code.copy.failed')); return; }
-  b.classList.add('done'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('done'), 1600);
+  b.classList.add('done'); b.setAttribute('aria-label', tt('code.copied')); clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('done'); b.setAttribute('aria-label', tt('code.copy')); }, 1600);
 }, true);
 document.addEventListener('dblclick', e => { if (e.target.closest('.code-copy')) e.stopPropagation(); }, true);   // двойное нажатие на кнопку — не «редактировать здесь»
 function markTerms(root, Q, find) {   // find — поиск в заметке: и в блоках кода, обёртки .fmk снимаются unmarkFind
@@ -6533,7 +6535,7 @@ function renderReader(scrollTop) {
   }, { passive: true });
   reader.addEventListener('touchcancel', () => { t0 = null; }, { passive: true });
   // drop the animation class once played, so the note does not replay it every time the reader is shown again
-  reader.addEventListener('animationend', e => e.target.classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
+  reader.addEventListener('animationend', e => (e.target.closest('.doc') || e.target).classList.remove('slide-in-next', 'slide-in-prev', 'bump'));
 })();
 
 // resizing an auto-growing textarea briefly collapses it; keep every scroll container where it was
@@ -9414,7 +9416,7 @@ function lookPanelHtml() {
     <div class="opt-row u-mt10"><span class="lbl u-mr6">${tt('look.home')}</span><div class="seg seg-wrap" id="look-home">
       ${[['list', tt('look.home.list')], ['tiles', tt('look.home.tiles')]].map(([k, l]) => `<button type="button" data-look-home="${k}" aria-pressed="${homePref() === k}">${l}</button>`).join('')}</div></div>
     <div class="opt-row u-mt10" ><span class="lbl u-mr6" >${tt('look.mode')}</span><div class="seg seg-wrap" id="look-mode">
-      ${[['system', tt('look.system')], ['light', tt('look.light')], ['dark', tt('look.dark')]].map(([k, l]) => `<button type="button" data-look-mode="${k}" aria-pressed="${p.mode === k}">${l}</button>`).join('')}</div></div>
+      ${[['light', tt('look.light')], ['dark', tt('look.dark')], ['system', tt('look.system')]].map(([k, l]) => `<button type="button" data-look-mode="${k}" aria-pressed="${p.mode === k}">${l}</button>`).join('')}</div></div>
     <div class="lbl u-m16-8" >${tt('look.colors')}</div>
     <div class="swatches">${THEMES.filter(t => !t[2] || showPro).map(t => { const c = THEME_SW[t[0]];
       return `<button type="button" class="sw${lock(t) ? ' locked' : ''}" data-look-theme="${t[0]}" aria-pressed="${p.theme === t[0]}" title="${t[1]}">
