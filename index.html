@@ -1208,6 +1208,12 @@ window.STR = {
   'fb.dlg.kind': 'Тип отзыва',
   'fb.dlg.hint': 'Вместе с текстом уйдут: экран приложения, размер экрана и браузер. Содержимое заметок не отправляется',
   'fb.send': 'Отправить',
+  'fb.shot.add': 'Приложить скриншот',
+  'fb.shot.del': 'Убрать скриншот',
+  'fb.shot.max': 'Можно приложить не больше {n} изображений',
+  'fb.shot.up': 'Загружаю скриншоты…',
+  'fb.shot.open': 'Открыть скриншот',
+  'fb.shot.paste': 'Скриншот можно вставить сюда же (Ctrl+V) или перетащить',
   'fb.ph.bug': 'Что случилось и что ты делал перед этим? Чем подробнее, тем быстрее сможем поправить',
   'fb.ph.idea': 'Чего не хватает или что сделать удобнее?',
   'fb.sending': 'Отправляю…',
@@ -1519,6 +1525,563 @@ window.STR = {
   'lp.demo.g3': 'Отлично! Карточка вернётся через 4 дня, потом через 2 недели — всё реже',
   'lp.demo.ask': 'Насколько хорошо ты помнил ответ?',
   'lp.js.recurring': 'Оплата разовая; автопродление — только если включишь его сам, отключается в один клик. Пробный период — без привязки карты. Pro оформляется в приложении: «Настройки → Тариф». Условия — в <a href="/offer.html">оферте</a>',
+  // ===== Админка (/admin.html): один человек
+  'adm.sec.user': 'Один человек',
+  'adm.u.ph': 'Почта (можно часть), имя или id',
+  'adm.u.find': 'Найти',
+  'adm.u.hint': 'Введи почту, её часть или имя — покажу заметки, место, активность, тренировку и оплаты. Содержимое заметок не показывается',
+  'adm.u.busy': 'Ищу…',
+  'adm.u.choose': 'Подходит несколько человек — выбери',
+  'adm.u.more': 'показаны первые 10, уточни запрос',
+  'adm.u.since': 'с {date}',
+  'adm.u.reg': 'зарегистрирован {date} · id {id}',
+  'adm.u.logins': 'вход: {list}',
+  'adm.u.tester': 'тестировщик',
+  'adm.u.notes': 'Заметки',
+  'adm.u.notes.sub': 'в корзине {trash} · разделов {sections} · новых за 30 дней {created} · правили {touched}',
+  'adm.u.approx': 'числа примерные, идёт пересчёт',
+  'adm.u.space': 'Занято места',
+  'adm.u.space.sub': 'заметки {text} · изображения {images}',
+  'adm.u.space.limit': 'лимит {limit}',
+  'adm.u.images': 'Изображения',
+  'adm.u.images.sub': 'всего {size} · скриншотов к обращениям {shots}',
+  'adm.u.versions': 'Версий в истории',
+  'adm.u.act': 'Активность',
+  'adm.u.act.v': '{n} из 30 дней',
+  'adm.u.act.sub': 'за 90 дней {d90} · всего дней {total} · первый {first} · последний {last}',
+  'adm.u.act.none': 'ещё не открывал приложение',
+  'adm.u.train': 'Карточек в тренировке',
+  'adm.u.train.sub': 'ответов: за неделю {w} · за 30 дней {m}',
+  'adm.u.plan': 'Тариф',
+  'adm.u.plan.off': 'тарифы выключены',
+  'adm.u.plan.free': 'Бесплатный',
+  'adm.u.plan.forever': 'Pro навсегда',
+  'adm.u.plan.until': 'до {date}',
+  'adm.u.plan.paid': 'оплачен',
+  'adm.u.plan.trial': 'пробный',
+  'adm.u.plan.auto': 'автопродление',
+  'adm.u.plan.trialused': 'пробный брал',
+  'adm.u.pay': 'Оплаты',
+  'adm.u.pay.sub': '{sum} ₽ · последняя {date}',
+  'adm.u.pay.none': 'оплат нет',
+  'adm.u.share': 'Общих разделов у него',
+  'adm.u.share.sub': 'ссылок на чтение {links} · состоит в чужих разделах {inn}',
+  'adm.u.fb': 'Обращений',
+  'adm.u.fb.sub': 'ошибок страницы {errors}',
+  'adm.u.cal': 'Дни активности',
+  'adm.u.cal.sub': 'последние 90 дней, закрашены дни, когда открывал приложение; столбец — неделя, сверху понедельник',
+  'adm.u.cal.on': 'открывал приложение',
+  'adm.unit.kb': 'КБ',
+  'adm.unit.mb': 'МБ',
+  // админка (/admin.html): аналитика, обратная связь, деньги — фразы собираются в коде из фрагментов
+  'adm.title': 'Аналитика — ReteNote',
+  'adm.loading': 'Загружаю…',
+  'adm.analitika_retenote': 'Аналитика ReteNote',
+  'adm.tolko_dlya_administratora': 'Только для администратора',
+  'adm.pochta': 'Почта',
+  'adm.parol': 'Пароль',
+  'adm.voyti': 'Войти',
+  'adm.ne_poluchilos_voyti': 'Не получилось войти: ',
+  'adm.vhod_istek_voydi_snova': 'Вход истёк — войди снова.',
+  'adm.server_otvetil': 'Сервер ответил ',
+  'adm.chisla': 'Числа',
+  'adm.poka_malo_dannyh_zamer': 'Пока мало данных — замер раз в минуту',
+  'adm.vremya': 'Время',
+  'adm.za_period': 'За период: ',
+  'adm.den': 'День',
+  'adm.period': 'Период',
+  'adm.24_ch': '24 ч',
+  'adm.7_dney': '7 дней',
+  'adm.30_dney': '30 дней',
+  'adm.90_dney': '90 дней',
+  'adm.god': 'Год',
+  'adm.obnovleno': 'обновлено ',
+  'adm.obnovit': 'Обновить',
+  'adm.vyyti': 'Выйти',
+  'adm.server': 'Сервер',
+  'adm.prognoz_kogda_budut_zamery': 'прогноз — когда будут замеры хотя бы за сутки',
+  'adm.mesto_pochti_ne_ubyvaet': 'место почти не убывает',
+  'adm.pri_takom_roste_hvatit': 'при таком росте хватит примерно на ',
+  'adm.den_2': 'день',
+  'adm.dnya': 'дня',
+  'adm.dney': 'дней',
+  'adm.svobodno_na_diske': 'Свободно на диске',
+  'adm.gb_iz': 'ГБ из ',
+  'adm.zanyato': 'занято ',
+  'adm.diska': '% диска',
+  'adm.svobodno_pamyati': 'Свободно памяти',
+  'adm.mb_iz': 'МБ из ',
+  'adm.podkachka': 'подкачка ',
+  'adm.mb': ' МБ',
+  'adm.pamyati': '% памяти',
+  'adm.pocketbase_zanimaet': 'PocketBase занимает',
+  'adm.mb_2': 'МБ',
+  'adm.processor': 'процессор ',
+  'adm.nagruzka': ' · нагрузка ',
+  'adm.pamyati_servera': '% памяти сервера',
+  'adm.zaprosy_za_minutu': 'Запросы за минуту',
+  'adm.oshibok_servera': 'ошибок сервера: ',
+  'adm.95_bystree': ' · 95% быстрее ',
+  'adm.ms': ' мс',
+  'adm.vremya_otveta_95_bystree': 'время ответа: 95% быстрее ',
+  'adm.baza_i_zhurnaly': 'База и журналы',
+  'adm.baza': 'база ',
+  'adm.zhurnaly': ' · журналы ',
+  'adm.izobrazheniya_i_kopii': 'Изображения и копии',
+  'adm.izobrazheniya': 'изображения ',
+  'adm.rezervnye_kopii': ' · резервные копии ',
+  'adm.vykladki': 'выкладки',
+  'adm.storozh': 'сторож',
+  'adm.neozhidannye': 'неожиданные',
+  'adm.bez_prichiny': 'без причины',
+  'adm.vykladka': 'выкладка',
+  'adm.neozhidannyy': 'неожиданный',
+  'adm.posledniy': ' · последний ',
+  'adm.za_period_ne_bylo': 'за период не было',
+  'adm.posledniy_neozhidannyy': ' · последний неожиданный ',
+  'adm.storozh_2': ' (сторож)',
+  'adm.neozhidannyh_ne_bylo': ' · неожиданных не было',
+  'adm.zapuski_servera': 'Запуски сервера',
+  'adm.byli_perezapuski_ne_iz': 'были перезапуски не из-за выкладки',
+  'adm.vse_zapuski_vykladki': 'все запуски — выкладки',
+  'adm.punktir_na_grafikah_zapusk': '<span>Пунктир на графиках — запуск сервера:</span><span><i class="bl deploy"></i>после выкладки</span><span><i class="bl"></i>сторож или сбой</span>',
+  'adm.gb': 'ГБ',
+  'adm.svobodno': 'Свободно',
+  'adm.pamyat': 'Память',
+  'adm.podkachka_2': 'Подкачка',
+  'adm.processor_2': 'Процессор',
+  'adm.zanyat': '% занят',
+  'adm.zaprosy': 'Запросы',
+  'adm.summa_za_otrezok_mezhdu': 'сумма за отрезок между точками графика',
+  'adm.vsego': 'Всего',
+  'adm.oshibki_4xx': 'Ошибки 4xx',
+  'adm.oshibki_5xx': 'Ошибки 5xx',
+  'adm.vremya_otveta': 'Время ответа',
+  'adm.ms_2': 'мс',
+  'adm.chto_zanimaet_mesto': 'Что занимает место',
+  'adm.baza_2': 'База',
+  'adm.zhurnaly_2': 'Журналы',
+  'adm.izobrazheniya_2': 'Изображения',
+  'adm.rezervnye_kopii_2': 'Резервные копии',
+  'adm.lyudi': 'Люди',
+  'adm.novyh_za_period': 'новых за период: ',
+  'adm.aktivnye': 'Активные',
+  'adm.za_nedelyu': 'за неделю ',
+  'adm.za_mesyac': ' · за месяц ',
+  'adm.segodnya_otkryvali': 'сегодня открывали ',
+  'adm.vseh': ' всех',
+  'adm.vernulis_cherez_nedelyu': 'Вернулись через неделю',
+  'adm.iz': ' из ',
+  'adm.zaregistrirovannyh_ranshe': ' зарегистрированных раньше',
+  'adm.poka_nekogo_schitat': 'пока некого считать',
+  'adm.vernulis_cherez_mesyac': 'Вернулись через месяц',
+  'adm.vhod_cherez_yandeks_vk': 'Вход через Яндекс / VK',
+  'adm.po_parolyu_starye_akkaunty': 'по паролю (старые аккаунты) — ',
+  'adm.u_odnogo_cheloveka_mozhet': '; у одного человека может быть несколько',
+  'adm.novye_lyudi': 'Новые люди',
+  'adm.novye': 'Новые',
+  'adm.otkryvali_prilozhenie': 'Открывали приложение',
+  'adm.chelovek': 'Человек',
+  'adm.zametki_i_izobrazheniya': 'Заметки и изображения',
+  'adm.zametki': 'Заметки',
+  'adm.v_korzine': 'в корзине ',
+  'adm.razdelov': ' · разделов ',
+  'adm.obschie_razdely': 'Общие разделы',
+  'adm.uchastnikov': 'участников ',
+  'adm.ssylok_na_chtenie': ' · ссылок на чтение ',
+  'adm.novye_zametki': 'Новые заметки',
+  'adm.pravili_zametki': 'Правили заметки',
+  'adm.skolko_zametok_menyali_za': 'сколько заметок меняли за день (считается в конце дня)',
+  'adm.povtorili_kartochek': 'Повторили карточек',
+  'adm.kartochki': 'Карточки',
+  'adm.v_trenirovke_v_konce': 'в тренировке (в конце дня)',
+  'adm.zagruzili_izobrazheniy': 'Загрузили изображений',
+  'adm.pravili_vmeste': 'Правили вместе',
+  'adm.zhivaya_sovmestnaya_pravka_v': 'живая совместная правка (в конце дня)',
+  'adm.mesto_po_lyudyam': 'Место по людям',
+  'adm.vsego_zanyato': 'Всего занято',
+  'adm.zametki_i_izobrazheniya_vseh': 'заметки и изображения всех людей',
+  'adm.u_poloviny_menshe': 'У половины меньше',
+  'adm.bolshe_vseh': 'больше всех — ',
+  'adm.skolko_lyudey_zanimayut_stolko': 'Сколько людей занимают столько места',
+  'adm.storage.sub': 'как в тарифе: текст заметок и изображения в них, без скриншотов к обращениям',
+  'adm.ot': 'от ',
+  'adm.pro_seychas': 'Pro сейчас',
+  'adm.oplacheno': 'оплачено ',
+  'adm.probnyy': ' · пробный ',
+  'adm.navsegda': ' · навсегда ',
+  'adm.brali_probnyy': 'Брали пробный',
+  'adm.vseh_lyudey': ' всех людей',
+  'adm.ne_prodlili': 'Не продлили',
+  'adm.oplachennyy_pro_zakonchilsya_za': 'оплаченный Pro закончился за 30 дней',
+  'adm.oplaty_za_period': 'Оплаты за период',
+  'adm.oplaty': 'Оплаты',
+  'adm.summa': 'Сумма',
+  'adm.yandeks_id': 'Яндекс ID',
+  'adm.analitika': 'Аналитика',
+  'adm.obratnaya_svyaz': 'Обратная связь',
+  'adm.dengi': 'Деньги',
+  'adm.problema': 'Проблема',
+  'adm.ideya': 'Идея',
+  'adm.pismo': 'Письмо',
+  'adm.oshibka_stranicy': 'Ошибка страницы',
+  'adm.pochta_2': 'Почта ',
+  'adm.pisma_na_nee_prihodyat': ' — письма на неё приходят сюда, ответ уходит письмом',
+  'adm.proverena': '. Проверена ',
+  'adm.ne_poluchilos_zabrat_pisma': 'Не получилось забрать письма: ',
+  'adm.zhdem_pervuyu_proverku_server': 'Ждём первую проверку: сервер смотрит почту раз в 5 минут',
+  'adm.server_davno_ne_proveryal': 'Сервер давно не проверял почту — на сервере: journalctl -u retenote-inbox --since today',
+  'adm.na_sayte_dlya_svyazi': 'На сайте для связи указан другой адрес: ',
+  'adm.izmenit': 'Изменить',
+  'adm.pisma_na_pochtu_dlya': 'Письма на почту для связи',
+  'adm.pisma_s_adresa_dlya': 'Письма с адреса для связи будут появляться здесь, рядом с сообщениями из приложения. Ящик сервер только читает: письма в нём остаются как были, вложения смотреть там',
+  'adm.pochta_reg_ru_proverit': 'Почта REG.RU: проверить, что письма доходят — отправить на адрес письмо с другой почты и найти его в веб-почте',
+  'adm.vpisat_nizhe_adres_i': 'Вписать ниже адрес и пароль от ящика (тот же, что для веб-почты). Сервер и порт уже стоят: mail.hosting.reg.ru, 993',
+  'adm.drugaya_pochta_yandeks_360': 'Другая почта: Яндекс 360 — imap.yandex.ru и пароль приложения (Яндекс ID → Безопасность → Пароли приложений), Mail.ru — imap.mail.ru',
+  'adm.adres': 'Адрес',
+  'adm.parol_ot_yaschika': 'Пароль от ящика',
+  'adm.ostavit_prezhniy': 'оставить прежний',
+  'adm.server_imap': 'Сервер IMAP',
+  'adm.port': 'Порт',
+  'adm.sohranit': 'Сохранить',
+  'adm.otmena': 'Отмена',
+  'adm.otklyuchit': 'Отключить',
+  'adm.perestat_zabirat_pisma_uzhe': 'Перестать забирать письма? Уже полученные останутся здесь',
+  'adm.sohranyayu': 'Сохраняю…',
+  'adm.uvedomleniya_vo_vkontakte': 'Уведомления во ВКонтакте',
+  'adm.o_novyh_soobscheniyah_i': ': о новых сообщениях и сбоях сервера, без их текста',
+  'adm.poslednee': '. Последнее — ',
+  'adm.ne_poluchilos_otpravit': 'Не получилось отправить: ',
+  'adm.prislat_proverochnoe': 'Прислать проверочное',
+  'adm.otpravlyayu': 'Отправляю…',
+  'adm.otpravleno': 'Отправлено',
+  'adm.server_sam_pishet_tebe': 'Сервер сам пишет тебе в личку от имени служебного сообщества — о новых сообщениях и сбоях, без GitHub. В уведомлении только счёт и ссылка сюда, без текста обращений и почты людей',
+  'adm.vkontakte_soobschestva_sozdat_soob': 'ВКонтакте → Сообщества → Создать сообщество: «Группа по интересам», закрытая, название любое (например, «ReteNote — служебное»)',
+  'adm.v_soobschestve_upravlenie_soobsche': 'В сообществе: Управление → Сообщения → включить',
+  'adm.upravlenie_rabota_s_api': 'Управление → Работа с API → Ключи доступа → Создать ключ: отметить «Сообщения сообщества» → скопировать ключ',
+  'adm.so_svoey_stranicy_napisat': 'Со своей страницы написать сообществу любое сообщение — без этого ВКонтакте не даёт сообществу писать первым',
+  'adm.vstavit_klyuch_nizhe_podklyuchit': 'Вставить ключ ниже → «Подключить» — придёт проверочное сообщение',
+  'adm.klyuch_dostupa_soobschestva': 'Ключ доступа сообщества',
+  'adm.podklyuchit': 'Подключить',
+  'adm.otklyuchit_uvedomleniya_vo_vkontak': 'Отключить уведомления во ВКонтакте?',
+  'adm.podklyuchayu': 'Подключаю…',
+  'adm.chto_pokazat': 'Что показать',
+  'adm.bez_otveta': 'Без ответа',
+  'adm.vse': 'Все',
+  'adm.oshibki_stranicy': 'Ошибки страницы',
+  'adm.vse_soobscheniya_otvecheny': 'Все сообщения отвечены.',
+  'adm.poka_nichego_net': 'Пока ничего нет.',
+  'adm.bez_obratnogo_adresa': 'без обратного адреса',
+  'adm.pochty_net_otvet_tolko': 'почты нет — ответ только в приложении',
+  'adm.est_akkaunt_s_etoy': '· есть аккаунт с этой почтой',
+  'adm.chelovek_ubral_u_sebya': '· человек убрал у себя (ответишь — снова появится у него)',
+  'adm.zakryto_bez_otveta': '· закрыто без ответа',
+  'adm.bez_temy': '(без темы)',
+  'adm.vlozheniya_v_pochtovom_yaschike': ' — вложения в почтовом ящике',
+  'adm.otkryt_skrinshot': 'Открыть скриншот',
+  'adm.skrinshot': 'скриншот',
+  'adm.podrobnosti': 'Подробности: ',
+  'adm.ekran': 'экран ',
+  'adm.telefon': 'телефон',
+  'adm.versiya': 'версия ',
+  'adm.tvoy_otvet': 'Твой ответ · ',
+  'adm.otvetit_esche_raz_zamenit': 'Ответить ещё раз (заменит прошлый ответ)',
+  'adm.otvet_uydet_pismom_na': 'Ответ уйдёт письмом на ',
+  'adm.otvet_chelovek_uvidit_ego': 'Ответ — человек увидит его в приложении',
+  'adm.i_poluchit_pismom': ' и получит письмом',
+  'adm.otvetit': 'Ответить',
+  'adm.otvet_otpravlen_pismom_na': 'Ответ отправлен письмом на ',
+  'adm.otvet_otpravlen_v_prilozhenie': 'Ответ отправлен: в приложение и на почту ',
+  'adm.otvet_otpravlen_v_prilozhenie_2': 'Ответ отправлен в приложение',
+  'adm.vernut_v_bez_otveta': 'Вернуть в «без ответа»',
+  'adm.razobrano': 'Разобрано',
+  'adm.zakryt_bez_otveta': 'Закрыть без ответа',
+  'adm.prodleniya': 'Продления',
+  'adm.perehod_iz_probnogo': 'Переход из пробного',
+  'adm.novye_pokupki': 'Новые покупки',
+  'adm.server_2': 'сервер',
+  'adm.domen': 'домен',
+  'adm.pochta_3': 'почта',
+  'adm.reklama': 'реклама',
+  'adm.prochee': 'прочее',
+  'adm.nedelyu': 'неделю',
+  'adm.nedeli': 'недели',
+  'adm.nedel': 'недель',
+  'adm.mesyac': 'месяц',
+  'adm.mesyaca': 'месяца',
+  'adm.mesyacev': 'месяцев',
+  'adm.god_2': 'год',
+  'adm.goda': 'года',
+  'adm.let': 'лет',
+  'adm.v': 'в ',
+  'adm.raz_v': 'раз в ',
+  'adm.razovo': 'разово',
+  'adm.ostorozhnyy': 'Осторожный',
+  'adm.ozhidaemyy': 'Ожидаемый',
+  'adm.horoshiy': 'Хороший',
+  'adm.g': ' г.',
+  'adm.predyduschiy_mesyac': 'Предыдущий месяц',
+  'adm.sleduyuschiy_mesyac': 'Следующий месяц',
+  'adm.skoro_oplatit': 'Скоро оплатить: ',
+  'adm.segodnya': ' сегодня',
+  'adm.zavtra': ' завтра',
+  'adm.cherez': ' через ',
+  'adm.dengi_za_mesyac': 'Деньги за месяц',
+  'adm.postupilo': 'Поступило',
+  'adm.oplata': 'оплата',
+  'adm.oplaty_2': 'оплаты',
+  'adm.oplat': 'оплат',
+  'adm.oplat_ne_bylo': 'оплат не было',
+  'adm.komissiya_robokassa': 'Комиссия Robokassa',
+  'adm.iz_nih_ocenka': 'из них оценка ',
+  'adm.po_dannym_robokassa': 'по данным Robokassa',
+  'adm.nalog': 'Налог',
+  'adm.ot_polnoy_summy_oplat': '% от полной суммы оплат',
+  'adm.rashody': 'Расходы',
+  'adm.godovye_po_1_12': 'годовые — по 1/12 в месяц',
+  'adm.chistymi': 'Чистыми',
+  'adm.na_segodnya': 'на сегодня',
+  'adm.za_mesyac_2': 'за месяц',
+  'adm.prognoz_na_konec_mesyaca': 'Прогноз на конец месяца',
+  'adm.chistymi_postupit': 'чистыми; поступит ~',
+  'adm.prognoz_na_mesyac': 'Прогноз на месяц',
+  'adm.chistymi_2': 'чистыми ~',
+  'adm.kak_poschitan_prognoz_na': 'Как посчитан прогноз на ',
+  'adm.scenariy': 'Сценарий',
+  'adm.postupit': 'Поступит',
+  'adm.slagaemoe_ozhidaemyy': 'Слагаемое (ожидаемый)',
+  'adm.kak': 'Как',
+  'adm.v_den': ' в день × ',
+  'adm.dn_za_30_dney': ' дн. (за 30 дней купили впервые: ',
+  'adm.chelovek_2': 'человек',
+  'adm.cheloveka': 'человека',
+  'adm.cena_mesyaca': ' × цена месяца',
+  'adm.ih_proshlaya_summa': ' × их прошлая сумма',
+  'adm.godovye_12': 'годовые / 12',
+  'adm.prodleniya_v_nastroykah': 'Продления: в настройках ',
+  'adm.fakticheski': 'фактически ',
+  'adm.prodlili': '% (продлили ',
+  'adm.fakticheskih_dannyh_poka_net': 'фактических данных пока нет',
+  'adm.perehod_iz_probnogo_2': 'Переход из пробного: ',
+  'adm.scenarii_ostorozhnyy_doli_0': 'Сценарии: осторожный — доли × 0,6 и новых × 0,6; хороший — доли × 1,3 и новых × 1,4',
+  'adm.po_mesyacam': 'По месяцам',
+  'adm.blednye_prognoz_ozhidaemyy_scenari': 'бледные — прогноз (ожидаемый сценарий)',
+  'adm.dengi_po_mesyacam': 'Деньги по месяцам',
+  'adm.prognoz': ' — прогноз',
+  'adm.poka': ' — пока',
+  'adm.postupilo_2': 'поступило',
+  'adm.komissiya_i_nalog': 'комиссия и налог',
+  'adm.rashody_2': 'расходы',
+  'adm.chistymi_3': 'чистыми',
+  'adm.mesyac_2': 'Месяц',
+  'adm.komissiya': 'Комиссия',
+  'adm.prognoz_2': ' (прогноз)',
+  'adm.podpiski_i_nalog': 'Подписки и налог',
+  'adm.mesyachnyy_dohod_mrr': 'Месячный доход (MRR)',
+  'adm.deystvuyuschih_oplat': 'действующих оплат: ',
+  'adm.godovye_po_1_12_2': '; годовые — по 1/12',
+  'adm.limit_npd_za': 'Лимит НПД за ',
+  'adm.iz_2': 'из ',
+  'adm.ostalos': ' · осталось ',
+  'adm.ispolzovano': 'использовано ',
+  'adm.limita': '% лимита',
+  'adm.bezubytochnost': 'Безубыточность',
+  'adm.rashody_3': 'расходы ~',
+  'adm.v_mesyac_s_odnoy': ' в месяц; с одной месячной подписки остаётся ',
+  'adm.platnyh_seychas': '; платных сейчас: ',
+  'adm.poka_pusto_dobav_server': 'Пока пусто — добавь сервер, домен, почту',
+  'adm.v_mesyac': ' в месяц',
+  'adm.data': 'дата: ',
+  'adm.sleduyuschaya_oplata': 'следующая оплата: ',
+  'adm.skoro': ' (скоро)',
+  'adm.udalit': 'Удалить',
+  'adm.udalit_2': 'Удалить «',
+  'adm.izmenit_rashod': 'Изменить расход',
+  'adm.dobavit_rashod': 'Добавить расход',
+  'adm.nazvanie': 'Название',
+  'adm.server_ruvds': 'Сервер RUVDS',
+  'adm.summa_2': 'Сумма, ₽',
+  'adm.raz_vo_skolko': 'Раз во сколько',
+  'adm.edinica': 'Единица',
+  'adm.povtoryat': 'Повторять',
+  'adm.povtoryat_raz_v': 'Повторять раз в',
+  'adm.data_oplaty': 'Дата оплаты',
+  'adm.kategoriya': 'Категория',
+  'adm.schitat_s_mesyaca': 'Считать с месяца',
+  'adm.data_oplaty_blizhayshaya_posle': 'Дата оплаты — ближайшая; после неё сервер сам перенесёт её на следующий период. За 7 дней — напоминание здесь и во ВКонтакте',
+  'adm.dobavit': 'Добавить',
+  'adm.oplaty_i_vozvraty': 'Оплаты и возвраты',
+  'adm.avtoprodlenie_po_prezhney_cene': 'Автопродление по прежней цене: ',
+  'adm.v_god': ' в год',
+  'adm.pri_tekuschey_cene': ' при текущей цене ',
+  'adm.uzhe_uvedomleny': ', уже уведомлены: ',
+  'adm.perevesti_na_novuyu_cenu': 'Перевести на новую цену',
+  'adm.uvedomit': 'Уведомить ',
+  'adm.pismom_i_v_prilozhenii': ' письмом и в приложении? Через 10 дней автопродление по прежней цене перестанет списывать — перед ближайшим списанием оно отключится. Оплаченный срок у людей сохранится',
+  'adm.uvedomlyayu': 'Уведомляю…',
+  'adm.uvedomleno': 'Уведомлено: ',
+  'adm.po_prezhney_cene_ne': '; по прежней цене не списываем с ',
+  'adm.vse_uvedomleny_avtoprodlenie_otkly': 'Все уведомлены — автопродление отключится перед ближайшим списанием после 10 дней с уведомления',
+  'adm.novye_oplaty_uzhe_idut': 'Новые оплаты уже идут по текущей цене. Кнопка уведомляет людей (письмо и плашка в приложении) и через 10 дней перестаёт списывать прежнюю сумму — подробнее в docs/payments.md',
+  'adm.pochta_ili_nomer_scheta': 'почта или номер счёта',
+  'adm.nayti': 'Найти',
+  'adm.ischu': 'Ищу…',
+  'adm.vozvrat_snachala_verni_dengi': 'Возврат: сначала верни деньги в кабинете Robokassa, потом отметь здесь — сервер уберёт возвращённый срок Pro и отключит автопродление. Пошагово — docs/payments.md',
+  'adm.nastroyki_rascheta': 'Настройки расчёта',
+  'adm.komissiya_robokassa_2': 'Комиссия Robokassa, %',
+  'adm.dlya_prognoza_i_oplat': '% — для прогноза и оплат без комиссии',
+  'adm.dlya_prognoza_i_oplat_2': 'для прогноза и оплат без комиссии',
+  'adm.nalog_2': 'Налог, %',
+  'adm.npd_4_s_fizlic': 'НПД: 4% с физлиц, 6% с юрлиц — от полной суммы',
+  'adm.prodlevayut': 'Продлевают, %',
+  'adm.pokupayut_posle_probnogo': 'Покупают после пробного, %',
+  'adm.limit_npd_v_god': 'Лимит НПД в год, ₽',
+  'adm.seychas_2_4_mln': 'сейчас 2,4 млн ₽',
+  'adm.eto_ocenka_dlya_tebya': 'Это оценка для тебя, а не налоговый учёт: доход в «Мой налог» регистрирует Robokassa (Робочеки)',
+  'adm.oplachen': 'оплачен',
+  'adm.vozvraschen': 'возвращён',
+  'adm.ne_oplachen': 'не оплачен',
+  'adm.ne_proshel': 'не прошёл',
+  'adm.soglasie_pri_oplate': 'согласие при оплате',
+  'adm.avtoprodlenie_vklyucheno': 'автопродление включено',
+  'adm.avtoprodlenie_otklyucheno': 'автопродление отключено',
+  'adm.otklyucheno_serverom_3_neudachi': 'отключено сервером (3 неудачи)',
+  'adm.uvedomlen_o_novoy_cene': 'уведомлён о новой цене',
+  'adm.v_prilozhenii': 'в приложении',
+  'adm.adminka': 'админка',
+  'adm.smena_ceny': 'смена цены',
+  'adm.navsegda_2': 'навсегда',
+  'adm.do': 'до ',
+  'adm.oplachen_2': ' (оплачен)',
+  'adm.probnyy_2': ' (пробный)',
+  'adm.net': 'нет',
+  'adm.avtoprodlenie': ' · автопродление: ',
+  'adm.vklyucheno': 'включено, ',
+  'adm.raz_v_god': ' раз в год',
+  'adm.raz_v_mesyac': ' раз в месяц',
+  'adm.vyklyucheno': 'выключено',
+  'adm.akkaunt_udalen_tolko_schet': 'аккаунт удалён — только счёт',
+  'adm.schet': 'Счёт',
+  'adm.oplachen_3': 'Оплачен',
+  'adm.srok': 'Срок',
+  'adm.status': 'Статус',
+  'adm.oplat_net': 'Оплат нет',
+  'adm.test': ' · тест',
+  'adm.avtospisanie': ' · автосписание',
+  'adm.s_soglasiem': ' · с согласием',
+  'adm.vernut': 'Вернуть…',
+  'adm.po_pravilam_oferty': 'По правилам оферты: ',
+  'adm.dengi_vernul_otmetit': 'Деньги вернул — отметить',
+  'adm.skolko_vernul_v_robokassa': 'Сколько вернул в Robokassa, ₽',
+  'adm.snachala_oformi_vozvrat_etoy': 'Сначала оформи возврат этой суммы в кабинете Robokassa (счёт № ',
+  'adm.potom_otmet_zdes_pro': '), потом отметь здесь: Pro уменьшится на возвращённый срок, автопродление отключится',
+  'adm.istoriya_soglasiy_na_avtospisaniya': 'История согласий на автосписания',
+  'adm.zapisey_net_avtoprodlenie_ne': 'Записей нет — автопродление не включал',
+  'adm.kogda_msk': 'Когда (МСК)',
+  'adm.chto': 'Что',
+  'adm.gde': 'Где',
+  'adm.summa_i_srok': 'Сумма и срок',
+  'adm.tekst_soglasiya': 'Текст согласия',
+  'adm.oferta': 'Оферта',
+  'adm.god_3': ' / год',
+  'adm.mesyac_3': ' / месяц',
+  'adm.cap.title': 'Слабое место сервера',
+  'adm.cap.all_ok': 'Все ресурсы в порядке',
+  'adm.cap.now': 'сейчас {v} при пороге {thr}',
+  'adm.cap.all': 'Все ресурсы и пороги',
+  'adm.cap.nodata': 'пока мало замеров',
+  'adm.cap.over': 'выше порога {n} {n|день|дня|дней} подряд',
+  'adm.cap.at': 'на пороге',
+  'adm.cap.left': 'до порога ~{n} {n|день|дня|дней} при таком росте',
+  'adm.cap.ok': 'в порядке, не растёт к порогу',
+  'adm.cap.tile.over': ' · выше порога {n} {n|день|дня|дней}',
+  'adm.cap.tile.left': ' · до порога ~{n} {n|день|дня|дней}',
+  'adm.cap.how': 'Значение дня — почти максимум за сутки (95% замеров ниже), тренд — за 14 дней. «Проблема» — память, процессор, время ответа, ошибки, память PocketBase выше порога 2 дня подряд, база и диск — сразу; о ней приходит сообщение во ВКонтакте, не чаще раза в сутки',
+  'adm.cap.mem': 'Память',
+  'adm.cap.cpu': 'Процессор',
+  'adm.cap.resp': 'Время ответа (95%)',
+  'adm.cap.err': 'Ошибки сервера',
+  'adm.cap.pb': 'Память PocketBase',
+  'adm.cap.db': 'База относительно памяти',
+  'adm.cap.disk': 'Диск занят',
+  'adm.cap.thr': 'Пороги',
+  'adm.cap.thr.mem': 'Память, % занято',
+  'adm.cap.thr.cpu': 'Процессор, %',
+  'adm.cap.thr.resp': 'Время ответа, мс',
+  'adm.cap.thr.err': 'Ошибки сервера, % запросов',
+  'adm.cap.thr.pb': 'PocketBase, % памяти',
+  'adm.cap.thr.db': 'База, % от памяти',
+  'adm.cap.thr.disk': 'Диск, % свободно не меньше',
+  'adm.cap.thr.warnDays': '«Скоро» — дней до порога',
+  'adm.cap.save': 'Сохранить пороги',
+  'adm.cap.saving': 'Сохраняю…',
+  'adm.resp.sub': 'мс: обычный запрос (половина быстрее) и 95% запросов быстрее',
+  'adm.resp.p50': 'Обычный запрос',
+  'adm.resp.p95': '95% быстрее',
+  'adm.slow.title': 'Самые медленные запросы',
+  'adm.slow.sub': 'за период: по каждому адресу — самый долгий случай',
+  'adm.slow.none': 'Пока нет замеров',
+  'adm.slow.url': 'Запрос',
+  'adm.slow.when': 'Когда',
+  'adm.ago.now': 'только что',
+  'adm.ago.s': '{n} с назад',
+  'adm.ago.m': '{n} мин назад',
+  'adm.fb.topics': 'Темы:',
+  'adm.fb.topics.all': 'Все',
+  'adm.fb.topic.count': '{open} из {n}',
+  'adm.fb.topic.count_long': 'без ответа {open} · всего {n}',
+  'adm.fb.topic.add': '+ Тема',
+  'adm.fb.topic.ask': 'Название новой темы',
+  'adm.fb.topic.new_opt': 'Новая тема…',
+  'adm.fb.topic.title_ph': 'Название темы, например «Не грузятся изображения на iPhone»',
+  'adm.fb.topic.note_ph': 'Заметка для себя (необязательно)',
+  'adm.fb.topic.with_sel': 'сразу добавить выбранные ({n})',
+  'adm.fb.topic.create': 'Создать тему',
+  'adm.fb.topic.empty': 'В выбранных темах обращений без ответа нет',
+  'adm.fb.topic.open': '· открыта',
+  'adm.fb.topic.fixed': '· исправлено',
+  'adm.fb.topic.reply_all': 'Ответить всем в теме ({n})',
+  'adm.fb.topic.mark_fixed': 'Исправлено',
+  'adm.fb.topic.reopen': 'Снова открыть',
+  'adm.fb.topic.edit': 'Изменить',
+  'adm.fb.topic.delete': 'Удалить тему',
+  'adm.fb.topic.delete_q': 'Удалить тему «{t}»? Обращения останутся, пропадёт только привязка',
+  'adm.fb.topic.unlink': 'Убрать из темы «{t}»',
+  'adm.fb.to_topic': 'В тему…',
+  'adm.fb.suggest': 'Похоже на тему «{t}»',
+  'adm.fb.suggest.add': 'Добавить',
+  'adm.fb.pick': 'Выбрать',
+  'adm.fb.sel': 'Выбрано: {n}',
+  'adm.fb.sel.reply': 'Ответить выбранным',
+  'adm.fb.sel.clear': 'Снять выбор',
+  'adm.fb.bulk.title': 'Ответ сразу {n} {n|человеку|людям|людям}',
+  'adm.fb.bulk.who': 'Кому ({n})',
+  'adm.fb.bulk.add_hint': 'Снять галочку — убрать из ответа. Добавить — отметить обращение в списке, в том числе в другой теме или в «Все»',
+  'adm.fb.bulk.ph': 'Общий ответ: каждый получит его в приложении и на почту',
+  'adm.fb.bulk.fixed': 'Отметить тему «{t}» исправленной',
+  'adm.fb.bulk.send': 'Отправить {n}',
+  'adm.fb.bulk.close': 'Закрыть',
+  'adm.fb.bulk.confirm': 'Отправить ответ {n} {n|человеку|людям|людям}? Отменить будет нельзя',
+  'adm.fb.bulk.done': 'Ответ сохранён у {n}, писем в очереди {m} — уходят по 20 в минуту',
+  'adm.fb.bulk.skipped': ', пропущено {n} (нет адреса или почта не настроена)',
+  'adm.fb.tpl': 'Шаблон…',
+  'adm.fb.tpl.save': 'Сохранить как шаблон',
+  'adm.fb.tpl.ask': 'Название шаблона',
+  'adm.fb.tpl.saved': 'Шаблон «{t}» сохранён',
+  'adm.fb.tpl.list': 'Шаблоны ({n})',
+  'adm.fb.tpl.del': 'Удалить шаблон',
+  'adm.fb.tpl.del_q': 'Удалить шаблон «{t}»?',
+  'adm.fb.mail.queued': 'письмо в очереди',
+  'adm.fb.mail.sent': 'письмо ушло',
+  'adm.fb.mail.error': 'письмо не ушло: {e}',
+  'adm.fb.resolved': 'Решённые ({n})',
+  'adm.fb.err.none': 'Ошибок страницы нет',
+  'adm.fb.err.all_done': 'Все ошибки разобраны',
+  'adm.fb.err.span': 'первая {a}, последняя {b}',
+  'adm.fb.err.back': 'вернулась после решения: {n}',
+  'adm.fb.err.last': 'Последняя',
+  'adm.fb.err.done_all': 'Разобрано (все {n})',
+  'adm.fb.err.undo': 'Вернуть',
 };
 
 window.STR_VARS = window.STR_VARS || {};
@@ -2330,6 +2893,12 @@ body.sheet-open{overflow:hidden}
 .fb-sheet{max-width:520px;padding:18px 22px 20px;gap:12px;margin-top:8vh}
 .fb-sheet textarea{width:100%;box-sizing:border-box;min-height:140px;resize:vertical;border:1px solid var(--line-strong);border-radius:var(--rad-l);background:var(--bg);color:var(--ink);padding:10px 12px;font:15px/1.5 var(--f-body)}
 .fb-sheet .hint{margin:0}
+.fb-shots{display:flex;flex-wrap:wrap;gap:8px}
+.fb-shots:empty{display:none}
+.fb-shot{position:relative;display:block;width:72px;height:72px;border-radius:var(--rad-m);overflow:hidden;border:1px solid var(--line-strong);background:var(--bg)}
+.fb-shot img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-shot button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;padding:0;background:var(--ink);color:var(--bg);font-size:14px;line-height:22px;cursor:pointer}
+.fb-item .fb-shots{margin-top:6px}
 .fb-sheet .seg{align-self:flex-start}
 .help-toc{display:flex;gap:6px;flex-wrap:wrap;padding:0 22px 12px;border-bottom:1px solid var(--line)}
 .help-toc a{font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:var(--rad-pill);padding:3px 10px}
@@ -2522,6 +3091,9 @@ body.home-view .chips-row,body.home-view #scopebar,body.home-view #new-note{disp
 .home-train-wrap .home-train .ht-t{min-width:0;flex:1}
 .home-train-wrap .home-train .ht-t span,.home-train-wrap .home-train .ht-t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* узкая колонка: подпись в одну строку, не налезает на крестик */
 .rail-tiles .home-train-wrap{margin-bottom:8px}
+/* узкая левая колонка компьютера (12.11: «Трен… / 10 карт…»): кольцо меньше, подпись переносится, а не обрезается */
+.rail-tiles .home-train{gap:10px;padding:12px}.rail-tiles .home-train .pring{--rs:44px}.rail-tiles .home-train .chev{display:none}
+.rail-tiles .home-train-wrap .home-train .ht-t span,.rail-tiles .home-train-wrap .home-train .ht-t b{white-space:normal;overflow:visible}
 .home-top[hidden]{display:none}
 body.home-view .list-head h2{display:flex;align-items:center;gap:8px;min-width:0}
 .ttl-up{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
@@ -2594,6 +3166,8 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 #home-all .fico{width:18px;height:18px;margin-right:6px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8}
 .home-bar{position:fixed;left:0;right:0;bottom:0;z-index:11;display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:transparent;pointer-events:none}   /* без подложки (08.11): кнопки сами плотные */
 .home-bar .btn{pointer-events:auto;box-shadow:var(--sh-pop)}
+/* планшет / узкое окно (761–1100, 12.11): плитки в колонке списка, заметка рядом — кнопки внизу только под колонкой списка, а не поверх заметки */
+@media (min-width:761px) and (max-width:1100px){.home-bar{position:sticky;left:auto;right:auto;margin:0 -12px}}
 .home-bar .btn{flex:1;padding-block:12px;font-size:16px}
 /* компьютер с плитками (05.11): в колонке разделов и в колонке заметок плитки; колонка шире 300 px — по две квадратные, уже — по одной, высота по содержимому */
 .rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
@@ -2604,6 +3178,9 @@ body.desk-tiles .list-head h2{display:block;flex:0 1 auto}
 body.desk-tiles .list-head #new-note{font-size:0;line-height:0;width:34px;height:34px;padding:0;display:inline-flex!important;align-items:center;justify-content:center}   /* узкая колонка: «+ Заметка» — просто «+», текст остаётся для чтения с экрана */
 body.desk-tiles .list-head #new-note::after{content:'+';font:700 22px/1 var(--f-body);display:block;margin-top:-2px}
 body.desk-tiles .list-head .icon-btn{width:34px;height:34px;padding:0;justify-content:center}
+/* Modern: кнопки шапки списка — одной группой справа, как на телефоне; «+» — главная кнопка (цвет акцента, как «+ Заметка» внизу на телефоне) (12.11) */
+:root[data-skin="play"] .list-head #sort-btn{margin-left:auto}:root[data-skin="play"] .list-head #read-all{margin-left:0}
+:root[data-skin="play"] body.desk-tiles .list-head #new-note{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 body.desk-tiles .tiles{grid-template-columns:minmax(0,1fr)}
 body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 @container (min-width:300px){
@@ -3600,6 +4177,42 @@ function replaceInEditor(from, to) {
   const vis = $('#ed-prev');
   if (vis) vis.querySelectorAll(`img[data-src="${CSS.escape(from)}"]`).forEach(img => { if (to) img.dataset.src = to; else img.closest('p')?.childNodes.length === 1 ? img.closest('p').remove() : img.remove(); });
 }
+// абзац с изображением — на место курсора rg в «Визуально» (12.11: одно место для загрузки файла, вставки из буфера и переноса мышью)
+function visPlacePara(vis, rg, para) {
+  if (rg && !vis.contains(rg.startContainer)) rg = null;
+  let block = rg ? rg.startContainer : null;
+  while (block && block.parentNode !== vis) block = block.parentNode;
+  // курсор посреди абзаца — абзац делится, изображение встаёт на место курсора; в списке, таблице, цитате, коде — после блока
+  if (block && block !== vis && rg && /^(P|DIV)$/.test(block.nodeName) && block.contains(rg.startContainer)) {
+    const tail = document.createRange(); tail.setStart(rg.startContainer, rg.startOffset); tail.setEnd(block, block.childNodes.length);
+    const rest = block.cloneNode(false); rest.appendChild(tail.extractContents());
+    block.after(para); if (rest.textContent.trim() || rest.querySelector('img')) para.after(rest);
+    if (!block.textContent.trim() && !block.querySelector('img')) block.remove();
+  } else if (block && /^(UL|OL)$/.test(block.nodeName) && rg && block.contains(rg.startContainer) && (rg.startContainer.nodeType === 1 ? rg.startContainer : rg.startContainer.parentElement).closest('li')) {
+    // в списке — после пункта с курсором: список делится, хвост — отдельным списком (нумерация продолжается). Курсор посреди пункта —
+    // пункт делится (как абзац); во вложенном пункте — после пункта верхнего уровня, в который он вложен (12.11)
+    let li = (rg.startContainer.nodeType === 1 ? rg.startContainer : rg.startContainer.parentElement).closest('li');
+    const top = (() => { let t = li; while (t.parentElement !== block) t = t.parentElement.closest('li'); return t; })();
+    let head = null;
+    if (li === top) {
+      const stop = [...li.childNodes].find(n => n.nodeType === 1 && /^(UL|OL)$/.test(n.nodeName));
+      const tail = document.createRange(); tail.setStart(rg.startContainer, rg.startOffset);
+      if (stop) tail.setEndBefore(stop); else tail.setEnd(li, li.childNodes.length);
+      const frag = tail.extractContents();
+      if (frag.textContent.trim() || frag.querySelector?.('img')) { head = li.cloneNode(false); if (head.dataset.checked) head.dataset.checked = 'false'; head.appendChild(frag); }
+      else if (!li.textContent.trim() && !li.querySelector('img, ul, ol')) { const prev = li.previousElementSibling; if (prev) { li.remove(); li = prev; } }   // пустой пункт — изображение встаёт вместо него
+    }
+    const anchor = li === top || !top.isConnected ? li : top;
+    const rest = block.cloneNode(false), idx = [...block.children].indexOf(anchor);
+    if (head) { rest.appendChild(head); [...anchor.childNodes].filter(n => n.nodeType === 1 && /^(UL|OL)$/.test(n.nodeName)).forEach(n => head.appendChild(n)); }
+    while (anchor.nextSibling) rest.appendChild(anchor.nextSibling);
+    // пустой пункт сразу после (Enter в конце пункта, курсор был в нём; после перерисовки курсор — в конце пункта выше) — изображение вместо него
+    if (!head && rest.firstElementChild && !rest.firstElementChild.textContent.trim() && !rest.firstElementChild.querySelector('img, ul, ol')) rest.firstElementChild.remove();
+    block.after(para);
+    if (rest.children.length) { if (block.nodeName === 'OL') rest.setAttribute('start', (+block.getAttribute('start') || 1) + idx + 1); para.after(rest); }
+    if (!block.children.length) block.remove();
+  } else if (block && block !== vis) block.after(para); else vis.appendChild(para);
+}
 // put an image into the open editor right away (as a local preview) and upload it in the background
 // at — позиция курсора, запомненная при нажатии кнопки «изображение» (пока выбирают файл, поле теряет фокус и выделение — на телефоне вставка уходила в конец)
 function insertUpload(file, at) {
@@ -3614,26 +4227,10 @@ function insertUpload(file, at) {
     // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
     { const rr = at?.pos ? visRangeAt(vis, at.pos) : at?.range; if (rr) savedRange = rr; }   // положение курсора — номером блока и смещением: пока выбирают файл, «Визуально» может перерисоваться
     vis.focus(); restoreSel();
-    const sel = getSelection(); let block = sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
-    if (block && !vis.contains(block)) block = null;
-    while (block && block.parentNode !== vis) block = block.parentNode;
+    const sel = getSelection();
     const para = document.createElement('p'); const img = document.createElement('img');
     img.src = localImages[key]; img.dataset.src = key; img.alt = ''; para.appendChild(img);
-    // курсор посреди абзаца — абзац делится, изображение встаёт на место курсора; в списке, таблице, цитате, коде — после блока
-    const rg = sel.rangeCount ? sel.getRangeAt(0) : null;
-    if (block && block !== vis && rg && /^(P|DIV)$/.test(block.nodeName) && block.contains(rg.startContainer)) {
-      const tail = document.createRange(); tail.setStart(rg.startContainer, rg.startOffset); tail.setEnd(block, block.childNodes.length);
-      const rest = block.cloneNode(false); rest.appendChild(tail.extractContents());
-      block.after(para); if (rest.textContent.trim() || rest.querySelector('img')) para.after(rest);
-      if (!block.textContent.trim() && !block.querySelector('img')) block.remove();
-    } else if (block && /^(UL|OL)$/.test(block.nodeName) && rg && (li => li && li.parentNode === block)(rg.startContainer.nodeType === 1 ? rg.startContainer.closest('li') : rg.startContainer.parentElement?.closest('li'))) {
-      // в списке — после пункта с курсором: список делится, хвост — отдельным списком (нумерация продолжается)
-      const li = (rg.startContainer.nodeType === 1 ? rg.startContainer : rg.startContainer.parentElement).closest('li');
-      const rest = block.cloneNode(false), idx = [...block.children].indexOf(li);
-      while (li.nextSibling) rest.appendChild(li.nextSibling);
-      block.after(para);
-      if (rest.children.length) { if (block.nodeName === 'OL') rest.setAttribute('start', (+block.getAttribute('start') || 1) + idx + 1); para.after(rest); }
-    } else if (block && block !== vis) block.after(para); else vis.appendChild(para);
+    visPlacePara(vis, sel.rangeCount ? sel.getRangeAt(0) : null, para);
     if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
     const r = document.createRange(); r.setStart(para.nextSibling, 0); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); saveSel();
     vis.dispatchEvent(new Event('input', { bubbles: true }));
@@ -3723,8 +4320,9 @@ window.addEventListener('notes-sync', e => { if (e.detail && !e.detail.offline &
 function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.test(imgType(f))); }
 // изображение: на телефоне — выбор «Сфотографировать» (камера сразу) или «Выбрать изображения» (галерея и файлы, можно несколько);
 // Android с выбором нескольких файлов камеру не предлагает, поэтому отдельный пункт. На компьютере — сразу выбор файлов
+// позиция — последняя, где курсор поставил человек (lastVisPos, по selectionchange): savedRange после перерисовки «Визуально» указывает в начало
 function pickImages() {
-  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { pos: (v => (v && savedRange && v.contains(savedRange.startContainer) && visPosOf(v, savedRange)) || lastVisPos)($('#ed-prev')) } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
+  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { pos: lastVisPos || (v => v && savedRange && v.contains(savedRange.startContainer) && visPosOf(v, savedRange))($('#ed-prev')) } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
   const go = cam => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     if (cam) inp.setAttribute('capture', 'environment'); else inp.multiple = true;
@@ -4453,7 +5051,7 @@ function renderSecHero(terms) {
    В Modern на плитке раздела — цветная буква и цветная плитка, в Classic — значок папки */
 // не выбрано вручную — в Modern плитки, в Classic список (решено 05.11)
 const homePref = () => S.settings?.home === 'tiles' || S.settings?.home === 'list' ? S.settings.home : lookPrefs().skin === 'play' ? 'tiles' : 'list';
-const homeOn = () => isPhone() && homePref() === 'tiles';
+const homeOn = () => !WIDE.matches && homePref() === 'tiles';   // телефон и планшет / узкое окно (761–1100: колонка списка — плитки, заметка — рядом; 12.11)
 // компьютер (> 1100 px) с плитками: три колонки остаются — в первой плитки разделов, во второй плитки заметок, справа заметка (05.11)
 const deskTiles = () => WIDE.matches && homePref() === 'tiles' && !window.NOTES_DESK_LIST;   // NOTES_DESK_LIST — только тесты pb_* (их сценарии — для списка)
 const homeShown = () => (homeOn() || deskTiles()) && S.mode === 'lib' && !S.q && (isVirtual(S.section) || S.sections.has(S.section));
@@ -7095,9 +7693,8 @@ function renderEditor(box) {
       if (!r || !vis.contains(r.startContainer) || im.contains(r.startContainer)) return;
       histRecord(vis);
       const old = im.closest('p'); im.remove(); if (old && old !== vis && !old.textContent.trim() && !old.querySelector('img')) old.remove();
-      let blk = r.startContainer; while (blk && blk.parentNode !== vis) blk = blk.parentNode;
       const para = document.createElement('p'); para.appendChild(im);
-      if (blk) blk.after(para); else vis.appendChild(para);
+      visPlacePara(vis, r, para);   // на место, куда отпустили: посреди абзаца или пункта — делится
       if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
       visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true }));
     }, true);
@@ -7116,10 +7713,9 @@ function renderEditor(box) {
       if (rn) {
         try {
           const d = JSON.parse(rn); e.preventDefault(); saveSel(); restoreSel();
-          const sel = getSelection(); let blk = sel.rangeCount ? sel.getRangeAt(0).startContainer : null; if (blk && !vis.contains(blk)) blk = null;
-          while (blk && blk.parentNode !== vis) blk = blk.parentNode;
+          const sel = getSelection();
           const im = document.createElement('img'); im.src = d.src; im.alt = d.alt; if (d.ds) im.dataset.src = d.ds; if (d.w) im.setAttribute('width', d.w);
-          const para = document.createElement('p'); para.appendChild(im); if (blk) blk.after(para); else vis.appendChild(para);
+          const para = document.createElement('p'); para.appendChild(im); visPlacePara(vis, sel.rangeCount ? sel.getRangeAt(0) : null, para);
           if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
           visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true })); return;
         } catch {}
@@ -7517,7 +8113,8 @@ function mdBlock(el) {
   if (tag === 'PRE') {
     const code = el.querySelector('code');
     const lang = ((code?.className || '').match(/language-([\w+#-]+)/) || [])[1] || '';
-    const text = (code || el).textContent.replace(/ /g, ' ').replace(/\u200b/g, '').replace(/\n$/, '');
+    // весь текст блока, а не только <code>: Chrome мог вклеить в <pre> текст мимо <code> (Backspace после блока) — он пропадал (12.11)
+    const text = el.textContent.replace(/ /g, ' ').replace(/\u200b/g, '').replace(/\n$/, '');
     return '```' + lang + '\n' + text + '\n```';
   }
   if (tag === 'UL' || tag === 'OL') return mdList(el);
@@ -7698,6 +8295,9 @@ function visRangeAt(v, pos) {
 document.addEventListener('focusin', e => { if (e.target?.id === 'ed-prev') visFocusAt = Date.now(); });
 document.addEventListener('selectionchange', () => {
   const v = $('#ed-prev'), sel = getSelection(); if (!v || !sel.rangeCount || !v.contains(sel.anchorNode)) return;
+  // выделение на самом редакторе (а не в тексте) ставит браузер после перерисовки «Визуально» из Markdown — не выбор человека (12.11:
+  // пустая строка между абзацами → изображение уходило в начало заметки)
+  if (sel.anchorNode === v) return;
   const r = sel.getRangeAt(0), pos = visPosOf(v, r); if (!pos) return;
   // сразу после focus() браузер ставит курсор в начало — это не выбор человека, прежнее положение не затираем
   if (r.collapsed && pos.bi <= 0 && !pos.off && Date.now() - visFocusAt < 150 && lastVisPos) return;
@@ -7839,6 +8439,45 @@ function visActionKeep(act, vis) {
   for (const t of ['touchstart', 'wheel', 'pointerdown', 'keydown']) box.addEventListener(t, stop, true);   // человек сам прокручивает — не мешаем
   setTimeout(stop, 900);
 }
+// блоки верхнего уровня, которых касается выделение (12.11: несколько абзацев — кнопки заголовка / цитаты / списка обрабатываем сами:
+// Chrome в formatBlock и при снятии списка склеивал абзацы в один — «## alpha beta gamma», «alpha⏎beta⏎gamma»)
+function visSelBlocks(vis) {
+  const sel = getSelection(); if (!sel.rangeCount) return [];
+  const r = sel.getRangeAt(0); return [...vis.children].filter(b => r.intersectsNode(b));
+}
+// пункты списка → обычные абзацы, каждый своим абзацем; список делится вокруг них, нумерация хвоста продолжается
+function visListOff(vis, lis) {
+  const sel = getSelection(), first = [];
+  for (const li of lis) {
+    const list = li.parentElement; if (!list || !/^(UL|OL)$/.test(list.tagName) || list.parentElement !== vis) continue;
+    const idx = [...list.children].indexOf(li), rest = list.cloneNode(false);
+    while (li.nextSibling) rest.appendChild(li.nextSibling);
+    const p = document.createElement('p');
+    [...li.childNodes].forEach(n => { if (n.nodeType === 1 && /^(UL|OL)$/.test(n.tagName)) rest.prepend(...n.children); else if (!(n.nodeType === 1 && n.tagName === 'INPUT')) p.appendChild(n); });
+    if (!p.childNodes.length) p.appendChild(document.createElement('br'));
+    li.remove(); list.after(p);
+    if (rest.children.length) { if (list.tagName === 'OL') rest.setAttribute('start', (+list.getAttribute('start') || 1) + idx); p.after(rest); }
+    if (!list.children.length) list.remove();
+    first.push(p);
+  }
+  if (first.length) { const r = document.createRange(); r.setStart(first[0], 0); const l = first[first.length - 1]; r.setEnd(l, l.childNodes.length); sel.removeAllRanges(); sel.addRange(r); }
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
+// Chrome кладёт новый список внутрь абзаца (<p><ul>…</ul></p>, так не бывает) — дальше «отжать» список, заголовок и т. п. спотыкались (12.11)
+function visFixLists(vis) {
+  const sl = getSelection(), a = [sl.anchorNode, sl.anchorOffset, sl.focusNode, sl.focusOffset];   // выделение — в тексте пунктов, после переноса восстанавливаем
+  vis.querySelectorAll(':scope > p > ul, :scope > p > ol, :scope > div > ul, :scope > div > ol').forEach(l => {
+    const p = l.parentElement;
+    if ([...p.childNodes].every(n => n === l || n.nodeName === 'BR' || (n.nodeType === 3 && !n.data.replace(/\u200b/g, '').trim()))) p.replaceWith(l);
+  });
+  try { if (a[0]?.isConnected && a[2]?.isConnected) sl.setBaseAndExtent(a[0], a[1], a[2], a[3]); } catch {}
+}
+function visRetag(vis, blocks, tag) {
+  const out = blocks.map(b => { const n = document.createElement(tag); while (b.firstChild) n.appendChild(b.firstChild); b.replaceWith(n); return n; });
+  const r = document.createRange(); r.setStart(out[0], 0); const l = out[out.length - 1]; r.setEnd(l, l.childNodes.length);
+  const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+  vis.dispatchEvent(new Event('input', { bubbles: true }));
+}
 function visAction(act, vis) {
   const hadSel = getSelection(), lost = !(hadSel.rangeCount && vis.contains(hadSel.anchorNode));   // телефон: нажатие кнопки сняло выделение — focus() поставил бы курсор в начало
   vis.focus({ preventScroll: true });
@@ -7862,11 +8501,21 @@ function visAction(act, vis) {
     }
     case 'h1': case 'heading': case 'h2': {
       const lvl = act === 'h1' ? 'h1,h2' : 'h3,h4,h5,h6', tag = act === 'h1' ? 'h2' : 'h3';
+      { const bs = visSelBlocks(vis); if (bs.length > 1 && bs.every(b => /^(P|DIV|H[1-6])$/.test(b.tagName))) return visRetag(vis, bs, bs.every(b => b.matches(lvl)) ? 'p' : tag); }
       if (closestIn(vis, lvl)) return exec('formatBlock', 'p');
       if (closestIn(vis, 'li')) visPlain(vis);   // из списка — в заголовок, а не заголовок со списком внутри
       return exec('formatBlock', tag);
     }
-    case 'quote': if (closestIn(vis, 'blockquote')) return visUnquote(vis); return exec('formatBlock', 'blockquote');
+    case 'quote': {
+      if (closestIn(vis, 'blockquote')) return visUnquote(vis);
+      const bs = visSelBlocks(vis);
+      if (bs.length > 1 && bs.every(b => /^(P|DIV|H[1-6]|UL|OL)$/.test(b.tagName))) {   // несколько абзацев — одна цитата, абзацы внутри остаются абзацами
+        const bq = document.createElement('blockquote'); bs[0].before(bq); bs.forEach(b => bq.appendChild(b));
+        const r = document.createRange(); r.selectNodeContents(bq); getSelection().removeAllRanges(); getSelection().addRange(r);
+        vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+      }
+      return exec('formatBlock', 'blockquote');
+    }
     case 'ul': case 'ol': {
       const cmd = act === 'ul' ? 'insertUnorderedList' : 'insertOrderedList', want = act === 'ul' ? 'UL' : 'OL';
       const lis = visSelLis(vis), tasks = lis.filter(li => li.classList.contains('task'));
@@ -7875,17 +8524,19 @@ function visAction(act, vis) {
         if (lis.every(li => li.parentElement && li.parentElement.tagName === want)) { vis.dispatchEvent(new Event('input', { bubbles: true })); return; }
       }
       else if (!lis.length) visPlain(vis);   // из заголовка
-      else if (lis.length === 1 && lis[0].parentElement.tagName === want && lis[0].parentElement.parentElement.closest('li') && vis.contains(lis[0].parentElement.parentElement.closest('li'))) { visUnlist(vis, lis[0]); return; }   // вложенный пункт: «отжать» = на уровень выше (браузер ломал разметку <li> в <li>)
-      return exec(cmd);
+      else if (lis.length === 1 && lis[0].parentElement.tagName === want && lis[0].parentElement.parentElement.closest('li') && vis.contains(lis[0].parentElement.parentElement.closest('li'))) { visUnlist(vis, lis[0]); return; }
+      else if (lis.every(li => li.parentElement?.tagName === want && li.parentElement.parentElement === vis)) return visListOff(vis, lis);   // «отжать» список — абзацы остаются абзацами   // вложенный пункт: «отжать» = на уровень выше (браузер ломал разметку <li> в <li>)
+      { const ok = exec(cmd); visFixLists(vis); return ok; }
     }
     case 'task': {
-      if (!closestIn(vis, 'li')) { visPlain(vis); exec('insertUnorderedList'); }
+      if (!closestIn(vis, 'li')) { visPlain(vis); exec('insertUnorderedList'); visFixLists(vis); }
       else if (visSelLis(vis).some(li => li.parentElement && li.parentElement.tagName === 'OL') && !visSelLis(vis).every(li => li.classList.contains('task'))) exec('insertUnorderedList');   // нумерованный → чеклист: квадратики бывают только у маркированного списка
       const lis = visSelLis(vis);
       if (!lis.length) return;
       const on = !lis.every(li => li.classList.contains('task'));
       // «отжал» чек-лист на пустом пункте (только квадратик) — список исчезает совсем, а не становится маркированным
       if (!on && lis.length === 1 && !lis[0].textContent.replace(/[\u200b\s]/g, '') && !lis[0].querySelector('img')) { visUnlist(vis, lis[0]); return; }
+      if (!on && lis.every(li => li.parentElement?.parentElement === vis)) return visListOff(vis, lis);   // «отжать» чек-лист — обычный текст, как у других списков (12.11: становился маркированным — это был баг)
       lis.forEach(li => { if (on) { li.classList.add('task'); li.dataset.checked = li.dataset.checked || 'false'; } else visUntask(li); });
       vis.dispatchEvent(new Event('input', { bubbles: true })); return;
     }
@@ -7902,6 +8553,17 @@ function visAction(act, vis) {
       // часть строки абзаца: Chrome вставляет <pre> посреди абзаца не блоком, а span со стилями — блока кода не получалось, текст
       // рвался на пустые абзацы (02.11, тестирование, блок 3). Делим абзац сами: до выделения | блок кода | после
       const rg = sel.rangeCount ? sel.getRangeAt(0) : null, el = n => n && (n.nodeType === 1 ? n : n.parentElement);
+      { // курсор без выделения в строке с текстом (абзац или заголовок) — вся строка становится блоком кода; раньше слово рвалось
+        // и посередине вставлялась заготовка «// код» (12.11)
+        const line = rg && rg.collapsed && el(rg.startContainer)?.closest('p, div, h1, h2, h3, h4, h5, h6');
+        if (line && line !== vis && line.parentElement === vis && line.textContent.replace(/\u200b/g, '').trim() && !line.querySelector('img')) {
+          const pre = document.createElement('pre'), code = document.createElement('code'); code.className = 'language-kotlin';
+          code.textContent = [...line.childNodes].map(n => n.nodeName === 'BR' ? '\n' : n.textContent).join('').replace(/\u200b/g, ''); pre.appendChild(code);
+          line.replaceWith(pre); if (!pre.nextSibling) { const t = document.createElement('p'); t.appendChild(document.createElement('br')); pre.after(t); }
+          const r = document.createRange(); r.selectNodeContents(code); r.collapse(false); sel.removeAllRanges(); sel.addRange(r);
+          vis.dispatchEvent(new Event('input', { bubbles: true })); return true;
+        }
+      }
       const blk = rg && el(rg.startContainer)?.closest('p, div');
       if (blk && blk !== vis && blk.parentElement === vis && blk.contains(rg.endContainer)) {
         histRecord(vis);
@@ -8305,6 +8967,24 @@ function visPreEnter(e, vis) {
 }
 function visKeydown(e, vis) {
   if (visExitInline(e, vis) || visPreEnter(e, vis)) return;
+  // Backspace в начале строки сразу после блока кода: строка присоединяется к последней строке кода (Chrome вклеивал её в <pre>
+  // мимо <code> — при сохранении текст пропадал, 12.11); пустая строка просто убирается, курсор — в конец кода
+  if (e.key === 'Backspace' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const sl = getSelection(), r = sl.rangeCount && sl.getRangeAt(0);
+    let blk = r && r.collapsed ? (r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement) : null;
+    while (blk && blk.parentElement !== vis) blk = blk.parentElement;
+    const pre = blk?.previousElementSibling;
+    if (blk && pre?.tagName === 'PRE' && /^(P|DIV|H[1-6])$/.test(blk.tagName)) {
+      const pr = document.createRange(); pr.setStart(blk, 0); pr.setEnd(r.startContainer, r.startOffset);
+      if (!pr.toString().replace(/\u200b/g, '')) {
+        e.preventDefault(); histRecord(vis);
+        const code = pre.querySelector('code') || pre, t = blk.textContent.replace(/\u200b/g, ''), at = code.textContent.replace(/\n$/, '').length;
+        code.textContent = code.textContent.replace(/\n$/, '') + t; blk.remove();
+        const tn = code.firstChild || code, nr = document.createRange(); nr.setStart(tn, Math.min(at, tn.length ?? 0)); nr.collapse(true); sl.removeAllRanges(); sl.addRange(nr);
+        vis.dispatchEvent(new Event('input', { bubbles: true })); return;
+      }
+    }
+  }
   const mod = e.ctrlKey || e.metaKey;
   // таблица: Tab / Shift+Tab — соседняя ячейка (после последней — новая строка), Enter — ячейка ниже (в последней строке — новая строка).
   // Раньше Tab уводил фокус из редактора, а перенос внутри ячейки при сохранении склеивался с текстом (в Markdown ячейка — одна строка)
@@ -9568,7 +10248,7 @@ function fbMineHtml() {
   if (!f || !f.items?.length) return '<div id="fb-mine-wrap"></div>';
   const when = x => shortDate(String(x).replace(' ', 'T'));
   return `<div id="fb-mine-wrap"><details class="fb-mine" id="fb-mine"${f.unseen ? ' open' : ''}><summary>${tt('fb.mine', { n: f.items.length })}${f.unseen ? ` <span class="fb-new">${tt('fb.new.reply')}</span>` : ''}</summary>
-    ${f.items.map(x => `<div class="fb-item" data-fb="${esc(x.id)}">${window.NOTES_FEEDBACK_HIDE ? `<button type="button" class="fb-del" data-fb-del aria-label="${tt('fb.del')}" title="${tt('fb.del')}">✕</button>` : ''}<div class="fb-meta">${FB_KIND[x.kind] || ''} · ${esc(when(x.created))}</div><div class="fb-text${x.text.length > 300 || x.text.split('\n').length > 6 ? ' clamp' : ''}">${esc(x.text)}</div>${x.text.length > 300 || x.text.split('\n').length > 6 ? `<button type="button" class="fb-more">${tt('fb.more')}</button>` : ''}
+    ${f.items.map(x => `<div class="fb-item" data-fb="${esc(x.id)}">${window.NOTES_FEEDBACK_HIDE ? `<button type="button" class="fb-del" data-fb-del aria-label="${tt('fb.del')}" title="${tt('fb.del')}">✕</button>` : ''}<div class="fb-meta">${FB_KIND[x.kind] || ''} · ${esc(when(x.created))}</div><div class="fb-text${x.text.length > 300 || x.text.split('\n').length > 6 ? ' clamp' : ''}">${esc(x.text)}</div>${x.text.length > 300 || x.text.split('\n').length > 6 ? `<button type="button" class="fb-more">${tt('fb.more')}</button>` : ''}${x.shots?.length ? `<div class="fb-shots">${x.shots.map(u => `<a class="fb-shot" href="${esc(u)}" target="_blank" rel="noopener" title="${tt('fb.shot.open')}"><img src="${esc(u)}" alt="" loading="lazy"></a>`).join('')}</div>` : ''}
       ${x.reply ? `<div class="fb-reply${x.seen ? '' : ' unseen'}"><div class="fb-meta">${tt('fb.reply')} · ${esc(when(x.replied))}${x.seen ? '' : ` <span class="fb-new">${tt('fb.new')}</span>`}</div><div class="fb-text">${esc(x.reply)}</div></div>`
         : `<div class="fb-meta fb-wait">${tt('fb.wait')}</div>`}</div>`).join('')}
   </details></div>`;
@@ -9611,6 +10291,7 @@ function fbJump() {
 window.addEventListener('focus', () => fbCheck());
 
 /* ---------- отзывы (если сборка их поддерживает: window.NOTES_FEEDBACK) ---------- */
+const FB_SHOTS = 3;   // скриншотов к обращению — не больше (сервер: feedback_lib.SHOTS_MAX)
 function openFeedback(kind = 'bug') {
   if (!window.NOTES_FEEDBACK) return;
   if (!$('#help').hidden) $('#help-close').click();
@@ -9621,23 +10302,52 @@ function openFeedback(kind = 'bug') {
     <h2 id="fb-title" class="u-h20">${tt('fb.dlg')}</h2>
     <div class="seg" role="group" aria-label="${tt('fb.dlg.kind')}"><button type="button" data-k="bug">${tt('fb.k.bug')}</button><button type="button" data-k="idea">${tt('fb.k.idea')}</button></div>
     <textarea id="fb-text" maxlength="5000"></textarea>
+    ${window.NOTES_UPLOAD ? `<div class="fb-shots" id="fb-shots"></div><div><button class="btn" type="button" id="fb-shot-add">${tt('fb.shot.add')}</button></div>` : ''}
     <p class="hint">${tt('fb.dlg.hint')}</p>
     <div class="bar"><button class="btn primary" type="button" id="fb-send">${tt('fb.send')}</button><button class="btn" type="button" id="fb-cancel">${tt('btn.cancel')}</button></div>
     <p class="hint" id="fb-status" aria-live="polite"></p>
   </div>`;
   const ta = $('#fb-text');
+  // скриншоты (12.11): кнопка, вставка из буфера в поле, перетаскивание; до FB_SHOTS штук; загружаются при отправке
+  const shots = [];
+  const drawShots = () => {
+    const box = $('#fb-shots'); if (!box) return;
+    box.innerHTML = shots.map((s, i) => `<span class="fb-shot"><img src="${s.url}" alt=""><button type="button" data-shot-del="${i}" aria-label="${tt('fb.shot.del')}" title="${tt('fb.shot.del')}">×</button></span>`).join('');
+    const add = $('#fb-shot-add'); if (add) add.disabled = shots.length >= FB_SHOTS;
+  };
+  const addShots = files => {
+    const imgs = [...files].filter(f => /^image\//.test(f.type));
+    for (const f of imgs) { if (shots.length >= FB_SHOTS) { toast(tt('fb.shot.max', { n: FB_SHOTS })); break; } shots.push({ file: f, url: URL.createObjectURL(f) }); }
+    drawShots();
+  };
+  if ($('#fb-shot-add')) {
+    $('#fb-shot-add').onclick = () => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true; inp.onchange = () => addShots(inp.files || []); inp.click(); };
+    $('#fb-shots').onclick = e => { const b = e.target.closest('[data-shot-del]'); if (!b) return; const [s] = shots.splice(+b.dataset.shotDel, 1); URL.revokeObjectURL(s.url); drawShots(); };
+    ta.addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])].filter(x => /^image\//.test(x.type)); if (f.length) { e.preventDefault(); addShots(f); } });
+    const sheet = ov.querySelector('.fb-sheet');
+    sheet.addEventListener('dragover', e => { if ([...(e.dataTransfer?.types || [])].includes('Files')) e.preventDefault(); });
+    sheet.addEventListener('drop', e => { const f = e.dataTransfer?.files; if (f?.length) { e.preventDefault(); addShots(f); } });
+    ta.title = tt('fb.shot.paste');
+  }
   const setKind = k => { kind = k; ov.querySelectorAll('[data-k]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); ta.placeholder = tt(k === 'bug' ? 'fb.ph.bug' : 'fb.ph.idea'); };
   setKind(kind);
   ov.querySelectorAll('[data-k]').forEach(b => b.onclick = () => setKind(b.dataset.k));
-  const close = () => { ov.hidden = true; ov.innerHTML = ''; };
+  const close = () => { shots.forEach(s => URL.revokeObjectURL(s.url)); ov.hidden = true; ov.innerHTML = ''; };
   $('#fb-cancel').onclick = close;
   ov.onclick = e => { if (e.target === ov) close(); };
   ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
   $('#fb-send').onclick = async () => {
     const text = ta.value.trim(); if (!text) { ta.focus(); return; }
-    $('#fb-send').disabled = true; $('#fb-status').textContent = tt('fb.sending');
+    $('#fb-send').disabled = true; $('#fb-status').textContent = tt(shots.length ? 'fb.shot.up' : 'fb.sending');
     try {
-      await window.NOTES_FEEDBACK(kind, text, { mode: S.mode, editing: !!S.editing, phone: window.matchMedia('(max-width:760px)').matches, theme: document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') });
+      const ids = [];
+      for (const s of shots) {   // по одному: сжатие как у изображений заметок, загрузка — в свои изображения (шифруются на сервере)
+        const blob = await compressImage(s.file, true);
+        const url = await window.NOTES_UPLOAD(blob, s.file.name || 'screenshot.png', { shot: true });
+        const id = (url.match(/\/api\/files\/files\/([a-z0-9]+)\//) || [])[1]; if (id) ids.push(id);
+      }
+      $('#fb-status').textContent = tt('fb.sending');
+      await window.NOTES_FEEDBACK(kind, text, { mode: S.mode, editing: !!S.editing, phone: window.matchMedia('(max-width:760px)').matches, theme: document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') }, ids);
       close(); toast(tt('fb.sent')); fbCheck(true);
     } catch (err) { $('#fb-send').disabled = false; $('#fb-status').textContent = tt('fb.failed', { why: err?.message || err }); }
   };
