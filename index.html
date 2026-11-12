@@ -789,7 +789,11 @@ window.STR = {
   'look.home.list': 'Список',
   'look.home.tiles': 'Плитки',
   'look.home.saved': 'Вид сохранён',
-  'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} · ≈ {m} мин',
+  'home.train.sub': '{n} {n|карточка ждёт|карточки ждут|карточек ждут} (≈ {m} мин)',
+  'look.stagefs': 'Свой размер шрифта у каждой заметки «На весь экран»',
+  'look.stagefs.help': 'Включено — каждая заметка открывается на весь экран с тем размером шрифта, который ты выбрал для неё. Выключено — у всех заметок один размер, последний выбранный',
+  'look.stagefs.on': 'У каждой заметки — свой размер шрифта',
+  'look.stagefs.off': 'Размер шрифта — один для всех заметок',
   'look.colorsecs': 'Цветные разделы',
   'look.colorsecs.help': 'Если включено, разделы и их заметки будут окрашены в выбранные цвета',
   'look.colorsecs.on': 'Цветные разделы включены',
@@ -2624,6 +2628,9 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 .sh-sub b{color:var(--kt);font-weight:700}
 @media (max-width:760px){.sec-hero{display:none}}
 #ed-del .ed-del-i{display:none}
+#edit .edit-i{display:none}#edit .edit-i svg{width:22px;height:22px;display:block;margin:auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* Classic, телефон, рядом «Проверить себя»: «Редактировать» не влезает и переносится — значок карандаша, как корзина в редакторе (12.11) */
+@media (max-width:520px){:root:not([data-skin="play"]) .r-cta:has(#drill) #edit{flex:0 0 auto;padding-inline:18px}:root:not([data-skin="play"]) .r-cta:has(#drill) #edit .edit-t{display:none}:root:not([data-skin="play"]) .r-cta:has(#drill) #edit .edit-i{display:block}}
 #ed-del .ed-del-i svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:520px){#ed-del .ed-del-t{display:none}#ed-del .ed-del-i{display:block}#ed-del{padding-inline:12px!important}}   /* не хватает места на «В корзину» — значок корзины (09.11) */
 .lbar{display:inline-block;width:46px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle;flex:none}
@@ -3617,6 +3624,13 @@ function insertUpload(file, at) {
       const rest = block.cloneNode(false); rest.appendChild(tail.extractContents());
       block.after(para); if (rest.textContent.trim() || rest.querySelector('img')) para.after(rest);
       if (!block.textContent.trim() && !block.querySelector('img')) block.remove();
+    } else if (block && /^(UL|OL)$/.test(block.nodeName) && rg && (li => li && li.parentNode === block)(rg.startContainer.nodeType === 1 ? rg.startContainer.closest('li') : rg.startContainer.parentElement?.closest('li'))) {
+      // в списке — после пункта с курсором: список делится, хвост — отдельным списком (нумерация продолжается)
+      const li = (rg.startContainer.nodeType === 1 ? rg.startContainer : rg.startContainer.parentElement).closest('li');
+      const rest = block.cloneNode(false), idx = [...block.children].indexOf(li);
+      while (li.nextSibling) rest.appendChild(li.nextSibling);
+      block.after(para);
+      if (rest.children.length) { if (block.nodeName === 'OL') rest.setAttribute('start', (+block.getAttribute('start') || 1) + idx + 1); para.after(rest); }
     } else if (block && block !== vis) block.after(para); else vis.appendChild(para);
     if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
     const r = document.createRange(); r.setStart(para.nextSibling, 0); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); saveSel();
@@ -3708,7 +3722,7 @@ function imageFiles(dt) { return [...(dt?.files || [])].filter(f => /^image\//.t
 // изображение: на телефоне — выбор «Сфотографировать» (камера сразу) или «Выбрать изображения» (галерея и файлы, можно несколько);
 // Android с выбором нескольких файлов камеру не предлагает, поэтому отдельный пункт. На компьютере — сразу выбор файлов
 function pickImages() {
-  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { pos: savedRange && $('#ed-prev') ? visPosOf($('#ed-prev'), savedRange) : null } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
+  const ta0 = $('#ed-body') || $('#te-body'), keep = S.editing?.pane === 'vis' ? { pos: (v => (v && savedRange && v.contains(savedRange.startContainer) && visPosOf(v, savedRange)) || lastVisPos)($('#ed-prev')) } : ta0 ? { s: ta0.selectionStart, e: ta0.selectionEnd } : null;
   const go = cam => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     if (cam) inp.setAttribute('capture', 'environment'); else inp.multiple = true;
@@ -3950,8 +3964,10 @@ const stageSpeed = lvl => 6 * Math.pow(1.25, lvl - 1);   // пикселей в 
 function openStage(soft) {   // soft — переход к соседней заметке, не выходя из режима (полный экран и «не гасить» уже есть)
   const n = S.notes.get(S.noteId), md = $('#md'); if (!n || !md || S.editing || STAGE.on) return;
   $('#findbar')?.remove(); unmarkFind(md);
-  const sizes = store.get('stage.fs', {}) || {}, canScroll = plusOn() || planOn();
-  let fi = STAGE_FS.indexOf(sizes[n.id]); if (fi < 0) fi = 4;
+  // размер шрифта: по умолчанию один на все заметки — последний выбранный (stage.fsAll); галочка «свой у каждой заметки» (settings.stagePerNote) — как раньше.
+  // Свой размер у заметки запоминаем всегда: включил галочку — прежние размеры на месте (12.11)
+  const sizes = store.get('stage.fs', {}) || {}, canScroll = plusOn() || planOn(), perNote = !!S.settings?.stagePerNote;
+  let fi = STAGE_FS.indexOf(perNote ? sizes[n.id] ?? store.get('stage.fsAll', 0) : store.get('stage.fsAll', 0)); if (fi < 0) fi = 4;
   let lvl = Math.min(15, Math.max(1, +store.get('stage.speed', 8) || 8));
   const tipN = soft ? 2 : +store.get('stage.tips', 0) || 0; if (tipN < 2) store.set('stage.tips', tipN + 1);
   const nb = S.nbr || {}, nav = !!(nb.prev || nb.next);
@@ -4002,7 +4018,7 @@ function openStage(soft) {   // soft — переход к соседней за
       const anchor = sc.scrollTop / Math.max(1, sc.scrollHeight);   // то же место текста после смены размера
       fi = Math.max(0, Math.min(STAGE_FS.length - 1, fi + (k === 'fs+' ? 1 : -1))); setFs();
       sc.scrollTop = anchor * sc.scrollHeight; STAGE.pos = sc.scrollTop;
-      const all = store.get('stage.fs', {}) || {}; all[n.id] = STAGE_FS[fi]; store.set('stage.fs', all);
+      const all = store.get('stage.fs', {}) || {}; all[n.id] = STAGE_FS[fi]; store.set('stage.fs', all); store.set('stage.fsAll', STAGE_FS[fi]);
     }
     if (k === 'play') play(!STAGE.playing);
     if (k === 'slow' || k === 'fast') { lvl = Math.max(1, Math.min(15, lvl + (k === 'fast' ? 1 : -1))); store.set('stage.speed', lvl); showSpeed(); }
@@ -4116,6 +4132,7 @@ const VICO = {
   fav: '<svg viewBox="0 0 24 24"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.1L12 16.3l-4.6 2.4.9-5.1-3.8-3.6 5.2-.8z"/></svg>',
   recent: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>',
   trash: '<svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5M10 11v5.5M14 11v5.5"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
 };
 let chipJump = false;   // раздел выбран во всплывающем списке (☰): полоску разделов прокрутить к его чипу; от простых нажатий на чипы она не двигается
 function renderRail() {
@@ -4356,7 +4373,25 @@ $('#chips').addEventListener('pointermove', e => { if (lpStart && Math.hypot(e.c
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => $('#chips').addEventListener(t, () => clearTimeout(lpTimer)));
 $('#chips').addEventListener('contextmenu', e => { const b = e.target.closest('[data-sec]'); if (b && !isVirtual(b.dataset.sec)) { e.preventDefault(); clearTimeout(lpTimer); if (!S.menu) { lpFired = true; secMenuFrom(b); } } });
 $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.sec[data-sec]'); if (b && !isVirtual(b.dataset.sec) && S.canWrite) { e.preventDefault(); openSecMenu(b.dataset.sec, b); } });
-function selectSection(id) { S.tileFlat = id === 'all'; S.tileLimit = 0; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
+// Плитки: прокрутка каждого уровня запоминается — вернулся из подраздела (наверх или «назад»), и ты там же, где был (и сколько плиток было дорисовано);
+// вход в раздел — всегда сверху
+const tileScroll = new Map();
+const tileKey = () => S.tileFlat ? '\u0001all' : (S.section || 'all');
+function keepTileScroll(fn, back) {
+  if (homePref() !== 'tiles') return fn();
+  const els = ['#items', '#rail'].map(q => $(q)).filter(Boolean), from = S.section;
+  tileScroll.set(tileKey(), { y: els.map(e => e.scrollTop), lim: S.tileLimit });
+  fn();
+  let up = back || (S.section === 'all' && !S.tileFlat);
+  for (let p = parentOf(from), i = 0; !up && p && i < 50; p = parentOf(p), i++) if (p === S.section) up = true;
+  const m = up ? tileScroll.get(tileKey()) : null;
+  if (m) S.tileLimit = m.lim;
+  if (m?.lim) renderList();
+  const put = () => els.forEach((e, i) => { e.scrollTop = m ? m.y[i] : 0; });
+  put(); requestAnimationFrame(put);
+}
+function selectSection(id, flat, back) { keepTileScroll(() => selectSectionNow(id, flat), back); }
+function selectSectionNow(id, flat) { S.tileFlat = flat ?? id === 'all'; S.tileLimit = 0; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -4420,7 +4455,8 @@ const homeOn = () => isPhone() && homePref() === 'tiles';
 // компьютер (> 1100 px) с плитками: три колонки остаются — в первой плитки разделов, во второй плитки заметок, справа заметка (05.11)
 const deskTiles = () => WIDE.matches && homePref() === 'tiles' && !window.NOTES_DESK_LIST;   // NOTES_DESK_LIST — только тесты pb_* (их сценарии — для списка)
 const homeShown = () => (homeOn() || deskTiles()) && S.mode === 'lib' && !S.q && (isVirtual(S.section) || S.sections.has(S.section));
-function goHome() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
+function goHome() { keepTileScroll(goHomeNow); }
+function goHomeNow() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
 // уровень главной: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы (и его заметки)
 function homeRoot() { let r = null; for (let lv = kids(null); lv.length === 1 && hasKids(lv[0].id); lv = kids(r)) r = lv[0].id; return r; }
 function homeLevel() { return kids(homeRoot()); }
@@ -6091,7 +6127,7 @@ menuEl.addEventListener('click', async e => {
   if (S.menu.kind === 'sec') {
     if (act === 'sec-rename') { S.menu.mode = 'rename'; renderMenu(); }
     else if (act === 'sec-color') { S.menu.mode = 'color'; renderMenu(); }
-    else if (act === 'sec-color-set') { const id = S.menu.id; closeMenu(); setSecColor(id, b.dataset.pick); }
+    else if (act === 'sec-color-set') { const id = S.menu.id; setSecColor(id, b.dataset.pick); if (S.menu?.id === id) renderSecMenu(); }   // меню не закрываем: тыкаешь цвета и сразу видишь, пока не выберешь
     else if (act === 'sec-cancel') closeMenu();
     else if (act === 'sec-del') { S.menu.mode = 'confirmDel'; renderMenu(); }
     else if (act === 'sec-back') { S.menu.mode = 'main'; renderMenu(); }
@@ -6435,7 +6471,7 @@ function renderReader(scrollTop) {
     <div class="row">${srsPill(n.id)}${srsLine}
       <span class="actions">${(n.body || '').trim() ? `<button class="btn icon-btn" id="find-in" title="${tt('find.title.key', { mod: MOD })}" aria-label="${tt('find.title')}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4L14 14"/></svg></button><button class="btn icon-btn" id="stage-in" title="${tt('stage.open')}" aria-label="${tt('stage.open')}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg></button>` : ''}${n.ref && S.canWrite && isTrainFolder(n.section) ? `<button class="btn" id="unref">${tt('bulk.ref.off')}</button>` : ''}${trainable(n) && hasProgress(n.id) && S.uid ? `<button class="btn" id="relearn" title="${tt('reader.relearn.title')}">${tt('reader.relearn')}</button>` : ''}</span></div>
     </div>
-    ${trainable(n) || S.canWrite ? `<div class="r-cta">${trainable(n) ? `<button class="btn primary" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit">${tt('note.edit')}</button>` : ''}</div>` : ''}
+    ${trainable(n) || S.canWrite ? `<div class="r-cta">${trainable(n) ? `<button class="btn primary" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit" title="${tt('note.edit')}" aria-label="${tt('note.edit')}"><span class="edit-t">${tt('note.edit')}</span><span class="edit-i" aria-hidden="true">${VICO.pencil}</span></button>` : ''}</div>` : ''}
     ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>${tt('draft.has', { time: hhmm(getDraft(n.id).ts) })}</span><button class="btn primary" id="dr-cont">${tt('draft.continue')}</button></div>` : ''}
     <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('reader.noanswer')}</p>`}</div>`;
   const first = (() => { const md = $('#md'); enhance(md, null); if (terms) { markTerms(md, terms); markTerms(box.querySelector('h1'), terms); } return md.querySelector('mark'); })();
@@ -7636,12 +7672,22 @@ let savedRange = null;
 // последнее положение курсора в «Визуально»: на телефоне нажатие кнопки панели снимает выделение раньше, чем сработает обработчик (09.11)
 // Range живой: при перерисовке «Визуально» он схлопывается, поэтому храним номер блока и смещение в тексте блока
 let lastVisPos = null, visFocusAt = 0;
+// g — смещение по тексту всей заметки без «пустых» узлов-переносов: переживает перерисовку «Визуально» из Markdown (12.11: пустая строка
+// между пунктами чеклиста пропадает, списки сливаются — номер блока bi после этого указывает не туда)
+const visTextNodes = root => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => /^\s*\n\s*$/.test(n.data) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT }), a = []; let n; while ((n = w.nextNode())) a.push(n); return a; };
 function visPosOf(v, r) {
+  if (r.startContainer === v) { const b = v.children[Math.min(r.startOffset, v.children.length - 1)]; if (!b) return null; r = document.createRange(); r.setStart(b, 0); }
   let b = r.startContainer; while (b && b.parentNode !== v) b = b.parentNode; if (!b) return null;
   const pre = document.createRange(); pre.setStart(b, 0); pre.setEnd(r.startContainer, r.startOffset);
-  return { bi: [...v.children].indexOf(b), off: pre.toString().length };
+  let g = 0; for (const n of visTextNodes(v)) { if (r.startContainer === n) { g += r.startOffset; break; } if (r.comparePoint(n, 0) > 0) break; g += n.length; }
+  return { bi: [...v.children].indexOf(b), off: pre.toString().length, g };
 }
 function visRangeAt(v, pos) {
+  if (pos?.g != null) {
+    const ns = visTextNodes(v); let left = pos.g;
+    for (const n of ns) if (left <= n.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); return r; } else left -= n.length;
+    const last = ns[ns.length - 1]; if (last) { const r = document.createRange(); r.setStart(last, last.length); r.collapse(true); return r; }
+  }
   const b = pos && v.children[pos.bi]; if (!b) return null;
   const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT); let left = pos.off, n, last = null;
   while ((n = w.nextNode())) { last = n; if (left <= n.length) { const r = document.createRange(); r.setStart(n, left); r.collapse(true); return r; } left -= n.length; }
@@ -9375,6 +9421,7 @@ function lookPanelHtml() {
         <span class="sw-c"><i style="--a:${c[0]}"><b style="--a:${c[2]}"></b></i><i style="--a:${c[1]}"><b style="--a:${c[3]}"></b></i></span>
         <span class="sw-n">${t[1]}${lock(t) ? ' <span class="pro">Pro</span>' : ''}</span></button>`; }).join('')}</div>
     ${p.skin === 'play' ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-colorsecs" ${S.settings?.colorSecs !== false ? 'checked' : ''}> ${tt('look.colorsecs')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.colorsecs.help'))) : ''}
+    ${(h => `<div class="look-oled"><label><input type="checkbox" id="look-stagefs" ${S.settings?.stagePerNote ? 'checked' : ''}> ${tt('look.stagefs')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.stagefs.help')))}
     ${(h => `<div class="look-oled"><label><input type="checkbox" id="look-trainbar" ${trainBarOn() ? 'checked' : ''}> ${tt('look.trainbar')}</label>${h[0]}</div>${h[1]}`)(help(tt('look.trainbar.help')))}
     ${showPro ? (h => `<div class="look-oled"><label><input type="checkbox" id="look-oled" ${p.oled ? 'checked' : ''}> ${tt('look.oled')}</label>${pro || p.oled ? '' : ' <span class="pro">Pro</span>'}${h[0]}</div>${h[1]}`)(help(tt('look.oled.help'))) : ''}
   </section>`;
@@ -9390,6 +9437,8 @@ function wireLookPanel(root) {
     if (cur && cur[2] && !proOn() && !confirm(tt('look.change.ask', { theme: cur[1] }))) return;
     await saveSettings({ theme: b.dataset.lookTheme }, tt('look.colors.saved')); applyLook(); renderProg();
   });
+  const sf = root.querySelector('#look-stagefs');
+  if (sf) sf.onchange = () => saveSettings({ stagePerNote: sf.checked }, tt(sf.checked ? 'look.stagefs.on' : 'look.stagefs.off'));
   const cs = root.querySelector('#look-colorsecs');
   if (cs) cs.onchange = async () => { await saveSettings({ colorSecs: cs.checked }, tt(cs.checked ? 'look.colorsecs.on' : 'look.colorsecs.off')); renderProg(); };
   const tb = root.querySelector('#look-trainbar');
@@ -9698,7 +9747,7 @@ window.addEventListener('popstate', e => {
   try {
     if (st.m !== S.mode) setMode(st.m);
     if (st.m === 'lib') {
-      if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s);
+      if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s, st.h ? st.h === 2 : undefined, true);
       if (st.h && S.tileFlat !== (st.h === 2)) { S.tileFlat = st.h === 2; renderList(); }   // плитки: папками ↔ все заметки
       if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
         openNote(st.n);
