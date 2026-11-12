@@ -2211,7 +2211,7 @@ window.tt = function (key, p) {
   --line:#272727; --line-strong:#434343; --accent:#e6e6e6; --accent-ink:#111111; --accent-soft:#262626; --code-bg:#1d1d1d;}
 :root[data-palette="sepia"]{
   --kt:#2f7040; --kt-ink:#ffffff;
-  --bg:#f1e7d0; --surface:#f7efdc; --raised:#fbf5e6; --ink:#3b2f1e; --muted:#7a6a52; --faint:#a4967e;
+  --bg:#f1e7d0; --surface:#f7efdc; --raised:#fbf5e6; --ink:#3b2f1e; --muted:#665741; --faint:#a4967e;
   --line:#e0d2b4; --line-strong:#c9bb9f; --accent:#8a5a1f; --accent-ink:#fff8ea; --accent-soft:#ecdcb9; --code-bg:#eee5d2;}
 @media (prefers-color-scheme: dark){:root[data-palette="sepia"]:not([data-theme="light"]){
   --kt:#86c98a; --kt-ink:#101010;
@@ -2291,7 +2291,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .sec.virt[aria-current="true"] .ico{color:var(--accent)}
 .sec.drop-before{box-shadow:inset 0 3px 0 -1px var(--accent);border-radius:0}
 .sec.drop-after{box-shadow:inset 0 -3px 0 -1px var(--accent);border-radius:0}
-.sec.drop-target,.rail h4.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
+.sec.drop-target,.rail h4.drop-target,.tile.drop-target,.hl.drop-target{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)}
 .rail .trash-row{margin-top:auto;padding-top:10px}
 .item .star{color:var(--star);margin-right:4px}
 .item[draggable="true"]{cursor:pointer}
@@ -2546,7 +2546,7 @@ button.tchip-t:hover{text-decoration:underline}
 .menu .ask-row .yes{background:var(--again);border-color:var(--again);color:var(--raised)}
 mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
 .pill{font:500 11px/1.6 var(--f-mono);border-radius:5px;padding:0 6px;background:var(--surface);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.pill.new{color:var(--faint)}
+.pill.new{color:var(--muted);border-style:dashed}   /* «новая» — пунктиром, а не бледным цветом: faint на светлой плитке давал контраст 2,5–3 (12.11) */
 .pill.learn{background:var(--hard-soft);border-color:transparent;color:var(--hard)}
 .pill.know{background:var(--good-soft);border-color:transparent;color:var(--good)}
 .pill.due{background:var(--kt-soft);border-color:transparent;color:var(--kt)}
@@ -3309,7 +3309,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .tl-grp{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink));font-weight:800}
 :root[data-skin="play"] .sec-h h3{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
 :root[data-skin="play"] .tile .lbar{height:6px;background:var(--raised)}
-:root[data-skin="play"] .tile .tl-name{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
+:root[data-skin="play"] .tile .tl-name{color:color-mix(in srgb,var(--sc,var(--accent)) 45%,var(--ink))}   /* 55% давало 3,8 у жёлтого в «Сепии» (12.11) */
 :root[data-skin="play"] .home-bar .btn{border-radius:var(--rad-2xl);font-weight:800}
 :root[data-skin="play"] .sec-hero{border:0;border-radius:var(--rad-2xl);background:color-mix(in srgb,var(--sc,var(--accent)) 14%,var(--raised))}
 :root[data-skin="play"] .sec-hero .pr-track{stroke:var(--raised)}
@@ -4225,9 +4225,20 @@ function insertUpload(file, at) {
   const ta = $('#ed-body') || $('#te-body'), vis = $('#ed-prev');
   if (S.editing?.pane === 'vis' && vis) {
     // a separate paragraph right after the block with the caret (execCommand('insertHTML') tends to merge blocks around images)
-    { const rr = at?.pos ? visRangeAt(vis, at.pos) : at?.range; if (rr) savedRange = rr; }   // положение курсора — номером блока и смещением: пока выбирают файл, «Визуально» может перерисоваться
+    { const rr = at?.pos ? visRangeAt(vis, at.pos) : at?.range;
+      if (rr && at?.pos?.ge != null && at.pos.ge > at.pos.g) { const re = visRangeAt(vis, { g: at.pos.ge }); if (re) rr.setEnd(re.startContainer, re.startOffset); }
+      if (rr) savedRange = rr; }   // положение курсора — номером блока и смещением: пока выбирают файл, «Визуально» может перерисоваться
     vis.focus(); restoreSel();
     const sel = getSelection();
+    // выделен кусок текста — изображение заменяет его (решение 12.11); выделенное изображение, таблица и блок кода не трогаем — тогда встаём после блока
+    if (sel.rangeCount && !sel.isCollapsed && vis.contains(sel.anchorNode) && vis.contains(sel.focusNode)) {
+      const sr = sel.getRangeAt(0);
+      if (!sr.cloneContents().querySelector('img, table, pre')) {
+        histRecord(vis); const sc = sr.startContainer, so = sr.startOffset; sr.deleteContents();
+        const r0 = document.createRange(); r0.setStart(sc, Math.min(so, sc.nodeType === 3 ? sc.length : sc.childNodes.length)); r0.collapse(true); sel.removeAllRanges(); sel.addRange(r0);   // через два блока Range схлопывается между ними — возвращаем в начало выделения
+      }
+      else { sr.collapse(false); sel.removeAllRanges(); sel.addRange(sr); }
+    }
     const para = document.createElement('p'); const img = document.createElement('img');
     img.src = localImages[key]; img.dataset.src = key; img.alt = ''; para.appendChild(img);
     visPlacePara(vis, sel.rangeCount ? sel.getRangeAt(0) : null, para);
@@ -4282,6 +4293,10 @@ async function imgqTx(mode, fn) {
 const imgqPut = (key, rec) => imgqTx('readwrite', st => { st.put(rec, key); });
 const imgqDel = key => imgqTx('readwrite', st => { st.delete(key); });
 const imgqAll = () => imgqTx('readonly', st => { const v = st.getAll(), k = st.getAllKeys(); return () => (v.result || []).map((r, i) => [k.result[i], r]); });
+// временный адрес в черновиках на устройстве (aw.draft.*) — тоже меняем на настоящий: черновик «Продолжить» после перезагрузки иначе навсегда останется с адресом uploading-… (12.11)
+function imgqInDrafts(key, path) {
+  try { for (const k of Object.keys(localStorage)) if (k.startsWith('aw.draft')) { const v = localStorage.getItem(k) || ''; if (v.includes(key)) localStorage.setItem(k, v.split(key).join(path)); } } catch {}
+}
 function imgqUsed(key) {
   if ([...S.notes.values(), ...S.trash.values()].some(n => (n.body || '').includes(key))) return true;
   if ((S.editing?.draft?.body || '').includes(key) || ($('#ed-body')?.value || '').includes(key) || document.querySelector(`#ed-prev img[data-src="${CSS.escape(key)}"]`)) return true;
@@ -4303,7 +4318,7 @@ async function imgqRun() {
       try { path = await uploadBlob(rec.blob); }
       catch (e) { left++; if (netLike(e) || e?.code === 'limit') break; continue; }
       localImages[path] = localImages[key];
-      replaceInEditor(key, path);
+      replaceInEditor(key, path); imgqInDrafts(key, path);
       if (S.editing?.base) S.editing.base.body = S.editing.base.body.split(key).join(path);
       for (const coll of [S.notes, S.trash]) for (const n of [...coll.values()]) {
         if (!(n.body || '').includes(key)) continue;
@@ -4354,8 +4369,13 @@ function visImgSel(vis, img) {
 /* размер изображения мышкой или пальцем (05.11): у выделенного изображения в «Визуально» — уголок справа внизу, тянешь — меняется ширина
    (атрибут width → в Markdown «![подпись|320](…)»). Уголок — вне contenteditable (в обёртке редактора), в текст не попадает */
 // телефон: у выделенного изображения — «Копировать / Вырезать / Удалить» (на компьютере — Ctrl+C / X / Delete); вставка — обычным «Вставить» в поле (09.11)
-function imgData(im) { const d = { src: im.getAttribute('src'), ds: im.dataset.src || '', w: im.getAttribute('width') || '', alt: im.getAttribute('alt') || '' }; return { d, text: `![${d.alt}](${d.ds || d.src})` }; }
-function imgDrop(vis, im) { histRecord(vis); const p = im.closest('p'); im.remove(); if (p && p !== vis && !p.textContent.trim() && !p.querySelector('img')) p.remove(); imgGrip(vis, null); vis.dispatchEvent(new Event('input', { bubbles: true })); }
+// изображение-ссылка [![](…)](url): ссылка переезжает вместе с изображением (12.11 — раньше при переносе и вставке оставалось голое изображение)
+function imgUnit(im) { const a = im.parentElement; return a?.tagName === 'A' && a.childNodes.length === 1 ? a : im; }
+function imgData(im) {
+  const a = im.closest('a'), d = { src: im.getAttribute('src'), ds: im.dataset.src || '', w: im.getAttribute('width') || '', alt: im.getAttribute('alt') || '', href: a ? a.getAttribute('href') || '' : '' };
+  const t = `![${d.alt}](${d.ds || d.src})`; return { d, text: d.href ? `[${t}](${d.href})` : t };
+}
+function imgDrop(vis, im) { histRecord(vis); const p = im.closest('p'); imgUnit(im).remove(); if (p && p !== vis && !p.textContent.trim() && !p.querySelector('img')) p.remove(); imgGrip(vis, null); vis.dispatchEvent(new Event('input', { bubbles: true })); }
 function imgActs(host, show) {
   let a = document.getElementById('img-acts');
   if (!show || !matchMedia('(pointer:coarse)').matches) { if (a) a.hidden = true; return; }
@@ -4845,8 +4865,8 @@ $('#rail').addEventListener('click', e => {
 let dragFolder = null;
 const clearDrop = () => document.querySelectorAll('.drop-target,.drop-before,.drop-after').forEach(x => x.classList.remove('drop-target', 'drop-before', 'drop-after'));
 document.addEventListener('dragstart', e => {
-  const it = e.target.closest?.('#items .item[draggable="true"]');
-  if (it) { e.dataTransfer.setData('text/x-note', it.dataset.id); e.dataTransfer.setData('text/plain', S.notes.get(it.dataset.id)?.title || ''); e.dataTransfer.effectAllowed = 'move'; return; }
+  const it = e.target.closest?.('#items .item[draggable="true"], #items .ntile[draggable="true"]');
+  if (it) { const nid = it.dataset.id || it.dataset.note; e.dataTransfer.setData('text/x-note', nid); e.dataTransfer.setData('text/plain', S.notes.get(nid)?.title || ''); e.dataTransfer.effectAllowed = 'move'; return; }
   const f = e.target.closest?.('#rail .sec.tree[draggable="true"]');
   if (f) { dragFolder = f.dataset.sec; e.dataTransfer.setData('text/x-folder', dragFolder); e.dataTransfer.effectAllowed = 'move'; }
 });
@@ -4857,6 +4877,9 @@ function dropTarget(e) {
   if (!isNote && !isFolder) return null;
   const root = e.target.closest('#rail [data-drop-root]');
   if (root) return isFolder ? { el: root, to: null } : null;
+  // Modern (плитки): заметку можно бросить на плитку раздела и на «Избранное» / «Корзину» — как на строки дерева в Classic (12.11)
+  const tl = isNote && e.target.closest('#rail .tile[data-sec], #items .tile[data-sec], #rail .hl[data-hl], #items .hl[data-hl]');
+  if (tl) { const to = tl.dataset.sec || tl.dataset.hl; return to === 'all' || to === 'recent' || to === 'tree' ? null : { el: tl, to }; }
   const b = e.target.closest('#rail .sec[data-sec]'); if (!b) return null;
   const id = b.dataset.sec;
   if (isNote) return id === 'all' || id === 'recent' ? null : { el: b, to: id };
@@ -4869,14 +4892,18 @@ function dropTarget(e) {
   if (dragFolder && where === 'into' && subtree(dragFolder).has(id)) return null;
   return { el: b, to: id, where };
 }
-$('#rail').addEventListener('dragover', e => { const t = dropTarget(e); clearDrop(); if (!t) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; t.el.classList.add(t.where === 'before' ? 'drop-before' : t.where === 'after' ? 'drop-after' : 'drop-target'); });
-$('#rail').addEventListener('dragleave', e => { if (!$('#rail').contains(e.relatedTarget)) clearDrop(); });
-$('#rail').addEventListener('drop', e => {
+const dropOver = e => { const t = dropTarget(e); clearDrop(); if (!t) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; t.el.classList.add(t.where === 'before' ? 'drop-before' : t.where === 'after' ? 'drop-after' : 'drop-target'); };
+const dropDone = e => {
   const t = dropTarget(e); clearDrop(); if (!t) return; e.preventDefault();
   const noteId = e.dataTransfer.getData('text/x-note'), folderId = e.dataTransfer.getData('text/x-folder');
   if (noteId) { if (t.to === 'trash') trashNotes([noteId]); else if (t.to === 'fav') { if (!S.notes.get(noteId)?.pinned) togglePin(noteId); } else moveToSection(noteId, t.to); }
   else if (folderId) { if (t.where === 'before' || t.where === 'after') placeFolder(folderId, t.to, t.where); else moveFolder(folderId, t.to); }
-});
+};
+for (const box of [$('#rail'), $('#items')]) {
+  box.addEventListener('dragover', dropOver);
+  box.addEventListener('dragleave', e => { if (!box.contains(e.relatedTarget)) clearDrop(); });
+  box.addEventListener('drop', dropDone);
+}
 // put a folder right before/after another one (same parent as that one)
 async function placeFolder(id, target, where) {
   const f = S.sections.get(id), tg = S.sections.get(target); if (!f || !tg || id === target) return;
@@ -5092,13 +5119,15 @@ function renderHome(cl) {
   const secTile = s => secTileHtml(s, rq, sel);
   const addSub = S.canWrite && !sel && !desk && !virt && !S.tag && !flat ? (sid && !atHome ? addSubTile(sid) : addTopTile()) : '';   // «+ Подраздел» — внутри раздела, как «создать в папке»
   const trash = S.section === 'trash';
-  const noteTile = n => `<${trash ? 'div' : 'button'} class="tile ntile${sel && S.select.has(n.id) ? ' picked' : ''}" data-note="${esc(n.id)}"${S.noteId === n.id ? ' aria-current="true"' : ''}${scAttr(n.section)}${sel ? ` aria-pressed="${S.select.has(n.id)}"` : ''}>${S.canWrite && !sel && !trash ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}${sel ? '<span class="tl-check" aria-hidden="true"></span>' : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
+  const noteTile = n => `<${trash ? 'div' : 'button'} class="tile ntile${sel && S.select.has(n.id) ? ' picked' : ''}" data-note="${esc(n.id)}"${S.canWrite && !sel && !trash && FINE ? ' draggable="true"' : ''}${S.noteId === n.id ? ' aria-current="true"' : ''}${scAttr(n.section)}${sel ? ` aria-pressed="${S.select.has(n.id)}"` : ''}>${S.canWrite && !sel && !trash ? `<span class="tl-more" role="button" tabindex="0" data-more="${esc(n.id)}" aria-label="${tt('list.more')}" aria-haspopup="menu">⋮</span>` : ''}${sel ? '<span class="tl-check" aria-hidden="true"></span>' : ''}<span class="tl-name nt">${n.pinned ? '<span class="pin">★</span> ' : ''}${esc(noteTitle(n))}</span>`
     + `<span class="tl-text">${esc(plainText(n.body || '').slice(0, 120))}</span>`
     + (trash ? `<span class="tl-meta"><span class="pill">${esc(S.sections.get(n.section)?.title || tt('trash.sec.gone'))}</span></span>${S.canWrite && canEditIn(spaceOfNote(n)) ? `<span class="tl-acts"><button class="btn" data-restore="${esc(n.id)}">${tt('trash.restore')}</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">${tt('trash.purge')}</button>` : ''}</span>` : ''}</div>`
       : `<span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`);
   const all = (cl || currentList()).list;
   const subs = flat ? [] : sid ? kids(sid) : homeLevel();
-  const notes = flat ? [] : sid ? all.filter(n => n.section === sid) : [];
+  const notesAll = flat ? [] : sid ? all.filter(n => n.section === sid) : [];
+  const notes = notesAll.slice(0, S.tileLimit || LIST_STEP);   // телефон: заметки раздела — порциями при прокрутке, как на компьютере (500 плиток разом — тяжело; 12.11)
+  const moreNotes = notesAll.length > notes.length ? '<div class="tl-sentinel" id="tl-sentinel" aria-hidden="true"></div>' : '';
   // «Все заметки»: все заметки раздела вместе с подразделами (на главной — все) карточками; подраздел — разделителем, как в списке
   let flatHtml = '';
   if (flat) {
@@ -5125,7 +5154,7 @@ function renderHome(cl) {
   $('#items').innerHTML = `<div class="home">
     ${topHtml ? `<div class="home-top in-items">${topHtml}</div>` : ''}
     ${trashHead}
-    ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>` : ''}
+    ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>${moreNotes}` : ''}
     ${subs.length ? `${notes.length ? `<div class="home-h sub"><h3>${tt('home.subs')}</h3></div>` : ''}<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
     ${addSub ? `<div class="tiles tiles-add">${addSub}</div>` : ''}
     ${flatHtml}
@@ -7691,9 +7720,10 @@ function renderEditor(box) {
       const im = vis._dragImg; if (!im) return; vis._dragImg = null; e.preventDefault(); e.stopPropagation();
       const r = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
       if (!r || !vis.contains(r.startContainer) || im.contains(r.startContainer)) return;
+      { const ib = im.getBoundingClientRect(); if (e.clientX >= ib.left && e.clientX <= ib.right && e.clientY >= ib.top && e.clientY <= ib.bottom) return; }   // отпустили на самом изображении — оно остаётся на месте
       histRecord(vis);
-      const old = im.closest('p'); im.remove(); if (old && old !== vis && !old.textContent.trim() && !old.querySelector('img')) old.remove();
-      const para = document.createElement('p'); para.appendChild(im);
+      const unit = imgUnit(im), old = im.closest('p'); unit.remove(); if (old && old !== vis && !old.textContent.trim() && !old.querySelector('img')) old.remove();
+      const para = document.createElement('p'); para.appendChild(unit);
       visPlacePara(vis, r, para);   // на место, куда отпустили: посреди абзаца или пункта — делится
       if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
       visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true }));
@@ -7715,7 +7745,8 @@ function renderEditor(box) {
           const d = JSON.parse(rn); e.preventDefault(); saveSel(); restoreSel();
           const sel = getSelection();
           const im = document.createElement('img'); im.src = d.src; im.alt = d.alt; if (d.ds) im.dataset.src = d.ds; if (d.w) im.setAttribute('width', d.w);
-          const para = document.createElement('p'); para.appendChild(im); visPlacePara(vis, sel.rangeCount ? sel.getRangeAt(0) : null, para);
+          let unit = im; if (d.href) { unit = document.createElement('a'); unit.setAttribute('href', d.href); unit.appendChild(im); }
+          const para = document.createElement('p'); para.appendChild(unit); visPlacePara(vis, sel.rangeCount ? sel.getRangeAt(0) : null, para);
           if (!para.nextSibling) { const tail = document.createElement('p'); tail.appendChild(document.createElement('br')); para.after(tail); }
           visImgSel(vis, im); vis.dispatchEvent(new Event('input', { bubbles: true })); return;
         } catch {}
@@ -8301,6 +8332,9 @@ document.addEventListener('selectionchange', () => {
   const r = sel.getRangeAt(0), pos = visPosOf(v, r); if (!pos) return;
   // сразу после focus() браузер ставит курсор в начало — это не выбор человека, прежнее положение не затираем
   if (r.collapsed && pos.bi <= 0 && !pos.off && Date.now() - visFocusAt < 150 && lastVisPos) return;
+  // конец выделения — номером символа: пока выбирают файл, «Визуально» может перерисоваться, и изображение должно заменить выделенное (12.11)
+  pos.ge = null;
+  if (!r.collapsed) { const e = document.createRange(); e.setStart(r.endContainer, r.endOffset); e.collapse(true); const ep = visPosOf(v, e); if (ep) pos.ge = ep.g; }
   lastVisPos = pos;
 });
 function saveSel() {
@@ -9899,7 +9933,7 @@ document.addEventListener('keydown', e => {
   // Delete (на Mac — и Backspace): раздел в фокусе — спросить об удалении; отмеченные заметки — как кнопка «Удалить»;
   // иначе открытая заметка — в корзину (с «Вернуть» в подсказке). В корзине и во время правки — ничего
   if (S.mode === 'lib' && !typing && !S.editing && !S.menu && S.canWrite && (e.key === 'Delete' || e.key === 'Backspace') && !e.ctrlKey && !e.altKey && !e.shiftKey) {
-    const secEl = document.activeElement?.closest?.('#rail .sec[data-sec]');
+    const secEl = document.activeElement?.closest?.('#rail .sec[data-sec], #rail .tile[data-sec], #items .tile[data-sec]');   // и плитка раздела (Modern) — иначе Delete уходил в корзину открытой заметки (12.11)
     if (secEl && !isVirtual(secEl.dataset.sec) && S.sections.has(secEl.dataset.sec)) { e.preventDefault(); openSecMenu(secEl.dataset.sec, secEl, 'confirmDel'); }
     else if (S.select) { const b = $('#bulkbar [data-bulk="del"]'); if (b && !b.disabled) { e.preventDefault(); b.click(); } }
     else if (S.section !== 'trash' && S.noteId && S.notes.has(S.noteId)) { e.preventDefault(); trashNotes([S.noteId]); }
