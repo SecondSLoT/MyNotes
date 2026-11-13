@@ -985,6 +985,10 @@ window.STR = {
   'backup.bar.first': '<b>Сохрани резервную копию заметок у себя</b> Один файл со всеми заметками, изображениями, разделами и прогрессом тренировок',
   'backup.bar.ago': '<b>Последняя резервная копия заметок — {n} {n|день|дня|дней} назад.</b> Сохрани свежую, чтобы новые заметки тоже были в безопасности.',
   'backup.bar.save': 'Сохранить копию',
+  'ann.maint': 'Технические работы',
+  'ann.news': 'Новое',
+  'ann.important': 'Важно',
+  'ann.close': 'Закрыть',
   'btn.later': 'Позже',
   'btn.ok': 'Понятно',
   'install.share': '«Поделиться»',
@@ -1640,7 +1644,7 @@ window.STR = {
   'adm.za_period_ne_bylo': 'за период не было',
   'adm.posledniy_neozhidannyy': ' · последний неожиданный ',
   'adm.storozh_2': ' (сторож)',
-  'adm.neozhidannyh_ne_bylo': ' · неожиданных не было',
+  'adm.neozhidannyh_0': ' · неожиданных 0',
   'adm.zapuski_servera': 'Запуски сервера',
   'adm.byli_perezapuski_ne_iz': 'были перезапуски не из-за выкладки',
   'adm.vse_zapuski_vykladki': 'все запуски — выкладки',
@@ -1720,6 +1724,47 @@ window.STR = {
   'adm.yandeks_id': 'Яндекс ID',
   'adm.analitika': 'Аналитика',
   'adm.obratnaya_svyaz': 'Обратная связь',
+  'adm.ann.tab': 'Объявления',
+  'adm.ann.new': 'Новое объявление',
+  'adm.ann.tpl': 'Шаблон',
+  'adm.ann.tpl_none': '— без шаблона —',
+  'adm.ann.kind': 'Вид',
+  'adm.ann.text_ph': 'Текст для всех пользователей',
+  'adm.ann.count': '{n} из 1000',
+  'adm.ann.link': 'Ссылка (необязательно)',
+  'adm.ann.link_label': 'Подпись ссылки',
+  'adm.ann.or': 'или',
+  'adm.ann.work_from': 'Работы с',
+  'adm.ann.work_to': 'Работы до',
+  'adm.ann.until': 'Показывать до',
+  'adm.ann.from': 'Показать с (необязательно)',
+  'adm.ann.prev': 'Так увидят пользователи',
+  'adm.ann.prev_empty': 'Напиши текст — здесь появится предпросмотр',
+  'adm.ann.prev_maint': 'Техработы закрыть нельзя, их видно и на экране входа',
+  'adm.ann.msk': 'Время — московское. {from} и {to} в тексте заменятся на начало и конец работ',
+  'adm.ann.send': 'Отправить всем',
+  'adm.ann.send_sure': 'Точно отправить всем?',
+  'adm.ann.sure_note': 'Проверь предпросмотр и нажми ещё раз',
+  'adm.ann.sending': 'Отправляю…',
+  'adm.ann.sent': 'Отправлено',
+  'adm.ann.tpl_save': 'Сохранить как шаблон',
+  'adm.ann.tpl_del': 'Удалить шаблон',
+  'adm.ann.tpl_name': 'Название шаблона',
+  'adm.ann.tpl_saved': 'Шаблон сохранён',
+  'adm.ann.tpl_deleted': 'Шаблон удалён',
+  'adm.ann.err_text': 'Напиши текст объявления',
+  'adm.ann.err_window': 'Укажи начало и конец работ — они подставятся в текст',
+  'adm.ann.list': 'Все объявления',
+  'adm.ann.empty': 'Пока ничего не отправляли',
+  'adm.ann.st.active': 'Висит',
+  'adm.ann.st.scheduled': 'Ждёт начала',
+  'adm.ann.st.ended': 'Закончилось',
+  'adm.ann.st.withdrawn': 'Снято',
+  'adm.ann.till': 'до {d}',
+  'adm.ann.work': 'работы {a} — {b}',
+  'adm.ann.closed': 'закрыли {n}',
+  'adm.ann.noclose': 'не закрывается',
+  'adm.ann.withdraw': 'Снять',
   'adm.dengi': 'Деньги',
   'adm.problema': 'Проблема',
   'adm.ideya': 'Идея',
@@ -1985,9 +2030,14 @@ window.STR = {
   'adm.oferta': 'Оферта',
   'adm.god_3': ' / год',
   'adm.mesyac_3': ' / месяц',
-  'adm.cap.title': 'Слабое место сервера',
-  'adm.cap.all_ok': 'Все ресурсы в порядке',
-  'adm.cap.now': 'сейчас {v} при пороге {thr}',
+  'adm.cap.head.ok': 'Сервер в порядке',
+  'adm.cap.head.warn': 'Скоро порог: {name}',
+  'adm.cap.head.bad': 'Выше порога: {name}',
+  'adm.cap.head.nodata': 'Пока мало замеров',
+  'adm.cap.near': '{name} ближе всех к порогу: сейчас {v} при пороге {thr}',
+  'adm.cap.near.left': ', до порога ~{n} {n|день|дня|дней} при таком росте',
+  'adm.cap.near.flat': ', к порогу не растёт',
+  'adm.cap.now': ' · сейчас {v} при пороге {thr}',
   'adm.cap.all': 'Все ресурсы и пороги',
   'adm.cap.nodata': 'пока мало замеров',
   'adm.cap.over': 'выше порога {n} {n|день|дня|дней} подряд',
@@ -2301,6 +2351,13 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .row-item .tr-acts .btn{padding:3px 10px;font-size:12px}
 .backup-bar{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:var(--rad-l);padding:10px 14px;margin:0 0 12px;font-size:14px;line-height:1.45}
 .backup-bar p{margin:0;flex:1 1 260px}
+.ann-bar{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}.ann-bar[hidden]{display:none}
+.ann-bar .backup-bar{margin:0;position:relative;padding-right:40px}
+.ann-bar .backup-bar.maint{background:color-mix(in oklab,var(--tc-orange) 14%,var(--bg,transparent));box-shadow:inset 4px 0 0 var(--tc-orange)}
+.ann-bar .backup-bar.important{box-shadow:inset 4px 0 0 var(--accent)}
+.ann-bar .ann-kind{display:block;font-weight:600;margin-bottom:2px}.ann-bar .backup-bar.maint .ann-kind{color:var(--tc-orange)}
+.ann-bar .ann-x{position:absolute;top:6px;right:6px;width:32px;height:32px;border:0;background:none;border-radius:var(--rad-m,8px);color:var(--muted);font-size:20px;line-height:1;cursor:pointer}.ann-bar .ann-x:hover{background:var(--hover)}
+.ann-bar a{color:var(--accent);font-weight:600}
 @media (max-width:600px){.backup-bar p{flex-basis:100%}.backup-bar .bar{margin-left:auto}}
 #data-panel .sub-h{margin:22px 0 10px;font:600 14px var(--f-body)}
 .btn.link-like{border:0;background:none;color:var(--accent);padding-inline:4px;text-decoration:underline;text-underline-offset:3px}
@@ -3421,6 +3478,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
       <div class="sec-hero" id="sec-hero" hidden></div>
       <div class="home-top" id="home-top" hidden></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note" title="+ Заметка">+ Заметка</button></div>
+      <div class="ann-bar" id="ann-bar" role="status" hidden></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
       <div class="backup-bar" id="space-bar" role="status" hidden></div>
@@ -5190,7 +5248,7 @@ function renderHome(cl) {
 }
 function renderList() {
   if (!S.loaded.notes) return;
-  renderBackupBar(); renderInstallBar();
+  renderAnnBar(); annLoad(); renderBackupBar(); renderInstallBar();
   const hv = homeShown(); document.body.classList.toggle('home-view', hv);
   if (!hv) { $('#home-top').hidden = true; $('.list-head').removeAttribute('data-sc'); }
   const cl = currentList(); const { list, terms, title } = cl;
@@ -5812,6 +5870,41 @@ function backupDue() {
   const ago = daysBetween(c.last, t);
   return ago > period ? { ago } : null;
 }
+/* ---------- объявления всем (13.11): администратор пишет в админке, плашка как у напоминаний; закрытое лежит в настройках человека (едет на другие устройства) ---------- */
+const ANN_EVERY = 5 * 60e3, ANN_SHOW = 3, ANN_ORDER = { maint: 0, important: 1, news: 2 };
+const annKind = k => k === 'maint' ? tt('ann.maint') : k === 'important' ? tt('ann.important') : tt('ann.news');
+const annClosed = () => Array.isArray(S.settings.annClosed) ? S.settings.annClosed : [];
+function annVisible() {
+  const done = new Set(annClosed());
+  return (S.ann?.items || []).filter(i => !i.closable || !done.has(i.id)).sort((a, b) => (ANN_ORDER[a.kind] ?? 9) - (ANN_ORDER[b.kind] ?? 9)).slice(0, ANN_SHOW);
+}
+function renderAnnBar() {
+  const bar = $('#ann-bar'); if (!bar) return;
+  const list = S.uid && S.loaded.settings ? annVisible() : [];
+  if (!list.length) { bar.hidden = true; bar.innerHTML = ''; return; }
+  bar.innerHTML = list.map(i => `<div class="backup-bar ${esc(i.kind)}" data-ann="${esc(i.id)}"><p><span class="ann-kind">${annKind(i.kind)}</span>${esc(i.text)}${i.link ? ` <a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.linkLabel || i.link)}</a>` : ''}</p>${i.closable ? `<button class="ann-x" type="button" data-ann-x="${esc(i.id)}" aria-label="${tt('ann.close')}" title="${tt('ann.close')}">×</button>` : ''}</div>`).join('');
+  bar.hidden = false;
+  bar.querySelectorAll('[data-ann-x]').forEach(b => b.onclick = () => annClose(b.dataset.annX));
+}
+async function annClose(id) {
+  const keep = annClosed().filter(x => x !== id); keep.push(id);
+  window.NOTES_ANNOUNCE_CLOSE?.(id);   // только счётчик «закрыли» для администратора
+  await saveSettings({ annClosed: keep.slice(-30) }, '');   // '' — без «Сохранено»: закрыл плашку, а не менял настройки
+  renderAnnBar();
+}
+async function annLoad(force) {
+  if (!window.NOTES_ANNOUNCE || !S.uid || (!force && Date.now() - (S.annAt || 0) < ANN_EVERY)) return;
+  S.annAt = Date.now();
+  try {
+    const d = await window.NOTES_ANNOUNCE(); S.ann = { items: Array.isArray(d?.items) ? d.items : [] };
+    // список закрытых не растёт: оставляем только то, что ещё висит
+    const ids = new Set(S.ann.items.map(i => i.id)), cur = annClosed(), keep = cur.filter(x => ids.has(x));
+    if (S.loaded.settings && keep.length !== cur.length) saveSettings({ annClosed: keep }, '');
+  } catch { S.annAt = Date.now() - ANN_EVERY + 30000; }   // нет связи — прежние остаются, повторим через 30 с
+  renderAnnBar();
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') annLoad(); });
+window.addEventListener('focus', () => annLoad());
 function renderBackupBar() {
   const bar = $('#backup-bar'); if (!bar) return;
   const due = backupDue();
@@ -6040,17 +6133,18 @@ function wireDataPanel() {
   $('#data-dir').onchange = e => enexImport(e.target.files, e);
   $('#data-enex').onchange = e => enexImport(e.target.files, e);
   $('#data-file').onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    if ([...e.target.files].some(x => /\.enex$/i.test(x.name))) return enexImport(e.target.files, e);
+    // поле запоминаем сразу: после await у события может уже не быть target (Chromium CI 13.11 — «не похоже на файл копии» у правильного архива)
+    const inp = e.currentTarget || e.target, f = inp.files[0]; if (!f) return;
+    if ([...inp.files].some(x => /\.enex$/i.test(x.name))) return enexImport(inp.files, e);
     try {
       let d;
       if (/\.zip$/i.test(f.name) || /zip/.test(f.type)) { S.dataPanel = { status: tt('zip.reading') }; renderProg(); d = await zipToBackup(f); }
       else d = JSON.parse(await f.text());
       if (!d || d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
       sanitizeBackup(d);
-      e.target.value = '';
+      inp.value = '';
       S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; renderProg();
-    } catch { S.dataPanel = { status: tt('backup.bad') }; renderProg(); }
+    } catch (err) { console.warn('backup load', err); S.dataPanel = { status: tt('backup.bad') }; renderProg(); }
   };
   $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
   const runImport = async mode => {
@@ -10045,7 +10139,7 @@ function wireProgress(root) {
 // настройки пишутся целиком: set() заменяет документ — сохраняем и остальные поля (onboarded, retention…)
 async function saveSettings(patch, msg) {
   Object.assign(S.settings, patch);
-  if (S.db && S.uid) await write(() => S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings)), msg || tt('set.saved'));
+  if (S.db && S.uid) await write(() => S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings)), msg === '' ? '' : msg || tt('set.saved'));
   updateBadge();
 }
 // «тренировка плюс»: насколько хорошо помнить, самый длинный интервал, лимит новых по разделам
