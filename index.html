@@ -1460,7 +1460,7 @@ window.STR = {
   'lp.faq.17': 'Есть ли программа для компьютера?',
   'lp.faq.18': 'Отдельной программы скачивать не нужно: ReteNote открывается в браузере и устанавливается как приложение — и на Windows, и на Mac. В Chrome или Edge нажми значок установки в конце адресной строки (или «Установить ReteNote» в меню), в Safari на Mac — «Файл» → «Добавить в Dock». ReteNote откроется в своём окне, со своим значком, и будет работать без интернета',
   'lp.faq.9': 'Можно перенести заметки из Evernote?',
-  'lp.faq.10': 'Да. Экспортируй блокноты в Evernote в файлы .enex и загрузи их в «Настройки → Резервное копирование и перенос»: каждый блокнот станет разделом, вместе с таблицами, чек-листами и изображениями',
+  'lp.faq.10': 'Да. Экспортируй блокноты в Evernote в файлы .enex и загрузи их в «Настройки → Резервное копирование и перенос»: каждый блокнот станет разделом, а заметки сохранят теги, даты, таблицы, чек-листы и изображения. Вложения вроде PDF и аудио не переносятся',
   'lp.faq.11': 'Что будет, когда закончится Pro?',
   'lp.faq.12': 'Ничего не удалится: все заметки и изображения останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
   'lp.faq.13': 'Можно вернуть деньги?',
@@ -3361,7 +3361,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .ntile .tl-name{color:var(--ink)}
 :root[data-skin="play"] .tile[data-sec][aria-current="true"]{box-shadow:inset 0 0 0 3px var(--sc,var(--accent))}
 :root[data-skin="play"] .ntile[aria-current="true"]{box-shadow:inset 0 4px 0 var(--sc,var(--accent)),inset 0 0 0 2px var(--sc,var(--accent))}
-:root[data-skin="play"] .rail-up .ttl-up.cur{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink))}
+:root[data-skin="play"] .rail-up .ttl-up{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink))}
 :root[data-skin="play"] .home-up{border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised))}
 :root[data-skin="play"] .tl-grp{color:color-mix(in srgb,var(--sc,var(--accent)) 60%,var(--ink));font-weight:800}
 :root[data-skin="play"] .sec-h h3{color:color-mix(in srgb,var(--sc,var(--accent)) 55%,var(--ink))}
@@ -4757,7 +4757,7 @@ function setMode(m) {
   if (m === 'train') renderTrain(); if (m === 'prog') { renderProg(); loadPlan(); } if (m === 'lib') renderLib();
   sessionClass(); histSync();
 }
-document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && homeOn() && (S.section !== 'all' || S.tileFlat || S.q || S.tag)) goHome(); else setMode(b.dataset.mode); }));
+document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && (homeOn() || deskTiles()) && (S.section !== 'all' || S.tileFlat || S.q || S.tag)) goHome(); else setMode(b.dataset.mode); }));
 // панель режимов не помещается в строку (крупный шрифт в системе, узкое окно): подписи прячем, остаются значки — иначе «Справка» уезжает за экран
 function fitModes() {
   const m = document.querySelector('.modes'), top = m && m.parentElement; if (!top || !top.offsetParent) return;
@@ -4901,7 +4901,7 @@ window.matchMedia('(max-width:1100px)').addEventListener('change', e => { if (!e
 $('#rail').addEventListener('click', e => {
   if (document.body.classList.contains('desk-tiles') && !S.secSheet) {   // колонка разделов плитками
     const m = e.target.closest('[data-secmore]'); if (m) { e.stopPropagation(); if (S.menu?.id === m.dataset.secmore) closeMenu(); else openSecMenu(m.dataset.secmore, m); return; }
-    if (e.target.closest('[data-rail-up]')) { const p = parentOf(railCtx()); selectSection(p && p !== homeRoot() ? p : 'all'); return; }   // как ← на телефоне
+    if (e.target.closest('[data-rail-up], .rail-up .ttl-up')) { const p = parentOf(railCtx()); selectSection(p && p !== homeRoot() ? p : 'all'); return; }   // как ← на телефоне
     const hl = e.target.closest('[data-hl]'); if (hl) { if (hl.dataset.hl === 'add') openSecMenu(null, hl, 'new'); else selectSection(hl.dataset.hl); return; }
   }
   if (e.target.closest('#secs-close')) { closeSecSheet(); return; }
@@ -6025,6 +6025,8 @@ function enmlToMd(enml, media) {
     if (r && /^image\//.test(r.mime)) { const img = doc.createElement('img'); img.setAttribute('src', 'enex:' + r.hash); img.setAttribute('alt', ''); m.replaceWith(img); }
     else m.replaceWith(doc.createTextNode(`📎 ${(r && r.name) || 'вложение'} (вложение из Evernote не перенесено)`));   // не текст интерфейса
   });
+  // зашифрованные фрагменты расшифровать нельзя — вместо base64-шифротекста пометка
+  root.querySelectorAll('en-crypt').forEach(c => c.replaceWith(doc.createTextNode('🔒 (зашифрованный фрагмент Evernote не перенесён)')));   // не текст интерфейса
   // строки Evernote — это div: подряд идущие строки — один абзац с переносами, пустая строка — граница абзаца
   const blank = el => el.tagName === 'DIV' && !el.querySelector('img') && !el.textContent.replace(/[\s ​⁠]/g, '');
   const group = (box, inlineOnly) => {
