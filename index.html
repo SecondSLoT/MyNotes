@@ -355,6 +355,7 @@ window.STR = {
   'my.cheatsheet.moved': 'Разделы шпаргалки собраны в папку «Android-шпаргалка»',
   'my.cheatsheet.failed': 'Не получилось обновить структуру разделов',
   'trash.move.failed': 'Не всё удалось переместить в корзину',
+  'trash.restore.failed': 'Не удалось вернуть раздел заметки — попробуй ещё раз',
   'trash.purge.foreign': 'Удалить навсегда заметку общего раздела может только его владелец.',
 
   // ===== Меню заметки
@@ -1707,6 +1708,11 @@ window.STR = {
   'adm.novye': 'Новые',
   'adm.otkryvali_prilozhenie': 'Открывали приложение',
   'adm.chelovek': 'Человек',
+  'adm.guest.title': 'Пробовали без входа',
+  'adm.guest.sub': 'Зарегистрировались после этого: {n} · открывали без входа в среднем {a} в день',
+  'adm.guest.chart': 'Пробовали без входа',
+  'adm.guest.chart.sub': 'Новые устройства в режиме без входа — обезличенный счёт',
+  'adm.guest.name': 'Устройств',
   'adm.zametki_i_izobrazheniya': 'Заметки и изображения',
   'adm.zametki': 'Заметки',
   'adm.v_korzine': 'в корзине ',
@@ -4007,7 +4013,7 @@ async function trashNotes(ids, undoable = true) {
   if (!done.length) return;
   if (done.includes(S.noteId) && S.section !== 'trash') { S.noteId = null; S.editing = null; $('#lib').classList.remove('reading'); }
   rerender(); updateBadge();
-  const ok = await writeAll(done.map(id => () => S.db.collection('notes').doc(id).update({ deleted: now })));
+  const ok = await writeAll(done.map(id => { const g = S.trash.get(id)?.gone; return () => S.db.collection('notes').doc(id).update(g ? { deleted: now, gone: g } : { deleted: now }); }));
   if (!ok) { toast(tt('trash.move.failed')); return; }
   const msg = done.length > 1 ? tt('trash.moved.n', { n: done.length }) : tt('trash.moved');
   if (undoable) toast(msg, { label: tt('btn.undo'), fn: () => restoreNotes(done) }); else toast(msg);
@@ -4016,16 +4022,26 @@ async function restoreNotes(ids) {
   const ro = ids.filter(id => S.trash.has(id) && !canEditIn(spaceOfNote(S.trash.get(id))));
   if (ro.length) { roRefuse(spaceOfNote(S.trash.get(ro[0]))); ids = ids.filter(id => !ro.includes(id)); if (!ids.length) return; }
   if (planBlocks('notes', ids.filter(id => S.trash.has(id)).length)) return;
+  // раздел заметки удалили вместе с ней (deleteFolderWithNotes) — создаём его заново (и недостающих родителей) с тем же id, названием и местом
+  const back = new Map();
+  for (const id of ids) { const n = S.trash.get(id); if (n && !S.sections.has(n.section) && Array.isArray(n.gone)) for (const g of n.gone) if (g?.id && !S.sections.has(g.id)) back.set(g.id, g); }
+  if (back.size && planBlocks('sections', back.size)) return;
+  if (back.size) {
+    const secs = [...back.values()].map(g => { const v = { title: g.title || '', order: g.order ?? 0, parent: g.parent && (S.sections.has(g.parent) || back.has(g.parent)) ? g.parent : null };
+      for (const k of ['train', 'both', 'newLimit', 'sort', 'subSort', 'color']) if (g[k] != null) v[k] = g[k];
+      S.sections.set(g.id, { id: g.id, ...v }); return [g.id, v]; });
+    if (!await writeAll(secs.map(([sid, v]) => () => S.db.collection('sections').doc(sid).set(v)))) { for (const [sid] of secs) S.sections.delete(sid); renderRail(); toast(tt('trash.restore.failed')); return; }
+  }
   const done = [];
   for (const id of ids) {
     const n = S.trash.get(id); if (!n) continue;
-    S.trash.delete(id); delete n.deleted; delete n.deletedBy;
+    S.trash.delete(id); delete n.deleted; delete n.deletedBy; delete n.gone;
     if (!S.sections.has(n.section)) n.section = lastFolder();
     S.notes.set(id, n); done.push(id);
   }
   if (!done.length) return;
   rerender(); updateBadge();
-  await writeAll(done.map(id => { const sec = S.notes.get(id).section; return () => S.db.collection('notes').doc(id).update({ deleted: null, section: sec }); }));
+  await writeAll(done.map(id => { const sec = S.notes.get(id).section; return () => S.db.collection('notes').doc(id).update({ deleted: null, section: sec, gone: null }); }));
   toast(done.length > 1 ? tt('trash.restored.n', { n: done.length }) : tt('trash.restored', { section: S.sections.get(S.notes.get(done[0])?.section)?.title || '' }));
 }
 async function purgeNotes(ids, quiet) {
@@ -6826,10 +6842,17 @@ function renderSecMenu() {
   placeMenu(anchor);
   const inp = $('#sec-name'); if (inp) { inp.focus(); inp.select(); } else menuEl.querySelector('button:not([disabled])')?.focus();
 }
-// удалить раздел вместе с подразделами; заметки — в корзину (вернуть можно, вернутся в последний открытый раздел)
+// удалить раздел вместе с подразделами; заметки — в корзину. Заметка запоминает свой раздел и его родителей внутри удаляемого (gone):
+// восстановленная из корзины, она вернётся в тот же раздел — он будет создан заново. Общий раздел так не воссоздаётся — в последний открытый
 async function deleteFolderWithNotes(id) {
   const sub = subtree(id);
   const ids = [...S.notes.values()].filter(n => sub.has(n.section)).map(n => n.id);
+  const shared = !!spaceOfSection(id);
+  for (const nid of ids) {
+    const n = S.notes.get(nid), chain = [];
+    if (!shared) for (let cur = n.section, i = 0; cur && sub.has(cur) && i < 64; i++) { const x = S.sections.get(cur); if (!x) break; chain.unshift({ ...x }); cur = x.parent; }
+    if (chain.length) n.gone = chain.map(x => Object.fromEntries(Object.entries(x).filter(([, v]) => v !== undefined)));
+  }
   if (ids.length) await trashNotes(ids, false);
   // сначала самые глубокие, чтобы ни на миг не остался подраздел без родителя
   const T = tree(), depth = sid => (T.list[T.idx.get(sid)]?.depth ?? 0);
