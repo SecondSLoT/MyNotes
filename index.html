@@ -5292,7 +5292,7 @@ function renderHome(cl) {
   }
   // шапка: на главной — «Разделы» / «Все заметки»; в разделе и в избранном/недавних/корзине — ← и название (нажатие тоже назад)
   const lh = $('.list-head');
-  if (sid && !atHome && secColor(sid)) lh.setAttribute('data-sc', secColor(sid)); else lh.removeAttribute('data-sc');
+  if (sid && !atHome && colorSecsOn() && secColor(sid)) lh.setAttribute('data-sc', secColor(sid)); else lh.removeAttribute('data-sc');   // «Цветные разделы» выключены — шапка без цвета (15.11)
   const ttl = atHome ? tt(flat ? 'list.all' : 'rail.label') + (S.tag ? ` · #${S.tag}` : '') : (virt ? VIRTUAL[S.section] : (sec?.title || '') + (spacesList().some(z => z.root === sid) ? ' 👥' : '')) + (S.tag ? ` · #${S.tag}` : '');
   $('#list-title').innerHTML = atHome ? esc(ttl) : desk ? `<button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>` : `<button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>`;
   $('#list-count').textContent = flat ? all.length : atHome ? S.notes.size : secStats(sid, rq).notes;
