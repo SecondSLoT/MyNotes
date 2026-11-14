@@ -5233,7 +5233,9 @@ const homeShown = () => (homeOn() || deskTiles()) && S.mode === 'lib' && !S.q &&
 function goHome() { keepTileScroll(goHomeNow); }
 function goHomeNow() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
 // уровень главной: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы (и его заметки)
-function homeRoot() { let r = null; for (let lv = kids(null); lv.length === 1 && hasKids(lv[0].id); lv = kids(r)) r = lv[0].id; return r; }
+// главная плиток — всегда верхний уровень разделов (14.11: раньше при единственном корневом разделе с подразделами главная сразу показывала
+// его содержимое — раздел пропадал, подраздел выглядел корневым, выхода в раздел не было). Одинаково в ReteNote и MyNotes
+function homeRoot() { return null; }
 function homeLevel() { return kids(homeRoot()); }
 const tileLetter = t => ((t || '').trim().match(/[\p{L}\p{N}]/u) || ['•'])[0].toUpperCase();
 let tileIO = null;   // подгрузка плиток «Все заметки» при прокрутке (по LIST_STEP)
