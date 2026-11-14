@@ -79,6 +79,37 @@ window.STR = {
   'login.new': 'Нет аккаунта? Он создастся при первом входе через {names}',
   'login.new.or': ' или ',
   'login.none': 'Вход пока не настроен на сервере',
+  // без входа («гость»): заметки только на этом устройстве, после входа переносятся в аккаунт
+  'guest.or': 'или',
+  'guest.try': 'Попробовать без входа',
+  'guest.try.note': 'Заметки будут храниться только на этом устройстве',
+  'guest.back': '← Вернуться к заметкам',
+  'guest.nostore': 'Без входа не получится: этот браузер не даёт хранить заметки на устройстве',
+  'guest.img': 'Изображение пока хранится на этом устройстве — в аккаунт загрузится после входа',
+  'guest.dlg.h': 'Заметка сохранена на этом устройстве',
+  'guest.dlg.1': 'Ты работаешь без входа, поэтому заметки лежат только в этом браузере. Они пропадут, если очистить данные сайта, и не появятся на других устройствах',
+  'guest.dlg.2': 'Войди через Яндекс ID или VK ID — заметки перенесутся в аккаунт, будут храниться на сервере и открываться на любом устройстве. Это бесплатно',
+  'guest.in': 'Войти и сохранить в аккаунте',
+  'guest.in.short': 'Войти',
+  'guest.stay': 'Продолжить без входа',
+  'guest.bar': 'Заметки хранятся только на этом устройстве. Войди — они сохранятся в аккаунте и будут на всех устройствах',
+  'guest.acc.sub': 'без входа',
+  'guest.acc.text': 'Ты работаешь без входа: заметки хранятся только в этом браузере и не синхронизируются. После входа они перенесутся в аккаунт',
+  'guest.wipe': 'Удалить заметки с этого устройства',
+  'guest.wipe.text': 'Все заметки, созданные без входа, будут удалены с этого устройства. Вернуть их не получится',
+  'guest.wipe.yes': 'Удалить навсегда',
+  'guest.plan': 'Pro и пробный период доступны после входа: заметки перенесутся в аккаунт',
+  'guest.moving': 'Переношу в аккаунт заметки, созданные без входа…',
+  'guest.moved': 'Заметки, созданные без входа, теперь в аккаунте: {n}',
+  'guest.left': 'На этом устройстве остались заметки, созданные без входа: {n}',
+  'guest.left.move': 'Перенести в аккаунт',
+  'guest.left.drop': 'Удалить их',
+  'guest.left.drop.sure': 'Точно удалить?',
+  'guest.left.dropped': 'Заметки, созданные без входа, удалены с устройства',
+  'guest.imp': 'Создано без входа на этом устройстве: {sections} {sections|раздел|раздела|разделов}, {notes} {notes|заметка|заметки|заметок}',
+  'img.full.bar': '{n} {n|изображение хранится|изображения хранятся|изображений хранятся} только на этом устройстве: в аккаунте закончилось место',
+  'img.full.what': 'Что можно сделать',
+  'guest.help': '<b>Без входа</b> заметки хранятся только на этом устройстве. После входа они переносятся в аккаунт и появляются на других устройствах',
   'login.privacy': 'Политика конфиденциальности',
   'login.consent': 'Согласие на обработку персональных данных',
   'login.terms': 'Входя, ты принимаешь <a href="/terms.html" target="_blank" rel="noopener">Пользовательское соглашение</a>',
@@ -1014,6 +1045,7 @@ window.STR = {
   'imp.r.srs': 'прогресс по {n} карточкам',
   'imp.r.img': 'изображений загружено: {n}',
   'imp.r.imgfail': 'изображений не загрузилось: {n}',
+  'imp.r.imglater': 'изображений загрузится позже: {n}',
   'imp.r.imgfail.links': '(в заметках остались прежние ссылки на них)',
   'imp.r.skipped': 'ещё {n} {n|заметка|заметки|заметок} — в Pro (в бесплатной версии до {limit})',
   'imp.r.bad': 'повреждённых записей пропущено: {n}',
@@ -2284,6 +2316,7 @@ window.tt = function (key, p) {
 @media (prefers-color-scheme: dark){:root[data-oled]:not([data-theme="light"]){ --bg:#000000; --surface:#070707; --raised:#0f0f0f; --line:#222222; --line-strong:#333333; --code-bg:#0c0c0c; }}
 :root[data-oled][data-theme="dark"]{ --bg:#000000; --surface:#070707; --raised:#0f0f0f; --line:#222222; --line-strong:#333333; --code-bg:#0c0c0c; }
 [hidden]{display:none!important}
+.only-guest{display:none}body.is-guest .only-guest{display:revert}
 .only-public{display:none}body.flavor-public .only-public{display:revert}body.flavor-public .only-personal{display:none}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
@@ -3489,6 +3522,8 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
       <div class="home-top" id="home-top" hidden></div>
       <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note" title="+ Заметка">+ Заметка</button></div>
       <div class="ann-bar" id="ann-bar" role="status" hidden></div>
+      <div class="backup-bar" id="guest-bar" role="status" hidden></div>
+      <div class="backup-bar" id="imgq-bar" role="status" hidden></div>
       <div class="backup-bar" id="backup-bar" role="status" hidden></div>
       <div class="backup-bar" id="plan-bar" role="status" hidden></div>
       <div class="backup-bar" id="space-bar" role="status" hidden></div>
@@ -3521,6 +3556,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
           <li><b>⋮</b> у заметки в списке (или правый клик) — теги, перенос в другой раздел, удаление и всё остальное, что можно с ней сделать</li>
           <li><b>«Подряд»</b> над списком собирает заметки раздела в одну статью — удобно читать всё подряд</li>
           <li><b>«На весь экран»</b> у заметки — крупный текст, экран не гаснет. Удобно для текста песни или выступления</li>
+          <li class="only-guest"><b>Без входа</b> заметки хранятся только на этом устройстве. После входа они переносятся в аккаунт и появляются на других устройствах</li>
           <li class="only-public"><b>Поделиться</b> (⋮ → «Поделиться…») — ссылка, по которой заметку или раздел читают без аккаунта. Раздел можно открыть и для совместной работы с другими людьми — это в Pro</li>
           <li class="only-public"><b>История версий</b> (⋮ → «История версий») — прежние варианты заметки: можно посмотреть, чем они отличаются, и вернуться к любому. Бесплатно — за последние сутки, в Pro — глубже</li>
           <li>На телефоне заметки листаются свайпом влево и вправо, а жест «Назад» возвращает на предыдущий экран</li>
@@ -4331,7 +4367,9 @@ function insertUpload(file, at) {
       replaceInEditor(key, path);
       toast(tt('img.loaded'));
     } catch (err) {
-      if (blob && netLike(err) && await imgqPut(key, { blob, uid: S.uid || '', at: Date.now() })) { toast(tt('img.queued')); imgqSoon(); return; }   // нет связи — файл ждёт на устройстве
+      if (blob && netLike(err) && await imgqPut(key, { blob, uid: S.uid || '', at: Date.now() })) {   // нет связи (или без входа) — файл ждёт на устройстве
+        if (err?.guest && S.plan?.usage) S.plan.usage.bytes += blob.size;
+        toast(tt(err?.guest ? 'guest.img' : 'img.queued')); imgqSoon(); return; }
       replaceInEditor(`![](${key})`, ''); replaceInEditor(key, '');
       if (err?.code === 'limit') showPlanDialog('bytes', err.message); else
       toast(tt('img.failed', { why: err?.message || err }));
@@ -4374,17 +4412,26 @@ let imgqBusy = false, imgqT = 0;
 function imgqSoon(ms = 60000) { clearTimeout(imgqT); imgqT = setTimeout(imgqRun, ms); }
 async function imgqRun() {
   if (imgqBusy || !S.db || !S.loaded.notes) return;
-  imgqBusy = true; let left = 0;
+  imgqBusy = true; let left = 0, full = 0, done = 0;
   try {
     const all = ((await imgqAll()) || []).filter(([, rec]) => !(rec.uid && S.uid && rec.uid !== S.uid));   // чужой аккаунт на этом устройстве — не трогаем
     let shown = false;   // сначала показать все отложенные изображения на этом устройстве (после перезагрузки страницы) — загрузка может и не пройти
     for (const [key, rec] of all) if (!localImages[key]) { localImages[key] = URL.createObjectURL(rec.blob); shown = true; }
     if (shown) renderReader();
+    if (guestOn()) {   // без входа загружать некуда: только показать и выбросить давно не нужные
+      for (const [key, rec] of all) if (!imgqUsed(key) && Date.now() - rec.at > 7 * 86400e3) await imgqDel(key);
+      return;
+    }
     for (const [key, rec] of all) {
       if (!imgqUsed(key)) { if (Date.now() - rec.at > 7 * 86400e3) await imgqDel(key); else left++; continue; }
       let path;
       try { path = await uploadBlob(rec.blob); }
-      catch (e) { left++; if (netLike(e) || e?.code === 'limit') break; continue; }
+      catch (e) {
+        left++;
+        if (e?.code === 'limit') { full = all.filter(([k]) => imgqUsed(k)).length - done; break; }   // в аккаунте кончилось место: эти изображения — только на устройстве
+        if (netLike(e)) break; continue;
+      }
+      done++;
       localImages[path] = localImages[key];
       replaceInEditor(key, path); imgqInDrafts(key, path);
       if (S.editing?.base) S.editing.base.body = S.editing.base.body.split(key).join(path);
@@ -4396,7 +4443,22 @@ async function imgqRun() {
       await imgqDel(key);
       renderReader();
     }
-  } finally { imgqBusy = false; if (left) imgqSoon(); }
+  } finally {
+    imgqBusy = false;
+    if ((S.imgqFull || 0) !== full) { S.imgqFull = full; renderImgqBar(); }
+    if (left) imgqSoon(full ? 600000 : undefined);   // места нет — не дёргаем сервер каждую минуту: раз в 10 минут и когда тариф обновился (loadPlan)
+  }
+}
+// изображения ждут на устройстве, а в аккаунте для них нет места (вставлены без входа или без связи): сказать об этом, иначе они
+// молча остаются только здесь
+function renderImgqBar() {
+  const bar = $('#imgq-bar'); if (!bar) return;
+  const n = S.imgqFull || 0, sn = store.get('imgqBar', {}), on = n > 0 && !(sn.snooze && sn.snooze > today());
+  bar.hidden = !on;
+  bar.innerHTML = on ? `<p>${tt('img.full.bar', { n })}</p><div class="bar"><button class="btn primary" type="button" id="imgq-bar-what">${tt('img.full.what')}</button><button class="btn" type="button" id="imgq-bar-later">${tt('btn.later')}</button></div>` : '';
+  if (!on) return;
+  $('#imgq-bar-what').onclick = () => showPlanDialog('bytes');
+  $('#imgq-bar-later').onclick = () => { store.set('imgqBar', { snooze: addDays(today(), 3) }); renderImgqBar(); };
 }
 window.addEventListener('online', () => imgqSoon(1500));
 window.addEventListener('notes-sync', e => { if (e.detail && !e.detail.offline && !e.detail.stale) imgqSoon(1500); });
@@ -5258,7 +5320,7 @@ function renderHome(cl) {
 }
 function renderList() {
   if (!S.loaded.notes) return;
-  renderAnnBar(); annLoad(); renderBackupBar(); renderInstallBar();
+  renderAnnBar(); annLoad(); renderGuestBar(); renderImgqBar(); renderBackupBar(); renderInstallBar();
   const hv = homeShown(); document.body.classList.toggle('home-view', hv);
   if (!hv) { $('#home-top').hidden = true; $('.list-head').removeAttribute('data-sc'); }
   const cl = currentList(); const { list, terms, title } = cl;
@@ -5639,6 +5701,15 @@ function dataPanelHtml() {
   </details>`;
 }
 function accountPanelHtml() {
+  if (guestOn()) { const A = S.accPanel || {};
+    return `<details class="panel" id="acc-panel" ${S.accOpen ? 'open' : ''}>
+    <summary>${tt('acc.title')} <span>· ${tt('guest.acc.sub')}</span></summary>
+    <p class="sub u-mt8">${tt('guest.acc.text')}</p>
+    <div class="bar u-mt12"><button class="btn primary" type="button" id="guest-acc-in">${tt('guest.in.short')}</button>${A.wipeAsk ? '' : `<button class="btn danger" type="button" id="guest-wipe-ask">${tt('guest.wipe')}</button>`}</div>
+    ${A.wipeAsk ? `<div class="del-account"><p>${tt('guest.wipe.text')}</p>
+      <div class="bar"><button class="btn danger" type="button" id="guest-wipe-yes">${tt('guest.wipe.yes')}</button><button class="btn" type="button" id="guest-wipe-no">${tt('btn.cancel')}</button></div></div>` : ''}
+    ${window.NOTES_LEGAL ? `<p class="hint legal-links u-mt12">${tt('acc.docs')} <a href="${window.NOTES_LEGAL.privacy}" target="_blank" rel="noopener">${tt('login.privacy')}</a> · <a href="${window.NOTES_LEGAL.terms}" target="_blank" rel="noopener">${tt('land.foot.terms')}</a></p>` : ''}
+  </details>`; }
   if (!window.NOTES_SIGN_OUT) return '';
   const A = S.accPanel || {}; const who = window.NOTES_USER_NAME || window.NOTES_USER_EMAIL || '';
   return `<details class="panel" id="acc-panel" ${S.accOpen ? 'open' : ''}>
@@ -5711,7 +5782,7 @@ function importDiff(d) {
 function importConfirmHtml(d, X) {
   const nSrs = Object.keys(d.srs || {}).length;
   const nImg = Object.keys(d.images || {}).length;
-  const head = d.source === 'evernote'
+  const head = d.guest ? tt('guest.imp', { sections: d.sections.length, notes: d.notes.length }) + '.' : d.source === 'evernote'
     ? tt('imp.enex', { notes: d.notes.length, sections: d.sections.length }) + (nImg ? tt('imp.enex.img', { n: nImg }) : '') + '.'
       + (nImg && !uploadReady() ? ' ' + tt('imp.enex.noimg') : '')
       + (d.warn?.length ? ' ' + tt('imp.enex.warn', { files: esc(d.warn.join(', ')) }) : '')
@@ -6123,6 +6194,94 @@ function enexToBackup(files) {
   }
   return { format: 'android-notes', version: 1, sections: [...sections.values()], notes, srs: {}, images, source: 'evernote', warn };
 }
+// загрузка данных в аккаунт — копия, Evernote, заметки, созданные без входа (guestMove): mode keep — что уже есть, не трогаем; say(текст) — ход работы.
+// Возвращает { ok, skipped — сколько заметок не влезло в лимит Free, added, text }
+async function importRun(d, X, mode, say, opts = {}) {
+  const keep = mode === 'keep';
+  const same = new Set(X.same);
+  // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
+  let secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
+  let notes = d.notes.filter(n => !(S.notes.has(n.id) || S.trash.has(n.id)) || (!keep && !same.has(n.id)));
+  // Free и новых больше, чем влезает: только самые свежие по дате изменения; разделы — те, где они лежат (с родителями), сколько бы ни было
+  let skipped = 0; const room = importRoom();
+  { const fresh = importFresh({ notes });
+    if (fresh.length > room) {
+      const keepIds = new Set(fresh.slice().sort((a, b) => (b.updated || b.created || '').localeCompare(a.updated || a.created || '')).slice(0, room).map(n => n.id));
+      skipped = fresh.length - room;
+      notes = notes.filter(n => !fresh.includes(n) || keepIds.has(n.id));
+      const need = new Set();
+      for (const n of notes) { let id = n.section; while (id && !need.has(id)) { need.add(id); id = (d.sections.find(x => x.id === id) || S.sections.get(id))?.parent; } }
+      secs = secs.filter(sc => S.sections.has(sc.id) || need.has(sc.id));
+    } }
+  const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(baseId(id)) || S.trash.has(baseId(id)) || notes.some(n => n.id === baseId(id))) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
+  const settings = d.settings && (!keep || opts.fresh || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
+  say(tt('imp.running'));
+  // изображения из Evernote: загрузить туда же, куда обычные изображения заметок, и подставить ссылки
+  // и изображения из архива копии, которых нет в этом аккаунте (zipToBackup)
+  const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
+  const fromEn = d.source === 'evernote'; let upOk = 0, upFail = 0, upLater = 0;
+  if (need.length) {
+    const url = {}; let k = 0;
+    for (const h of need) {
+      const m = imgs[h];
+      if (uploadReady()) {
+        say(tt('imp.img', { n: ++k, total: need.length }));
+        let b = null;
+        try {
+          const raw = new File([m.bytes], m.name || 'image', { type: m.mime });
+          b = fromEn ? await compressImage(raw) : raw;   // из копии — уже сжатые, как были
+          if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
+          else { url[h] = /^img\/[^/]+$/.test(m.orig || '') ? m.orig : newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, ${fromEn ? 'import from Evernote' : 'from backup'})`); }
+          localImages[url[h]] = URL.createObjectURL(b); upOk++;
+        } catch (err) {
+          // без входа загружать некуда: изображение ждёт на устройстве (как вставленное без связи) и загрузится после входа — пока хватает места
+          const key = b && err?.guest && planUsed('bytes') + b.size <= planLimit('bytes') ? 'uploading-' + Math.random().toString(36).slice(2, 10) : null;
+          if (key && await imgqPut(key, { blob: b, uid: S.uid || '', at: Date.now() })) { url[h] = key; localImages[key] = URL.createObjectURL(b); upLater++; if (S.plan?.usage) S.plan.usage.bytes += b.size; }
+          else { url[h] = null; upFail++; }
+        }
+      } else { url[h] = null; upFail++; }
+    }
+    for (const n of notes) n.body = n.body.replace(/!\[([^\]]*)\]\(enex:([0-9a-f]{32})\)/g, (all, alt, h) => url[h] ? `![${alt}](${url[h]})`
+      : fromEn ? `*(изображение${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*` : `![${alt}](${imgs[h]?.orig || ''})`);   // не текст интерфейса
+  }
+  const strip = o => { const c = { ...o }; delete c.id; return c; };
+  let done = 0; const total = secs.length + notes.length + srs.length;
+  const tick = () => { done++; if (done % 20 === 0) say(tt('imp.progress', { n: done, total })); };
+  try {
+    // по 50 записей за раз: хранилище может отправить их одной пачкой
+    const inChunks = async (items, fn) => { for (let i = 0; i < items.length; i += 50) await Promise.all(items.slice(i, i + 50).map(x => fn(x).then(tick))); };
+    // imported: true — лимит разделов Free при импорте не действует (решение 23.10: «разделов не жалко»)
+    await inChunks(secs, sc => { const ref = S.db.collection('sections').doc(sc.id); return S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(Object.assign(strip(sc), { imported: true })); });
+    await inChunks(notes, n => S.db.collection('notes').doc(n.id).set(strip(n)));
+    if (S.uid) {
+      await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
+      if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
+      // журнал ответов (статистика, серия дней): берём только дни, которых здесь ещё нет, — повторная загрузка и загрузка в тот же аккаунт ничего не задваивают
+      for (const [m, x] of Object.entries(d.log || {})) {
+        if (!/^\d{4}-\d\d$/.test(m)) continue;
+        const have = S.srsLog.get(m)?.days || {}, add = {};
+        for (const [day, v] of Object.entries(x?.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(day) && !have[day] && v && typeof v === 'object') add[day] = v;
+        if (!Object.keys(add).length) continue;
+        const id = m + '_imp', next = { days: Object.assign({}, S.srsLogRaw.get(id)?.days, add) };
+        S.srsLogRaw.set(id, next); rebuildLog(); await logCol().doc(id).set(next);
+      }
+    }
+    const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
+    const replaced = notes.length - added;
+    const parts = [tt('imp.r.added', { n: added })];
+    if (replaced) parts.push(tt('imp.r.replaced', { n: replaced }));
+    if (keep && X.notes.length) parts.push(tt('imp.r.kept', { n: X.notes.length }));
+    if (secs.length) parts.push(tt('imp.r.secs', { n: secs.length }));
+    if (srs.length) parts.push(tt('imp.r.srs', { n: srs.length }));
+    if (upOk) parts.push(tt('imp.r.img', { n: upOk }));
+    if (upLater) parts.push(tt('imp.r.imglater', { n: upLater }));
+    if (upFail) parts.push(tt('imp.r.imgfail', { n: upFail }) + (fromEn ? '' : ' ' + tt('imp.r.imgfail.links')));
+    if (d.dropped) parts.push(tt('imp.r.bad', { n: d.dropped }));
+    if (skipped) parts.push(tt('imp.r.skipped', { n: skipped, limit: planLimit('notes') }));
+    const text = tt('imp.r.done', { list: parts.join(', ') }); say(text);
+    return { ok: true, skipped, added, text };
+  } catch (err) { const text = tt('imp.r.failed', { why: err?.message || err }); say(text); return { ok: false, text }; }
+}
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
   p.ontoggle = () => { S.dataOpen = p.open; };
@@ -6160,84 +6319,9 @@ function wireDataPanel() {
   };
   $('#data-import-cancel') && ($('#data-import-cancel').onclick = () => { S.dataPanel = null; renderProg(); });
   const runImport = async mode => {
-    const d = S.dataPanel.pending; const X = S.dataPanel.diff;
-    const keep = mode === 'keep';
-    const same = new Set(X.same);
-    // keep: anything that already exists on the site stays untouched; replace: rewrite whatever differs
-    let secs = d.sections.filter(sc => !S.sections.has(sc.id) || (!keep && S.sections.get(sc.id).title !== sc.title));
-    let notes = d.notes.filter(n => !(S.notes.has(n.id) || S.trash.has(n.id)) || (!keep && !same.has(n.id)));
-    // Free и новых больше, чем влезает: только самые свежие по дате изменения; разделы — те, где они лежат (с родителями), сколько бы ни было
-    let skipped = 0; const room = importRoom();
-    { const fresh = importFresh({ notes });
-      if (fresh.length > room) {
-        const keepIds = new Set(fresh.slice().sort((a, b) => (b.updated || b.created || '').localeCompare(a.updated || a.created || '')).slice(0, room).map(n => n.id));
-        skipped = fresh.length - room;
-        notes = notes.filter(n => !fresh.includes(n) || keepIds.has(n.id));
-        const need = new Set();
-        for (const n of notes) { let id = n.section; while (id && !need.has(id)) { need.add(id); id = (d.sections.find(x => x.id === id) || S.sections.get(id))?.parent; } }
-        secs = secs.filter(sc => S.sections.has(sc.id) || need.has(sc.id));
-      } }
-    const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(baseId(id)) || S.trash.has(baseId(id)) || notes.some(n => n.id === baseId(id))) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
-    const settings = d.settings && (!keep || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
-    S.dataPanel = { status: tt('imp.running') }; renderProg();
-    // изображения из Evernote: загрузить туда же, куда обычные изображения заметок, и подставить ссылки
-    // и изображения из архива копии, которых нет в этом аккаунте (zipToBackup)
-    const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
-    const fromEn = d.source === 'evernote'; let upOk = 0, upFail = 0;
-    if (need.length) {
-      const url = {}; let k = 0;
-      for (const h of need) {
-        const m = imgs[h];
-        if (uploadReady()) {
-          S.dataPanel = { status: tt('imp.img', { n: ++k, total: need.length }) }; renderProg();
-          try {
-            const raw = new File([m.bytes], m.name || 'image', { type: m.mime });
-            const b = fromEn ? await compressImage(raw) : raw;   // из копии — уже сжатые, как были
-            if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
-            else { url[h] = /^img\/[^/]+$/.test(m.orig || '') ? m.orig : newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, ${fromEn ? 'import from Evernote' : 'from backup'})`); }
-            localImages[url[h]] = URL.createObjectURL(b); upOk++;
-          } catch (err) { url[h] = null; upFail++; }
-        } else { url[h] = null; upFail++; }
-      }
-      for (const n of notes) n.body = n.body.replace(/!\[([^\]]*)\]\(enex:([0-9a-f]{32})\)/g, (all, alt, h) => url[h] ? `![${alt}](${url[h]})`
-        : fromEn ? `*(изображение${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*` : `![${alt}](${imgs[h]?.orig || ''})`);   // не текст интерфейса
-    }
-    const strip = o => { const c = { ...o }; delete c.id; return c; };
-    let done = 0; const total = secs.length + notes.length + srs.length;
-    const tick = () => { done++; if (done % 20 === 0) { S.dataPanel = { status: tt('imp.progress', { n: done, total }) }; renderProg(); } };
-    try {
-      // по 50 записей за раз: хранилище может отправить их одной пачкой
-      const inChunks = async (items, fn) => { for (let i = 0; i < items.length; i += 50) await Promise.all(items.slice(i, i + 50).map(x => fn(x).then(tick))); };
-      // imported: true — лимит разделов Free при импорте не действует (решение 23.10: «разделов не жалко»)
-      await inChunks(secs, sc => { const ref = S.db.collection('sections').doc(sc.id); return S.sections.has(sc.id) ? ref.update(strip(sc)) : ref.set(Object.assign(strip(sc), { imported: true })); });
-      await inChunks(notes, n => S.db.collection('notes').doc(n.id).set(strip(n)));
-      if (S.uid) {
-        await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
-        if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
-        // журнал ответов (статистика, серия дней): берём только дни, которых здесь ещё нет, — повторная загрузка и загрузка в тот же аккаунт ничего не задваивают
-        for (const [m, x] of Object.entries(d.log || {})) {
-          if (!/^\d{4}-\d\d$/.test(m)) continue;
-          const have = S.srsLog.get(m)?.days || {}, add = {};
-          for (const [day, v] of Object.entries(x?.days || {})) if (/^\d{4}-\d\d-\d\d$/.test(day) && !have[day] && v && typeof v === 'object') add[day] = v;
-          if (!Object.keys(add).length) continue;
-          const id = m + '_imp', next = { days: Object.assign({}, S.srsLogRaw.get(id)?.days, add) };
-          S.srsLogRaw.set(id, next); rebuildLog(); await logCol().doc(id).set(next);
-        }
-      }
-      const added = notes.filter(n => !X.notes.some(c => c.id === n.id)).length;
-      const replaced = notes.length - added;
-      const parts = [tt('imp.r.added', { n: added })];
-      if (replaced) parts.push(tt('imp.r.replaced', { n: replaced }));
-      if (keep && X.notes.length) parts.push(tt('imp.r.kept', { n: X.notes.length }));
-      if (secs.length) parts.push(tt('imp.r.secs', { n: secs.length }));
-      if (srs.length) parts.push(tt('imp.r.srs', { n: srs.length }));
-      if (upOk) parts.push(tt('imp.r.img', { n: upOk }));
-      if (upFail) parts.push(tt('imp.r.imgfail', { n: upFail }) + (fromEn ? '' : ' ' + tt('imp.r.imgfail.links')));
-      if (d.dropped) parts.push(tt('imp.r.bad', { n: d.dropped }));
-      if (skipped) parts.push(tt('imp.r.skipped', { n: skipped, limit: planLimit('notes') }));
-      S.dataPanel = { status: tt('imp.r.done', { list: parts.join(', ') }) };
-    } catch (err) { S.dataPanel = { status: tt('imp.r.failed', { why: err?.message || err }) }; }
-    renderProg();
+    const d = S.dataPanel.pending;
+    const r = await importRun(d, S.dataPanel.diff, mode, st => { S.dataPanel = { status: st }; renderProg(); });
+    if (d.guest) guestAfterImport(r);   // это были заметки, созданные без входа: перенеслись все — убрать их с устройства
   };
   $('#imp-trial') && ($('#imp-trial').onclick = () => startTrial($('#imp-trial'), () => renderProg()));
   $('#data-import-go') && ($('#data-import-go').onclick = () => runImport('replace'));
@@ -6307,6 +6391,15 @@ function wireAccountPanel() {
   p.ontoggle = () => { S.accOpen = p.open; if (p.open) loadAccInfo(); };
   if (p.open) loadAccInfo();
   wireAccMethods();
+  $('#guest-acc-in') && ($('#guest-acc-in').onclick = guestLogin);
+  $('#guest-wipe-ask') && ($('#guest-wipe-ask').onclick = () => { S.accPanel = { wipeAsk: true }; renderProg(); });
+  $('#guest-wipe-no') && ($('#guest-wipe-no').onclick = () => { S.accPanel = {}; renderProg(); });
+  $('#guest-wipe-yes') && ($('#guest-wipe-yes').onclick = async () => {
+    $('#guest-wipe-yes').disabled = true;
+    for (const [key, rec] of (await imgqAll()) || []) if (rec.uid === S.uid) await imgqDel(key);   // и изображения гостя, ждавшие входа
+    store.set('guestWarned', 0); store.set('guestBar', {});
+    window.NOTES_GUEST_WIPE();
+  });
   $('#data-signout') && ($('#data-signout').onclick = () => {
     // неотправленные правки (не было связи) при выходе пропадут — предупредить, выйти по второму нажатию
     const n = window.NOTES_PENDING ? window.NOTES_PENDING() : 0;
@@ -7378,7 +7471,10 @@ const draftKey = id => 'draft.' + (id || 'new');
 // черновик помнит, чей он: после входа другим аккаунтом на этом устройстве чужой не предлагаем (и выбрасываем)
 function getDraft(id) {
   const d = store.get(draftKey(id), null); if (!d || typeof d.body !== 'string') return null;
-  if (d.uid && S.uid && d.uid !== S.uid) { dropDraft(id); return null; }
+  if (d.uid && S.uid && d.uid !== S.uid) {
+    if (d.uid === 'guest' && window.NOTES_GUEST_DATA) return null;   // черновик гостя ждёт решения о его заметках (guestCheck): не предлагаем, но и не выбрасываем
+    dropDraft(id); return null;
+  }
   return d;
 }
 function dropDraft(id) { try { localStorage.removeItem('aw.' + draftKey(id)); } catch {} }
@@ -7395,7 +7491,7 @@ function saveDraft(E) {
 // выход и удаление аккаунта (зовут shim'ы): на устройстве не остаётся текста заметок и следов аккаунта — черновики, открытая заметка,
 // недавние, выбранный раздел; вид (тема) и прочее про устройство — остаются
 window.NOTES_LOCAL_CLEAR = function () {
-  try { for (const k of Object.keys(localStorage)) if (/^aw\.(draft\.|pro\.|note$|recent$|section$|lastFolder$)/.test(k)) localStorage.removeItem(k); } catch {}
+  try { for (const k of Object.keys(localStorage)) if (/^aw\.(draft\.|pro\.|note$|recent$|section$|lastFolder$|guestWarned$|guestBar$|guestPersist$|imgqBar$)/.test(k)) localStorage.removeItem(k); } catch {}
 };
 const hhmm = ts => { const d = new Date(ts), z = n => String(n).padStart(2, '0'); const today0 = new Date(); return (d.toDateString() === today0.toDateString() ? '' : `${z(d.getDate())}.${z(d.getMonth() + 1)} `) + `${z(d.getHours())}:${z(d.getMinutes())}`; };
 // top-level markdown blocks <-> rendered elements: start offset of each block in the source
@@ -7984,6 +8080,7 @@ function renderEditor(box) {
       if (write.err?.status === 403 && spaceOfSection(doc.section)) { if (await keepOwnCopy(doc)) { dropDraft(E.id); S.editing = null; renderList(); renderReader(true); } }
       return;
     }
+    guestSaved();
     E.base = editBase(doc);   // «Сохранить и остаться» (Ctrl+S): дальше сравниваем с только что сохранённым
     if (revived) { S.trash.delete(id); toast(tt('ed.revived', { title: doc.title }), { label: tt('btn.ok'), fn() {} }); updateBadge(); renderRail(); }
     S.notes.set(id, Object.assign({ id }, was || {}, doc));
@@ -9218,6 +9315,7 @@ async function loadPlan() {
   S.planAt = Date.now();
   try { S.plan = await window.NOTES_PLAN(); } catch { return; }
   renderPlanBar(); applyLook(); if (S.mode === 'prog') renderProg();
+  if (S.imgqFull && planUsed('bytes') < planLimit('bytes')) imgqSoon(1500);   // место появилось (Pro, удалили лишнее) — догрузить ждущие изображения
   if (!S.payChecked) { S.payChecked = true; payReturn(); }
 }
 // тариф мог поменяться, пока вкладка была в фоне: оплатил в другой вкладке / на другом устройстве, кончился Pro (02.11: после оплаты
@@ -9239,7 +9337,7 @@ const PLAN_WHAT = { history: () => tt('land.free.versions'), notes: n => tt('pla
 function showPlanDialog(kind, msg) {
   let ov = $('#plan-ov');
   if (!ov) { ov = document.createElement('div'); ov.id = 'plan-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
-  const P = S.plan || {}, pro = !!P.pro, canTrial = planOn() && !pro && !P.trialUsed, renew = kind === 'renew';
+  const P = S.plan || {}, pro = !!P.pro, guest = !!P.guest, canTrial = planOn() && !pro && !guest && !P.trialUsed, renew = kind === 'renew';
   // окно «нужен Pro», а Pro, может, уже оплачен (на другом устройстве) — сверяемся с сервером; оказался Pro — окно закрываем
   if (!pro && !renew && window.NOTES_PLAN && Date.now() - (S.planAt || 0) > 3000) loadPlan().then(() => {
     const o = $('#plan-ov'); if (S.plan?.pro && o && !o.hidden) { o.hidden = true; o.innerHTML = ''; toast(tt('plan.now.pro')); }
@@ -9249,10 +9347,10 @@ function showPlanDialog(kind, msg) {
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
     ${msg && !pro ? '' : msg ? `<p>${esc(msg)}</p>` : ''}
-    ${renew ? `<p>${tt(P.source === 'paid' ? 'plan.renew.paid' : 'plan.renew.trial', { date: esc(planDate(P.until)) })}</p>` : pro ? '' : `<p>${tt('plan.keep')}</p>
+    ${renew ? `<p>${tt(P.source === 'paid' ? 'plan.renew.paid' : 'plan.renew.trial', { date: esc(planDate(P.until)) })}</p>` : pro ? '' : guest ? `<p>${tt('guest.plan')}</p>` : `<p>${tt('plan.keep')}</p>
     <p>${tt('plan.pro', { size: fmtBytes(P.proBytes || 2147483648) })} ${PRO_PRICE()}</p>`}
-    ${renew || (!pro && planOn()) ? payHtml(!canTrial) : ''}
-    <div class="bar">${canTrial ? `<button class="btn primary" type="button" id="plan-trial">${tt('plan.trial.try', { n: P.trialDays || 14 })}</button><button class="btn" type="button" id="plan-no">${tt('offer.skip')}</button>`
+    ${!guest && (renew || (!pro && planOn())) ? payHtml(!canTrial) : ''}
+    <div class="bar">${guest ? `<button class="btn primary" type="button" id="plan-guest-in">${tt('guest.in.short')}</button><button class="btn" type="button" id="plan-no">${tt('offer.skip')}</button>` : canTrial ? `<button class="btn primary" type="button" id="plan-trial">${tt('plan.trial.try', { n: P.trialDays || 14 })}</button><button class="btn" type="button" id="plan-no">${tt('offer.skip')}</button>`
       : `<button class="btn" type="button" id="plan-no">${tt(renew || P.payReady ? 'offer.skip' : 'btn.ok')}</button>`}</div>
     <p class="hint" id="plan-status" aria-live="polite"></p>
   </div>`;
@@ -9261,8 +9359,9 @@ function showPlanDialog(kind, msg) {
   ov.onclick = e => { if (e.target === ov) close(); };
   ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
   $('#plan-trial') && ($('#plan-trial').onclick = () => startTrial($('#plan-trial'), close));
+  $('#plan-guest-in') && ($('#plan-guest-in').onclick = () => { close(); guestLogin(); });
   wirePay(ov);
-  (ov.querySelector('#plan-trial, [data-pay]') || $('#plan-no')).focus();
+  (ov.querySelector('#plan-trial, [data-pay], #plan-guest-in') || $('#plan-no')).focus();
 }
 async function startTrial(btn, done) {
   btn.disabled = true;
@@ -9292,10 +9391,143 @@ function planPanelHtml() {
       ${P.recurringReady && P.canAutorenew ? `<label class="pay-auto"><input type="checkbox" id="renew-agree"><span>${tt('pay.auto.agree')}</span></label>
         <p class="pay-auto-info">${tt(P.renewPeriod === 'year' ? 'plan.auto.info.year' : 'plan.auto.info.month', { sum: rub(renewPrice(P)) })}</p>
         <div class="bar"><button class="btn" type="button" id="renew-on" disabled>${tt(P.renewPeriod === 'year' ? 'plan.auto.year' : 'plan.auto.month', { sum: rub(renewPrice(P)) })}</button></div>` : ''}`)
+      : P.guest ? `<p class="sub">${tt('guest.plan')}</p><div class="bar"><button class="btn primary" type="button" id="plan-guest-in2">${tt('guest.in.short')}</button></div>`
       : `<p class="sub">${tt('plan.pro', { size: fmtBytes(P.proBytes) })} ${PRO_PRICE()}</p>
       ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="plan-trial2">${tt('plan.trial.try', { n: P.trialDays })}</button></div>` : ''}${payHtml(!!P.trialUsed)}`}
   </details>`;
 }
+/* ---------- без входа (ReteNote, «гость») ----------
+   Человек пробует приложение, не регистрируясь (window.NOTES_GUEST, шим): заметки, разделы, настройки и прогресс тренировки лежат только
+   в этом браузере, лимиты — как у бесплатной версии, серверного (поделиться, история, общие разделы, обратная связь, оплата) нет.
+   При первом сохранении заметки — окно «заметка только на этом устройстве», дальше плашка с «Войти». Изображения ждут на устройстве
+   в очереди «без связи» и загружаются после входа. После входа (guestCheck): новый аккаунт — заметки переносятся сами, тем же кодом,
+   что загрузка копии (importRun); в аккаунте уже есть заметки — плашка «остались заметки, созданные без входа» (перенести / удалить),
+   чтобы чужие заметки с общего компьютера не попали в аккаунт молча */
+const guestOn = () => !!window.NOTES_GUEST;
+const guestLogin = () => window.NOTES_GUEST_LOGIN?.();
+function showGuestDialog() {
+  let ov = $('#guest-ov');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'guest-ov'; ov.className = 'help-overlay'; document.body.appendChild(ov); }
+  ov.hidden = false;
+  ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="guest-title">
+    <h2 id="guest-title">${tt('guest.dlg.h')}</h2>
+    <p>${tt('guest.dlg.1')}</p>
+    <p>${tt('guest.dlg.2')}</p>
+    <div class="bar"><button class="btn primary" type="button" id="guest-in">${tt('guest.in')}</button><button class="btn" type="button" id="guest-no">${tt('guest.stay')}</button></div>
+  </div>`;
+  const close = () => { ov.hidden = true; ov.innerHTML = ''; };
+  $('#guest-no').onclick = close;
+  $('#guest-in').onclick = () => { close(); guestLogin(); };
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.onkeydown = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  $('#guest-in').focus();
+}
+// первая сохранённая заметка без входа: один раз на устройстве сказать, где она лежит; дальше — плашка
+// просим браузер не стирать данные сайта, когда на устройстве кончается место (navigator.storage.persist): заметки гостя — только здесь.
+// Только по сохранению заметки (действие человека: Firefox показывает вопрос), не чаще раза в неделю, пока браузер не согласился
+function guestPersist() {
+  const st = navigator.storage; if (!st?.persist || !st.persisted) return;
+  const g = store.get('guestPersist', {}); if (g.ok || (g.at && g.at > addDays(today(), -7))) return;
+  store.set('guestPersist', { at: today() });
+  st.persisted().then(p => p || st.persist()).then(ok => { if (ok) store.set('guestPersist', { ok: 1, at: today() }); }).catch(() => {});
+}
+function guestSaved() {
+  if (!guestOn()) return;
+  guestPersist();
+  if (store.get('guestWarned', 0)) return;
+  store.set('guestWarned', 1);
+  setTimeout(() => { showGuestDialog(); renderGuestBar(); }, 300);
+}
+function renderGuestBar() {
+  const bar = $('#guest-bar'); if (!bar) return;
+  let html = '';
+  if (guestOn()) {
+    const sn = store.get('guestBar', {});
+    if (S.loaded.notes && store.get('guestWarned', 0) && !(sn.snooze && sn.snooze > today()))
+      html = `<p>${tt('guest.bar')}</p><div class="bar"><button class="btn primary" type="button" id="guest-bar-in">${tt('guest.in.short')}</button><button class="btn" type="button" id="guest-bar-later">${tt('btn.later')}</button></div>`;
+  } else if (S.guestLeft) {
+    html = `<p>${tt('guest.left', { n: S.guestLeft.d.notes.filter(n => !n.deleted).length })}</p><div class="bar"><button class="btn primary" type="button" id="guest-move">${tt('guest.left.move')}</button><button class="btn" type="button" id="guest-drop">${tt(S.guestLeft.ask ? 'guest.left.drop.sure' : 'guest.left.drop')}</button></div>`;
+  }
+  bar.innerHTML = html; bar.hidden = !html;
+  $('#guest-bar-in') && ($('#guest-bar-in').onclick = guestLogin);
+  $('#guest-bar-later') && ($('#guest-bar-later').onclick = () => { store.set('guestBar', { snooze: addDays(today(), 3) }); renderGuestBar(); });
+  $('#guest-move') && ($('#guest-move').onclick = () => {   // обычное окно загрузки копии: видно, что добавится, и что не влезает в лимит
+    const d = S.guestLeft.d; S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; setMode('prog');
+    requestAnimationFrame(() => $('#data-panel')?.scrollIntoView({ block: 'start' }));
+  });
+  $('#guest-drop') && ($('#guest-drop').onclick = async () => {
+    if (!S.guestLeft.ask) { S.guestLeft.ask = true; renderGuestBar(); return; }
+    await guestFinish(false); toast(tt('guest.left.dropped'));
+  });
+}
+// записи гостя из локального хранилища (путь → данные) → тот же вид, что у файла копии
+function guestBackup(docs) {
+  const d = { format: 'android-notes', version: 2, sections: [], notes: [], srs: {}, settings: null, log: {}, images: {}, guest: true };
+  for (const [p, v] of docs) {
+    const k = p.split('/');
+    if (k.length === 2 && k[0] === 'sections') d.sections.push(Object.assign({}, v, { id: k[1] }));
+    else if (k.length === 2 && k[0] === 'notes') d.notes.push(Object.assign({}, v, { id: k[1] }));
+    else if (k.length === 4 && k[0] === 'data' && k[3] === 'settings') d.settings = v;
+    else if (k.length === 6 && k[0] === 'data' && k[3] === 'srs' && k[4] === 'cards') d.srs[k[5]] = v;
+    else if (k.length === 6 && k[0] === 'data' && k[3] === 'srs' && k[4] === 'log') { const m = k[5].slice(0, 7); d.log[m] = { days: Object.assign({}, d.log[m]?.days, v?.days) }; }
+  }
+  sanitizeBackup(d); d.guest = true;
+  return d;
+}
+// гость ничего своего не написал: только нетронутые заметки первого входа — переносить нечего
+const guestTrivial = d => d.notes.every(n => (n.id === 'welcome' || n.id === 'example-card') && n.updated === n.created);
+async function imgqAdopt(to) {   // изображения гостя, ждавшие входа: to — id аккаунта (теперь его), null — удалить
+  for (const [key, rec] of (await imgqAll()) || []) if (rec.uid === 'guest') await (to ? imgqPut(key, Object.assign({}, rec, { uid: to })) : imgqDel(key));
+}
+// незаконченные заметки гостя (черновики в браузере): to — id аккаунта, вместе с заметками; null — выбросить. Возвращает, чьи черновики перешли
+function guestDrafts(to) {
+  const out = [];
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith('aw.draft.')) continue;
+      let d = null; try { d = JSON.parse(localStorage.getItem(k)); } catch {}
+      if (!d || d.uid !== 'guest') continue;
+      if (!to) { localStorage.removeItem(k); continue; }
+      localStorage.setItem(k, JSON.stringify(Object.assign(d, { uid: to })));
+      out.push({ id: k === 'aw.draft.new' ? null : k.slice('aw.draft.'.length), ts: d.ts || 0 });
+    }
+  } catch {}
+  return out.sort((a, b) => b.ts - a.ts);
+}
+async function guestFinish(moved) {
+  S.guestDrafts = guestDrafts(moved ? S.uid : null);
+  await imgqAdopt(moved ? S.uid : null);
+  try { await window.NOTES_GUEST_DONE?.(); } catch {}
+  S.guestLeft = null; renderGuestBar();
+  if (moved) imgqSoon(500);
+}
+function guestAfterImport(r) { if (r.ok && !r.skipped) guestFinish(true); else renderGuestBar(); }
+async function guestCheck() {
+  if (!window.NOTES_GUEST_DATA || guestOn()) return;
+  try {
+    const docs = await window.NOTES_GUEST_DATA();
+    while (!(S.loaded.notes && S.loaded.sections && S.loaded.settings)) await new Promise(r => setTimeout(r, 50));
+    const d = guestBackup(docs || []);
+    if (!d.notes.length || guestTrivial(d)) { await guestFinish(false); return; }
+    const fresh = !S.settings?.onboarded && !S.sections.size && !S.notes.size && !S.trash.size;
+    if (!fresh) { S.guestLeft = { d }; renderGuestBar(); return; }
+    // новый аккаунт: человек зарегистрировался, чтобы сохранить эти заметки, — переносим сразу, вместе с настройками и прогрессом тренировки
+    if (window.NOTES_PLAN && !S.plan) await loadPlan();
+    toast(tt('guest.moving'));
+    const r = await importRun(d, importDiff(d), 'keep', () => {}, { fresh: true });
+    if (r.ok && !r.skipped) {
+      await guestFinish(true); S.onboarded = true;
+      window.NOTES_SIGNUP?.();   // новый человек — та же цель «регистрация», что при обычном первом входе
+      toast(tt('guest.moved', { n: d.notes.filter(n => !n.deleted).length }));
+      if (S.mode === 'lib') renderLib();
+      // человек вошёл посреди правки: открыть недописанное — заметку с «есть несохранённые правки» или новую с её черновиком
+      const dr = (S.guestDrafts || [])[0];
+      if (dr && S.mode === 'lib' && !S.editing) { if (!dr.id) $('#new-note').click(); else if (S.notes.has(dr.id)) openNote(dr.id); }
+    } else { S.guestLeft = { d }; renderGuestBar(); if (!r.ok) toast(r.text); }
+  } catch (e) { console.warn('guest move', e); }
+  finally { S.guestBusy = false; rerender(); }
+}
+
 /* ---------- общие разделы (Pro владельца, под переключателем тарифов): участники читают или правят ---------- */
 const spacesList = () => window.NOTES_SPACES ? window.NOTES_SPACES.list() : [];
 function spaceOfSection(id) {   // общий раздел, в котором лежит раздел (сам или его предок)
@@ -9681,6 +9913,7 @@ function wirePlanPanel() {
   const p = $('#plan-panel'); if (!p) return;
   p.ontoggle = () => { S.planOpen = p.open; };
   $('#plan-trial2') && ($('#plan-trial2').onclick = () => startTrial($('#plan-trial2')));
+  $('#plan-guest-in2') && ($('#plan-guest-in2').onclick = guestLogin);
   wirePay(p);
   const flip = on => async ev => {
     ev.target.disabled = true;
@@ -10348,7 +10581,7 @@ function rerender() {
 const WELCOME_MD = tt('welcome.md', { days: TRASH_DAYS });
 const EXAMPLE_MD = tt('example.md');
 async function maybeOnboard() {
-  if (window.NOTES_FLAVOR !== 'public' || S.onboarding || S.onboarded || !S.canWrite || !S.db || !S.uid) return;
+  if (window.NOTES_FLAVOR !== 'public' || S.onboarding || S.onboarded || S.guestBusy || !S.canWrite || !S.db || !S.uid) return;
   if (!S.loaded.notes || !S.loaded.sections || !S.loaded.settings) return;
   if (S.settings?.onboarded || S.sections.size || S.notes.size || S.trash.size) { S.onboarded = true; return; }
   S.onboarding = true;
@@ -10507,6 +10740,8 @@ async function boot() {
   try { S.uid = user ? await user.id() : null; } catch { S.uid = null; }
   try { const cw = user ? await user.can('data.write') : null; if (cw === false) S.canWrite = false; } catch {}
   if (!S.canWrite) $('#new-note').hidden = true;
+  document.body.classList.toggle('is-guest', guestOn());
+  S.guestBusy = !guestOn() && !!window.NOTES_GUEST_DATA; guestCheck();   // на устройстве есть заметки, созданные без входа, — перенести в аккаунт
   fbCheck(true);   // ответы разработчика на свои сообщения (ReteNote)
   brandPro(); loadPlan();   // тариф (ReteNote): лимиты Free, Pro, пробный период — если на сервере включено
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
@@ -10584,7 +10819,7 @@ function closeTopLayer() {
   if (closeSecSheet()) return true;
   // окна «Тариф», «Поделиться», «Перенести…», приглашение, история, обратная связь — по своей кнопке закрытия
   const dlgs = document.querySelectorAll('.help-overlay:not([hidden])'), dlg = dlgs[dlgs.length - 1];
-  if (dlg) { const c = dlg.querySelector('#help-close, #plan-no, #share-done, #move-no, #join-no, #ver-close, #fb-cancel'); if (c) c.click(); else dlg.hidden = true; return true; }
+  if (dlg) { const c = dlg.querySelector('#help-close, #plan-no, #guest-no, #share-done, #move-no, #join-no, #ver-close, #fb-cancel'); if (c) c.click(); else dlg.hidden = true; return true; }
   if (S.editing) { const f = $('#edit-overlay #ed') || $('#ed'); if (f) { f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); return true; } }
   if (S.select) { setSelectMode(false); return true; }
   return false;
@@ -10639,7 +10874,7 @@ document.addEventListener('keydown', e => {
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
 if (window.NOTES_TEST) window.T = { NAV, renderRail, pinAutoColors, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
-  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup };
+  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup, showGuestDialog, importRun, importDiff, imgqRun };
 boot();
 })();
 </script>
