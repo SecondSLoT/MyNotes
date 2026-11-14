@@ -6752,6 +6752,14 @@ function placeMenu(anchorEl) {
   let left = Math.min(a.left, window.innerWidth - w - 8); left = Math.max(8, left);
   let top = a.bottom + 4; if (top + h > window.innerHeight - 8) top = Math.max(8, a.top - h - 4);
   menuEl.style.left = left + 'px'; menuEl.style.top = top + 'px';
+  menuAboveKb();
+}
+// клавиатура телефона закрывает низ экрана: меню с полем ввода (новый раздел, переименование) оказывалось под ней — поднимаем его в видимую область
+function menuAboveKb() {
+  const vv = window.visualViewport;
+  if (!vv || !S.menu || menuEl.hidden || !menuEl.querySelector('input, textarea')) return;
+  const low = vv.offsetTop + vv.height - menuEl.offsetHeight - 8, top = parseFloat(menuEl.style.top) || 0;
+  if (top > low) menuEl.style.top = Math.max(vv.offsetTop + 8, low) + 'px';
 }
 function renderSecMenu() {
   const M = S.menu; const sec = M.id ? S.sections.get(M.id) : null;
@@ -7254,6 +7262,7 @@ if (window.visualViewport) {
     document.body.classList.toggle('kb', kb);
     if (kb) { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', (vv.pageTop || 0) + 'px'); }
     else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvt'); }
+    menuAboveKb();
   };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
