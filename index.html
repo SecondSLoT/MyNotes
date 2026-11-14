@@ -1387,6 +1387,8 @@ window.STR = {
   'lp.v2.nv.demo.1': 'Попробуй прямо здесь',
   'lp.v2.nv.demo.2': 'Вспомни ответ, открой его и оцени, а ReteNote сам решит, когда показать карточку снова',
   'lp.v2.nv.alt.p': 'ReteNote на телефоне: главная с плитками разделов и карточка тренировки',
+  'lp.v2.nv.guest': 'Попробовать без регистрации',
+  'lp.v2.nv.guest.note': 'Без входа заметки хранятся только на этом устройстве',
   'lp.v2.nv.alt': 'ReteNote: разделы плитками, заметки раздела и открытая заметка с чек-листом и таблицей',
   'lp.v2.end.1': 'Так работает ReteNote',
   'lp.v2.end.2': 'Ты пишешь заметки как обычно. Для нужных разделов включаешь тренировку — и они сами возвращаются карточками: сначала чаще, потом всё реже',
@@ -7026,7 +7028,8 @@ window.addEventListener('click', e => {
 }, true);
 window.addEventListener('contextmenu', e => { if (swallowClick) { e.preventDefault(); e.stopPropagation(); } }, true);
 window.addEventListener('resize', () => { if (menuEl.querySelector('form')) { if (S.menu) renderMenuPositionOnly(); return; } closeMenu(); });
-function renderMenuPositionOnly() { const M = S.menu; const a = (M.id && document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`)) || M.anchor; if (a?.isConnected) placeMenu(a); }
+function renderMenuPositionOnly() { const M = S.menu; const own = (M.mode === 'sub' || M.mode === 'new') && M.anchor?.isConnected;   // новый раздел/подраздел — у кнопки «+», а не у чипа родителя наверху
+  const a = own ? M.anchor : (M.id && document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`)) || M.anchor; if (a?.isConnected) placeMenu(a); }
 $('#items').addEventListener('scroll', () => closeMenu(), { passive: true });
 
 async function saveRename() {
@@ -9526,7 +9529,7 @@ async function guestCheck() {
     const r = await importRun(d, importDiff(d), 'keep', () => {}, { fresh: true });
     if (r.ok && !r.skipped) {
       await guestFinish(true); S.onboarded = true;
-      window.NOTES_SIGNUP?.();   // новый человек — та же цель «регистрация», что при обычном первом входе
+      window.NOTES_SIGNUP?.('guest');   // новый человек — цель «регистрация», как при обычном первом входе, и «регистрация после режима без входа»
       toast(tt('guest.moved', { n: d.notes.filter(n => !n.deleted).length }));
       if (S.mode === 'lib') renderLib();
       // человек вошёл посреди правки: открыть недописанное — заметку с «есть несохранённые правки» или новую с её черновиком
