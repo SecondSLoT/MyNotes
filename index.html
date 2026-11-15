@@ -3476,7 +3476,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .icon-btn svg{width:18px;height:18px}
 :root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
 :root[data-skin="play"] .list-head .icon-btn[aria-pressed="true"]{background:var(--sc,var(--accent));border-color:var(--sc,var(--accent));color:var(--on-accent)}
-:root[data-skin="play"] .list-head #new-note{width:40px;height:40px;border-radius:var(--rad-xl)}
+:root[data-skin="play"] body.desk-tiles .list-head #new-note{width:40px;height:40px;border-radius:var(--rad-xl)}   /* квадрат «+» — только в узкой колонке плиток; иначе «+ Заметка» целиком (15.11: на телефоне текст не влезал в 40 px) */
 :root[data-skin="play"] .list-head h2{color:color-mix(in srgb,var(--sc,var(--ink)) 62%,var(--ink))}
 :root[data-skin="play"] .list-head[data-sc] .ttl-up{color:color-mix(in srgb,var(--sc) 62%,var(--ink));font-weight:800}
 :root[data-skin="play"] .ttl-up{cursor:pointer}
