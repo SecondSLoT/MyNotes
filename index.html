@@ -106,6 +106,21 @@ window.STR = {
   'guest.left.drop': 'Удалить их',
   'guest.left.drop.sure': 'Точно удалить?',
   'guest.left.dropped': 'Заметки, созданные без входа, удалены с устройства',
+  'guest.imp.safe': 'Ничего в аккаунте не перезапишется.',
+  'guest.imp.go': 'Перенести',
+  'guest.imp.same.already': ', такие же уже есть в аккаунте: {n}',
+  'guest.imp.same': ', такие же уже есть в аккаунте: {n}',
+  'guest.imp.conflict': '⚠ Часть заметок, созданных без входа, уже есть в аккаунте, но в другом виде.',
+  'guest.imp.rename': '→ без входа «{title}»',
+  'guest.imp.note': 'Новые заметки перенесутся в любом случае. Выбор касается только заметок, которые уже есть в аккаунте',
+  'guest.imp.replace': 'Взять версию без входа',
+  'guest.imp.keep': 'Оставить как в аккаунте',
+  'guest.imp.plan': '<b>В бесплатной версии — до {limit} заметок.</b>\n    Новых без входа: {fresh}, места осталось: {room}. С Pro перенесётся всё.',
+  'guest.imp.plan.room': 'Или перенеси только {n} самых свежих (по дате изменения) — кнопкой ниже, остальное подождёт Pro',
+  'guest.imp.r.kept': 'оставлено как в аккаунте: {n}',
+  'guest.imp.r.failed': 'Перенос прервался: {why}. Можно запустить ещё раз.',
+  'guest.imp.running': 'Переношу…',
+  'guest.imp.progress': 'Переношу… {n} из {total}',
   'guest.imp': 'Создано без входа на этом устройстве: {sections} {sections|раздел|раздела|разделов}, {notes} {notes|заметка|заметки|заметок}',
   'img.full.bar': '{n} {n|изображение хранится|изображения хранятся|изображений хранятся} только на этом устройстве: в аккаунте закончилось место',
   'img.full.what': 'Что можно сделать',
@@ -5818,14 +5833,15 @@ function planImportHtml(d) {
   const fresh = importFresh(d).length, room = importRoom();
   if (fresh <= room) return '';
   const P = S.plan;
-  return `<div class="confirm plan-imp u-mt12 u-blk" ><p class="u-m0-8">${tt('imp.plan', { limit: P.limits.notes, fresh, room })}</p>
+  return `<div class="confirm plan-imp u-mt12 u-blk" ><p class="u-m0-8">${tt(d.guest ? 'guest.imp.plan' : 'imp.plan', { limit: P.limits.notes, fresh, room })}</p>
     ${!P.trialUsed ? `<div class="bar"><button class="btn primary" type="button" id="imp-trial">${tt('plan.trial.try', { n: P.trialDays })}</button></div>` : ''}
-    <p class="hint u-m8-0" >${room ? tt('imp.plan.room', { n: room }) : tt('imp.plan.full')}</p></div>`;
+    <p class="hint u-m8-0" >${room ? tt(d.guest ? 'guest.imp.plan.room' : 'imp.plan.room', { n: room }) : tt('imp.plan.full')}</p></div>`;
 }
 function importConfirmBody(d, X, head, conflicts) {
+  const G = !!d.guest;   // перенос заметок, созданных без входа: не «файл» и «сайт», а «без входа» и «аккаунт» (15.11)
   if (!conflicts) {
-    return `<div class="confirm imp-box"><p class="u-m0-10">${head} ${tt('imp.new', { n: X.fresh })}${X.same.length ? tt('imp.same.already', { n: X.same.length }) : ''}. ${tt('imp.safe')}</p>
-      <div class="bar"><button class="btn primary" id="data-import-go" data-mode="replace">${tt('imp.go')}</button><button class="btn" id="data-import-cancel">${tt('btn.cancel')}</button></div></div>`;
+    return `<div class="confirm imp-box"><p class="u-m0-10">${head} ${tt('imp.new', { n: X.fresh })}${X.same.length ? tt(G ? 'guest.imp.same.already' : 'imp.same.already', { n: X.same.length }) : ''}. ${tt(G ? 'guest.imp.safe' : 'imp.safe')}</p>
+      <div class="bar"><button class="btn primary" id="data-import-go" data-mode="replace">${tt(G ? 'guest.imp.go' : 'imp.go')}</button><button class="btn" id="data-import-cancel">${tt('btn.cancel')}</button></div></div>`;
   }
   const secTitle = id => S.sections.get(id)?.title || d.sections.find(s => s.id === id)?.title || id;
   const rows = X.notes.map(c => {
@@ -5835,21 +5851,21 @@ function importConfirmBody(d, X, head, conflicts) {
     if (c.site.section !== c.file.section) what.push(tt('imp.diff.section'));
     if ((c.site.tags || []).join() !== (c.file.tags || []).join()) what.push(tt('imp.diff.tags'));
     if (!!c.site.ref !== !!c.file.ref) what.push(tt('imp.diff.train'));
-    const rename = c.site.title !== c.file.title ? ` <span class="hint">${tt('imp.diff.rename', { title: esc(c.file.title) })}</span>` : '';
+    const rename = c.site.title !== c.file.title ? ` <span class="hint">${tt(G ? 'guest.imp.rename' : 'imp.diff.rename', { title: esc(c.file.title) })}</span>` : '';
     return `<li><b>${esc(c.site.title)}</b>${rename} <span class="hint">· ${esc(secTitle(c.site.section))} · ${tt('imp.diff', { what: what.join(', ') })}</span></li>`;
   }).join('');
   const extra = [];
   if (X.secs.length) extra.push(tt('imp.extra.secs', { n: X.secs.length, list: X.secs.map(sc => `«${esc(S.sections.get(sc.id).title)}» → «${esc(sc.title)}»`).join(', ') }));
   if (X.srs.length) extra.push(tt('imp.extra.srs', { n: X.srs.length }));
   return `<div class="confirm imp-box imp-conflict">
-    <p class="u-m0-6"><b>${tt('imp.conflict')}</b></p>
-    <p class="u-m0-8">${head} ${tt('imp.new', { n: X.fresh })}${X.newSecs ? tt('imp.new.secs', { n: X.newSecs }) : ''}${X.same.length ? tt('imp.same', { n: X.same.length }) : ''}.
+    <p class="u-m0-6"><b>${tt(G ? 'guest.imp.conflict' : 'imp.conflict')}</b></p>
+    <p class="u-m0-8">${head} ${tt('imp.new', { n: X.fresh })}${X.newSecs ? tt('imp.new.secs', { n: X.newSecs }) : ''}${X.same.length ? tt(G ? 'guest.imp.same' : 'imp.same', { n: X.same.length }) : ''}.
       ${X.notes.length ? tt('imp.differ', { n: X.notes.length }) : ''}${extra.length ? ' ' + tt('imp.differ.extra', { list: extra.join('; ') }) : ''}</p>
     ${X.notes.length ? `<details class="u-m0-10"><summary class="u-sum u-fw5">${tt('imp.show', { n: X.notes.length })}</summary><ul class="imp-list">${rows}</ul></details>` : ''}
-    <p class="hint u-m0-10">${tt('imp.note')}</p>
+    <p class="hint u-m0-10">${tt(G ? 'guest.imp.note' : 'imp.note')}</p>
     <div class="bar u-wrap" >
-      <button class="btn primary" id="data-import-go" data-mode="replace">${tt('imp.replace')}</button>
-      <button class="btn" id="data-import-keep" data-mode="keep">${tt('imp.keep')}</button>
+      <button class="btn primary" id="data-import-go" data-mode="replace">${tt(G ? 'guest.imp.replace' : 'imp.replace')}</button>
+      <button class="btn" id="data-import-keep" data-mode="keep">${tt(G ? 'guest.imp.keep' : 'imp.keep')}</button>
       <button class="btn" id="data-import-cancel">${tt('btn.cancel')}</button>
     </div></div>`;
 }
@@ -6235,7 +6251,7 @@ async function importRun(d, X, mode, say, opts = {}) {
     } }
   const srs = Object.entries(d.srs || {}).filter(([id, v]) => (S.notes.has(baseId(id)) || S.trash.has(baseId(id)) || notes.some(n => n.id === baseId(id))) && (!S.srs.has(id) || (!keep && JSON.stringify(S.srs.get(id)) !== JSON.stringify(v))));
   const settings = d.settings && (!keep || opts.fresh || !S.settings || !Object.keys(S.settings).length) ? d.settings : null;
-  say(tt('imp.running'));
+  say(tt(d.guest ? 'guest.imp.running' : 'imp.running'));
   // изображения из Evernote: загрузить туда же, куда обычные изображения заметок, и подставить ссылки
   // и изображения из архива копии, которых нет в этом аккаунте (zipToBackup)
   const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
@@ -6266,7 +6282,7 @@ async function importRun(d, X, mode, say, opts = {}) {
   }
   const strip = o => { const c = { ...o }; delete c.id; return c; };
   let done = 0; const total = secs.length + notes.length + srs.length;
-  const tick = () => { done++; if (done % 20 === 0) say(tt('imp.progress', { n: done, total })); };
+  const tick = () => { done++; if (done % 20 === 0) say(tt(d.guest ? 'guest.imp.progress' : 'imp.progress', { n: done, total })); };
   try {
     // по 50 записей за раз: хранилище может отправить их одной пачкой
     const inChunks = async (items, fn) => { for (let i = 0; i < items.length; i += 50) await Promise.all(items.slice(i, i + 50).map(x => fn(x).then(tick))); };
@@ -6290,7 +6306,7 @@ async function importRun(d, X, mode, say, opts = {}) {
     const replaced = notes.length - added;
     const parts = [tt('imp.r.added', { n: added })];
     if (replaced) parts.push(tt('imp.r.replaced', { n: replaced }));
-    if (keep && X.notes.length) parts.push(tt('imp.r.kept', { n: X.notes.length }));
+    if (keep && X.notes.length) parts.push(tt(d.guest ? 'guest.imp.r.kept' : 'imp.r.kept', { n: X.notes.length }));
     if (secs.length) parts.push(tt('imp.r.secs', { n: secs.length }));
     if (srs.length) parts.push(tt('imp.r.srs', { n: srs.length }));
     if (upOk) parts.push(tt('imp.r.img', { n: upOk }));
@@ -6300,7 +6316,7 @@ async function importRun(d, X, mode, say, opts = {}) {
     if (skipped) parts.push(tt('imp.r.skipped', { n: skipped, limit: planLimit('notes') }));
     const text = tt('imp.r.done', { list: parts.join(', ') }); say(text);
     return { ok: true, skipped, added, text };
-  } catch (err) { const text = tt('imp.r.failed', { why: err?.message || err }); say(text); return { ok: false, text }; }
+  } catch (err) { const text = tt(d.guest ? 'guest.imp.r.failed' : 'imp.r.failed', { why: err?.message || err }); say(text); return { ok: false, text }; }
 }
 function wireDataPanel() {
   const p = $('#data-panel'); if (!p) return;
@@ -9511,8 +9527,18 @@ function guestBackup(docs) {
   sanitizeBackup(d); d.guest = true;
   return d;
 }
+const ONB_NOTES = ['welcome', 'example-card'], ONB_SECS = ['start', 'train-demo'];
+function guestDropOnboarding(d) {
+  const drop = new Set(d.notes.filter(n => ONB_NOTES.includes(n.id) && n.updated === n.created).map(n => n.id));
+  d.notes = d.notes.filter(n => !drop.has(n.id));
+  for (const id of drop) delete d.srs[id];
+  for (const k of Object.keys(d.srs)) if (drop.has(String(k).split('~')[0])) delete d.srs[k];
+  const used = new Set([...d.notes.map(n => n.section), ...d.sections.map(x => x.parent)]);
+  d.sections = d.sections.filter(x => !ONB_SECS.includes(x.id) || used.has(x.id));
+  return d;
+}
 // гость ничего своего не написал: только нетронутые заметки первого входа — переносить нечего
-const guestTrivial = d => d.notes.every(n => (n.id === 'welcome' || n.id === 'example-card') && n.updated === n.created);
+const guestTrivial = d => d.notes.every(n => ONB_NOTES.includes(n.id) && n.updated === n.created);
 async function imgqAdopt(to) {   // изображения гостя, ждавшие входа: to — id аккаунта (теперь его), null — удалить
   for (const [key, rec] of (await imgqAll()) || []) if (rec.uid === 'guest') await (to ? imgqPut(key, Object.assign({}, rec, { uid: to })) : imgqDel(key));
 }
@@ -9547,7 +9573,13 @@ async function guestCheck() {
     const d = guestBackup(docs || []);
     if (!d.notes.length || guestTrivial(d)) { await guestFinish(false); return; }
     const fresh = !S.settings?.onboarded && !S.sections.size && !S.notes.size && !S.trash.size;
-    if (!fresh) { S.guestLeft = { d }; renderGuestBar(); return; }
+    if (!fresh) {
+      // в аккаунте уже есть заметки: нетронутые приветственная заметка и пример (и их пустые разделы) не переносим — они есть и в аккаунте,
+      // иначе сравнение показывало бы их как отличающиеся (15.11)
+      guestDropOnboarding(d);
+      if (!d.notes.length) { await guestFinish(false); return; }
+      S.guestLeft = { d }; renderGuestBar(); return;
+    }
     // новый аккаунт: человек зарегистрировался, чтобы сохранить эти заметки, — переносим сразу, вместе с настройками и прогрессом тренировки
     if (window.NOTES_PLAN && !S.plan) await loadPlan();
     toast(tt('guest.moving'));
