@@ -3,9 +3,17 @@
 // ответ сети всё равно докачивается в кэш (свежая версия — при следующем открытии). Сети нет совсем — кэш, для страницы — запасная.
 // Файлы с версией в адресе (?v=<хеш содержимого>, ставит сборка — version_assets) не меняются: сразу из кэша, старые версии того же файла чистим.
 const CACHE = 'app-v1', WAIT = 3000;
+const adminPath = p => { if (!false) return false; try { p = decodeURIComponent(p); } catch (_) {} return p === '/admin.html' || p.startsWith('/admin.html/') || p === '/_' || p.startsWith('/_/'); };
 let slowUntil = 0;   // страница пришла из кэша по таймауту — 30 с остальное тоже сразу из кэша (иначе каждый файл ждал бы ещё WAIT)
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+self.addEventListener('activate', e => e.waitUntil((async () => {
+  // Публичная PWA не должна открывать устаревшую админку из кэша, даже без сети.
+  if (false) for (const name of await caches.keys()) {
+    const c = await caches.open(name);
+    for (const r of await c.keys()) if (adminPath(new URL(r.url).pathname)) await c.delete(r);
+  }
+  await self.clients.claim();
+})()));
 const keep = (r, res) => caches.open(CACHE).then(async c => {
   await c.put(r, res);
   const u = new URL(r.url);
@@ -14,7 +22,7 @@ const keep = (r, res) => caches.open(CACHE).then(async c => {
 });
 self.addEventListener('fetch', e => {
   const r = e.request, u = new URL(r.url);
-  if (r.method !== 'GET' || u.origin !== self.location.origin || u.pathname.includes('/api/')) return;
+  if (r.method !== 'GET' || u.origin !== self.location.origin || u.pathname.includes('/api/') || adminPath(u.pathname)) return;
   const nav = r.mode === 'navigate', fixed = u.searchParams.has('v');
   const fromNet = () => {
     const net = fetch(r);
