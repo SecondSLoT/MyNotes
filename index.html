@@ -6283,7 +6283,19 @@ async function importRun(d, X, mode, say, opts = {}) {
   say(tt(d.guest ? 'guest.imp.running' : 'imp.running'));
   // изображения из Evernote: загрузить туда же, куда обычные изображения заметок, и подставить ссылки
   // и изображения из архива копии, которых нет в этом аккаунте (zipToBackup)
-  const imgs = d.images || {}, need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)));
+  const imgs = d.images || {};
+  // MyNotes может восстановить файл по прежнему пути даже у заметки, которую не нужно перезаписывать.
+  const retainedImages = new Set();
+  if (d.imgTotal && !window.NOTES_UPLOAD) {
+    const writing = new Set(notes.map(n => n.id));
+    for (const n of d.notes) {
+      if (writing.has(n.id)) continue;
+      const existing = S.notes.get(n.id) || S.trash.get(n.id);
+      if (existing) for (const path of imgLinks(existing.body)) retainedImages.add(path);
+    }
+  }
+  const need = Object.keys(imgs).filter(h => notes.some(n => n.body.includes('enex:' + h)) ||
+    (/^img\/[^/]+$/.test(imgs[h].orig || '') && retainedImages.has(imgs[h].orig)));
   const fromEn = d.source === 'evernote'; let upOk = 0, upFail = 0, upLater = 0;
   if (need.length) {
     const url = {}; let k = 0;
