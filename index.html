@@ -1750,6 +1750,13 @@ window.STR = {
   'adm.bolshe_vseh': 'больше всех — ',
   'adm.skolko_lyudey_zanimayut_stolko': 'Сколько людей занимают столько места',
   'adm.storage.sub': 'как в тарифе: текст заметок и изображения в них, без скриншотов к обращениям',
+  'adm.jump.label': 'Разделы аналитики',
+  'adm.jump.storage': 'Место',
+  'adm.notes.distribution': 'Сколько заметок у людей',
+  'adm.notes.snapshot': 'Аккаунты по числу заметок сейчас, без корзины. Медиана: {median}, максимум: {max}',
+  'adm.notes.pending': 'Числа примерные: служебные поля ещё обновляются',
+  'adm.notes.more': 'Больше {n}',
+  'adm.notes.share': '{n} · {pct}%',
   'adm.ot': 'от ',
   'adm.pro_seychas': 'Pro сейчас',
   'adm.oplacheno': 'оплачено ',
@@ -2838,9 +2845,9 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .peer-layer{position:absolute;pointer-events:none;overflow:hidden;z-index:2}
 .peer-caret{position:absolute;width:2px;margin-left:-1px;background:var(--pc);left:var(--x);top:var(--y);height:var(--h)}
 .peer-caret b,.peer-block b{position:absolute;left:0;bottom:100%;font:600 11px/1.5 inherit;color:var(--raised);background:var(--pc);padding:0 5px;border-radius:var(--rad-xs) var(--rad-xs) var(--rad-xs) 0;white-space:nowrap}
+.peer-caret b{bottom:auto;width:max-content;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:600;line-height:1.5}
 .peer-block{position:absolute;left:-10px;right:0;border-left:3px solid var(--pc);border-radius:2px}
 .peer-block b{bottom:auto;top:-15px;left:auto;right:0;border-radius:var(--rad-xs);font-size:10px;line-height:14px;opacity:.9}
-.peer-caret.below b{bottom:auto;top:100%;border-radius:0 var(--rad-xs) var(--rad-xs) var(--rad-xs)}
 .peer-blocks{overflow:visible}
 .live-st{font-size:13px;color:var(--muted);min-width:0}
 .live-st .st.offline{color:var(--tc-orange)}
@@ -7295,8 +7302,8 @@ function openNote(id, dir) {
   // правишь заметку и открываешь другую — сначала сохранить (как Esc и «назад»; 02.11, решение Александра). Раньше правки оставались
   // черновиком только на этом устройстве. Новая заметка без заголовка не сохраняется — остаётся черновиком, как раньше
   const E = S.editing, f = E && document.getElementById('ed');
-  if (E && f && !E.leaving) E.sync?.();
-  if (E && f && !E.leaving && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title || '').trim()))) {
+  if (E && f && (!E.leaving || E.live)) E.sync?.();
+  if (E && f && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title || '').trim()))) {
     E.leaving = { id, dir }; f.requestSubmit(); return;
   }
   if (S.article && !S.editing) {
@@ -7662,14 +7669,14 @@ const liveFor = n => {
 };
 const LIVE_COLORS = ['blue', 'green', 'purple', 'orange', 'red', 'gray'];
 const liveColor = uid => { let h = 0; for (const ch of String(uid)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return LIVE_COLORS[h % LIVE_COLORS.length]; };
-const liveTags = () => ($('#ed-tags')?.value || '').split(/[\s,]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
+const editorTags = value => value.split(/[\s,]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
 function liveStart(E, n) {
   E.live = true;
   E.L = { c: new RNCollab.Client('w' + Math.random().toString(36).slice(2, 10), { title: n.title || '', body: n.body || '' }), sentTags: JSON.stringify(n.tags || []),
-    peers: [], busy: false, sentAt: 0, typedAt: 0, undo: [], redo: [], undoAt: 0, last: n.body || '', fails: 0, state: 'ok' };
+    peers: [], sentAt: 0, typedAt: 0, undo: [], redo: [], undoAt: 0, last: n.body || '', fails: 0, state: 'ok' };
   liveLoop(E);
 }
-const liveCur = E => ({ title: $('#ed-title') ? $('#ed-title').value : E.draft.title, body: E.draft.body });
+const liveCur = E => ({ title: E.draft.title, body: E.draft.body });
 function liveLoop(E) {
   clearTimeout(E.L.t);
   E.L.t = setTimeout(() => {
@@ -7678,22 +7685,24 @@ function liveLoop(E) {
   }, 200);
 }
 function liveTick(E, force) {
-  const L = E.L, now = Date.now(); if (L.busy || L.done) return;
-  const cur = liveCur(E), tags = liveTags(), tagsDirty = JSON.stringify(tags) !== L.sentTags, dirty = L.c.dirty(cur) || tagsDirty;
+  const L = E.L, now = Date.now(); if (L.flight || L.done) return;
+  const cur = liveCur(E), tags = E.draft.tags, tagsDirty = JSON.stringify(tags) !== L.sentTags, dirty = L.c.dirty(cur) || tagsDirty;
   const wait = L.fails ? Math.min(30000, 1000 * 2 ** L.fails) : dirty ? 400 : L.peers.length ? 1000 : 3000;
   if (!force && now - L.sentAt < wait) return;
   if (!force && E.pane === 'vis' && $('#ed-prev') && now - L.typedAt < 500) return;   // «Визуально» — в паузе набора
   const req = Object.assign({}, L.c.request(cur, tagsDirty ? tags : null), { cursor: liveCursor(E) });
-  if (tagsDirty) L.sentTags = JSON.stringify(tags);
-  L.busy = true; L.sentAt = now;
+  if (req.tags) L.sentTags = JSON.stringify(req.tags);
+  const flight = L.flight = {}; L.sentAt = now;
   return window.NOTES_COLLAB.sync(E.id, req).then(res => {
-    L.busy = false; L.fails = 0;
-    if (res.off) { liveOff(E); return; }
-    liveApply(E, res);
+    if (L.flight !== flight) return;
+    L.flight = null; L.fails = 0;
+    if (res.off) { if (!L.finish) liveOff(E); return; }
+    liveApply(E, res, req);
   }, err => {
-    L.busy = false; L.fails = Math.min(5, L.fails + 1);
+    if (L.flight !== flight) return;
+    L.flight = null; L.fails = Math.min(5, L.fails + 1);
     if (req.tags) L.sentTags = '';   // теги — отправить ещё раз
-    if (err.status === 404) { liveOff(E); return; }
+    if (err.status === 404) { if (!L.finish) liveOff(E); return; }
     L.state = 'offline'; liveStatus(E);
   });
 }
@@ -7707,36 +7716,66 @@ function liveCursor(E) {
   }
   return ta ? { f: 'body', i: ta.selectionStart } : null;
 }
-function liveApply(E, res) {
+function liveApply(E, res, req) {
   const L = E.L, before = liveCur(E), out = L.c.response(res, before);
-  const ti = $('#ed-title');
+  const active = S.editing === E, ti = active && $('#ed-title');
+  E.draft.title = out.title;
   if (out.title !== before.title && ti) {
-    const a = ti.selectionStart, b = ti.selectionEnd; ti.value = out.title; E.draft.title = out.title;
+    const a = ti.selectionStart, b = ti.selectionEnd; ti.value = out.title;
     if (document.activeElement === ti) ti.setSelectionRange(RNCollab.mapIndex(before.title, out.title, a), RNCollab.mapIndex(before.title, out.title, b));
   }
   if (out.body !== before.body) liveSetBody(E, before.body, out.body, null);
-  const tg = $('#ed-tags');
-  if (res.tags && tg && document.activeElement !== tg && JSON.stringify(res.tags) !== JSON.stringify(liveTags())) { tg.value = res.tags.join(' '); E.draft.tags = res.tags.slice(); }
-  if (res.tags && document.activeElement !== tg) L.sentTags = JSON.stringify(res.tags);   // поле тегов в фокусе — набранное отправится следующим запросом
+  const tg = active && $('#ed-tags');
+  // При resync сервер прислал свою версию и не применил теги из запроса.
+  if (res.resync && req.tags) L.sentTags = JSON.stringify(res.tags || []);
+  if (res.tags && document.activeElement !== tg && JSON.stringify(E.draft.tags) === L.sentTags) {
+    E.draft.tags = res.tags.slice(); L.sentTags = JSON.stringify(res.tags);
+    if (tg && JSON.stringify(editorTags(tg.value)) !== L.sentTags) tg.value = res.tags.join(' ');
+  }
   L.peers = res.peers || []; L.state = L.c.dirty(liveCur(E)) ? 'saving' : 'ok';
   livePeers(E); liveStatus(E);
 }
 // новый текст в редакторе; курсор — на том же месте текста (или at — после отмены)
 function liveSetBody(E, from, to, at) {
-  const L = E.L, d = E.draft, ta = $('#ed-body'), vis = $('#ed-prev');
+  const L = E.L, d = E.draft;
   // чужая правка — и в свою историю отмены: шаги отмены остаются «моими правками» поверх нового текста
   if (at == null && from !== to) for (const st of [L.undo, L.redo]) for (const e of st) { e.before = RNCollab.merge(from, to, e.before); e.after = RNCollab.merge(from, to, e.after); }
   d.body = to; L.last = to;
+  if (S.editing !== E) return;
+  const ta = $('#ed-body'), vis = $('#ed-prev');
   if (ta) {
-    const a = ta.selectionStart, b = ta.selectionEnd, focused = document.activeElement === ta;
+    const a = ta.selectionStart, b = ta.selectionEnd, direction = ta.selectionDirection, focused = document.activeElement === ta;
+    const top = ta.scrollTop, left = ta.scrollLeft;
     ta.value = to; E.ui?.grow();
-    if (focused || at != null) { const p = at != null ? at : RNCollab.mapIndex(from, to, a); ta.setSelectionRange(p, at != null ? p : RNCollab.mapIndex(from, to, b)); }
+    if (focused || at != null) { const p = at != null ? at : RNCollab.mapIndex(from, to, a); ta.setSelectionRange(p, at != null ? p : RNCollab.mapIndex(from, to, b), direction); }
+    if (at == null) { ta.scrollTop = top; ta.scrollLeft = left; }
   }
   if (vis) {
-    const focused = document.activeElement === vis, s = getSelection();
-    const off = focused && s.rangeCount ? textOffsetIn(vis, s.getRangeAt(0).startContainer, s.getRangeAt(0).startOffset) : null, oldPlain = vis.textContent;
-    vis.innerHTML = renderMd(to); enhance(vis);
-    if (off != null) placeCaretInText(vis, RNCollab.mapIndex(oldPlain, vis.textContent, off));
+    const s = getSelection(), r = document.activeElement === vis && s.rangeCount ? s.getRangeAt(0) : null;
+    const selected = visRangeOffsets(vis, r), saved = visRangeOffsets(vis, savedRange);
+    const backward = selected && !r.collapsed && (s.anchorNode !== r.startContainer || s.anchorOffset !== r.startOffset);
+    const oldPlain = vis.textContent, oldScroll = vis.scrollTop, rect = selected && r.getClientRects()[0];
+    const scroller = vis.scrollHeight > vis.clientHeight ? vis : vis.closest('#edit-overlay, #reader');
+    const bounds = scroller?.getBoundingClientRect(), readerBounds = vis.closest('#edit-overlay, #reader')?.getBoundingClientRect();
+    const visible = rect && bounds && readerBounds &&
+      rect.top >= Math.max(bounds.top, readerBounds.top, 0) && rect.bottom <= Math.min(bounds.bottom, readerBounds.bottom, innerHeight);
+    let moved;
+    keepScroll(() => {
+      E.ui.renderVis();
+      const diff = selected || saved ? RNCollab.dmp.diff_main(oldPlain, vis.textContent) : null;
+      const rebase = offsets => visRangeFromOffsets(vis, offsets.map(i => RNCollab.dmp.diff_xIndex(diff, i)));
+      if (saved) savedRange = rebase(saved);
+      if (selected) {
+        moved = rebase(selected);
+        if (backward) s.setBaseAndExtent(moved.endContainer, moved.endOffset, moved.startContainer, moved.startOffset);
+        else { s.removeAllRanges(); s.addRange(moved); }
+      }
+      vis.scrollTop = oldScroll;
+    });
+    if (visible && moved) {
+      const next = moved.getClientRects()[0];
+      if (next) scroller.scrollTop += next.top - rect.top;
+    }
   }
 }
 // своя правка текста (из textarea или «Визуально») — в свою историю отмены: подряд набранное (меньше 1 с) — один шаг
@@ -7763,6 +7802,7 @@ function liveUndo(E, dir) {
   L.typedAt = 0; liveTick(E, true);
 }
 function livePeers(E) {
+  if (S.editing !== E) return;
   const L = E.L, panes = document.querySelector('#ed .ed-panes'); if (!panes) return;
   panes.querySelectorAll('.peer-layer').forEach(x => x.remove());
   const ta = $('#ed-body'), vis = $('#ed-prev'), base = L.c.base.body, body = E.draft.body;
@@ -7772,10 +7812,11 @@ function livePeers(E) {
     Object.assign(layer.style, { left: ta.offsetLeft + 'px', top: ta.offsetTop + 'px', width: ta.offsetWidth + 'px', height: ta.offsetHeight + 'px' });
     for (const p of here) {
       const xy = caretXY(ta, p.i), c = document.createElement('span');
-      c.className = 'peer-caret' + (xy.y < 18 ? ' below' : ''); c.style.setProperty('--x', xy.x + 'px'); c.style.setProperty('--y', xy.y + 'px'); c.style.setProperty('--h', xy.h + 'px'); c.style.setProperty('--pc', `var(--tc-${liveColor(p.uid)})`);
+      c.className = 'peer-caret'; c.style.setProperty('--x', xy.x + 'px'); c.style.setProperty('--y', xy.y + 'px'); c.style.setProperty('--h', xy.h + 'px'); c.style.setProperty('--pc', `var(--tc-${liveColor(p.uid)})`);
       c.innerHTML = `<b>${esc(p.name)}</b>`; c.title = p.name; layer.appendChild(c);
     }
     panes.appendChild(layer);
+    placePeerLabels(layer);
   }
   if (vis && vis.offsetParent && here.length) {
     const layer = document.createElement('div'); layer.className = 'peer-layer peer-blocks';
@@ -7791,6 +7832,30 @@ function livePeers(E) {
     panes.appendChild(layer);
   }
 }
+function placePeerLabels(layer) {
+  const width = layer.clientWidth, height = layer.clientHeight, gap = 2;
+  const labels = [...layer.querySelectorAll('.peer-caret b')];
+  for (const b of labels) b.style.maxWidth = width + 'px';
+  const boxes = labels.map(b => {
+    const c = b.parentElement;
+    return { b, x: c.offsetLeft, y: c.offsetTop, caretHeight: c.offsetHeight, w: b.offsetWidth, h: b.offsetHeight };
+  }).sort((a, b) => a.y - b.y || a.x - b.x);
+  const placed = [];
+  for (const { b, x, y, caretHeight, w, h } of boxes) {
+    if (y + caretHeight <= 0 || y >= height || h > height) { b.hidden = true; continue; }
+    const left = Math.max(0, Math.min(x, width - w));
+    const neighbors = placed.filter(r => left < r.right + gap && left + w + gap > r.left);
+    const above = y - h, below = y + caretHeight;
+    // Берём ближайшее свободное место у курсора, в том числе над или под уже поставленной подписью.
+    const candidates = [above, below, ...neighbors.flatMap(r => [r.top - h - gap, r.bottom + gap])]
+      .sort((a, b) => Math.abs(a - above) - Math.abs(b - above));
+    const top = candidates.find(t => t >= 0 && t + h <= height &&
+      neighbors.every(r => t + h + gap <= r.top || t >= r.bottom + gap));
+    if (top == null) { b.hidden = true; continue; }
+    b.style.left = (left - x) + 'px'; b.style.top = (top - y) + 'px';
+    placed.push({ left, right: left + w, top, bottom: top + h });
+  }
+}
 function caretXY(ta, pos) {   // позиция символа в textarea (зеркало) — для курсоров соавторов
   const cs = getComputedStyle(ta), m = document.createElement('div');
   for (const k of ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'paddingTop', 'paddingLeft', 'paddingRight', 'borderTopWidth', 'borderLeftWidth', 'boxSizing', 'tabSize']) m.style[k] = cs[k];
@@ -7799,6 +7864,7 @@ function caretXY(ta, pos) {   // позиция символа в textarea (зе
   document.body.appendChild(m); const r = { x: mk.offsetLeft, y: mk.offsetTop - ta.scrollTop, h: mk.offsetHeight || parseFloat(cs.lineHeight) || 20 }; m.remove(); return r;
 }
 function liveStatus(E) {
+  if (S.editing !== E) return;
   const el = $('#live-st'); if (!el) return;
   const L = E.L, names = [...new Set(L.peers.map(p => p.name))];
   const who = names.length ? tt('live.here', { names: names.length > 2 ? names.slice(0, 2).join(', ') + tt('live.more', { n: names.length - 2 }) : names.join(tt('live.and')) }) : '';
@@ -7819,22 +7885,36 @@ window.addEventListener('pagehide', () => {
   const E = S.editing; if (!E?.live || !E.L || E.L.done || !window.NOTES_COLLAB?.beacon) return;
   const cur = liveCur(E); if (E.L.c.dirty(cur)) window.NOTES_COLLAB.beacon(E.id, Object.assign({}, E.L.c.request(cur, null), { done: true }));
 });
-async function liveFinish(E) {
-  const L = E.L; if (L.done) return true; L.done = true; clearTimeout(L.t);
-  for (let i = 0; i < 50 && L.busy; i++) await new Promise(r => setTimeout(r, 100));
-  const cur = liveCur(E), tags = liveTags(), tagsDirty = JSON.stringify(tags) !== L.sentTags;
+function liveFinish(E) {
+  const L = E.L;
+  if (L.finish) return L.finish;
+  L.done = true; clearTimeout(L.t);
+  return L.finish = liveFlush(E);
+}
+async function liveFlush(E) {
+  const L = E.L, d = E.draft;
+  for (let i = 0; i < 50 && L.flight; i++) await new Promise(r => setTimeout(r, 100));
+  // После таймаута повторяем ту же операцию по seq. Первый ответ больше
+  // не может разобрать pending второго запроса или изменить редактор.
+  L.flight = null;
   for (let i = 0; i < 2; i++) {
+    const tagsDirty = JSON.stringify(d.tags) !== L.sentTags;
+    const req = L.c.request(liveCur(E), tagsDirty ? d.tags : null);
+    if (req.tags) L.sentTags = JSON.stringify(req.tags);
     try {
-      const res = await window.NOTES_COLLAB.sync(E.id, Object.assign({}, L.c.request(cur, tagsDirty ? tags : null), { done: true }));
+      const res = await window.NOTES_COLLAB.sync(E.id, Object.assign({}, req, { done: true }));
       if (res.off) break;
-      const out = L.c.response(res, cur); E.draft.title = out.title; E.draft.body = out.body; if (res.tags) E.draft.tags = res.tags.slice();
-      if (!L.c.dirty(out)) return true;
-    } catch (e) { if (e.status === 404) return false; }
+      liveApply(E, res, req);
+      if (!L.c.dirty(liveCur(E)) && JSON.stringify(d.tags) === L.sentTags) return true;
+    } catch (e) {
+      if (e.status === 404) return false;
+      if (req.tags) L.sentTags = '';
+    }
   }
   const n = S.notes.get(E.id); if (!n) return false;
-  E.draft.title = cur.title; E.draft.body = cur.body; E.draft.tags = tags;
-  const ok = await write(() => S.db.collection('notes').doc(E.id).update({ title: cur.title.trim() || n.title, body: cur.body, tags, updated: new Date().toISOString() }), null);
-  if (!ok && write.err?.status === 403) await keepOwnCopy({ title: cur.title.trim() || n.title, body: cur.body, tags });   // права отняли — копией себе
+  const doc = { title: d.title.trim() || n.title, body: d.body, tags: d.tags };
+  const ok = await write(() => S.db.collection('notes').doc(E.id).update({ ...doc, updated: new Date().toISOString() }), null);
+  if (!ok && write.err?.status === 403) await keepOwnCopy(doc);   // права отняли — копией себе
   return ok;
 }
 /* Текст, который нельзя сохранить в общем разделе (права отняли, пока правил, или правка без связи не принята), — копией в свой раздел (02.11):
@@ -7910,12 +7990,17 @@ function renderEditor(box) {
       </div>
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
+  const titleField = $('#ed-title'), tagsField = $('#ed-tags');
+  if (E.live) {
+    titleField.addEventListener('input', () => { d.title = titleField.value; });
+    tagsField.addEventListener('input', () => { d.tags = editorTags(tagsField.value); });
+  }
   E.pane = ta ? 'md' : 'vis';
   if (vis) enhance(vis);
   const grow = () => { if (!ta) return; keepScroll(() => { ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; }); };
   let pT, visDirty = false;
-  const renderVis = () => { if (vis) { vis.innerHTML = renderMd(d.body); enhance(vis); } };
-  E.ui = { grow };
+  const renderVis = () => { clearTimeout(pT); if (vis) { visDirty = false; vis.innerHTML = renderMd(d.body); enhance(vis); } };
+  E.ui = { grow, renderVis };
   if (ta) {
     ta.addEventListener('input', () => {
       d.body = ta.value; grow();
@@ -8094,8 +8179,8 @@ function renderEditor(box) {
   $('#link-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); linkOk(); return; } if (e.key === 'Escape') { e.preventDefault(); lb.hidden = true; vis?.focus(); restoreSel(); } });
   if (E.focusBody) { E.focusBody = false; (ta || vis)?.focus(); }
   const sync = () => {
-    d.title = $('#ed-title').value; d.section = $('#ed-sec').value; d.tags = $('#ed-tags').value.split(/[\s,]+/).map(t => t.replace(/^#/, '')).filter(Boolean);
-    d.ref = $('#ed-ref').checked; if ($('#ed-body')) d.body = $('#ed-body').value;
+    d.title = titleField.value; d.section = $('#ed-sec').value; d.tags = editorTags(tagsField.value);
+    d.ref = $('#ed-ref').checked; if (ta) d.body = ta.value;
   };
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader(); });
   $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else { document.activeElement?.blur?.(); $('#lib').classList.remove('reading'); syncEditingClass(); } };
@@ -8115,18 +8200,30 @@ function renderEditor(box) {
     else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (E.live || draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
   });
   E.sync = sync;   // openNote: свежий текст из полей (черновик пишется с задержкой 0,5 с)
-  let drT; form.addEventListener('input', () => { if (E.live) return; clearTimeout(drT); drT = setTimeout(() => { if (S.editing !== E) return; sync(); saveDraft(E); }, 500); });
+  let drT;
+  form.addEventListener('input', () => {
+    if (E.live) return;
+    clearTimeout(drT);
+    drT = setTimeout(() => {
+      if (S.editing !== E) return;
+      E.sync();   // после смены режима читаем поля текущей формы
+      saveDraft(E);
+    }, 500);
+  });
   $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); renderReader(); });
   $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
   if (E.anchor) requestAnimationFrame(() => applyEditAnchor(E));
   if (E.live) { liveStatus(E); requestAnimationFrame(() => livePeers(E)); }
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (S.editing !== E || E.L?.finish) return;
     if (uploads.size) { toast(tt('ed.wait.img')); await Promise.allSettled([...uploads]); }
+    if (S.editing !== E || E.L?.finish || !form.isConnected) return;
     sync();
     if (E.live) {   // совместная правка: всё уже у сервера — досылаем последнее и выходим
       const A = editorAnchor(E), id = E.id;
       await liveFinish(E);
+      if (S.editing !== E) return;
       const prev = S.notes.get(id); if (prev) S.notes.set(id, Object.assign({}, prev, { title: d.title || prev.title, body: d.body, tags: d.tags }));
       S.editing = null; S.artJumpToCurrent = true; renderList();
       if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
@@ -8976,13 +9073,14 @@ function caretAfter(node, off) { const r = document.createRange(); r.setStart(no
    The browser's undo can't see changes made straight in the DOM (colour, markdown shortcuts, lists, code blocks),
    so the visual editor keeps its own: snapshots of the content + caret, typing grouped by pauses. */
 function visSelOffsets(vis) {
-  const sl = getSelection(); if (!sl.rangeCount || !vis.contains(sl.anchorNode)) return null;
-  const r = sl.getRangeAt(0);
-  const at = (node, off) => { const x = document.createRange(); x.setStart(vis, 0); x.setEnd(node, off); return x.toString().length; };
-  return [at(r.startContainer, r.startOffset), at(r.endContainer, r.endOffset)];
+  const s = getSelection();
+  return visRangeOffsets(vis, s.rangeCount ? s.getRangeAt(0) : null);
 }
-function visSetOffsets(vis, o) {
-  if (!o) return;
+function visRangeOffsets(vis, r) {
+  if (!r || !vis.contains(r.startContainer) || !vis.contains(r.endContainer)) return null;
+  return [textOffsetIn(vis, r.startContainer, r.startOffset), textOffsetIn(vis, r.endContainer, r.endOffset)];
+}
+function visRangeFromOffsets(vis, o) {
   const w = document.createTreeWalker(vis, NodeFilter.SHOW_TEXT); let pos = 0, n, r = document.createRange(), st = false, last = null;
   while ((n = w.nextNode())) {
     const L = n.data.length; last = n;
@@ -8992,7 +9090,11 @@ function visSetOffsets(vis, o) {
   }
   if (!st) { if (last) r.setStart(last, last.data.length); else r.setStart(vis, vis.childNodes.length); r.collapse(true); }
   else if (!n) r.collapse(true);
-  const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r);
+  return r;
+}
+function visSetOffsets(vis, o) {
+  if (!o) return;
+  const sl = getSelection(); sl.removeAllRanges(); sl.addRange(visRangeFromOffsets(vis, o));
 }
 function visHist(vis) {
   if (!vis._h) vis._h = { stack: [{ html: vis.innerHTML, sel: null }], i: 0, t: 0, applying: false };
@@ -9025,6 +9127,14 @@ const TC_NAMES = new Set(TEXT_COLORS.map(c => c[0]));
 function tcOf(el) { for (const c of el.classList || []) if (c.startsWith('tc-') && TC_NAMES.has(c.slice(3))) return c.slice(3); return null; }
 let colorPop = null;
 function closeColorPop() { colorPop?.remove(); colorPop = null; }
+function placeColorPop(pop, btn) {
+  const vv = window.visualViewport, x = vv?.offsetLeft || 0, y = vv?.offsetTop || 0;
+  const right = x + (vv?.width || innerWidth), bottom = y + (vv?.height || innerHeight);
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  const top = r.bottom + 6 + h <= bottom - 8 ? r.bottom + 6 : r.top - h - 6;
+  pop.style.left = Math.max(x + 8, Math.min(right - w - 8, r.left + (r.width - w) / 2)) + 'px';
+  pop.style.top = Math.max(y + 8, Math.min(bottom - h - 8, top)) + 'px';
+}
 function openColorPop(btn, apply, cur) {
   if (colorPop) { closeColorPop(); return; }
   const pop = colorPop = document.createElement('div');
@@ -9032,15 +9142,15 @@ function openColorPop(btn, apply, cur) {
   pop.innerHTML = TEXT_COLORS.map(([c, name]) => `<button type="button" data-c="${c}" title="${name}" aria-label="${name}" aria-pressed="${cur === c}" style="--c:var(--tc-${c})"></button>`).join('')
     + `<button type="button" class="clear" data-c="" title="${tt('color.none')}" aria-label="${tt('color.none')}">✕</button>`;
   document.body.appendChild(pop);
-  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
-  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
-  pop.style.top = (r.bottom + 6) + 'px';
+  placeColorPop(pop, btn);
   pop.addEventListener('mousedown', e => e.preventDefault());   // keep the text selection
   pop.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; closeColorPop(); apply(b.dataset.c); });
 }
 document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"]')) closeColorPop(); }, true);
 document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeColorPop(); } }, true);
 window.addEventListener('scroll', () => closeColorPop(), true);
+window.addEventListener('resize', closeColorPop);
+window.visualViewport?.addEventListener('resize', closeColorPop);
 
 /* ---------- таблица в «Визуально»: переход по ячейкам, строки и столбцы ---------- */
 // курсор в ячейку; select — выделить её текст (Tab по ячейкам, как в таблицах: набранное заменяет содержимое)
@@ -9086,9 +9196,7 @@ function openTblPop(btn, vis) {
   pop.innerHTML = [['row', tt('tbl.row')], ['col', tt('tbl.col')], ['delrow', tt('tbl.delrow')], ['delcol', tt('tbl.delcol')], ['del', tt('tbl.del')]]
     .map(([a, label]) => `<button type="button" role="menuitem" data-tbl="${a}"${a === 'del' ? ' class="danger"' : ''}>${label}</button>`).join('');
   document.body.appendChild(pop);
-  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
-  pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
-  pop.style.top = (r.bottom + 6) + 'px';
+  placeColorPop(pop, btn);
   pop.addEventListener('mousedown', e => e.preventDefault());
   pop.addEventListener('click', e => { const b = e.target.closest('[data-tbl]'); if (!b) return; closeColorPop(); tblAct(vis, b.dataset.tbl); });
 }
