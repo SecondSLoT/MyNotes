@@ -546,6 +546,7 @@ window.STR = {
   'ed.draft.this': 'Есть несохранённый черновик этой заметки от {time}',
   'ed.draft.new': 'Есть несохранённый черновик новой заметки от {time}',
   'ed.title.ph': 'Например: Чем launch отличается от async?',
+  'ed.sec.none': 'Без раздела',
   'ed.sec.live': 'Перенести заметку можно из списка заметок',
   'ed.tags.ph': 'часто_спрашивают senior',
   'ed.ref': 'Не тренировать: заметка остаётся в разделе, но не попадает в тренировку',
@@ -1319,13 +1320,16 @@ window.STR = {
   'dbg.lim.unset': 'Лимиты — как у всех',
 
   // ===== Первый вход: приветственная заметка (Markdown)
-  'welcome.md': 'ReteNote — место для любых заметок: идеи, конспекты, списки дел, рецепты, рабочие записи. А если что-то нужно не просто записать, а **запомнить** — включи тренировку, и заметки превратятся в карточки для повторения.\n\n## Заметки\n- **Разделы** — слева (на телефоне — строка сверху). «+ Раздел» создаёт новый, внутри можно делать подразделы, разделы перетаскиваются мышкой.\n- **«+ Заметка»** — новая заметка в открытом разделе. Двойной клик по тексту или клавиша **E** — редактировать прямо в этом месте.\n- В редакторе три режима: **Визуально**, **Markdown** и **Рядом**. Есть заголовки, списки и чек-листы, цвет текста, таблицы, код, ссылки на другие заметки. Изображение можно просто вставить из буфера.\n- В «Визуально» разметка срабатывает сама: напиши `**жирный**`, `- пункт` или `# Заголовок` и нажми пробел.\n- **★** — избранное. **Поиск** сверху понимает формы слов, `"точные фразы"`, `-исключения` и `#теги`.\n- Удалённые заметки {days} дней лежат в **корзине**.\n\n## Тренировка — по желанию\nПригодится, если нужно выучить: термины, вопросы к экзамену или собеседованию, иностранные слова.\n- Включается для раздела целиком: меню раздела (⋮ или правый клик) → «Тренировка». Остальные разделы остаются обычными заметками.\n- **Заголовок заметки — это вопрос, текст — ответ.** Вспомни ответ, открой его и честно оцени: «Не знаю», «С трудом» или «Знаю». Чем лучше помнишь, тем реже карточка будет возвращаться.\n- Как это выглядит — в разделе **«Пример тренировки»**. Не нужно — просто удали его.\n\n## Резервная копия\n⚙ **Настройки → Резервное копирование и перенос**: все заметки одним файлом — скачать себе и загрузить обратно. Заметки видны только тебе. В настройках же — «Обратная связь»: напиши, если что-то не так.\n\nЭту заметку можно отредактировать или удалить.',
   'example.md': '**Интервальное повторение** — способ запоминать надолго: материал повторяют через растущие промежутки времени — через день, через три, через неделю…\n\nПовторение приходится как раз на момент, когда знание начинает забываться, поэтому оно закрепляется лучше, чем при зубрёжке подряд.\n\n*Это пример карточки: заголовок — вопрос, этот текст — ответ. Удали её, когда добавишь свои.*',
   'onb.mine': 'Мои заметки',
+  'onb.first': 'Создать заметку',
+  'onb.train.hint': 'Тренировка помогает запоминать заметки. Попробуй на двух готовых карточках',
+  'onb.train.create': 'Создать пример',
+  'onb.train.close': 'Закрыть подсказку о тренировке',
+  'onb.recall': 'Что сделать перед тем, как открыть ответ?',
+  'onb.recall.answer': 'Попробуй вспомнить ответ самостоятельно. Затем открой его и оцени, насколько хорошо удалось вспомнить',
   'onb.demo': 'Пример тренировки',
-  'onb.welcome': 'Как пользоваться {app}',
   'onb.example': 'Что такое интервальное повторение?',
-  'onb.tag': 'пример',
 
   // ===== Справка (окно «Как всё устроено»): пункты по порядку. Коротко и для всех: где что находится, не объясняем — это видно
   'help.notes': 'Заметки и разделы',
@@ -2459,6 +2463,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .ann-bar .backup-bar.important{box-shadow:inset 4px 0 0 var(--accent)}
 .ann-bar .ann-kind{display:block;font-weight:600;margin-bottom:2px}.ann-bar .backup-bar.maint .ann-kind{color:var(--tc-orange)}
 .ann-bar .ann-x{position:absolute;top:6px;right:6px;width:32px;height:32px;border:0;background:none;border-radius:var(--rad-m,8px);color:var(--muted);font-size:20px;line-height:1;cursor:pointer}.ann-bar .ann-x:hover{background:var(--hover)}
+.train-intro .backup-bar{padding-right:48px}
 .ann-bar a{color:var(--accent);font-weight:600}
 @media (max-width:600px){.backup-bar p{flex-basis:100%}.backup-bar .bar{margin-left:auto}}
 #data-panel .sub-h{margin:22px 0 10px;font:600 14px var(--f-body)}
@@ -5313,6 +5318,10 @@ function renderRailTiles() {
   $('#rail').innerHTML = `<div class="rail-tiles">${atTop ? trainBarHtml(rq.due.length + rq.fresh.length, answeredToday()) + homeLinksHtml(true) : `<div class="rail-up"${scAttr(ctx)}><button class="home-up" data-rail-up="1" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up${S.section === ctx ? ' cur' : ''}" data-sec="${esc(ctx)}">${esc(sec?.title || '')}</button></div>`}`
     + (list.length || S.canWrite ? `<div class="tiles">${list.map(x => secTileHtml(x, rq, false)).join('')}${S.canWrite ? (atTop ? addTopTile() : addSubTile(ctx)) : ''}</div>` : '') + `</div>`;
 }
+const firstNoteAction = () => window.NOTES_FLAVOR === 'public' && S.canWrite && S.loaded.settings &&
+  S.loaded.sections && !S.guestBusy && S.section === 'all' && !S.tag && !S.notes.size && !S.sections.size && !S.trash.size;
+const firstNoteHtml = () => `<div class="empty-state"><button class="btn primary" type="button" data-first-note>${tt('onb.first')}</button></div>`;
+$('#items').addEventListener('click', e => { if (e.target.closest('[data-first-note]')) $('#new-note').click(); });
 function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
@@ -5325,8 +5334,9 @@ function renderHome(cl) {
     + (trash ? `<span class="tl-meta"><span class="pill">${esc(S.sections.get(n.section)?.title || tt('trash.sec.gone'))}</span></span>${S.canWrite && canEditIn(spaceOfNote(n)) ? `<span class="tl-acts"><button class="btn" data-restore="${esc(n.id)}">${tt('trash.restore')}</button>${canPurge(n) ? `<button class="btn danger" data-purge="${esc(n.id)}">${tt('trash.purge')}</button>` : ''}</span>` : ''}</div>`
       : `<span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`);
   const all = (cl || currentList()).list;
+  const first = firstNoteAction();
   const subs = flat ? [] : sid ? kids(sid) : homeLevel();
-  const notesAll = flat ? [] : sid ? all.filter(n => n.section === sid) : [];
+  const notesAll = flat ? [] : all.filter(n => sid ? n.section === sid : !S.sections.has(n.section));
   const notes = notesAll.slice(0, S.tileLimit || LIST_STEP);   // телефон: заметки раздела — порциями при прокрутке, как на компьютере (500 плиток разом — тяжело; 12.11)
   const moreNotes = notesAll.length > notes.length ? '<div class="tl-sentinel" id="tl-sentinel" aria-hidden="true"></div>' : '';
   // «Все заметки»: все заметки раздела вместе с подразделами (на главной — все) карточками; подраздел — разделителем, как в списке
@@ -5339,7 +5349,7 @@ function renderHome(cl) {
     const one = virt || groups.length === 1 && groups[0].sec === own;   // в разделе без подразделов разделитель не нужен
     flatHtml = groups.map(g => `${one ? '' : `<div class="tl-grp"${scAttr(g.sec)}><span class="tl-gico">${FOLDER_ICO}</span><span class="tl-gname">${esc(rel(g.sec))}</span></div>`}<div class="tiles">${g.notes.map(noteTile).join('')}</div>`).join('')
       + (all.length > shownN.length ? '<div class="tl-sentinel" id="tl-sentinel" aria-hidden="true"></div>' : '')   // дальше — подгрузка при прокрутке
-      + (all.length ? '' : `<p class="hint home-empty">${tt(trash ? 'trash.none' : 'home.empty')}</p>`);
+      + (all.length || first ? '' : `<p class="hint home-empty">${tt(trash ? 'trash.none' : 'home.empty')}</p>`);
   }
   // шапка: на главной — «Разделы» / «Все заметки»; в разделе и в избранном/недавних/корзине — ← и название (нажатие тоже назад)
   const lh = $('.list-head');
@@ -5353,14 +5363,15 @@ function renderHome(cl) {
     + (!atHome && !virt && sid && trainBarOn() && isTrainFolder(sid) && !S.q ? secHeroHtml(sid) : '');
   const trashHead = trash && all.length && S.canWrite && all.some(canPurge) ? `<div class="trash-tools"><span>${tt('trash.info', { n: TRASH_DAYS })}</span><span class="spacer"></span>${S.emptyAsk ? `<button class="btn danger" id="trash-empty-yes">${tt('btn.delete')}</button><button class="btn" id="trash-empty-no">${tt('btn.cancel')}</button>` : `<button class="btn" id="trash-empty">${tt('trash.empty')}</button>`}</div>` : '';
   $('#items').innerHTML = `<div class="home">
+    ${first ? firstNoteHtml() : ''}
     ${topHtml ? `<div class="home-top in-items">${topHtml}</div>` : ''}
     ${trashHead}
-    ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt('home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>${moreNotes}` : ''}
-    ${subs.length ? `${notes.length ? `<div class="home-h sub"><h3>${tt('home.subs')}</h3></div>` : ''}<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
+    ${notes.length ? `${subs.length ? `<div class="home-h sub"><h3>${tt(atHome ? 'nav.lib' : 'home.notes')}</h3></div>` : ''}<div class="tiles">${notes.map(noteTile).join('')}</div>${moreNotes}` : ''}
+    ${subs.length ? `${notes.length ? `<div class="home-h sub"><h3>${tt(atHome ? 'rail.label' : 'home.subs')}</h3></div>` : ''}<div class="tiles">${subs.map(secTile).join('')}</div>` : ''}
     ${addSub ? `<div class="tiles tiles-add">${addSub}</div>` : ''}
     ${flatHtml}
-    ${!flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
-    ${sel || desk ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite && !trash ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
+    ${!first && !flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
+    ${sel || desk || first ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : tt('home.flat')}</button>`}${S.canWrite && !trash ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
   </div>`;
   renderBulkBar(sel ? all : []);
   $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
@@ -5414,7 +5425,7 @@ function renderList() {
   if (!list.length) {
     renderBulkBar([]);
     const virtEmpty = { fav: tt('empty.fav'), recent: tt('empty.recent') };
-    $('#items').innerHTML = `<div class="empty-state">${terms ? tt('empty.search') : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? tt('empty.section') : tt(window.NOTES_STANDALONE ? 'empty.all.import' : 'empty.all')}</div>`;
+    $('#items').innerHTML = !terms && firstNoteAction() ? firstNoteHtml() : `<div class="empty-state">${terms ? tt('empty.search') : virtEmpty[S.section] ? virtEmpty[S.section] : S.notes.size ? tt('empty.section') : tt(window.NOTES_STANDALONE ? 'empty.all.import' : 'empty.all')}</div>`;
     return;
   }
   const grouped = !terms && !S.tag && !isVirtual(S.section) && hasKids(S.section) && sortMode(S.section) === 'manual';
@@ -5825,7 +5836,7 @@ function sanitizeBackup(d) {
     const c = Object.assign({}, n, { title: str(n.title, 500), body: str(n.body, 500000), tags: [...new Set((Array.isArray(n.tags) ? n.tags : typeof n.tags === 'string' ? n.tags.split(',') : []).map(t => normTagText(str(t, 200))).filter(Boolean))] });
     if (typeof c.order !== 'number' || !isFinite(c.order)) c.order = 0;
     for (const k of ['created', 'updated']) if (!isoOk(c[k])) delete c[k];
-    if (!(typeof c.section === 'string' && ids.has(c.section))) { c.section = RESTORED; lost = true; }
+    if (c.section !== '' && !(typeof c.section === 'string' && ids.has(c.section))) { c.section = RESTORED; lost = true; }
     notes.push(c);
   }
   if (lost && !ids.has(RESTORED)) secs.push({ id: RESTORED, title: tt('imp.restored'), order: 9999, parent: null });
@@ -6339,7 +6350,7 @@ async function importRun(d, X, mode, say, opts = {}) {
     await inChunks(notes, n => S.db.collection('notes').doc(n.id).set(strip(n)));
     if (S.uid) {
       await inChunks(srs, ([id, v]) => srsCol().doc(id).set(v));
-      if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(settings);
+      if (settings) await S.db.doc(`data/users/${S.uid}/settings`).set(S.settings.trainIntroDone ? { ...settings, trainIntroDone: true } : settings);
       // журнал ответов (статистика, серия дней): берём только дни, которых здесь ещё нет, — повторная загрузка и загрузка в тот же аккаунт ничего не задваивают
       for (const [m, x] of Object.entries(d.log || {})) {
         if (!/^\d{4}-\d\d$/.test(m)) continue;
@@ -7752,7 +7763,15 @@ function liveSetBody(E, from, to, at) {
   }
   if (vis) {
     const s = getSelection(), r = document.activeElement === vis && s.rangeCount ? s.getRangeAt(0) : null;
-    const selected = visRangeOffsets(vis, r), saved = visRangeOffsets(vis, savedRange);
+    const capture = range => {
+      const offsets = visRangeOffsets(vis, range);
+      if (!offsets) return null;
+      // Общая позиция двух текстовых узлов может быть началом нового пункта
+      // или концом предыдущего. Запоминаем сторону до замены DOM.
+      const next = (node, offset) => node.nodeType === Node.TEXT_NODE ? offset === 0 : offset < node.childNodes.length;
+      return { offsets, sides: [next(range.startContainer, range.startOffset), next(range.endContainer, range.endOffset)] };
+    };
+    const selected = capture(r), saved = capture(savedRange);
     const backward = selected && !r.collapsed && (s.anchorNode !== r.startContainer || s.anchorOffset !== r.startOffset);
     const oldPlain = vis.textContent, oldScroll = vis.scrollTop, rect = selected && r.getClientRects()[0];
     const scroller = vis.scrollHeight > vis.clientHeight ? vis : vis.closest('#edit-overlay, #reader');
@@ -7763,7 +7782,7 @@ function liveSetBody(E, from, to, at) {
     keepScroll(() => {
       E.ui.renderVis();
       const diff = selected || saved ? RNCollab.dmp.diff_main(oldPlain, vis.textContent) : null;
-      const rebase = offsets => visRangeFromOffsets(vis, offsets.map(i => RNCollab.dmp.diff_xIndex(diff, i)));
+      const rebase = ({ offsets, sides }) => visRangeFromOffsets(vis, offsets.map(i => RNCollab.dmp.diff_xIndex(diff, i)), sides);
       if (saved) savedRange = rebase(saved);
       if (selected) {
         moved = rebase(selected);
@@ -7967,7 +7986,7 @@ function renderEditor(box) {
     <form class="editor u-mt14" id="ed" >
       <div class="field"><label for="ed-title">${tt('ed.title')}</label><input id="ed-title" required value="${esc(d.title)}" placeholder="${tt('ed.title.ph')}"></div>
       <div class="grid2">
-        <div class="field"><label for="ed-sec">${tt('ed.sec')}</label><select id="ed-sec" ${E.live ? `disabled title="${tt('ed.sec.live')}"` : ''}>${folderOptions(d.section)}</select></div>
+        <div class="field"><label for="ed-sec">${tt('ed.sec')}</label><select id="ed-sec" ${E.live ? `disabled title="${tt('ed.sec.live')}"` : ''}>${!d.section ? `<option value="">${tt('ed.sec.none')}</option>` : ''}${folderOptions(d.section)}</select></div>
         <div class="field"><label for="ed-tags">${tt('ed.tags')}</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="${tt('ed.tags.ph')}" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
       </div>
       <label class="check" id="ed-ref-wrap" ${isTrainFolder(d.section) && !E.live ? '' : 'hidden'}><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>${tt('ed.ref')}</span></label>
@@ -9080,15 +9099,19 @@ function visRangeOffsets(vis, r) {
   if (!r || !vis.contains(r.startContainer) || !vis.contains(r.endContainer)) return null;
   return [textOffsetIn(vis, r.startContainer, r.startOffset), textOffsetIn(vis, r.endContainer, r.endOffset)];
 }
-function visRangeFromOffsets(vis, o) {
+function visRangeFromOffsets(vis, o, [startNext, endNext] = []) {
   const w = document.createTreeWalker(vis, NodeFilter.SHOW_TEXT); let pos = 0, n, r = document.createRange(), st = false, last = null;
   while ((n = w.nextNode())) {
-    const L = n.data.length; last = n;
-    if (!st && o[0] <= pos + L) { r.setStart(n, o[0] - pos); st = true; }
-    if (st && o[1] <= pos + L) { r.setEnd(n, o[1] - pos); break; }
-    pos += L;
+    const end = pos + n.data.length; last = n;
+    if (!st && (o[0] < end || (o[0] === end && !startNext))) {
+      r.setStart(n, o[0] - pos); st = true;
+      if (o[0] === o[1]) { r.collapse(true); break; }
+    }
+    if (st && (o[1] < end || (o[1] === end && !endNext))) { r.setEnd(n, o[1] - pos); break; }
+    pos = end;
   }
   if (!st) { if (last) r.setStart(last, last.data.length); else r.setStart(vis, vis.childNodes.length); r.collapse(true); }
+  else if (!n && o[1] === pos) r.setEnd(last, last.data.length);
   else if (!n) r.collapse(true);
   return r;
 }
@@ -9723,8 +9746,7 @@ async function guestCheck() {
     if (!d.notes.length || guestTrivial(d)) { await guestFinish(false); return; }
     const fresh = !S.settings?.onboarded && !S.sections.size && !S.notes.size && !S.trash.size;
     if (!fresh) {
-      // в аккаунте уже есть заметки: нетронутые приветственная заметка и пример (и их пустые разделы) не переносим — они есть и в аккаунте,
-      // иначе сравнение показывало бы их как отличающиеся (15.11)
+      // Старые гостевые данные: при переносе в заполненный аккаунт исключаем нетронутые стартовые заметки.
       guestDropOnboarding(d);
       if (!d.notes.length) { await guestFinish(false); return; }
       S.guestLeft = { d }; renderGuestBar(); return;
@@ -10254,6 +10276,40 @@ function avgAnswerSec() {
   return n >= 10 ? sec / n : ETA_DEFAULT_SEC;
 }
 const etaMin = cards => Math.max(1, Math.round(cards * avgAnswerSec() / 60));
+const hasTrainingSection = () => [...S.sections.values()].some(s => s.train);
+const canShowTrainIntro = () => window.NOTES_FLAVOR === 'public' && S.canWrite && S.uid &&
+  S.loaded.settings && S.loaded.sections && !S.guestBusy && !S.settings.trainIntroDone;
+function syncTrainIntro() {
+  if (canShowTrainIntro() && hasTrainingSection()) saveSettings({ trainIntroDone: true }, '');
+}
+async function createTrainingExample() {
+  if (S.creatingTrainingExample || !canShowTrainIntro() || hasTrainingSection()) return;
+  const section = 'training-example';
+  const cards = [
+    ['training-example-intervals', tt('onb.example'), tt('example.md')],
+    ['training-example-recall', tt('onb.recall'), tt('onb.recall.answer')],
+  ];
+  const added = cards.filter(([id]) => !S.notes.has(id) && !S.trash.has(id));
+  const existing = S.sections.get(section);
+  if ((!existing && planBlocks('sections')) || (added.length && planBlocks('notes', added.length))) return;
+  S.creatingTrainingExample = true; renderTrain();
+  try {
+    const folder = S.db.collection('sections').doc(section);
+    const data = existing || { title: tt('onb.demo'), order: homeLevel().length, parent: null, train: false };
+    if (!existing && !await write(() => folder.set(data), null)) return;
+    const now = new Date().toISOString();
+    const notes = added.map(([id, title, body]) => ({ id, section, title, body, tags: [], ref: false, order: cards.findIndex(c => c[0] === id), created: now, updated: now }));
+    if (!await writeAll(notes.map(({ id, ...note }) => () => S.db.collection('notes').doc(id).set(note)))) return;
+    if (!await write(() => folder.update({ train: true }), null)) return;
+    S.sections.set(section, { ...data, id: section, train: true });
+    for (const note of notes) if (!S.notes.has(note.id)) S.notes.set(note.id, note);
+    syncTrainIntro();
+    if (S.mode === 'train') startSession(cards.map(([id]) => id).filter(id => S.notes.get(id)?.section === section), 'free', tt('onb.demo'));
+  } finally {
+    S.creatingTrainingExample = false;
+    if (S.mode === 'train' && !S.train) renderTrain();
+  }
+}
 function renderTrain() {
   const root = $('#train');
   if (S.train) { renderSession(root); return; }
@@ -10261,7 +10317,13 @@ function renderTrain() {
   const rq = reviewQueue(); const total = rq.due.length + rq.fresh.length;
   const o = S.trainOpts; const pool = freePool(Object.assign({}, o, { order: 'seq' })).length;
   const tags = allTags();
+  const intro = canShowTrainIntro() && !hasTrainingSection();
   root.innerHTML = `<div class="wrap">
+    ${intro ? `<div class="ann-bar train-intro"><div class="backup-bar">
+      <p>${tt('onb.train.hint')}</p>
+      <button class="btn primary" id="train-example" type="button" ${S.creatingTrainingExample ? 'disabled' : ''}>${tt('onb.train.create')}</button>
+      <button class="ann-x" id="train-intro-close" type="button" aria-label="${tt('onb.train.close')}">×</button>
+    </div></div>` : ''}
     <section class="panel">
       ${(h => `<h3>${tt('tr.today')}${h[0]}</h3>${h[1]}`)(help(tt('tr.today.help')))}
       <div class="today">
@@ -10288,6 +10350,8 @@ function renderTrain() {
     </section>
     ${statsHtml()}${progressHtml()}</div>`;
   wireProgress(root); wireStats(root);
+  $('#train-example') && ($('#train-example').onclick = createTrainingExample);
+  $('#train-intro-close') && ($('#train-intro-close').onclick = () => { saveSettings({ trainIntroDone: true }, ''); renderTrain(); });
   $('#start-review').onclick = () => startSession(shuffle(rq.due).concat(rq.fresh), 'review', tt('tr.review'));
   const save = () => { store.set('trainOpts', S.trainOpts); renderTrain(); };
   root.querySelectorAll('#o-secs [data-s]').forEach(b => b.onclick = () => { const v = b.dataset.s; o.sections = !v ? [] : o.sections.includes(v) ? o.sections.filter(x => x !== v) : o.sections.concat(v); save(); });
@@ -10795,28 +10859,16 @@ function rerender() {
     else if (S.mode === 'prog') renderProg();
   }, 40);
 }
-/* ---------- первый вход (публичная версия): раздел для заметок с подсказкой и отдельный раздел-пример тренировки ---------- */
-const WELCOME_MD = tt('welcome.md', { days: TRASH_DAYS });
-const EXAMPLE_MD = tt('example.md');
+/* ---------- первый вход в ReteNote ---------- */
 async function maybeOnboard() {
   if (window.NOTES_FLAVOR !== 'public' || S.onboarding || S.onboarded || S.guestBusy || !S.canWrite || !S.db || !S.uid) return;
   if (!S.loaded.notes || !S.loaded.sections || !S.loaded.settings) return;
   if (S.settings?.onboarded || S.sections.size || S.notes.size || S.trash.size) { S.onboarded = true; return; }
   S.onboarding = true;
-  const now = new Date().toISOString();
   try {
-    await Promise.all([
-      S.db.collection('sections').doc('start').set({ title: tt('onb.mine'), order: 0, parent: null, train: false }),
-      S.db.collection('sections').doc('train-demo').set({ title: tt('onb.demo'), order: 1, parent: null, train: true }),
-    ]);
-    await Promise.all([
-      S.db.collection('notes').doc('welcome').set({ section: 'start', title: tt('onb.welcome'), body: WELCOME_MD, tags: [], ref: false, order: 1, created: now, updated: now }),
-      S.db.collection('notes').doc('example-card').set({ section: 'train-demo', title: tt('onb.example'), body: EXAMPLE_MD, tags: [tt('onb.tag')], ref: false, order: 2, created: now, updated: now }),
-      S.db.doc(`data/users/${S.uid}/settings`).set(Object.assign({}, S.settings || { newPerDay: 10 }, { onboarded: true, skin: 'play' })),
-    ]);
+    await S.db.doc(`data/users/${S.uid}/settings`).set({ ...S.settings, onboarded: true, skin: S.settings.skin ?? 'play' });
     S.onboarded = true;
     window.NOTES_SIGNUP?.();   // новый человек — цель «регистрация» в Метрике лендинга (если там было согласие на cookie)
-    if (S.mode === 'lib' && S.notes.has('welcome')) { selectSection('start'); openNote('welcome'); }
   } catch { /* не страшно: попробуем при следующем открытии */ }
   S.onboarding = false;
 }
@@ -10965,7 +11017,7 @@ async function boot() {
   setTimeout(joinCheck, 600);   // пришёл по приглашению в общий раздел
   db.collection('sections').onSnapshot(snap => {
     S.sections = new Map(snap.docs.map(d => { const v = d.data(); return [d.id, { id: d.id, title: v.title, order: v.order ?? 0, parent: v.parent, train: v.train, both: v.both, newLimit: v.newLimit, sort: v.sort, subSort: v.subSort, color: v.color }]; }));
-    S.loaded.sections = true; rerender(); updateBadge(); migrateTree(); pinAutoColorsSoon();
+    S.loaded.sections = true; syncTrainIntro(); rerender(); updateBadge(); migrateTree(); pinAutoColorsSoon();
   }, () => {});
   db.collection('notes').onSnapshot(snap => {
     const act = new Map(), tr = new Map();
@@ -10977,7 +11029,7 @@ async function boot() {
   if (S.uid) {
     srsCol().onSnapshot(snap => { S.srs = new Map(snap.docs.map(d => [d.id, d.data()])); rerender(); }, () => {});
     logCol().onSnapshot(snap => { S.srsLogRaw = new Map(snap.docs.map(d => [d.id, d.data()])); rebuildLog(); pruneLog(); if (S.mode === 'train' && !S.train) renderTrain(); }, () => {});
-    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); applyLook(); rerender(); }, () => {});
+    db.doc(`data/users/${S.uid}/settings`).onSnapshot(d => { S.loaded.settings = true; if (d.exists) S.settings = Object.assign({ newPerDay: 10 }, d.data()); syncTrainIntro(); applyLook(); rerender(); }, () => {});
   }
 }
 
