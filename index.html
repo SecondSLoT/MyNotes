@@ -1536,7 +1536,7 @@ window.STR = {
   'lp.foot.3': 'Политика конфиденциальности',
   'lp.foot.4': 'Согласие на обработку персональных данных',
   'lp.foot.5': 'Пользовательское соглашение',
-  'lp.cookie.1': 'Сайт использует cookie Яндекс Метрики, чтобы понимать, откуда приходят посетители. Подробнее — в <a href="/privacy.html#cookie">политике конфиденциальности</a>\n  <div class="row"><button class="btn primary small" type="button" id="cookie-yes">Хорошо</button><button class="btn ghost small" type="button" id="cookie-no">Не нужно</button></div>',
+  'lp.cookie.1': 'Сайт использует файлы cookie для анализа посещаемости. Разрешить их использование? Сайт работает и без них. Подробнее — в <a href="/privacy.html#cookie">политике конфиденциальности</a>\n  <div class="row"><button class="btn primary small" type="button" id="cookie-yes">Разрешить</button><button class="btn ghost small" type="button" id="cookie-no">Отказаться</button></div>',
   'lp.head.content.1': 'Приложение для заметок на телефоне и компьютере: разделы, теги, поиск, редактор с таблицами и кодом. А то, что важно выучить, ReteNote поможет запомнить — интервальные повторения прямо из заметок',
   'lp.head.content.2': 'Заметки на телефоне и компьютере. А то, что важно выучить, ReteNote поможет запомнить',
   'lp.top.label.1': 'Разделы страницы',
@@ -2816,6 +2816,7 @@ button.tag{border:0;background:none;padding:0}
 .tb-group{display:flex;gap:2px;align-items:center}
 .tb-group+.tb-group{padding-left:10px;border-left:1px solid var(--line)}
 @media (max-width:760px){
+  #reader > .doc:has(> .editor-head){padding-top:16px}
   .editor-head{display:flex;align-items:center;gap:10px}
   .editor-head .eyebrow{color:var(--ink)!important;font:700 18px/1.25 var(--f-body)!important;letter-spacing:normal!important;text-transform:none!important}
   .editor-head .back.editor-back{display:grid;place-items:center;flex:0 0 44px;height:44px;margin:0;padding:0}
