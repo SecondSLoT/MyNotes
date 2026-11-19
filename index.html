@@ -522,7 +522,7 @@ window.STR = {
   'reader.linkback': 'Вернуться к заметке, из которой пришёл по ссылке',
   'draft.has': 'Есть несохранённые правки от {time}',
   'draft.continue': 'Продолжить редактирование',
-  'reader.back': '← К списку',
+  'reader.back': '← Назад',
   'art.close': 'закрыть статью ✕',
   'note.title.label': 'Название заметки',
   'reader.prev': 'Предыдущая заметка в списке',
@@ -539,21 +539,15 @@ window.STR = {
   'drill.one': 'Одна карточка',
 
   // ===== Редактор заметки
-  'ed.back.split': '← Показать список заметок',
   'ed.live': 'Совместная правка',
   'ed.editing': 'Редактирование',
   'ed.new': 'Новая заметка',
   'ed.draft.this': 'Есть несохранённый черновик этой заметки от {time}',
   'ed.draft.new': 'Есть несохранённый черновик новой заметки от {time}',
-  'ed.title.ph': 'Например: Чем launch отличается от async?',
   'ed.sec.none': 'Без раздела',
   'ed.sec.live': 'Перенести заметку можно из списка заметок',
-  'ed.tags.ph': 'часто_спрашивают senior',
+  'ed.tags.ph': 'работа идеи',
   'ed.ref': 'Не тренировать: заметка остаётся в разделе, но не попадает в тренировку',
-  'ed.body.label': 'Ответ в Markdown',
-  'ed.body.ph': 'Пиши ответ. Выдели текст и нажми кнопку на панели, например B — жирный.',
-  'ed.vis.label': 'Ответ, визуальный редактор',
-  'ed.vis.ph': 'Пиши ответ прямо здесь',
   'ed.hint.keys': '{mod}+B жирный · {mod}+I курсив · {mod}+E код · {mod}+K ссылка',
   'ed.hint.live': 'правки сохраняются сами и сразу видны остальным · {mod}+Z — отменить свою правку · Esc — готово',
   'ed.hint.live.touch': 'правки сохраняются сами и сразу видны остальным',
@@ -561,12 +555,17 @@ window.STR = {
   'ed.del.ask': 'Переместить заметку в корзину?',
   'btn.no': 'Нет',
   'ed.draft.drop': 'Удалить черновик',
-  'ed.title': 'Вопрос / заголовок',
+  'ed.title': 'Заголовок',
+  'ed.question': 'Вопрос',
   'ed.title.need': 'Напиши заголовок — без него заметку не сохранить',
   'ed.revived': 'Заметку «{title}» удалили на другом устройстве во время правки — она возвращена из корзины вместе с правкой',
   'ed.sec': 'Раздел',
   'ed.tags': 'Теги через пробел',
   'ed.answer': 'Ответ',
+  'ed.text': 'Текст заметки',
+  'ed.answer.ph': 'Напиши ответ',
+  'ed.text.ph': 'Начни писать',
+  'ed.tags.add': 'Добавить теги',
   'ed.tab.split': 'Рядом',
   'ed.tab.vis': 'Визуально',
   'ed.link.url': 'Адрес ссылки',
@@ -1739,12 +1738,12 @@ window.STR = {
   'adm.uchastnikov': 'участников ',
   'adm.ssylok_na_chtenie': ' · ссылок на чтение ',
   'adm.novye_zametki': 'Новые заметки',
-  'adm.pravili_zametki': 'Правили заметки',
+  'adm.pravili_zametki': 'Заметок правили',
   'adm.skolko_zametok_menyali_za': 'сколько заметок меняли за день (считается в конце дня)',
-  'adm.povtorili_kartochek': 'Повторили карточек',
+  'adm.povtorili_kartochek': 'Карточек повторили',
   'adm.kartochki': 'Карточки',
   'adm.v_trenirovke_v_konce': 'в тренировке (в конце дня)',
-  'adm.zagruzili_izobrazheniy': 'Загрузили изображений',
+  'adm.zagruzili_izobrazheniy': 'Изображений загрузили',
   'adm.pravili_vmeste': 'Правили вместе',
   'adm.zhivaya_sovmestnaya_pravka_v': 'живая совместная правка (в конце дня)',
   'adm.mesto_po_lyudyam': 'Место по людям',
@@ -2731,7 +2730,7 @@ button.tag{border:0;background:none;padding:0}
 @keyframes slideNext{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes slidePrev{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
 @keyframes bump{0%,100%{transform:none}30%{transform:translateX(-8px)}60%{transform:translateX(6px)}}
-/* листается содержимое, строка с «← К списку» и ‹ › стоит на месте (12.11) */
+/* листается содержимое, строка с «← Назад» и ‹ › стоит на месте (12.11) */
 .doc.slide-in-next > :not(.mbar){animation:slideNext .22s ease-out}
 .doc.slide-in-prev > :not(.mbar){animation:slidePrev .22s ease-out}
 .doc.bump > :not(.mbar){animation:bump .3s ease-out}
@@ -2802,6 +2801,11 @@ button.tag{border:0;background:none;padding:0}
 .field input,.field select,.field textarea{border:1px solid var(--line);background:var(--raised);border-radius:var(--rad-m);padding:8px 10px;width:100%;box-sizing:border-box}
 .field textarea{font:13.5px/1.55 var(--f-mono);min-height:360px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ed-meta-fields{display:grid;gap:10px}
+.ed-meta-toggle,.ed-mode-toggle{display:none}
+.ed-meta-toggle .ed-meta-summary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.editor-back{padding:6px 12px}
+.editor-back-arrow{display:none}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--muted)}
 .check input{margin-top:4px}
 .tabs{display:flex;gap:4px}
@@ -2811,7 +2815,29 @@ button.tag{border:0;background:none;padding:0}
 .md-toolbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:5px 6px;background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-l);box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .tb-group{display:flex;gap:2px;align-items:center}
 .tb-group+.tb-group{padding-left:10px;border-left:1px solid var(--line)}
-@media (max-width:760px){.md-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.md-toolbar::-webkit-scrollbar{display:none}.tb-group{flex:none}.md-toolbar .tb-end{margin-left:0}}
+@media (max-width:760px){
+  .editor-head{display:flex;align-items:center;gap:10px}
+  .editor-head .eyebrow{color:var(--ink)!important;font:700 18px/1.25 var(--f-body)!important;letter-spacing:normal!important;text-transform:none!important}
+  .editor-head .back.editor-back{display:grid;place-items:center;flex:0 0 44px;height:44px;margin:0;padding:0}
+  .editor-back-text{display:none}
+  .editor-back-arrow{display:grid;font-size:20px}
+  #ed .field label,#ed .lbl{font:600 13px/1.3 var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  #ed .field input,#ed .field select,#ed-prev{font:400 16px/1.5 var(--f-body)}
+  #ed .ed-meta-toggle,#ed .ed-mode-toggle{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--rad-l);font:600 14px/1.3 var(--f-body)}
+  .ed-meta-toggle .chev,.ed-mode-toggle .chev{transform:rotate(90deg)}
+  .ed-meta-toggle{max-width:100%;text-align:left}
+  .ed-meta-toggle[aria-expanded="false"]+.ed-meta-fields{display:none}
+  .ed-meta-fields{padding-top:10px}
+  .ed-mode-menu{position:relative}
+  .ed-mode-menu .tabs{position:absolute;top:calc(100% + 4px);right:0;z-index:8;flex-direction:column;min-width:max-content;padding:4px;background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-m)}
+  .ed-mode-menu .tabs button{text-align:left;padding:8px 10px}
+  .ed-mode-menu:has(.ed-mode-toggle[aria-expanded="false"]) .tabs{display:none}
+  .md-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .md-toolbar::-webkit-scrollbar{display:none}
+  .md-toolbar .tb-group{flex:none}
+  .md-toolbar .tb-end{margin-left:0}
+  #ed .tb i{font-family:inherit;font-size:inherit}
+}
 .tb-end{margin-left:auto}
 .tb{width:32px;height:30px;border:0;border-radius:var(--rad-s);background:none;color:var(--muted);display:grid;place-items:center;font:15px/1 var(--f-body);padding:0}
 @media (hover:hover){.tb:hover{background:var(--surface);color:var(--ink)}}   /* на телефоне :hover залипает после касания — кнопки H1/H2 «светились» без включения (08.11) */
@@ -3527,7 +3553,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .item[data-sc][aria-current="true"]{box-shadow:inset 0 4px 0 var(--sc),inset 0 0 0 2px var(--accent)}   /* как у плиток: полоска цвета раздела сверху */
 .more:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}   /* карточка в Modern уже строки на 10 px с каждой стороны — «в разделе» внутри неё */
 @media (max-width:760px){:root[data-skin="play"] #new-note{border-color:var(--accent);box-shadow:var(--sh-pop)}}
-/* ===== Modern: единая система кнопок-иконок, шапка и «К списку» (08.11) ===== */
+/* ===== Modern: единая система кнопок-иконок, шапка и «Назад» (08.11) ===== */
 :root[data-skin="play"] .icon-btn svg,:root[data-skin="play"] .modes svg{stroke-width:2.2;stroke-linecap:round}
 :root[data-skin="play"] .icon-btn svg{width:18px;height:18px}
 :root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
@@ -7369,7 +7395,7 @@ if (window.visualViewport) {
   };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
-/* body.editing прячет верхнюю панель (на телефоне — чтобы редактору хватало места). «К списку» из редактора оставляет правку в памяти, но экрана
+/* body.editing прячет верхнюю панель (на телефоне — чтобы редактору хватало места). «Назад» из редактора оставляет правку в памяти, но экрана
    редактора уже нет — панель должна вернуться (раньше пропадали название, меню и поиск на списке) */
 function syncEditingClass() {
   const on = !!S.editing && !(isPhone() && !$('#lib').classList.contains('reading'));
@@ -7957,19 +7983,20 @@ async function keepOwnCopy(d) {
 }
 
 /* ---------- editor ---------- */
-document.addEventListener('change', e => { if (e.target.id === 'ed-sec') { const w = $('#ed-ref-wrap'); if (w) w.hidden = !isTrainFolder(e.target.value); } });
+const editorTab = () => store.get('edTab', isPhone() ? 'prev' : 'edit');
+const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
 $('#new-note').addEventListener('click', () => {
   if (planBlocks('notes')) return;
   const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
   if (roRefuse(spaceOfSection(sec))) return;
-  S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: store.get('edTab', 'edit'), confirmDel: false };
+  S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: editorTab(), confirmDel: false };
   const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
   $('#lib').classList.add('reading'); renderReader(true);
 });
 function startEdit(id, anchor, restore, overlay) {
   const n = S.notes.get(id);
   if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
-  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: store.get('edTab', 'edit'), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: editorTab(), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
     base: editBase(n) };   // какой заметка была, когда открыли редактор: пока правишь, её могут изменить на другом устройстве (mergeEdit)
   if (liveFor(n)) { liveStart(S.editing, n); renderReader(!anchor); return; }   // общая заметка: живая правка, без черновиков
   const dr = getDraft(id);
@@ -7978,26 +8005,37 @@ function startEdit(id, anchor, restore, overlay) {
 }
 function renderEditor(box) {
   const E = S.editing, d = E.draft;
+  const tabs = editorTabs();
   box.dataset.artSig = '';
   box.innerHTML = `
-    <button class="back" id="back">${tt(E.tab === 'split' ? 'ed.back.split' : 'reader.back')}</button>
-    <div class="eyebrow">${tt(E.live ? 'ed.live' : E.id ? 'ed.editing' : 'ed.new')}</div>
+    <div class="editor-head">
+      <button class="back editor-back" id="back" type="button" aria-label="${tt('btn.back')}"><span class="editor-back-text">${tt('reader.back')}</span><span class="editor-back-arrow">${CH_L}</span></button>
+      <div class="eyebrow">${tt(E.live ? 'ed.live' : E.id ? 'ed.editing' : 'ed.new')}</div>
+    </div>
     ${E.draftOffer ? `<div class="draft-note u-mt10" ><span>${tt(E.id ? 'ed.draft.this' : 'ed.draft.new', { time: hhmm(E.draftOffer.ts) })}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}</span><button class="btn primary" type="button" id="dr-restore">${tt('trash.restore')}</button><button class="btn" type="button" id="dr-drop">${tt('ed.draft.drop')}</button></div>` : ''}
     <form class="editor u-mt14" id="ed" >
-      <div class="field"><label for="ed-title">${tt('ed.title')}</label><input id="ed-title" required value="${esc(d.title)}" placeholder="${tt('ed.title.ph')}"></div>
-      <div class="grid2">
-        <div class="field"><label for="ed-sec">${tt('ed.sec')}</label><select id="ed-sec" ${E.live ? `disabled title="${tt('ed.sec.live')}"` : ''}>${!d.section ? `<option value="">${tt('ed.sec.none')}</option>` : ''}${folderOptions(d.section)}</select></div>
-        <div class="field"><label for="ed-tags">${tt('ed.tags')}</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="${tt('ed.tags.ph')}" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
+      <div class="field"><label for="ed-title">${tt('ed.title')}</label><input id="ed-title" required value="${esc(d.title)}"></div>
+      <div class="ed-meta">
+        <button class="btn ed-meta-toggle" id="ed-meta-toggle" type="button" aria-expanded="${!!E.metaOpen}" aria-controls="ed-meta-fields"><span class="ed-meta-summary" id="ed-meta-summary"></span>${CH_R}</button>
+        <div class="ed-meta-fields" id="ed-meta-fields">
+          <div class="grid2">
+            <div class="field"><label for="ed-sec">${tt('ed.sec')}</label><select id="ed-sec" ${E.live ? `disabled title="${tt('ed.sec.live')}"` : ''}>${!d.section ? `<option value="">${tt('ed.sec.none')}</option>` : ''}${folderOptions(d.section)}</select></div>
+            <div class="field"><label for="ed-tags">${tt('ed.tags')}</label><input id="ed-tags" value="${esc(d.tags.join(' '))}" placeholder="${tt('ed.tags.ph')}" list="tag-list"><datalist id="tag-list">${allTags().map(([t]) => `<option value="${esc(t)}">`).join('')}</datalist></div>
+          </div>
+          <label class="check" id="ed-ref-wrap" hidden><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>${tt('ed.ref')}</span></label>
+        </div>
       </div>
-      <label class="check" id="ed-ref-wrap" ${isTrainFolder(d.section) && !E.live ? '' : 'hidden'}><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>${tt('ed.ref')}</span></label>
       <div class="field">
-        <div class="bar"><span class="lbl">${tt('ed.answer')}</span><span class="spacer"></span>
-          <div class="tabs"><button type="button" data-tab="edit" aria-pressed="${E.tab === 'edit'}">Markdown</button><button type="button" data-tab="split" aria-pressed="${E.tab === 'split'}">${tt('ed.tab.split')}</button><button type="button" data-tab="prev" aria-pressed="${E.tab === 'prev'}">${tt('ed.tab.vis')}</button></div></div>
+        <div class="bar"><span class="lbl" id="ed-content-label">${tt('ed.text')}</span><span class="spacer"></span>
+          <div class="ed-mode-menu">
+            <div class="tabs" id="ed-mode-tabs">${tabs.map(([k, label]) => `<button type="button" data-tab="${k}" aria-pressed="${E.tab === k}">${label}</button>`).join('')}</div>
+            <button class="btn ed-mode-toggle" id="ed-mode-toggle" type="button" aria-expanded="false" aria-controls="ed-mode-tabs">${tabs.find(([k]) => k === E.tab)?.[1] || tt('ed.tab.vis')} ${CH_R}</button>
+          </div></div>
         ${toolbarHtml()}
         <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">${tt('ed.link.url')}</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">${tt('ed.link.insert')}</button><button class="btn" type="button" id="link-cancel">${tt('btn.cancel')}</button><div class="link-tip" id="link-tip" hidden>${tt('ed.link.tip')}</div></div>
         <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
-          ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-label="${tt('ed.body.label')}" placeholder="${tt('ed.body.ph')}">${esc(d.body)}</textarea>` : ''}
-          ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="${tt('ed.vis.label')}" data-empty="${tt('ed.vis.ph')}">${renderMd(d.body)}</div>` : ''}
+          ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-labelledby="ed-content-label">${esc(d.body)}</textarea>` : ''}
+          ${E.tab !== 'edit' ? `<div class="preview md visual" id="ed-prev" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-labelledby="ed-content-label">${renderMd(d.body)}</div>` : ''}
         </div>
         <span class="hint kbd-hint">${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>${E.live ? `<span class="hint touch-hint">${tt('ed.hint.live.touch')}</span>` : ''}
       </div>
@@ -8010,6 +8048,23 @@ function renderEditor(box) {
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
   const titleField = $('#ed-title'), tagsField = $('#ed-tags');
+  const sectionField = $('#ed-sec'), metaToggle = $('#ed-meta-toggle'), modeToggle = $('#ed-mode-toggle');
+  const refreshMeta = () => {
+    const training = isTrainFolder(sectionField.value);
+    $('label[for="ed-title"]').textContent = tt(training ? 'ed.question' : 'ed.title');
+    $('#ed-content-label').textContent = tt(training ? 'ed.answer' : 'ed.text');
+    $('#ed-ref-wrap').hidden = !training || !!E.live;
+    const hint = tt(training ? 'ed.answer.ph' : 'ed.text.ph');
+    if (ta) ta.placeholder = hint;
+    if (vis) vis.dataset.empty = hint;
+    const section = S.sections.get(sectionField.value)?.title || tt('ed.sec.none');
+    $('#ed-meta-summary').textContent = section + ' · ' + (editorTags(tagsField.value).map(t => '#' + t).join(' ') || tt('ed.tags.add'));
+  };
+  refreshMeta();
+  sectionField.addEventListener('change', refreshMeta);
+  tagsField.addEventListener('input', refreshMeta);
+  metaToggle.onclick = () => { E.metaOpen = !E.metaOpen; metaToggle.setAttribute('aria-expanded', String(E.metaOpen)); };
+  modeToggle.onclick = () => modeToggle.setAttribute('aria-expanded', String(modeToggle.getAttribute('aria-expanded') === 'false'));
   if (E.live) {
     titleField.addEventListener('input', () => { d.title = titleField.value; });
     tagsField.addEventListener('input', () => { d.tags = editorTags(tagsField.value); });
@@ -8201,7 +8256,9 @@ function renderEditor(box) {
     d.title = titleField.value; d.section = $('#ed-sec').value; d.tags = editorTags(tagsField.value);
     d.ref = $('#ed-ref').checked; if (ta) d.body = ta.value;
   };
-  box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader(); });
+  box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+    sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader();
+  });
   $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else { document.activeElement?.blur?.(); $('#lib').classList.remove('reading'); syncEditingClass(); } };
   const closeEditor = () => { const A = E.id ? editorAnchor(E) : null; S.editing = null; if (!E.id && !S.article && isPhone()) $('#lib').classList.remove('reading');   // отменили новую заметку — обратно на список, откуда нажали «+ Заметка»
     if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else { if (A) S.readAnchor = Object.assign({ id: E.id }, A); renderReader(); } };
@@ -8214,6 +8271,9 @@ function renderEditor(box) {
   });
   const form = $('#ed');
   form.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modeToggle.getAttribute('aria-expanded') === 'true') {
+      e.preventDefault(); modeToggle.setAttribute('aria-expanded', 'false'); modeToggle.focus(); return;
+    }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); }
     else if ((e.key === 's' || e.key === 'ы' || e.code === 'KeyS') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); E.stay = true; form.requestSubmit(); }   // не текст интерфейса
     else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (E.live || draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
@@ -10800,7 +10860,7 @@ function renderProg() {
     <section class="panel">
       <h3>${tt('help.toc.edit')}</h3>
       <div class="opt-row u-mt10" ><span class="lbl u-mr6" >${tt('set.ed.open')}</span><div class="seg" id="ed-default">
-        ${[['prev', tt('ed.tab.vis')], ['split', tt('ed.tab.split')], ['edit', 'Markdown']].map(([k, l]) => `<button data-edt="${k}" aria-pressed="${store.get('edTab', 'edit') === k}">${l}</button>`).join('')}</div></div>
+        ${editorTabs().reverse().map(([k, l]) => `<button data-edt="${k}" aria-pressed="${editorTab() === k}">${l}</button>`).join('')}</div></div>
       <p class="hint u-m8-0" >${tt('set.ed.hint')}</p>
     </section>
     ${lookPanelHtml()}
