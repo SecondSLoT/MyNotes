@@ -10832,9 +10832,18 @@ window.addEventListener('focus', dayTick); window.addEventListener('pageshow', d
 setInterval(dayTick, 60000);
 function updateBadge() {
   if (!S.loaded?.notes) return;
-  const rq = reviewQueue(); const n = rq.due.length + rq.fresh.length;
-  const b = $('#due-badge'); b.textContent = n; b.hidden = !n;
-  const sk = $('#streak'), st = streakNow(); sk.hidden = !st; $('#streak-n').textContent = st; $('#streak-d').textContent = tt('streak.days', { n: st }); sk.title = tt('streak.title', { n: st }); fitModes();
+  const b = $('#due-badge');
+  if (b) {
+    const rq = reviewQueue(), n = rq.due.length + rq.fresh.length;
+    b.textContent = n; b.hidden = !n;
+  }
+  const sk = $('#streak'), count = $('#streak-n'), days = $('#streak-d');
+  if (sk && count && days) {
+    const st = streakNow();
+    sk.hidden = !st; count.textContent = st; days.textContent = tt('streak.days', { n: st });
+    sk.title = tt('streak.title', { n: st });
+  }
+  fitModes();
 }
 
 /* ---------- data wiring ---------- */
