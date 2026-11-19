@@ -2695,9 +2695,9 @@ button.tchip-t:hover{text-decoration:underline}
 .menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:var(--rad-s);color:var(--ink);font-size:14px}
 .menu button:hover,.menu button:focus-visible{background:var(--surface)}
 .menu .ico{width:16px;text-align:center;color:var(--faint);font-family:var(--f-mono)}
-.menu .note-menu-icon{display:grid;place-items:center;flex:none;width:22px;height:22px;color:var(--muted)}
-.note-menu-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.note-menu-icon.is-filled svg{fill:currentColor}
+.menu .action-menu-icon{display:grid;place-items:center;flex:none;width:22px;height:22px;color:var(--muted)}
+.action-menu-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.action-menu-icon.is-filled svg{fill:currentColor}
 .menu .danger,.menu .danger .ico{color:var(--again)}
 .menu .sep{height:1px;background:var(--line);margin:4px 2px}
 .menu .ask{padding:8px 10px 4px;font-size:13px;color:var(--again);line-height:1.4}
@@ -4995,6 +4995,14 @@ const VICO = {
   relearn: '<svg viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 2 6m-2-6V6m0 5h5"/></svg>',
   exclude: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m6.4 17.6 11.2-11.2"/></svg>',
   link: '<svg viewBox="0 0 24 24"><path d="m10 14 4-4m-5 1-3 3a3.5 3.5 0 0 0 5 5l3-3m1-3 3-3a3.5 3.5 0 0 0-5-5l-3 3"/></svg>',
+  palette: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.5-3.3 1 1 0 0 1 .8-1.7H18a3 3 0 0 0 3-3 9 9 0 0 0-9-10z"/><path d="M7.5 11h.01M10 7h.01M14.5 7.5h.01M17 11h.01"/></svg>',
+  folderAdd: '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v7m-3.5-3.5h7"/></svg>',
+  sort: '<svg viewBox="0 0 24 24"><path d="M7 20V4m-4 4 4-4 4 4M17 4v16m-4-4 4 4 4-4"/></svg>',
+  reverse: '<svg viewBox="0 0 24 24"><path d="M3 8h17m-4-4 4 4-4 4M21 16H4m4-4-4 4 4 4"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>',
+  checkbox: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>',
+  checkboxOn: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>',
+  training: '<svg viewBox="0 0 24 24"><rect x="4" y="8" width="13" height="13" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v11M8 14l2 2 3-4"/></svg>',
 };
 let chipJump = false;   // раздел выбран во всплывающем списке (☰): полоску разделов прокрутить к его чипу; от простых нажатий на чипы она не двигается
 function renderRail() {
@@ -6894,6 +6902,7 @@ function menuAboveKb() {
   const low = vv.offsetTop + vv.height - menuEl.offsetHeight - 8, top = parseFloat(menuEl.style.top) || 0;
   if (top > low) menuEl.style.top = Math.max(vv.offsetTop + 8, low) + 'px';
 }
+const menuIcon = (svg, filled = false) => `<span class="ico action-menu-icon${filled ? ' is-filled' : ''}" aria-hidden="true">${svg}</span>`;
 function renderSecMenu() {
   const M = S.menu; const sec = M.id ? S.sections.get(M.id) : null;
   if (M.id && !sec) { closeMenu(); return; }
@@ -6902,17 +6911,17 @@ function renderSecMenu() {
   const list = sec ? kids(parentOf(sec.id)) : []; const idx = sec ? list.findIndex(x => x.id === sec.id) : -1;
   if (M.mode === 'color') {
     menuEl.innerHTML = `<div class="ask u-muted">${tt('sec.color')}</div><div class="color-grid">${SEC_COLORS.map(([k, l]) => `<button type="button" data-act="sec-color-set" data-pick="${k}" data-sc="${k}" aria-label="${l}" title="${l}" aria-pressed="${sec.color === k}"></button>`).join('')}</div>
-      <button data-act="sec-color-set" data-pick="" role="menuitem"><span class="ico">${sec.color ? '' : '✓'}</span>${tt('sec.color.none')}</button>
-      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem"><span class="ico">←</span>${tt('btn.back')}</button>`;
+      <button data-act="sec-color-set" data-pick="" role="menuitem">${menuIcon(sec.color ? '' : VICO.check)}${tt('sec.color.none')}</button>
+      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem">${menuIcon(CH_L)}${tt('btn.back')}</button>`;
   } else if (M.mode === 'rename' || M.mode === 'new' || M.mode === 'sub') {
     menuEl.innerHTML = `<form class="menu-form" id="sec-form"><label class="ask u-muted" for="sec-name">${M.mode === 'new' ? tt('chips.add') : M.mode === 'sub' ? tt('sec.sub.in', { section: esc(sec.title) }) : tt('tree.sec.name')}</label>
       <input id="sec-name" value="${esc(sec && M.mode === 'rename' ? sec.title : '')}" placeholder="${tt('sec.name.ph')}" autocomplete="off">
       <div class="ask-row"><button class="yes-ok" type="submit">${tt(M.mode === 'new' ? 'btn.create' : 'btn.save')}</button><button type="button" data-act="sec-cancel">${tt('btn.cancel')}</button></div></form>`;
   } else if (M.mode === 'moveTo') {
     menuEl.innerHTML = `<div class="ask u-muted" >${tt('sec.move.to', { section: esc(sec.title) })}</div><div class="menu-scroll">
-      <button data-act="sec-move-to" data-to="" role="menuitem" ${!parentOf(sec.id) ? 'disabled' : ''}><span class="ico">${!parentOf(sec.id) ? '✓' : ''}</span>${tt('sec.top')}</button>
+      <button data-act="sec-move-to" data-to="" role="menuitem" ${!parentOf(sec.id) ? 'disabled' : ''}>${menuIcon(!parentOf(sec.id) ? VICO.check : '')}${tt('sec.top')}</button>
       ${menuFolderButtons('sec-move-to', parentOf(sec.id), sub, 'data-to')}</div>
-      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem"><span class="ico">←</span>${tt('btn.back')}</button>`;
+      <div class="sep" role="separator"></div><button data-act="sec-back" role="menuitem">${menuIcon(CH_L)}${tt('btn.back')}</button>`;
   } else if (M.mode === 'confirmDelAll') {
     // переспросить: раздел (с подразделами) удаляется, заметки — в корзину, их можно вернуть
     const subs = sub.size - 1;
@@ -6930,26 +6939,26 @@ function renderSecMenu() {
   } else {
     const owner = trainOwner(sec.id);
     const trainBtn = owner && owner !== sec.id
-      ? `<button role="menuitem" disabled><span class="ico">◎</span>${tt('sec.train.in', { section: esc(S.sections.get(owner).title) })}</button>`
-      : `<button data-act="sec-train" role="menuitem" aria-checked="${!!sec.train}"><span class="ico">${sec.train ? '☑' : '☐'}</span>${tt('sec.train')}</button>`;
+      ? `<button role="menuitem" disabled>${menuIcon(VICO.training)}${tt('sec.train.in', { section: esc(S.sections.get(owner).title) })}</button>`
+      : `<button data-act="sec-train" role="menuitem" aria-checked="${!!sec.train}">${menuIcon(sec.train ? VICO.checkboxOn : VICO.checkbox)}${tt('sec.train')}</button>`;
     // «в обе стороны» (тренировка плюс): для раздела, который тренируется (сам или в составе); у предка уже включено — показываем это
     const bothOwner = [sec.id, ...ancestors(sec.id)].find(a => S.sections.get(a)?.both);
     const bothBtn = !isTrainFolder(sec.id) || !(plusOn() || planOn()) ? ''
-      : bothOwner && bothOwner !== sec.id ? `<button role="menuitem" disabled><span class="ico">⇄</span>${tt('sec.both.in', { section: esc(S.sections.get(bothOwner).title) })}</button>`
-      : `<button data-act="sec-both" role="menuitem" aria-checked="${!!sec.both}" title="${tt('sec.both.title')}"><span class="ico">${sec.both ? '☑' : '☐'}</span>${tt('sec.both')}${plusOn() ? '' : ' · Pro'}</button>`;
+      : bothOwner && bothOwner !== sec.id ? `<button role="menuitem" disabled>${menuIcon(VICO.reverse)}${tt('sec.both.in', { section: esc(S.sections.get(bothOwner).title) })}</button>`
+      : `<button data-act="sec-both" role="menuitem" aria-checked="${!!sec.both}" title="${tt('sec.both.title')}">${menuIcon(sec.both ? VICO.checkboxOn : VICO.checkbox)}${tt('sec.both')}${plusOn() ? '' : ' · Pro'}</button>`;
     menuEl.innerHTML = `<div class="ask u-muted" >${esc(sec.title)} · ${count}</div>
-      <button data-act="sec-rename" role="menuitem"><span class="ico">✎</span>${tt('tags.rename')}</button>
-      <button data-act="sec-color" role="menuitem"><span class="ico">●</span>${tt('sec.color')}</button>
-      <button data-act="sec-sub" role="menuitem"><span class="ico">+</span>${tt('sec.sub.new')}</button>
-      <button data-act="sec-up" role="menuitem" ${idx <= 0 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}><span class="ico">↑</span>${tt('tree.up')}</button>
-      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}><span class="ico">↓</span>${tt('tree.down')}</button>
-      ${hasKids(sec.id) ? `<button data-act="sec-subsort" role="menuitem" title="${tt('sec.subsort.title')}"><span class="ico">⇅</span>${tt(sec.subSort === 'title' ? 'sec.subsort.alpha' : 'sec.subsort.manual')}</button>` : ''}
-      <button data-act="sec-move" role="menuitem"><span class="ico">⇄</span>${tt('sec.move')}</button>
-      ${window.NOTES_SHARE ? `<button data-act="sec-share" role="menuitem"><span class="ico">🔗</span>${tt('share.menu')}</button>` : ''}
+      <button data-act="sec-rename" role="menuitem">${menuIcon(VICO.text)}${tt('tags.rename')}</button>
+      <button data-act="sec-color" role="menuitem">${menuIcon(VICO.palette)}${tt('sec.color')}</button>
+      <button data-act="sec-sub" role="menuitem">${menuIcon(VICO.folderAdd)}${tt('sec.sub.new')}</button>
+      <button data-act="sec-up" role="menuitem" ${idx <= 0 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}>${menuIcon(VICO.up)}${tt('tree.up')}</button>
+      <button data-act="sec-down" role="menuitem" ${idx >= list.length - 1 || alphaKids(parentOf(sec.id)) ? 'disabled' : ''} ${alphaKids(parentOf(sec.id)) ? `title="${tt('sec.alpha.title')}"` : ''}>${menuIcon(VICO.down)}${tt('tree.down')}</button>
+      ${hasKids(sec.id) ? `<button data-act="sec-subsort" role="menuitem" title="${tt('sec.subsort.title')}">${menuIcon(VICO.sort)}${tt(sec.subSort === 'title' ? 'sec.subsort.alpha' : 'sec.subsort.manual')}</button>` : ''}
+      <button data-act="sec-move" role="menuitem">${menuIcon(FOLDER_ICO)}${tt('sec.move')}</button>
+      ${window.NOTES_SHARE ? `<button data-act="sec-share" role="menuitem">${menuIcon(VICO.link)}${tt('share.menu')}</button>` : ''}
       <div class="sep" role="separator"></div>
       ${trainBtn}${bothBtn}
       <div class="sep" role="separator"></div>
-      <button class="danger" data-act="sec-del" role="menuitem"><span class="ico">✕</span>${tt('sec.del')}</button>`;
+      <button class="danger" data-act="sec-del" role="menuitem">${menuIcon(VICO.trash)}${tt('sec.del')}</button>`;
   }
   const anchor = (M.id && document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`)?.offsetParent ? document.querySelector(`#chips [data-sec="${CSS.escape(M.id)}"]`) : null)
     || (M.id && document.querySelector(`#rail .sec[data-sec="${CSS.escape(M.id)}"]`)?.offsetParent ? document.querySelector(`#rail .sec[data-sec="${CSS.escape(M.id)}"]`) : null)
@@ -7030,26 +7039,25 @@ function renderMenu() {
   if (M.kind === 'bulk') { renderBulkMenu(); return; }
   const n = S.notes.get(M.id); if (!n) { closeMenu(); return; }
   if (M.tags) { renderTagChecklist([M.id], tt('note.tags'), true); placeMenu(document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor); return; }
-  const ico = (svg, filled = false) => `<span class="ico note-menu-icon${filled ? ' is-filled' : ''}" aria-hidden="true">${svg}</span>`;
   menuEl.innerHTML = M.confirm
     ? `<div class="ask">${tt('note.purge.ask', { title: esc(n.title.length > 60 ? n.title.slice(0, 60) + '…' : n.title) })}</div>
        <div class="ask-row"><button class="yes" data-act="delete-yes" role="menuitem">${tt('btn.delete')}</button><button data-act="delete-no" role="menuitem">${tt('btn.cancel')}</button></div>`
     : M.move
-    ? `<div class="ask u-muted" >${tt('note.move.to')}</div><div class="menu-scroll">${menuFolderButtons('move-to', n.section)}</div><div class="sep" role="separator"></div><button data-act="move-back" role="menuitem">${ico(CH_L)}${tt('btn.back')}</button>`
-    : `${(S.q || S.section !== n.section || S.tag) ? `<button data-act="goto" role="menuitem">${ico(VICO.go)}${tt('note.goto')}</button><div class="sep" role="separator"></div>` : ''}
-       <button data-act="rename" role="menuitem">${ico(VICO.text)}${tt('tags.rename')}</button>
-       <button data-act="edit" role="menuitem">${ico(VICO.pencil)}${tt('note.edit')}</button>
-       <button data-act="pin" role="menuitem">${ico(VICO.fav, n.pinned)}${tt(n.pinned ? 'note.unpin' : 'note.pin')}</button>
+    ? `<div class="ask u-muted" >${tt('note.move.to')}</div><div class="menu-scroll">${menuFolderButtons('move-to', n.section)}</div><div class="sep" role="separator"></div><button data-act="move-back" role="menuitem">${menuIcon(CH_L)}${tt('btn.back')}</button>`
+    : `${(S.q || S.section !== n.section || S.tag) ? `<button data-act="goto" role="menuitem">${menuIcon(VICO.go)}${tt('note.goto')}</button><div class="sep" role="separator"></div>` : ''}
+       <button data-act="rename" role="menuitem">${menuIcon(VICO.text)}${tt('tags.rename')}</button>
+       <button data-act="edit" role="menuitem">${menuIcon(VICO.pencil)}${tt('note.edit')}</button>
+       <button data-act="pin" role="menuitem">${menuIcon(VICO.fav, n.pinned)}${tt(n.pinned ? 'note.unpin' : 'note.pin')}</button>
        <div class="sep" role="separator"></div>
-       ${canReorder() ? `<button data-act="up" role="menuitem">${ico(VICO.up)}${tt('note.up')}</button><button data-act="down" role="menuitem">${ico(VICO.down)}${tt('note.down')}</button>` : ''}
-       <button data-act="tags" role="menuitem">${ico(VICO.tag)}${tt('note.tags.menu')}${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
-       <button data-act="move" role="menuitem">${ico(FOLDER_ICO)}${tt('note.move')}</button>
-       ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem">${ico(VICO.relearn)}${tt('bulk.relearn')}</button>` : ''}
-       ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem">${ico(n.ref ? VICO.relearn : VICO.exclude)}${tt(n.ref ? 'bulk.ref.off' : 'bulk.ref.on')}</button>` : ''}
-       ${window.NOTES_SHARE ? `<button data-act="share" role="menuitem">${ico(VICO.link)}${tt('share.menu')}</button>` : ''}
-       ${window.NOTES_VERSIONS && planOn() ? `<button data-act="history" role="menuitem">${ico(VICO.recent)}${tt('note.history')}</button>` : ''}
+       ${canReorder() ? `<button data-act="up" role="menuitem">${menuIcon(VICO.up)}${tt('note.up')}</button><button data-act="down" role="menuitem">${menuIcon(VICO.down)}${tt('note.down')}</button>` : ''}
+       <button data-act="tags" role="menuitem">${menuIcon(VICO.tag)}${tt('note.tags.menu')}${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
+       <button data-act="move" role="menuitem">${menuIcon(FOLDER_ICO)}${tt('note.move')}</button>
+       ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem">${menuIcon(VICO.relearn)}${tt('bulk.relearn')}</button>` : ''}
+       ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem">${menuIcon(n.ref ? VICO.relearn : VICO.exclude)}${tt(n.ref ? 'bulk.ref.off' : 'bulk.ref.on')}</button>` : ''}
+       ${window.NOTES_SHARE ? `<button data-act="share" role="menuitem">${menuIcon(VICO.link)}${tt('share.menu')}</button>` : ''}
+       ${window.NOTES_VERSIONS && planOn() ? `<button data-act="history" role="menuitem">${menuIcon(VICO.recent)}${tt('note.history')}</button>` : ''}
        <div class="sep" role="separator"></div>
-       <button class="danger" data-act="delete" role="menuitem">${ico(VICO.trash)}${tt('bulk.del')}</button>`;
+       <button class="danger" data-act="delete" role="menuitem">${menuIcon(VICO.trash)}${tt('bulk.del')}</button>`;
   menuEl.hidden = false;
   const a = (document.querySelector(`.more[data-more="${CSS.escape(M.id)}"]`) || M.anchor).getBoundingClientRect();
   const w = menuEl.offsetWidth, h = menuEl.offsetHeight;
