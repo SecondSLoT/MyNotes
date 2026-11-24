@@ -48,7 +48,7 @@ window.STR = {
   'land.pro.month': '{price}\u00a0₽ <span>в месяц</span>',
   'land.pro.year': 'или {price}\u00a0₽ в год — это {perMonth}\u00a0₽ в месяц, <b class="save">выгоднее на {save}%</b>',
   'land.pro.unlimited': 'заметки и разделы без ограничений',
-  'land.pro.mb': '2\u00a0ГБ на заметки и изображения',
+  'land.pro.mb': '2\u00a0ГБ на заметки, изображения и PDF',
   'land.pro.versions': 'история версий — до 100 копий на заметку',
   'land.pro.spaces': 'общие разделы — до 10 участников',
   'land.pro.plus': 'тренировка «плюс»: пропуски, обратные карточки, статистика',
@@ -201,6 +201,12 @@ window.STR = {
   'plan.limit.default': 'Лимит бесплатной версии',
   'account.nomail': 'У аккаунта нет почты.',
   'upload.bad': 'изображение слишком большое или неподходящего формата',
+  'pdf.attach': 'Прикрепить PDF',
+  'pdf.pro': 'PDF-вложения доступны в Pro',
+  'pdf.type': 'Выбери файл PDF',
+  'pdf.damaged': 'PDF повреждён или не полностью скачан',
+  'pdf.size': 'PDF должен быть не больше {mb} МБ',
+  'pdf.failed': 'PDF не прикрепился: {why}',
 
   // ===== Плашки: тариф, синхронизация
   'auto.on': 'Автопродление включено',
@@ -601,7 +607,7 @@ window.STR = {
   'tbl.delrow': 'Удалить строку',
   'tbl.delcol': 'Удалить столбец',
   'tbl.del': 'Удалить таблицу',
-  'ed.wait.img': 'Жду, пока загрузится изображение…',
+  'ed.wait.img': 'Жду, пока закончатся загрузки…',
   'tb.color': 'Цвет текста',
   'tb.task': 'Чек-лист',
   'tb.quote': 'Цитата',
@@ -863,7 +869,7 @@ window.STR = {
   'set.ed.open': 'Открывать в режиме',
   'set.ed.hint': 'Режим запоминается и при переключении прямо в редакторе',
   'fb.title': 'Обратная связь',
-  'fb.sub': 'Нашёл ошибку или есть идея? Напиши — это читает разработчик. Ответ придёт сюда и на почту',
+  'fb.sub': 'Нашёл ошибку или есть идея? Напиши — ты поможешь стать нам лучше и удобнее для тебя',
   'fb.bug': 'Сообщить о проблеме',
   'fb.idea': 'Предложить идею',
   'set.npd.all': 'Всего',
@@ -903,12 +909,12 @@ window.STR = {
   'plan.h.get': 'Оформить Pro',
   'plan.h.nospace': 'Место закончилось',
   'plan.meter.space': 'Место',
-  'plan.meter.space.help': 'Учитывается место, занимаемое заметками и изображениями в них',
+  'plan.meter.space.help': 'Учитывается место, занимаемое заметками, изображениями и PDF',
   'plan.h.free': 'В бесплатной версии — {what}',
   'plan.renew.paid': 'Pro действует до {date}. Оплаченный срок добавится к текущему',
   'plan.renew.trial': 'Пробный Pro действует до {date}. Оплаченный срок добавится к текущему',
   'plan.keep': 'Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит',
-  'plan.pro': '<b>Pro</b> — заметки и разделы без ограничений, {size} на заметки и изображения, история версий — до 100 копий на заметку, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон, автопрокрутка текста на весь экран.',
+  'plan.pro': '<b>Pro</b> — заметки и разделы без ограничений, {size} на заметки, изображения и PDF, история версий — до 100 копий на заметку, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон, автопрокрутка текста на весь экран.',
   'plan.trial.on': 'Pro включён на {n} дней — без ограничений',
   'plan.meter.of': 'из {n}',
   'plan.meter.unlimited': 'без ограничений',
@@ -958,7 +964,7 @@ window.STR = {
   'acc.resent': 'Письмо отправлено — открой ссылку из него. Не видно — загляни в «Спам».',
 
   // ===== Настройки → Резервное копирование и перенос, импорт
-  'backup.help': 'Резервная копия — один файл (zip-архив) со всеми разделами, заметками, изображениями, тегами и прогрессом тренировок.\n      Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим',
+  'backup.help': 'Резервная копия — один файл (zip-архив) со всеми разделами, заметками, изображениями, PDF, тегами и прогрессом тренировок.\n      Загрузить её обратно можно на любом устройстве: добавится то, чего нет, а про отличающиеся заметки спросим',
   'enex.help': 'В Evernote: «Блокноты» → «•••» у блокнота → «Экспортировать блокнот…» → формат ENEX. Каждый блокнот — отдельный файл .enex;\n      выбери их все сразу — каждый станет разделом. Таблицы, списки, чек-листы, код и изображения переносятся, повторный импорт не создаёт дублей.<br><br>Папка пригодится, если блокноты разложены по подпапкам (например, по стопкам Evernote) — подпапки станут разделами.\n      Стопку можно задать и в имени файла: <code>Стопка@@@Блокнот.enex</code>',
   'backup.title': 'Резервное копирование и перенос',
   'backup.sub': 'файл со всеми заметками',
@@ -979,6 +985,8 @@ window.STR = {
   'imp.file': 'В файле: {sections} {sections|раздел|раздела|разделов}, {notes} {notes|заметка|заметки|заметок}',
   'imp.file.srs': ', прогресс по {n} карточкам',
   'imp.file.img': ', изображений: {n}',
+  'imp.file.attachments': ', вложений: {n}',
+  'imp.file.newattachments': 'Вложений, которых здесь ещё нет: {n}. Для загрузки PDF нужен Pro.',
   'imp.file.newimg': 'Изображений, которых здесь ещё нет: {n} — загрузятся при импорте.',
   'imp.file.noimg': '<b>Сейчас не загрузятся</b> — нужна загрузка изображений (⚙ → «Изображения»), без неё в заметках останутся прежние ссылки.',
   'imp.plan': '<b>В бесплатной версии — до {limit} заметок.</b>\n    Новых в файле: {fresh}, места осталось: {room}. С Pro импортируется всё.',
@@ -1020,8 +1028,11 @@ window.STR = {
 
   // ===== Резервная копия: сохранение и напоминание; установка приложения
   'backup.saving.img': 'Сохраняю изображения… {n} из {total}',
+  'backup.saving.attachments': 'Сохраняю вложения… {n} из {total}',
   'backup.saved': 'Копия сохранена в «Загрузки»',
   'backup.saved.img': ' (изображений: {n})',
+  'backup.saved.attachments': ' (вложений: {n})',
+  'backup.saved.attachments.lost': 'Вложений не удалось скачать: {n}. В копии остались ссылки на них',
   'backup.saved.lost': 'Не удалось скачать изображений: {n} — в копии остались только ссылки на них.',
   'backup.next.week': 'Следующее напоминание — через неделю.',
   'backup.next.month': 'Следующее напоминание — через месяц.',
@@ -1053,6 +1064,7 @@ window.STR = {
   'enex.empty': 'в файлах нет заметок',
   'enex.failed': 'Импорт из Evernote не получился: {why}',
   'imp.img': 'Загружаю изображения… {n} из {total}',
+  'imp.attachments': 'Загружаю вложения… {n} из {total}',
   'imp.progress': 'Импортирую… {n} из {total}',
   'imp.r.added': 'добавлено заметок: {n}',
   'imp.r.replaced': 'заменено: {n}',
@@ -1060,6 +1072,8 @@ window.STR = {
   'imp.r.secs': 'разделов записано: {n}',
   'imp.r.srs': 'прогресс по {n} карточкам',
   'imp.r.img': 'изображений загружено: {n}',
+  'imp.r.attachments': 'вложений загружено: {n}',
+  'imp.r.attachments.fail': 'вложений не загрузилось: {n}',
   'imp.r.imgfail': 'изображений не загрузилось: {n}',
   'imp.r.imglater': 'изображений загрузится позже: {n}',
   'imp.r.imgfail.links': '(в заметках остались прежние ссылки на них)',
@@ -1504,7 +1518,8 @@ window.STR = {
   'lp.pricing.8': 'в месяц',
   'lp.pricing.9': 'или <span data-price="year">1 190</span> ₽ в год — это <span data-price="ym">99</span> ₽ в месяц, <b>выгоднее на <span data-price="save">29</span>%</b>',
   'lp.pricing.10': 'заметки и разделы без ограничений',
-  'lp.pricing.11': '2 ГБ на заметки и изображения',
+  'lp.pricing.11': '2 ГБ на заметки, изображения и PDF',
+  'lp.pricing.pdf': 'PDF-вложения к заметкам с открытием в браузере',
   'lp.pricing.12': 'история версий — до 100 копий на заметку',
   'lp.pricing.13': 'общие разделы и правка вместе — до 10 участников',
   'lp.pricing.14': 'пропуски, обратные карточки, статистика, настройка расписания',
@@ -1512,7 +1527,7 @@ window.STR = {
   'lp.pricing.16': 'Попробовать 14 дней бесплатно',
   'lp.pricing.17': 'Оплата разовая, без автоматических списаний. Пробный период — без привязки карты. Pro оформляется в приложении: «Настройки → Тариф». Условия — в <a href="/offer.html">оферте</a>',
   'lp.faq.1': 'Это бесплатно?',
-  'lp.faq.2': 'Да. Бесплатно — до <span data-free="notes">100</span> заметок и <span data-free="sections">20</span> разделов, <span data-free="mb">50</span> МБ на заметки и изображения, тренировка и синхронизация на всех устройствах. Pro снимает ограничения и добавляет совместную работу, расширенную тренировку и полную историю версий',
+  'lp.faq.2': 'Да. Бесплатно — до <span data-free="notes">100</span> заметок и <span data-free="sections">20</span> разделов, <span data-free="mb">50</span> МБ на заметки и изображения, тренировка и синхронизация на всех устройствах. Pro снимает ограничения и добавляет PDF-вложения, совместную работу, расширенную тренировку и полную историю версий',
   'lp.faq.3': 'Обязательно пользоваться тренировкой?',
   'lp.faq.4': 'Нет. Тренировка включается для конкретного раздела, а без неё ReteNote — обычное приложение для заметок. Можно вести рецепты и рабочие записи и тренировать только английский',
   'lp.faq.5': 'Чем ReteNote отличается от Anki?',
@@ -1524,7 +1539,7 @@ window.STR = {
   'lp.faq.9': 'Можно перенести заметки из Evernote?',
   'lp.faq.10': 'Да. Экспортируй блокноты в Evernote в файлы .enex и загрузи их в «Настройки → Резервное копирование и перенос»: каждый блокнот станет разделом, а заметки сохранят теги, даты, таблицы, чек-листы и изображения. Вложения вроде PDF и аудио не переносятся',
   'lp.faq.11': 'Что будет, когда закончится Pro?',
-  'lp.faq.12': 'Ничего не удалится: все заметки и изображения останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
+  'lp.faq.12': 'Ничего не удалится: все заметки, изображения и PDF останутся, их можно читать, править и сохранять в резервную копию. Новое сверх бесплатных ограничений создать не получится, пока Pro не продлён',
   'lp.faq.13': 'Можно вернуть деньги?',
   'lp.faq.14': 'Да. За первую оплату Pro — всю сумму в течение 14 дней, без объяснения причин; в остальных случаях — за неиспользованные дни. Напиши на <a href="mailto:support@retenote.ru">support@retenote.ru</a>',
   'lp.faq.15': 'Можно показать заметку крупно — на выступлении или концерте?',
@@ -1695,7 +1710,7 @@ window.STR = {
   'adm.podkachka_2': 'Подкачка',
   'adm.processor_2': 'Процессор',
   'adm.zanyat': '% занят',
-  'adm.zaprosy': 'Запросы',
+  'adm.zaprosy': 'Количество запросов',
   'adm.vsego': 'Всего',
   'adm.oshibki_4xx': 'Ошибки 4xx',
   'adm.oshibki_5xx': 'Ошибки 5xx',
@@ -1737,7 +1752,7 @@ window.STR = {
   'adm.obschie_razdely': 'Общие разделы',
   'adm.uchastnikov': 'участников ',
   'adm.ssylok_na_chtenie': ' · ссылок на чтение ',
-  'adm.novye_zametki': 'Новые заметки',
+  'adm.novye_zametki': 'Новых заметок создали',
   'adm.pravili_zametki': 'Заметок правили',
   'adm.skolko_zametok_menyali_za': 'сколько заметок меняли за день (считается в конце дня)',
   'adm.povtorili_kartochek': 'Карточек повторили',
@@ -2485,6 +2500,9 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .md a.note-link{color:var(--accent);text-decoration:none;border-bottom:1px dashed currentColor;background:var(--accent-soft);border-radius:var(--rad-xs);padding:0 3px;cursor:pointer}
 .md a.note-link::before{content:'↗ ';font-size:.85em;opacity:.7}
 .md a.note-link.broken{color:var(--faint);background:none;text-decoration:line-through;cursor:default}
+.md a.pdf-link{display:inline-flex;align-items:center;gap:10px;max-width:100%;padding:6px 10px;border:1px solid var(--line-strong);border-radius:var(--rad-m);background:var(--surface);color:var(--accent);overflow-wrap:anywhere;text-decoration:none}
+.md a.pdf-link::before{content:'PDF';flex:none;padding:2px 5px;border-radius:var(--rad-s);background:var(--accent-soft);font:700 11px/1.3 var(--f-body)}
+.md a.pdf-link:hover{text-decoration:underline}
 .backlinks{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);font-size:14px}
 .backlinks h4{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:0 0 8px}
 .backlinks button{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:var(--rad-s);color:var(--ink);cursor:pointer}
@@ -2515,6 +2533,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .list-head .count{font:12px var(--f-mono);color:var(--faint)}
 .list-head #read-all{margin-left:auto}
 .list-head .btn{white-space:nowrap;flex:none}
+.list-heading,.list-tools,.list-actions{display:contents}
 .icon-btn{display:inline-flex;align-items:center;gap:6px}
 .icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
 .icon-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
@@ -2805,8 +2824,8 @@ button.tag{border:0;background:none;padding:0}
 .field textarea{font:13.5px/1.55 var(--f-mono);min-height:360px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ed-meta-fields{display:grid;gap:10px}
-.ed-meta-toggle,.ed-mode-toggle{display:none}
-.ed-meta-toggle .ed-meta-summary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ed .ed-meta-toggle,#ed .ed-mode-toggle{display:none}
+.ed-meta-toggle .ed-meta-summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .editor-back{padding:6px 12px}
 .editor-back-arrow{display:none}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--muted)}
@@ -2827,8 +2846,8 @@ button.tag{border:0;background:none;padding:0}
   .editor-back-arrow{display:grid;font-size:20px}
   #ed .field label,#ed .lbl{font:600 13px/1.3 var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
   #ed .field input,#ed .field select,#ed-prev{font:400 16px/1.5 var(--f-body)}
-  #ed .ed-meta-toggle,#ed .ed-mode-toggle{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--rad-l);font:600 14px/1.3 var(--f-body)}
-  .ed-meta-toggle .chev,.ed-mode-toggle .chev{transform:rotate(90deg)}
+  #ed .ed-meta-toggle,#ed .ed-mode-toggle{display:flex;align-items:center;gap:8px;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--rad-l);font:600 14px/1.3 var(--f-body);white-space:nowrap}
+  .ed-meta-toggle .chev,.ed-mode-toggle .chev{flex:none;transform:rotate(90deg)}
   .ed-meta-toggle{max-width:100%;text-align:left}
   .ed-meta-toggle[aria-expanded="false"]+.ed-meta-fields{display:none}
   .ed-meta-fields{padding-top:10px}
@@ -2871,6 +2890,7 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .color-pop button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 .color-pop .clear{background:none;color:var(--muted);font-size:15px;display:grid;place-items:center}
 .tb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tb[data-md="pdf"]{font-size:11px;font-weight:700}
 .lib.wide-edit{grid-template-columns:minmax(0,1fr)}
 .lib.wide-edit .rail,.lib.wide-edit .list{display:none}
 .lib.wide-edit .doc{max-width:1600px}
@@ -3276,7 +3296,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .grade.g1,:root[data-skin="play"] .grade.g2{border-color:currentColor}
 .sdot{display:none}
 /* главная с плитками (телефон, settings.home = 'tiles') */
-body.home-view .chips-row,body.home-view #scopebar,body.home-view #new-note{display:none!important}
+body.home-view .chips-row,body.home-view #scopebar,body.home-view:not(.desk-tiles) #new-note{display:none!important}
 .home-top{padding:12px 12px 0;display:flex;flex-direction:column;gap:12px}
 .home-top.in-items{padding:0 0 12px}
 .home-train-wrap,.sec-hero.in-home{position:relative}
@@ -3367,14 +3387,18 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
 body.desk-tiles #items{container-type:inline-size}
 body.desk-tiles .home{padding-bottom:16px}
-body.desk-tiles .list-head{flex-wrap:nowrap}
-body.desk-tiles .list-head h2{display:block;flex:0 1 auto}
-body.desk-tiles .list-head #new-note{font-size:0;line-height:0;width:34px;height:34px;padding:0;display:inline-flex!important;align-items:center;justify-content:center}   /* узкая колонка: «+ Заметка» — просто «+», текст остаётся для чтения с экрана */
-body.desk-tiles .list-head #new-note::after{content:'+';font:700 22px/1 var(--f-body);display:block;margin-top:-2px}
+body.desk-tiles .list-head{display:grid;grid-template-columns:minmax(0,1fr) auto;row-gap:10px}
+body.desk-tiles .list-heading{display:flex;align-items:center;gap:6px}
+body.desk-tiles .list-head h2{display:block}
+body.desk-tiles .list-head .ttl-up{max-width:100%}
+body.desk-tiles .list-tools{display:flex;gap:6px;justify-self:end}
+body.desk-tiles .list-actions:not(:has(.btn:not([hidden]))){display:none}
+body.desk-tiles .list-actions{display:flex;grid-column:1/-1;gap:8px}
+body.desk-tiles .list-actions .btn{min-height:40px}
+body.desk-tiles .list-actions #new-note{flex:1}
 body.desk-tiles .list-head .icon-btn{width:34px;height:34px;padding:0;justify-content:center}
-/* Modern: кнопки шапки списка — одной группой справа, как на телефоне; «+» — главная кнопка (цвет акцента, как «+ Заметка» внизу на телефоне) (12.11) */
+/* Modern: кнопки шапки списка — одной группой справа, как на телефоне */
 :root[data-skin="play"] .list-head #sort-btn{margin-left:auto}:root[data-skin="play"] .list-head #read-all{margin-left:0}
-:root[data-skin="play"] body.desk-tiles .list-head #new-note{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 body.desk-tiles .tiles{grid-template-columns:minmax(0,1fr)}
 body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 @container (min-width:300px){
@@ -3562,7 +3586,6 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] .icon-btn svg{width:18px;height:18px}
 :root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
 :root[data-skin="play"] .list-head .icon-btn[aria-pressed="true"]{background:var(--sc,var(--accent));border-color:var(--sc,var(--accent));color:var(--on-accent)}
-:root[data-skin="play"] body.desk-tiles .list-head #new-note{width:40px;height:40px;border-radius:var(--rad-xl)}   /* квадрат «+» — только в узкой колонке плиток; иначе «+ Заметка» целиком (15.11: на телефоне текст не влезал в 40 px) */
 :root[data-skin="play"] .list-head h2{color:color-mix(in srgb,var(--sc,var(--ink)) 62%,var(--ink))}
 :root[data-skin="play"] .list-head[data-sc] .ttl-up{color:color-mix(in srgb,var(--sc) 62%,var(--ink));font-weight:800}
 :root[data-skin="play"] .ttl-up{cursor:pointer}
@@ -3614,7 +3637,11 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
       <div class="chips-row" id="chips"></div>
       <div class="sec-hero" id="sec-hero" hidden></div>
       <div class="home-top" id="home-top" hidden></div>
-      <div class="list-head"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button><button class="btn" id="new-note" title="+ Заметка">+ Заметка</button></div>
+      <div class="list-head">
+        <div class="list-heading"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span></div>
+        <div class="list-tools"><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button></div>
+        <div class="list-actions"><button class="btn" type="button" id="desk-home-all" aria-controls="items" hidden>Все заметки</button><button class="btn primary" id="new-note" title="+ Заметка">+ Заметка</button></div>
+      </div>
       <div class="ann-bar" id="ann-bar" role="status" hidden></div>
       <div class="backup-bar" id="guest-bar" role="status" hidden></div>
       <div class="backup-bar" id="imgq-bar" role="status" hidden></div>
@@ -4323,7 +4350,21 @@ document.addEventListener('load', e => { const t = e.target; if (t && t.tagName 
 document.addEventListener('click', e => { const t = e.target; if (t && t.tagName === 'IMG' && t.classList.contains('img-fail') && !t.closest('.visual')) { e.preventDefault(); e.stopPropagation(); t.dataset.tries = 0; imgRetry(t); } }, true);
 window.addEventListener('online', imgRetryAll);
 window.addEventListener('notes-sync', e => { if (e.detail && e.detail.stale === false) imgRetryAll(); });
-const IMG_MAX_BYTES = 10 * 1048576;   // как на сервере (коллекция files, maxSize)
+const IMG_MAX_BYTES = 5 * 1048576;   // как на сервере (проверка изображений в plans.pb.js)
+const PDF_MAX_BYTES = 10 * 1048576;   // предел поля files.file для PDF
+const PDF_MIME = 'application/pdf';
+const pdfLink = href => /^\/api\/files\/files\/[a-z0-9]{15}\/[a-z0-9_]+\.pdf$/i.test(href || '');
+const pdfLabel = text => text.replace(/&/g, '&amp;').replace(/([\\\[\]*_`~<>])/g, '\\$1');
+const pdfPickerOn = () => window.NOTES_FLAVOR === 'public' && !!window.NOTES_UPLOAD && !guestOn() && planOn();
+const uploadPdf = blob => window.NOTES_UPLOAD(blob, 'attachment.pdf', { pdf: true });
+async function pdfComplete(file) {
+  const tail = await file.slice(-4096).text();
+  const end = /(?:^|[\r\n])startxref\s+(\d+)\s+%%EOF[\x00\t\n\f\r ]*$/.exec(tail);
+  const offset = end ? Number(end[1]) : 0;
+  if (offset < 8 || offset >= file.size) return false;
+  const xref = await file.slice(offset, offset + 4096).text();
+  return /^xref\s/.test(xref) || /^\d+\s+\d+\s+obj\s*<<(?:(?!\bstream\b)[\s\S])*?\/Type\s*\/XRef\b/.test(xref);
+}
 // тип файла: у вставленного / выбранного файла он бывает пустым (Android, некоторые программы) — тогда по расширению
 const IMG_EXT = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp', svg: 'image/svg+xml', heic: 'image/heic', heif: 'image/heif' };
 const imgType = f => f.type || IMG_EXT[String(f.name || '').split('.').pop().toLowerCase()] || '';
@@ -4484,6 +4525,48 @@ function insertUpload(file, at) {
 async function uploadBlob(blob) {
   if (window.NOTES_UPLOAD) { const p = await window.NOTES_UPLOAD(blob, newImgPath(blob).slice(4)); if (S.plan?.usage) S.plan.usage.bytes += blob.size; return p; }
   const p = newImgPath(blob); await ghPut(p, blob, `Add ${p} (MyNotes)`); return p;
+}
+function setPdfBusy(E, busy) {
+  E.pdfBusy = busy;
+  const button = document.querySelector('#ed [data-md="pdf"]');
+  if (button) { button.disabled = busy; button.setAttribute('aria-busy', String(busy)); }
+}
+function attachPdf(E, file) {
+  if (!file || S.editing !== E || E.pdfBusy) return;
+  if (!S.plan?.pro) { showPlanDialog('pdf'); return; }
+  if (!/\.pdf$/i.test(file.name) || !file.size) { toast(tt('pdf.type')); return; }
+  if (file.size > PDF_MAX_BYTES) { toast(tt('pdf.size', { mb: PDF_MAX_BYTES / 1048576 })); return; }
+  if (planBlocks('bytes', file.size)) return;
+  setPdfBusy(E, true);
+  const name = file.name.replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+  const job = (async () => {
+    try {
+      if (await file.slice(0, 5).text() !== '%PDF-') { toast(tt('pdf.type')); return; }
+      if (!await pdfComplete(file)) { toast(tt('pdf.damaged')); return; }
+      const path = await uploadPdf(new Blob([file], { type: PDF_MIME }));
+      if (S.plan?.usage) S.plan.usage.bytes += file.size;
+      if (S.editing !== E) return;
+      const ta = $('#ed-body'), vis = $('#ed-prev');
+      if (ta) {
+        const end = ta.value.length;
+        const link = `[${pdfLabel(name)}](${path})`, appendix = (end ? '\n\n' : '') + link + '\n';
+        // Незакрытый блок кода может поглотить всё в конце заметки.
+        if (renderMd(ta.value + appendix).includes(`href="${path}"`)) replaceRange(ta, end, end, appendix);
+        else replaceRange(ta, 0, 0, link + '\n\n');
+      } else if (vis) {
+        histRecord(vis);
+        const p = document.createElement('p'), a = document.createElement('a');
+        a.className = 'pdf-link'; a.href = path; a.textContent = name; p.append(a); vis.append(p);
+        vis.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    } catch (err) {
+      if (S.editing !== E) return;
+      if (err?.limit === 'limit_pdf') { await loadPlan(); if (S.editing === E) showPlanDialog('pdf'); }
+      else if (err?.code === 'limit') showPlanDialog('bytes', err.message);
+      else toast(tt('pdf.failed', { why: err?.message || err }));
+    } finally { if (S.editing === E) setPdfBusy(E, false); }
+  })();
+  uploads.add(job); job.finally(() => uploads.delete(job));
 }
 const netLike = e => !!(e && (e.net || e instanceof TypeError || navigator.onLine === false));
 /* ---------- изображения, вставленные без связи (02.11) ----------
@@ -4720,6 +4803,7 @@ function renderMd(src) {
 }
 function enhance(root, terms) {
   root.querySelectorAll('a[href]').forEach(a => {
+    if (pdfLink(a.getAttribute('href'))) a.classList.add('pdf-link');
     const nid = noteLinkId(a.getAttribute('href'));
     if (nid) { a.classList.add('note-link'); const t = S.notes.get(nid); if (t) a.title = tt('link.note', { title: t.title }); else { a.classList.add('broken'); a.title = tt(S.trash.has(nid) ? 'trash.moved' : 'link.note.deleted'); } return; }
     a.target = '_blank'; a.rel = 'noopener';
@@ -4933,7 +5017,7 @@ function setMode(m) {
   if (m === 'train') renderTrain(); if (m === 'prog') { renderProg(); loadPlan(); } if (m === 'lib') renderLib();
   sessionClass(); histSync();
 }
-document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && (homeOn() || deskTiles()) && (S.section !== 'all' || S.tileFlat || S.q || S.tag)) goHome(); else setMode(b.dataset.mode); }));
+document.querySelectorAll('.modes button[data-mode]').forEach(b => b.addEventListener('click', () => { if (b.dataset.mode === 'lib' && S.mode === 'lib' && (homeOn() || deskTiles()) && (S.section !== 'all' || tileFlatOn() !== deskTiles() || S.q || S.tag)) goHome(); else setMode(b.dataset.mode); }));
 // панель режимов не помещается в строку (крупный шрифт в системе, узкое окно): подписи прячем, остаются значки — иначе «Справка» уезжает за экран
 function fitModes() {
   const m = document.querySelector('.modes'), top = m && m.parentElement; if (!top || !top.offsetParent) return;
@@ -5253,13 +5337,13 @@ $('#rail').addEventListener('contextmenu', e => { const b = e.target.closest('.s
 // Плитки: прокрутка каждого уровня запоминается — вернулся из подраздела (наверх или «назад»), и ты там же, где был (и сколько плиток было дорисовано);
 // вход в раздел — всегда сверху
 const tileScroll = new Map();
-const tileKey = () => S.tileFlat ? '\u0001all' : (S.section || 'all');
+const tileKey = () => (tileFlatOn() ? '\u0001' : '') + (S.section || 'all');
 function keepTileScroll(fn, back) {
   if (homePref() !== 'tiles') return fn();
   const els = ['#items', '#rail'].map(q => $(q)).filter(Boolean), from = S.section;
   tileScroll.set(tileKey(), { y: els.map(e => e.scrollTop), lim: S.tileLimit });
   fn();
-  let up = back || (S.section === 'all' && !S.tileFlat);
+  let up = back || (S.section === 'all' && S.tileFlat == null);
   for (let p = parentOf(from), i = 0; !up && p && i < 50; p = parentOf(p), i++) if (p === S.section) up = true;
   const m = up ? tileScroll.get(tileKey()) : null;
   if (m) S.tileLimit = m.lim;
@@ -5268,7 +5352,7 @@ function keepTileScroll(fn, back) {
   put(); requestAnimationFrame(put);
 }
 function selectSection(id, flat, back) { keepTileScroll(() => selectSectionNow(id, flat), back); }
-function selectSectionNow(id, flat) { S.tileFlat = flat ?? id === 'all'; S.tileLimit = 0; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
+function selectSectionNow(id, flat) { S.tileFlat = flat ?? (id === 'all' ? true : undefined); S.tileLimit = 0; if (!isVirtual(id)) { revealFolder(id); store.set('lastFolder', id); } S.section = id; S.tag = null; store.set('section', id); if (S.q) { S.q = ''; $('#q').value = ''; } renderRail(); renderList(); if (S.article) renderReader(true); histSync(); }
 
 function currentList() {
   const r = searchNotes(S.q);
@@ -5283,7 +5367,9 @@ function currentList() {
   else if (S.section === 'recent') list = recentList();
   else {
     list = sortedNotes();
+    const byFolder = homeShown() && !S.tag && !tileFlatOn();
     if (S.section === 'fav') list = list.filter(n => n.pinned);
+    else if (byFolder) list = list.filter(n => S.section === 'all' ? !S.sections.has(n.section) : n.section === S.section);
     else if (S.section !== 'all') { const sub = subtree(S.section); list = list.filter(n => sub.has(n.section)); }
     list = applySort(list, sortMode(S.section));
   }
@@ -5331,9 +5417,10 @@ const homePref = () => S.settings?.home === 'tiles' || S.settings?.home === 'lis
 const homeOn = () => !WIDE.matches && homePref() === 'tiles';   // телефон и планшет / узкое окно (761–1100: колонка списка — плитки, заметка — рядом; 12.11)
 // компьютер (> 1100 px) с плитками: три колонки остаются — в первой плитки разделов, во второй плитки заметок, справа заметка (05.11)
 const deskTiles = () => WIDE.matches && homePref() === 'tiles' && !window.NOTES_DESK_LIST;   // NOTES_DESK_LIST — только тесты pb_* (их сценарии — для списка)
+const tileFlatOn = () => S.tileFlat ?? deskTiles();
 const homeShown = () => (homeOn() || deskTiles()) && S.mode === 'lib' && !S.q && (isVirtual(S.section) || S.sections.has(S.section));
 function goHome() { keepTileScroll(goHomeNow); }
-function goHomeNow() { S.tileFlat = false; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
+function goHomeNow() { S.tileFlat = undefined; S.section = 'all'; S.tag = null; store.set('section', 'all'); $('#lib').classList.remove('reading'); renderRail(); renderList(); histSync(); window.scrollTo(0, 0); }
 // уровень главной: верхние разделы; если наверху один раздел с подразделами (как «Android-шпаргалка») — его подразделы (и его заметки)
 // главная плиток — всегда верхний уровень разделов (14.11: раньше при единственном корневом разделе с подразделами главная сразу показывала
 // его содержимое — раздел пропадал, подраздел выглядел корневым, выхода в раздел не было). Одинаково в ReteNote и MyNotes
@@ -5371,7 +5458,7 @@ $('#items').addEventListener('click', e => { if (e.target.closest('[data-first-n
 function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
-  const desk = deskTiles(), flat = desk || virt || !!S.tag || !!S.tileFlat, sel = !!S.select;   // компьютер: подразделы — в колонке разделов, здесь все заметки раздела
+  const desk = deskTiles(), flat = virt || !!S.tag || tileFlatOn(), sel = !!S.select;
   const secTile = s => secTileHtml(s, rq, sel);
   const addSub = S.canWrite && !sel && !desk && !virt && !S.tag && !flat ? (sid && !atHome ? addSubTile(sid) : addTopTile()) : '';   // «+ Подраздел» — внутри раздела, как «создать в папке»
   const trash = S.section === 'trash';
@@ -5381,8 +5468,8 @@ function renderHome(cl) {
       : `<span class="tl-meta">${srsPill(n.id)}${learnBar(n)}</span></button>`);
   const all = (cl || currentList()).list;
   const first = firstNoteAction();
-  const subs = flat ? [] : sid ? kids(sid) : homeLevel();
-  const notesAll = flat ? [] : all.filter(n => sid ? n.section === sid : !S.sections.has(n.section));
+  const subs = flat || desk ? [] : sid ? kids(sid) : homeLevel();   // на компьютере подразделы уже видны в левой колонке
+  const notesAll = flat ? [] : all;
   const notes = notesAll.slice(0, S.tileLimit || LIST_STEP);   // телефон: заметки раздела — порциями при прокрутке, как на компьютере (500 плиток разом — тяжело; 12.11)
   const moreNotes = notesAll.length > notes.length ? '<div class="tl-sentinel" id="tl-sentinel" aria-hidden="true"></div>' : '';
   // «Все заметки»: все заметки раздела вместе с подразделами (на главной — все) карточками; подраздел — разделителем, как в списке
@@ -5400,9 +5487,12 @@ function renderHome(cl) {
   // шапка: на главной — «Разделы» / «Все заметки»; в разделе и в избранном/недавних/корзине — ← и название (нажатие тоже назад)
   const lh = $('.list-head');
   if (sid && !atHome && colorSecsOn() && secColor(sid)) lh.setAttribute('data-sc', secColor(sid)); else lh.removeAttribute('data-sc');   // «Цветные разделы» выключены — шапка без цвета (15.11)
-  const ttl = atHome ? tt(flat ? 'list.all' : 'rail.label') + (S.tag ? ` · #${S.tag}` : '') : (virt ? VIRTUAL[S.section] : (sec?.title || '') + (spacesList().some(z => z.root === sid) ? ' 👥' : '')) + (S.tag ? ` · #${S.tag}` : '');
+  const ttl = atHome ? tt(flat ? 'list.all' : desk ? 'nav.lib' : 'rail.label') + (S.tag ? ` · #${S.tag}` : '') : (virt ? VIRTUAL[S.section] : (sec?.title || '') + (spacesList().some(z => z.root === sid) ? ' 👥' : '')) + (S.tag ? ` · #${S.tag}` : '');
   $('#list-title').innerHTML = atHome ? esc(ttl) : desk ? `<button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>` : `<button class="home-up" id="home-up" aria-label="${tt('home.up')}" title="${tt('home.up')}">${CH_L}</button><button class="ttl-up" id="ttl-up" title="${tt('home.up')}">${esc(ttl)}</button>`;
-  $('#list-count').textContent = flat ? all.length : atHome ? S.notes.size : secStats(sid, rq).notes;
+  $('#list-count').textContent = flat ? all.length : desk ? notesAll.length : atHome ? S.notes.size : secStats(sid, rq).notes;
+  const deskSwitch = $('#desk-home-all');
+  deskSwitch.hidden = !desk || virt || !!S.tag || sel || first;
+  if (!deskSwitch.hidden) deskSwitch.textContent = tt(flat ? 'home.folders' : 'home.flat');
   const top = $('#home-top'); top.hidden = true; top.innerHTML = '';
   // закреплённые разделы и плашка тренировки — внутри прокручиваемой области, над плитками (иначе на телефоне съедают экран); кнопки списка остаются над ними (08.11)
   const topHtml = (atHome && !desk ? `${trainBarHtml(total, a)}${homeLinksHtml(false)}` : '')
@@ -5426,7 +5516,15 @@ function renderHome(cl) {
   const up = () => { if (virt || !sid) { goHome(); return; } const p = parentOf(sid); if (p && p !== homeRoot()) selectSection(p); else goHome(); };
   $('#home-up') && ($('#home-up').onclick = up); $('#ttl-up') && ($('#ttl-up').onclick = up);
   $('#items').querySelectorAll('.home-top [data-hl]').forEach(b => b.onclick = () => { const k = b.dataset.hl; if (k === 'tree') openSecSheet(); else if (k === 'add') openSecMenu(null, b, 'new'); else selectSection(k); });
-  $('#home-all') && ($('#home-all').onclick = () => { S.tileFlat = !flat; S.tileLimit = 0; renderList(); histSync(); window.scrollTo(0, 0); });
+  const switchView = () => {
+    S.tileFlat = !flat; S.tileLimit = 0;
+    renderList();
+    if (!S.editing && (S.article || S.noteId)) renderReader();
+    histSync();
+    $('#items').scrollTop = 0; window.scrollTo(0, 0);
+  };
+  deskSwitch.onclick = switchView;
+  if ($('#home-all')) $('#home-all').onclick = switchView;
   tileIO?.disconnect(); tileIO = null;
   const sn = $('#tl-sentinel');
   if (sn && 'IntersectionObserver' in window) { tileIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { tileIO.disconnect(); S.tileLimit = (S.tileLimit || LIST_STEP) + LIST_STEP; renderList(); } }, { rootMargin: '800px 0px' }); tileIO.observe(sn); }
@@ -5450,7 +5548,8 @@ function renderList() {
   if (!S.loaded.notes) return;
   renderAnnBar(); annLoad(); renderGuestBar(); renderImgqBar(); renderBackupBar(); renderInstallBar();
   const hv = homeShown(); document.body.classList.toggle('home-view', hv);
-  if (!hv) { $('#home-top').hidden = true; $('.list-head').removeAttribute('data-sc'); }
+  $('#new-note').hidden = !S.canWrite || (hv && deskTiles() && (S.section === 'trash' || !!S.select || firstNoteAction()));
+  if (!hv) { $('#home-top').hidden = true; $('#desk-home-all').hidden = true; $('.list-head').removeAttribute('data-sc'); }
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
   $('#list-title').textContent = title + (S.tag ? ` · #${S.tag}` : '');
@@ -5914,8 +6013,8 @@ function importConfirmHtml(d, X) {
     ? tt('imp.enex', { notes: d.notes.length, sections: d.sections.length }) + (nImg ? tt('imp.enex.img', { n: nImg }) : '') + '.'
       + (nImg && !uploadReady() ? ' ' + tt('imp.enex.noimg') : '')
       + (d.warn?.length ? ' ' + tt('imp.enex.warn', { files: esc(d.warn.join(', ')) }) : '')
-    : tt('imp.file', { sections: d.sections.length, notes: d.notes.length }) + (nSrs ? tt('imp.file.srs', { n: nSrs }) : '') + (d.imgTotal ? tt('imp.file.img', { n: d.imgTotal }) : '') + '.'
-      + (nImg ? ' ' + tt('imp.file.newimg', { n: nImg }) + (!uploadReady() ? ' ' + tt('imp.file.noimg') : '') : '');
+    : tt('imp.file', { sections: d.sections.length, notes: d.notes.length }) + (nSrs ? tt('imp.file.srs', { n: nSrs }) : '') + (d.imgTotal ? tt(d.pdfTotal ? 'imp.file.attachments' : 'imp.file.img', { n: d.imgTotal }) : '') + '.'
+      + (nImg ? ' ' + tt(d.pdfTotal ? 'imp.file.newattachments' : 'imp.file.newimg', { n: nImg }) + (!uploadReady() ? ' ' + tt('imp.file.noimg') : '') : '');
   const conflicts = X.notes.length + X.secs.length + X.srs.length;
   return planImportHtml(d) + importConfirmBody(d, X, head, conflicts);
 }
@@ -6010,6 +6109,8 @@ async function unzip(blob) {   // → Map(имя → Uint8Array); понимае
 /* изображения в копии: свои (загруженные через сайт) кладём в архив, внешние ссылки — нет */
 const IMG_MIME = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', svg: 'image/svg+xml', bmp: 'image/bmp' };
 const imgLinks = body => [...(body || '').matchAll(/!\[[^\]]*\]\(\s*<?([^)\s>]+)/g)].map(m => m[1]);
+const PDF_LINKS = /(\]\(\s*<?)(\/api\/files\/files\/[^)\s>]+)/g;
+const fileLinks = body => imgLinks(body).concat([...(body || '').matchAll(PDF_LINKS)].map(m => m[2]).filter(pdfLink));
 const ownImg = u => window.NOTES_FLAVOR === 'public' ? /^\/api\/files\//.test(u) : /^img\//.test(u);
 async function fetchImg(u) {
   const gh = ghConf(), tries = [u, /^img\//.test(u) && gh.repo && `https://raw.githubusercontent.com/${gh.repo}/${gh.branch}/${u}`, localImages[u]].filter(Boolean);   // локальная копия — последней: это может быть исходник до сжатия
@@ -6021,15 +6122,17 @@ async function saveBackup() {
   try {
     const srs = {}; for (const [id, v] of S.srs) srs[id] = v;
     const notes = [...S.notes.values(), ...S.trash.values()];
-    const links = [...new Set(notes.flatMap(n => imgLinks(n.body)))], own = links.filter(ownImg);
+    const links = [...new Set(notes.flatMap(n => fileLinks(n.body)))], own = links.filter(ownImg);
+    const hasPdf = own.some(pdfLink);
     const images = {}, files = [], used = new Set(); let k = 0, lost = 0;
     for (const u of own) {
-      if (own.length > 3) toast(tt('backup.saving.img', { n: ++k, total: own.length }));
+      if (own.length > 3) toast(tt(hasPdf ? 'backup.saving.attachments' : 'backup.saving.img', { n: ++k, total: own.length }));
       const bytes = await fetchImg(u); if (!bytes) { lost++; continue; }
       let nm = decodeURIComponent(u.split('/').pop() || 'image').replace(/[\\/:*?"<>|]/g, '_'), i = 1;
       while (used.has(nm)) nm = nm.replace(/(-\d+)?(\.\w+)?$/, (m, a, ext) => `-${++i}${ext || ''}`);
       // сразу в Blob (crc — пока байты в памяти): на 500 МБ изображений страница иначе держит их все разом — телефон закрывает вкладку
-      used.add(nm); images[u] = 'images/' + nm; files.push({ name: 'images/' + nm, data: new Blob([bytes]), crc: crc32(bytes) });
+      used.add(nm); images[u] = (pdfLink(u) ? 'attachments/' : 'images/') + nm;
+      files.push({ name: images[u], data: new Blob([bytes]), crc: crc32(bytes) });
     }
     const data = { format: 'android-notes', version: 2, exportedAt: new Date().toISOString(),
       sections: [...S.sections.values()], notes, srs, settings: S.settings, log: Object.fromEntries(S.srsLog), images };
@@ -6040,8 +6143,8 @@ async function saveBackup() {
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     backupSet({ last: today(), snooze: '' });
     const ev = backupConf().every;
-    toast(tt('backup.saved') + (files.length > 1 ? tt('backup.saved.img', { n: files.length - 1 }) : '') + '.'
-      + (lost ? ' ' + tt('backup.saved.lost', { n: lost }) : '')
+    toast(tt('backup.saved') + (files.length > 1 ? tt(hasPdf ? 'backup.saved.attachments' : 'backup.saved.img', { n: files.length - 1 }) : '') + '.'
+      + (lost ? ' ' + tt(hasPdf ? 'backup.saved.attachments.lost' : 'backup.saved.lost', { n: lost }) : '')
       + (ev !== 'off' ? ' ' + tt(ev === 'week' ? 'backup.next.week' : 'backup.next.month') : ''));
     renderList(); if ($('#data-panel')) renderProg();
   } catch (err) { toast(tt('backup.failed', { why: err?.message || err })); }
@@ -6055,8 +6158,9 @@ async function zipToBackup(file) {
   const dir = jn.slice(0, -'notes.json'.length), d = JSON.parse(new TextDecoder().decode(z.get(jn)));
   if (d.format !== 'android-notes' || !Array.isArray(d.notes) || !Array.isArray(d.sections)) throw new Error('format');
   const map = d.images || {}; d.images = {}; d.imgTotal = 0;
-  const linked = new Set(d.notes.flatMap(n => imgLinks(n.body)));
+  const linked = new Set(d.notes.flatMap(n => fileLinks(n.body)));
   const urls = Object.keys(map).filter(u => linked.has(u) && z.get(dir + map[u])); d.imgTotal = urls.length;
+  d.pdfTotal = urls.filter(pdfLink).length;
   // своё и на месте — не трогаем: тот же аккаунт ReteNote или изображение уже лежит в репозитории MyNotes
   const mine = window.NOTES_OWN_FILES ? await window.NOTES_OWN_FILES().catch(() => new Set()) : null;
   const here = async u => mine ? mine.has(u) : /^img\//.test(u) && !!(await fetchImg(u));
@@ -6064,9 +6168,13 @@ async function zipToBackup(file) {
   for (const u of urls) {
     if (await here(u)) continue;
     const bytes = z.get(dir + map[u]), h = md5hex(bytes), ext = (map[u].split('.').pop() || '').toLowerCase();
-    d.images[h] = { bytes, mime: IMG_MIME[ext] || 'image/png', name: map[u].split('/').pop(), orig: u }; key[u] = h;
+    d.images[h] = { bytes, mime: pdfLink(u) ? PDF_MIME : IMG_MIME[ext] || 'image/png', name: map[u].split('/').pop(), orig: u }; key[u] = h;
   }
-  if (Object.keys(key).length) for (const n of d.notes) n.body = (n.body || '').replace(/(!\[[^\]]*\]\(\s*<?)([^)\s>]+)/g, (all, pre, u) => key[u] ? pre + 'enex:' + key[u] : all);
+  if (Object.keys(key).length) for (const n of d.notes) {
+    const replace = (all, pre, u) => key[u] ? pre + 'enex:' + key[u] : all;
+    n.body = (n.body || '').replace(/(!\[[^\]]*\]\(\s*<?)([^)\s>]+)/g, replace)
+      .replace(PDF_LINKS, (all, pre, u) => pdfLink(u) ? replace(all, pre, u) : all);
+  }
   return d;
 }
 function backupDue() {
@@ -6365,25 +6473,29 @@ async function importRun(d, X, mode, say, opts = {}) {
     const url = {}; let k = 0;
     for (const h of need) {
       const m = imgs[h];
-      if (uploadReady()) {
-        say(tt('imp.img', { n: ++k, total: need.length }));
+      const pdf = m.mime === PDF_MIME;
+      if (pdf ? pdfPickerOn() && S.plan?.pro : uploadReady()) {
+        say(tt(d.pdfTotal ? 'imp.attachments' : 'imp.img', { n: ++k, total: need.length }));
         let b = null;
         try {
           const raw = new File([m.bytes], m.name || 'image', { type: m.mime });
           b = fromEn ? await compressImage(raw) : raw;   // из копии — уже сжатые, как были
-          if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
+          if (pdf) url[h] = await uploadPdf(b);
+          else if (window.NOTES_UPLOAD) url[h] = await window.NOTES_UPLOAD(b, newImgPath(b).slice(4));
           else { url[h] = /^img\/[^/]+$/.test(m.orig || '') ? m.orig : newImgPath(b); await ghPut(url[h], b, `Add ${url[h]} (MyNotes, ${fromEn ? 'import from Evernote' : 'from backup'})`); }
-          localImages[url[h]] = URL.createObjectURL(b); upOk++;
+          if (!pdf) localImages[url[h]] = URL.createObjectURL(b);
+          upOk++;
         } catch (err) {
           // без входа загружать некуда: изображение ждёт на устройстве (как вставленное без связи) и загрузится после входа — пока хватает места
-          const key = b && err?.guest && planUsed('bytes') + b.size <= planLimit('bytes') ? 'uploading-' + Math.random().toString(36).slice(2, 10) : null;
+          const key = !pdf && b && err?.guest && planUsed('bytes') + b.size <= planLimit('bytes') ? 'uploading-' + Math.random().toString(36).slice(2, 10) : null;
           if (key && await imgqPut(key, { blob: b, uid: S.uid || '', at: Date.now() })) { url[h] = key; localImages[key] = URL.createObjectURL(b); upLater++; if (S.plan?.usage) S.plan.usage.bytes += b.size; }
           else { url[h] = null; upFail++; }
         }
       } else { url[h] = null; upFail++; }
     }
     for (const n of notes) n.body = n.body.replace(/!\[([^\]]*)\]\(enex:([0-9a-f]{32})\)/g, (all, alt, h) => url[h] ? `![${alt}](${url[h]})`
-      : fromEn ? `*(изображение${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*` : `![${alt}](${imgs[h]?.orig || ''})`);   // не текст интерфейса
+      : fromEn ? `*(изображение${imgs[h]?.name ? ` «${imgs[h].name}»` : ''} из Evernote не перенесена)*` : `![${alt}](${imgs[h]?.orig || ''})`)   // не текст интерфейса
+      .replace(/(\]\(\s*<?)enex:([0-9a-f]{32})(?=[>)\s])/g, (all, pre, h) => imgs[h]?.mime === PDF_MIME ? pre + (url[h] || imgs[h].orig) : all);
   }
   const strip = o => { const c = { ...o }; delete c.id; return c; };
   let done = 0; const total = secs.length + notes.length + srs.length;
@@ -6414,9 +6526,9 @@ async function importRun(d, X, mode, say, opts = {}) {
     if (keep && X.notes.length) parts.push(tt(d.guest ? 'guest.imp.r.kept' : 'imp.r.kept', { n: X.notes.length }));
     if (secs.length) parts.push(tt('imp.r.secs', { n: secs.length }));
     if (srs.length) parts.push(tt('imp.r.srs', { n: srs.length }));
-    if (upOk) parts.push(tt('imp.r.img', { n: upOk }));
+    if (upOk) parts.push(tt(d.pdfTotal ? 'imp.r.attachments' : 'imp.r.img', { n: upOk }));
     if (upLater) parts.push(tt('imp.r.imglater', { n: upLater }));
-    if (upFail) parts.push(tt('imp.r.imgfail', { n: upFail }) + (fromEn ? '' : ' ' + tt('imp.r.imgfail.links')));
+    if (upFail) parts.push(tt(d.pdfTotal ? 'imp.r.attachments.fail' : 'imp.r.imgfail', { n: upFail }) + (fromEn ? '' : ' ' + tt('imp.r.imgfail.links')));
     if (d.dropped) parts.push(tt('imp.r.bad', { n: d.dropped }));
     if (skipped) parts.push(tt('imp.r.skipped', { n: skipped, limit: planLimit('notes') }));
     const text = tt('imp.r.done', { list: parts.join(', ') }); say(text);
@@ -8053,6 +8165,7 @@ function renderEditor(box) {
             <button class="btn ed-mode-toggle" id="ed-mode-toggle" type="button" aria-expanded="false" aria-controls="ed-mode-tabs">${tabs.find(([k]) => k === E.tab)?.[1] || tt('ed.tab.vis')} ${CH_R}</button>
           </div></div>
         ${toolbarHtml()}
+        ${pdfPickerOn() ? '<input type="file" id="ed-pdf" accept="application/pdf,.pdf" hidden>' : ''}
         <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">${tt('ed.link.url')}</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">${tt('ed.link.insert')}</button><button class="btn" type="button" id="link-cancel">${tt('btn.cancel')}</button><div class="link-tip" id="link-tip" hidden>${tt('ed.link.tip')}</div></div>
         <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
           ${E.tab !== 'prev' ? `<textarea id="ed-body" spellcheck="true" aria-labelledby="ed-content-label">${esc(d.body)}</textarea>` : ''}
@@ -8247,9 +8360,15 @@ function renderEditor(box) {
     vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
   }
   const tb = box.querySelector('.md-toolbar');
+  const pdfInput = box.querySelector('#ed-pdf');
+  if (pdfInput) {
+    setPdfBusy(E, !!E.pdfBusy);
+    pdfInput.onchange = () => { const file = pdfInput.files[0]; pdfInput.value = ''; attachPdf(E, file); };
+  }
   tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
   tb.addEventListener('click', e => {
     const b = e.target.closest('[data-md]'); if (!b) return;
+    if (b.dataset.md === 'pdf') { if (S.plan?.pro) pdfInput?.click(); else showPlanDialog('pdf'); return; }
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
     if (b.dataset.md === 'table' && E.pane === 'vis' && vis && closestIn(vis, 'td, th')) { openTblPop(b, vis); return; }   // курсор в таблице — меню строк и столбцов
     if (b.dataset.md === 'cloze' && !plusOn()) { showPlanDialog('plus'); return; }   // пропуски — «тренировка плюс» (Pro)
@@ -8446,7 +8565,7 @@ const ICO = {
 function toolbarHtml() {
   const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="${tt('tb.label')}">
-    <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}</div>
+    <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}${pdfPickerOn() ? b('pdf', 'PDF', tt('pdf.attach'), S.plan?.pro ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group">${b('h1', '<span class="tb-h">H<small>1</small></span>', tt('tb.h1', { mod: MOD }))}${b('h2', '<span class="tb-h">H<small>2</small></span>', tt('tb.h2', { mod: MOD }))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
     <div class="tb-group">${b('block', ICO.block, tt('tb.block', { mod: MOD }))}${b('link', ICO.link, tt('tb.link', { mod: MOD }))}${b('note', ICO.note, tt('tb.note'))}${b('img', ICO.img, tt('tb.img'))}${b('table', ICO.table, tt('tb.table'))}${b('hr', ICO.hr, tt('tb.hr'))}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', tt('tb.cloze') + (plusOn() ? '' : tt('tb.pro')), plusOn() ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, tt('tb.undo', { mod: MOD }))}${b('redo', ICO.redo, tt('tb.redo', { mod: MOD }))}</div>
@@ -8710,6 +8829,7 @@ function mdInline(nodes) {
     else if (t === 'CODE') { const c = n.textContent.replace(/ /g, ' ').replace(/\u200b/g, ''); s += c.includes('`') ? '`` ' + c + ' ``' : '`' + c + '`'; }
     else if (t === 'A') {
       const href = mdHref(n.getAttribute('href') || ''), label = kids().trim() || href;
+      if (pdfLink(href)) { s += `[${pdfLabel(n.textContent.trim() || href)}](${href})`; continue; }
       // ссылка, у которой текст — сам адрес (из <https://…> или голого адреса), остаётся голым адресом, а не [адрес](адрес)
       s += label === href && /^(https?:\/\/|mailto:)\S+$/i.test(href) && !/[<>()]/.test(href) ? href : `[${label}](${href})`;
     }
@@ -9648,7 +9768,7 @@ function showPlanDialog(kind, msg) {
   if (!pro && !renew && window.NOTES_PLAN && Date.now() - (S.planAt || 0) > 3000) loadPlan().then(() => {
     const o = $('#plan-ov'); if (S.plan?.pro && o && !o.hidden) { o.hidden = true; o.innerHTML = ''; toast(tt('plan.now.pro')); }
   });
-  const head = kind === 'spaces' ? tt('plan.h.spaces') : kind === 'plus' ? tt('plan.h.plus') : kind === 'themes' ? tt('plan.h.themes') : kind === 'stage' ? tt('plan.h.stage') : renew ? tt(P.source === 'paid' ? 'plan.h.extend' : 'plan.h.get') : pro ? tt('plan.h.nospace') : tt('plan.h.free', { what: (PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0) });
+  const head = kind === 'pdf' ? tt('pdf.pro') : kind === 'spaces' ? tt('plan.h.spaces') : kind === 'plus' ? tt('plan.h.plus') : kind === 'themes' ? tt('plan.h.themes') : kind === 'stage' ? tt('plan.h.stage') : renew ? tt(P.source === 'paid' ? 'plan.h.extend' : 'plan.h.get') : pro ? tt('plan.h.nospace') : tt('plan.h.free', { what: (PLAN_WHAT[kind] || PLAN_WHAT.notes)(P.limits?.[kind] ?? P.free?.[kind] ?? 0) });
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
@@ -10845,7 +10965,7 @@ function lookPanelHtml() {
   </section>`;
 }
 function wireLookPanel(root) {
-  root.querySelectorAll('[data-look-home]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ home: b.dataset.lookHome }, tt('look.home.saved')); S.tileFlat = false; renderProg(); });
+  root.querySelectorAll('[data-look-home]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ home: b.dataset.lookHome }, tt('look.home.saved')); S.tileFlat = undefined; renderProg(); });
   root.querySelectorAll('[data-look-skin]').forEach(b => b.onclick = async () => { if (b.getAttribute('aria-pressed') === 'true') return; await saveSettings({ skin: b.dataset.lookSkin }, tt('look.skin.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-mode]').forEach(b => b.onclick = async () => { await saveSettings({ mode: b.dataset.lookMode }, tt('look.mode.saved')); applyLook(); renderProg(); });
   root.querySelectorAll('[data-look-theme]').forEach(b => b.onclick = async () => {
@@ -11126,7 +11246,7 @@ async function boot() {
 /* ---------- browser history: the phone's back gesture walks back through opened notes ---------- */
 var NAV = { ready: false, popping: false, t: 0 };
 const isPhone = () => window.matchMedia('(max-width:760px)').matches;
-function navNow() { return { m: S.mode, s: S.section, h: homeShown() ? (S.tileFlat ? 2 : 1) : 0, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
+function navNow() { return { m: S.mode, s: S.section, h: homeShown() ? (tileFlatOn() ? 2 : 1) : 0, n: S.noteId || null, r: isPhone() && $('#lib').classList.contains('reading') && !(S.editing && !S.editing.id) }; }   // редактор новой заметки — «окно» над списком, своей записи истории не получает: «назад» закрывает его и остаётся на списке
 const navKey = st => st ? [st.m, st.s, st.m === 'lib' ? st.n : '', st.m === 'lib' && st.r ? 1 : 0, st.h || 0].join('|') : '';
 function histSync() {
   if (!NAV || !NAV.ready || NAV.popping) return;
@@ -11195,7 +11315,10 @@ window.addEventListener('popstate', e => {
     if (st.m !== S.mode) setMode(st.m);
     if (st.m === 'lib') {
       if (st.s && st.s !== S.section && (S.sections.has(st.s) || isVirtual(st.s))) selectSection(st.s, st.h ? st.h === 2 : undefined, true);
-      if (st.h && S.tileFlat !== (st.h === 2)) { S.tileFlat = st.h === 2; renderList(); }   // плитки: папками ↔ все заметки
+      if (st.h && tileFlatOn() !== (st.h === 2)) {
+        S.tileFlat = st.h === 2; renderList();
+        if (!S.editing && (S.article || S.noteId)) renderReader();
+      }
       if (st.n && st.n !== S.noteId && S.notes.has(st.n)) {
         openNote(st.n);
         const r = listRow(st.n); if (r) scrollWithin($('#items'), r);
