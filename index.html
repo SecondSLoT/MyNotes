@@ -41,14 +41,15 @@ window.STR = {
   'land.plans': 'Тарифы',
   'land.free': 'Бесплатно',
   'land.free.limits': 'до {notes} заметок и {sections} разделов',
-  'land.free.mb': '{mb}\u00a0МБ на заметки и изображения',
+  'land.free.mb': '{mb}\u00a0МБ на заметки и файлы',
   'land.free.train': 'тренировка',
   'land.free.sync': 'синхронизация на всех устройствах',
   'land.free.versions': 'история версий за последние сутки',
   'land.pro.month': '{price}\u00a0₽ <span>в месяц</span>',
   'land.pro.year': 'или {price}\u00a0₽ в год — это {perMonth}\u00a0₽ в месяц, <b class="save">выгоднее на {save}%</b>',
   'land.pro.unlimited': 'заметки и разделы без ограничений',
-  'land.pro.mb': '2\u00a0ГБ на заметки, изображения и PDF',
+  'land.pro.mb': '2\u00a0ГБ на заметки и файлы',
+  'land.pro.pdf': 'прикрепление PDF к заметкам — до 10 МБ на файл',
   'land.pro.versions': 'история версий — до 100 копий на заметку',
   'land.pro.spaces': 'общие разделы — до 10 участников',
   'land.pro.plus': 'тренировка «плюс»: пропуски, обратные карточки, статистика',
@@ -66,6 +67,7 @@ window.STR = {
   // ===== Экран входа
   'err.offline': 'Нет связи с сервером',
   'err.unknown': 'неизвестная ошибка',
+  'login.pro.pdf': 'В Pro можно прикреплять PDF к заметкам.',
   'login.tagline': 'Заметки, которые остаются с тобой',
   'login.last': 'В прошлый раз ты входил через {name}',
   'login.last.password': 'В прошлый раз ты входил по почте и паролю',
@@ -92,6 +94,7 @@ window.STR = {
   'guest.in': 'Войти и сохранить в аккаунте',
   'guest.in.short': 'Войти',
   'guest.stay': 'Продолжить без входа',
+  'guest.bar.direct': 'Без входа заметки хранятся в этом браузере. Войди, чтобы синхронизировать их между устройствами и не потерять при очистке данных сайта',
   'guest.bar': 'Заметки хранятся только на этом устройстве. Войди — они сохранятся в аккаунте и будут на всех устройствах',
   'guest.acc.sub': 'без входа',
   'guest.acc.text': 'Ты работаешь без входа: заметки хранятся только в этом браузере и не синхронизируются. После входа они перенесутся в аккаунт',
@@ -201,7 +204,7 @@ window.STR = {
   'plan.limit.default': 'Лимит бесплатной версии',
   'account.nomail': 'У аккаунта нет почты.',
   'upload.bad': 'изображение слишком большое или неподходящего формата',
-  'pdf.attach': 'Прикрепить PDF',
+  'pdf.attach': 'Прикрепить файл (PDF)',
   'pdf.pro': 'PDF-вложения доступны в Pro',
   'pdf.type': 'Выбери файл PDF',
   'pdf.damaged': 'PDF повреждён или не полностью скачан',
@@ -213,8 +216,8 @@ window.STR = {
   'auto.off': 'Автопродление отключено. Pro действует до {date}, больше ничего не спишем',
   'planbar.auto.month': '<b>Pro продлится автоматически {date} около 10:00 по Москве:</b> спишем {sum} за следующий месяц\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
   'planbar.auto.year': '<b>Pro продлится автоматически {date} около 10:00 по Москве:</b> спишем {sum} за следующий год\n    с карты, которой ты оплачивал Pro. Если продлевать не нужно — отключи автопродление до этого дня, оплаченный срок останется',
-  'planbar.end.paid': '<b>Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} на заметки и изображения. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
-  'planbar.end.trial': '<b>Пробный Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} на заметки и изображения. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
+  'planbar.end.paid': '<b>Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} на заметки и файлы. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
+  'planbar.end.trial': '<b>Пробный Pro закончится {date}.</b> Потом вернутся ограничения бесплатной версии: до {notes} заметок,\n    {sections} разделов и {size} на заметки и файлы. Всё, что уже есть, останется, просто создать новое сверх лимита не получится',
   'planbar.extend': 'Продлить',
   'sync.held': 'Не сохранено на сервере: {n} — {why} Эти правки остаются на этом устройстве.',
   'sync.held.limit': 'лимит бесплатной версии',
@@ -590,16 +593,20 @@ window.STR = {
   'code.copy.failed': 'Не получилось скопировать — выдели текст и скопируй вручную',
   'tb.bold': 'Жирный ({mod}+B)',
   'tb.italic': 'Курсив ({mod}+I)',
+  'tb.underline': 'Подчёркнутый ({mod}+U)',
   'tb.strike': 'Зачёркнутый ({mod}+Shift+X)',
   'tb.code': 'Код в строке ({mod}+E)',
-  'tb.h1': 'Заголовок ({mod}+Alt+1)',
-  'tb.h2': 'Подзаголовок ({mod}+Alt+2)',
+  'tb.headings': 'Заголовки',
+  'tb.h1': 'Заголовок H1 ({mod}+Alt+1)',
+  'tb.h2': 'Заголовок H2 ({mod}+Alt+2)',
+  'tb.h3': 'Заголовок H3 ({mod}+Alt+3)',
   'tb.ul': 'Маркированный список ({mod}+Shift+8)',
   'tb.list.outdent': 'Поднять пункт списка на уровень выше',
   'tb.list.indent': 'Вложить пункт списка',
   'tb.ol': 'Нумерованный список ({mod}+Shift+7)',
   'tb.block': 'Блок кода Kotlin ({mod}+Shift+C)',
-  'tb.link': 'Ссылка ({mod}+K)',
+  'tb.links': 'Ссылки',
+  'tb.link': 'Внешняя ссылка ({mod}+K)',
   'tb.cloze': 'Пропуск для тренировки {{…}}: в тренировке этот кусок будет скрыт',
   'tb.pro': ' — в Pro',
   'tb.undo': 'Отменить ({mod}+Z)',
@@ -628,6 +635,7 @@ window.STR = {
   'tb.hr': 'Разделитель',
   'ed.ins.bold': 'жирный текст',
   'ed.ins.italic': 'курсив',
+  'ed.ins.underline': 'подчёркнутый',
   'ed.ins.strike': 'зачёркнутый',
 
   // ===== Редактор: визуальный режим, цвет текста
@@ -912,7 +920,7 @@ window.STR = {
   'plan.notes.left': 'В бесплатной версии осталось заметок: {n} из {limit}',
   'plan.what.notes': 'до {n} {n|заметки|заметок|заметок}',
   'plan.what.sections': 'до {n} {n|раздела|разделов|разделов}',
-  'plan.what.bytes': '{size} на заметки и изображения',
+  'plan.what.bytes': '{size} на заметки и файлы',
   'plan.h.spaces': 'Общие разделы — в Pro',
   'plan.h.plus': 'Тренировка «плюс» — в Pro',
   'plan.h.themes': 'Цветовые темы — в Pro',
@@ -921,12 +929,12 @@ window.STR = {
   'plan.h.get': 'Оформить Pro',
   'plan.h.nospace': 'Место закончилось',
   'plan.meter.space': 'Место',
-  'plan.meter.space.help': 'Учитывается место, занимаемое заметками, изображениями и PDF',
+  'plan.meter.space.help': 'Учитывается место, занимаемое заметками и файлами',
   'plan.h.free': 'В бесплатной версии — {what}',
   'plan.renew.paid': 'Pro действует до {date}. Оплаченный срок добавится к текущему',
   'plan.renew.trial': 'Пробный Pro действует до {date}. Оплаченный срок добавится к текущему',
   'plan.keep': 'Всё, что уже есть, остаётся: заметки можно читать, править и удалять. Корзина в лимит не входит',
-  'plan.pro': '<b>Pro</b> — заметки и разделы без ограничений, {size} на заметки, изображения и PDF, история версий — до 100 копий на заметку, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон, автопрокрутка текста на весь экран.',
+  'plan.pro': '<b>Pro</b> — заметки и разделы без ограничений, {size} на заметки и файлы, история версий — до 100 копий на заметку, общие разделы для совместной работы, тренировка «плюс» — пропуски, обратные карточки, статистика и настройка расписания, цветовые темы и чёрный фон, автопрокрутка текста на весь экран.',
   'plan.trial.on': 'Pro включён на {n} дней — без ограничений',
   'plan.meter.of': 'из {n}',
   'plan.meter.unlimited': 'без ограничений',
@@ -1463,8 +1471,8 @@ window.STR = {
   'lp.notes.6': '«Рецепт» найдёт и «рецепты», и «рецептами». Фразы в кавычках, исключения через минус',
   'lp.notes.7': 'Редактор как в документе',
   'lp.notes.8': 'Пиши визуально или в Markdown: заголовки, списки, чек-листы, таблицы, код с подсветкой, цвет текста',
-  'lp.notes.9': 'Изображения',
-  'lp.notes.10': 'Вставь скриншот из буфера, перетащи файл или сфотографируй прямо с телефона — доску, конспект, страницу книги',
+  'lp.notes.9': 'Изображения и PDF',
+  'lp.notes.10': 'Вставь скриншот из буфера, перетащи файл или сфотографируй прямо с телефона — доску, конспект, страницу книги. В Pro можно прикреплять PDF до 10 МБ и открывать их в браузере',
   'lp.notes.11': 'Ссылки между заметками',
   'lp.notes.12': 'Набери <b>[[</b> и название — заметки связываются, и видно, кто на кого ссылается',
   'lp.notes.13': 'Везде, даже без интернета',
@@ -1523,14 +1531,14 @@ window.STR = {
   'lp.pricing.1': 'Бесплатно',
   'lp.pricing.2': 'навсегда',
   'lp.pricing.3': 'до <span data-free="notes">100</span> заметок и <span data-free="sections">20</span> разделов',
-  'lp.pricing.4': '<span data-free="mb">50</span> МБ на заметки и изображения',
+  'lp.pricing.4': '<span data-free="mb">50</span> МБ на заметки и файлы',
   'lp.pricing.5': 'тренировка и синхронизация на всех устройствах',
   'lp.pricing.6': 'ссылки на чтение',
   'lp.pricing.7': 'история версий за последние сутки',
   'lp.pricing.8': 'в месяц',
   'lp.pricing.9': 'или <span data-price="year">1 190</span> ₽ в год — это <span data-price="ym">99</span> ₽ в месяц, <b>выгоднее на <span data-price="save">29</span>%</b>',
   'lp.pricing.10': 'заметки и разделы без ограничений',
-  'lp.pricing.11': '2 ГБ на заметки, изображения и PDF',
+  'lp.pricing.11': '2 ГБ на заметки и файлы',
   'lp.pricing.pdf': 'PDF-вложения к заметкам с открытием в браузере',
   'lp.pricing.12': 'история версий — до 100 копий на заметку',
   'lp.pricing.13': 'общие разделы и правка вместе — до 10 участников',
@@ -1539,7 +1547,7 @@ window.STR = {
   'lp.pricing.16': 'Попробовать 14 дней бесплатно',
   'lp.pricing.17': 'Оплата разовая, без автоматических списаний. Пробный период — без привязки карты. Pro оформляется в приложении: «Настройки → Тариф». Условия — в <a href="/offer.html">оферте</a>',
   'lp.faq.1': 'Это бесплатно?',
-  'lp.faq.2': 'Да. Бесплатно — до <span data-free="notes">100</span> заметок и <span data-free="sections">20</span> разделов, <span data-free="mb">50</span> МБ на заметки и изображения, тренировка и синхронизация на всех устройствах. Pro снимает ограничения и добавляет PDF-вложения, совместную работу, расширенную тренировку и полную историю версий',
+  'lp.faq.2': 'Да. Бесплатно — до <span data-free="notes">100</span> заметок и <span data-free="sections">20</span> разделов, <span data-free="mb">50</span> МБ на заметки и файлы, тренировка и синхронизация на всех устройствах. Pro снимает ограничения и добавляет PDF-вложения, совместную работу, расширенную тренировку и полную историю версий',
   'lp.faq.3': 'Обязательно пользоваться тренировкой?',
   'lp.faq.4': 'Нет. Тренировка включается для конкретного раздела, а без неё ReteNote — обычное приложение для заметок. Можно вести рецепты и рабочие записи и тренировать только английский',
   'lp.faq.5': 'Чем ReteNote отличается от Anki?',
@@ -1757,7 +1765,7 @@ window.STR = {
   'adm.guest.chart': 'Пробовали без входа',
   'adm.guest.chart.sub': 'Новые устройства в режиме без входа — обезличенный счёт',
   'adm.guest.name': 'Устройств',
-  'adm.zametki_i_izobrazheniya': 'Заметки и изображения',
+  'adm.zametki_i_izobrazheniya': 'Заметки и файлы',
   'adm.zametki': 'Заметки',
   'adm.v_korzine': 'в корзине ',
   'adm.razdelov': ' · разделов ',
@@ -1775,11 +1783,11 @@ window.STR = {
   'adm.zhivaya_sovmestnaya_pravka_v': 'живая совместная правка (в конце дня)',
   'adm.mesto_po_lyudyam': 'Место по людям',
   'adm.vsego_zanyato': 'Всего занято',
-  'adm.zametki_i_izobrazheniya_vseh': 'заметки и изображения всех людей',
+  'adm.zametki_i_izobrazheniya_vseh': 'заметки и файлы всех людей',
   'adm.u_poloviny_menshe': 'У половины меньше',
   'adm.bolshe_vseh': 'больше всех — ',
   'adm.skolko_lyudey_zanimayut_stolko': 'Сколько людей занимают столько места',
-  'adm.storage.sub': 'как в тарифе: текст заметок и изображения в них, без скриншотов к обращениям',
+  'adm.storage.sub': 'как в тарифе: текст заметок и прикреплённые файлы, без скриншотов к обращениям',
   'adm.jump.label': 'Разделы аналитики',
   'adm.jump.storage': 'Место',
   'adm.notes.distribution': 'Сколько заметок у людей',
@@ -2482,6 +2490,7 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .row-item .tr-acts{display:flex;gap:6px;padding:0 12px 10px 16px}
 .row-item .tr-acts .btn{padding:3px 10px;font-size:12px}
 .backup-bar{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:var(--rad-l);padding:10px 14px;margin:0 0 12px;font-size:14px;line-height:1.45}
+@media (min-width:761px){#guest-reader-bar{display:none}}
 .backup-bar p{margin:0;flex:1 1 260px}
 .ann-bar{display:flex;flex-direction:column;gap:8px;margin:0 0 12px}.ann-bar[hidden]{display:none}
 .ann-bar .backup-bar{margin:0;position:relative;padding-right:40px}
@@ -2786,7 +2795,8 @@ button.tag{border:0;background:none;padding:0}
 .md>*:first-child{margin-top:0}
 .md p{margin:0 0 .8em}
 .md h1,.md h2{font:600 21px/1.3 var(--f-display);letter-spacing:-.01em;margin:1.6em 0 .55em;padding-top:.65em;border-top:1px solid var(--line)}
-.md h3,.md h4,.md h5,.md h6{font:600 16.5px/1.35 var(--f-body);margin:1.35em 0 .4em}
+.md h3{font:600 16.5px/1.35 var(--f-body);margin:1.35em 0 .4em}
+.md h4,.md h5,.md h6{font:600 15px/1.35 var(--f-body);margin:1.35em 0 .4em}
 .md > :is(h1,h2,h3,h4,h5,h6):first-child{margin-top:.2em}
 .md > :is(h1,h2):first-child{border-top:0;padding-top:0}
 .tb .tb-h{font:700 13px/1 var(--f-body);letter-spacing:-.02em}.tb .tb-h small{font-size:9px;font-weight:700;margin-left:1px}
@@ -2917,13 +2927,14 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .tbl-confirm{padding:8px 14px;color:var(--muted)}
 .color-pop.tbl-pop button:disabled{opacity:.4;cursor:default}
 .color-pop.tbl-pop button{width:auto;height:auto;border:0;box-shadow:none;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;white-space:nowrap;padding:9px 14px;border-radius:var(--rad-m);cursor:pointer}
-.color-pop.tbl-pop button:hover{background:var(--accent-soft)}
+.color-pop.tbl-pop button[aria-checked="true"],.color-pop.tbl-pop button:hover{background:var(--accent-soft)}
 .color-pop.tbl-pop button.danger{color:var(--again)}
 .color-pop button{width:30px;height:30px;border-radius:50%;border:2px solid var(--raised);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
 .color-pop button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 .color-pop .clear{background:none;color:var(--muted);font-size:15px;display:grid;place-items:center}
 .tb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.tb[data-md="pdf"]{font-size:11px;font-weight:700}
+.tb:is([data-md="headings"],[data-md="links"]){display:flex;align-items:center;justify-content:center;gap:2px}
+.tb:is([data-md="headings"],[data-md="links"]) .chev{width:12px;height:12px}
 .lib.wide-edit{grid-template-columns:minmax(0,1fr)}
 .lib.wide-edit .rail,.lib.wide-edit .list{display:none}
 .lib.wide-edit .doc{max-width:1600px}
@@ -4817,7 +4828,7 @@ function renderMd(src) {
   if (!window.marked) return '<pre>' + esc(src) + '</pre>';
   if (!mdReady) {
     mdReady = true;
-    // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the text-colour spans pass
+    // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the formatting tags explicitly allowed below pass
     // пропуск для тренировки {{…}} → <span class="cloze" data-c="<md5 текста>">…</span> (в коде не трогаем — код размечает marked раньше)
     try { marked.use({ extensions: [{ name: 'cloze', level: 'inline', start(src) { const i = src.indexOf('{{'); return i < 0 ? undefined : i; },
       tokenizer(src) { const m = /^\{\{([^{}\n]+?)\}\}/.exec(src); if (m && m[1].trim()) return { type: 'cloze', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) }; },
@@ -4828,7 +4839,7 @@ function renderMd(src) {
       const m = /^(.*?)\s*\|\s*(\d{2,4})\s*$/.exec(t.text || ''); if (!m) return false;
       return `<img src="${esc(t.href || '')}" alt="${esc(m[1])}" width="${Math.min(4000, +m[2])}"${t.title ? ` title="${esc(t.title)}"` : ''}>`;
     } } }); } catch {}
-    try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
+    try { marked.use({ renderer: { html(t) { const raw = typeof t === 'string' ? t : (t && (t.raw || t.text)) || ''; return /^(<u>|<\/u>|<span class="tc-(red|orange|green|blue|purple|gray)">|<\/span>)$/.test(raw.trim()) ? raw.trim() : esc(raw); } } }); } catch {}
   }
   // пустой пункт чек-листа «- [ ]» marked показывает текстом: даём ему невидимый символ, чтобы вышел квадратик
   let fence = false;
@@ -7591,7 +7602,7 @@ function syncEditingClass() {
 let editorToolbarObserver;
 function renderReader(scrollTop) {
   editorToolbarObserver?.disconnect();
-  if (colorPop?.tableTrigger) closeColorPop();
+  if (colorPop?.editorTrigger) closeColorPop();
   const wasEditing = document.body.classList.contains('editing');
   syncEditingClass(); histSync();   // редактор новой заметки закрылся (сохранили) — теперь это обычная открытая заметка со своей записью истории
   // вышли из редактора с открытой клавиатурой: убрать фокус (клавиатура закрывается), иначе на телефоне видимая область остаётся сдвинутой и шапка уезжает за верх экрана
@@ -7620,6 +7631,7 @@ function renderReader(scrollTop) {
     : s && s.introduced ? `<span class="hint">${tt('reader.srs', { seen: s.seen || 0, lapses: s.lapses || 0, next: s.due <= today() ? tt('ivl.today') : s.due.split('-').reverse().join('.') })}</span>` : '';
   box.innerHTML = `
     <div class="mbar"${scAttr(S.section)}>${readerBackButton()}<span class="mnav"><button class="btn icon-btn" type="button" id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button class="btn icon-btn" type="button" id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
+    ${window.NOTES_GUEST_DIRECT_NOTE ? '<div class="backup-bar" id="guest-reader-bar" role="status" hidden></div>' : ''}
     <div class="note-head"${scAttr(n.section)}>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))}</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
@@ -7679,6 +7691,7 @@ function renderReader(scrollTop) {
   $('#relearn') && ($('#relearn').onclick = () => relearn([n.id]));
   $('#drill') && ($('#drill').onclick = () => startSession(cardsOf(n), 'free', tt('drill.one')));
   restoreTagEdit();
+  if (window.NOTES_GUEST_DIRECT_NOTE) renderGuestBar();
 }
 
 /* swipe between notes on phones */
@@ -7715,16 +7728,17 @@ function keepScroll(fn) {
 }
 /* ---------- toolbar: which formatting is under the caret ---------- */
 document.addEventListener('selectionchange', () => { const E = S.editing; if (E?.refreshTb && document.activeElement?.id === 'ed-prev') E.refreshTb(); });
-function setTbState(tb, st) { tb.querySelectorAll('[data-md]').forEach(b => { if (b.dataset.md === 'table') return; const on = st.has(b.dataset.md); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); }
+function setTbState(tb, st) { tb.querySelectorAll('[data-md]').forEach(b => { if (b.dataset.md === 'table' || b.dataset.md === 'headings') return; const on = b.dataset.md === 'links' ? st.has('link') || st.has('note') : st.has(b.dataset.md); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); }
 function visFormatState(vis) {
   const st = new Set(); const sel = getSelection(); if (!sel.rangeCount) return st;
   let n = sel.anchorNode; if (n && n.nodeType === 3) n = n.parentElement; if (!n || !vis.contains(n)) return st;
   const up = q => { const h = n.closest(q); return h && vis.contains(h) ? h : null; };
   if (up('b,strong')) st.add('bold');
   if (up('i,em')) st.add('italic');
+  if (up('u')) st.add('underline');
   if (up('s,del,strike')) st.add('strike');
   if (up('pre')) st.add('block'); else if (up('code')) st.add('code');
-  if (up('h1,h2')) st.add('h1'); else if (up('h3,h4,h5,h6')) st.add('h2');
+  if (up('h1,h2')) st.add('h1'); else if (up('h3')) st.add('h2'); else if (up('h4,h5,h6')) st.add('h3');
   if (up('blockquote')) st.add('quote');
   const li = up('li');
   if (li) { if (li.classList.contains('task')) st.add('task'); else if (li.parentElement?.tagName === 'OL') st.add('ol'); else st.add('ul'); }
@@ -7737,7 +7751,7 @@ function mdFormatState(ta) {
   if (((before.match(/^\s*(```|~~~)/gm) || []).length) % 2) { st.add('block'); return st; }
   const ls = before.lastIndexOf('\n') + 1; let le = v.indexOf('\n', p); if (le < 0) le = v.length;
   const line = v.slice(ls, le), col = p - ls;
-  const m = line.match(/^\s*(#{1,6}) /); if (m) st.add(m[1].length <= 2 ? 'h1' : 'h2');
+  const m = line.match(/^\s*(#{1,6}) /); if (m) st.add(m[1].length <= 2 ? 'h1' : m[1].length === 3 ? 'h2' : 'h3');
   if (/^\s*>/.test(line)) st.add('quote');
   if (/^\s*[-*+] \[[ xX]\] /.test(line)) st.add('task'); else if (/^\s*[-*+] /.test(line)) st.add('ul'); else if (/^\s*\d+[.)] /.test(line)) st.add('ol');
   const left = line.slice(0, col);
@@ -7747,6 +7761,7 @@ function mdFormatState(ta) {
     const noCode = left.replace(/`[^`]*`/g, '');
     if ((noCode.match(/\*\*|__/g) || []).length % 2) st.add('bold');
     if ((noCode.replace(/\*\*|__/g, '').match(/(?<![\w*])[*_](?![\s*])|(?<=\S)[*_](?![\w*])/g) || []).length % 2) st.add('italic');
+    if ((noCode.match(/<u>|<\/u>/g) || []).length % 2) st.add('underline');
     if ((noCode.match(/~~/g) || []).length % 2) st.add('strike');
   }
   for (const lm of line.matchAll(/\[[^\]]*\]\(([^)\s]*)\)/g)) if (col > lm.index && col < lm.index + lm[0].length) st.add(noteLinkId(lm[1]) ? 'note' : 'link');
@@ -8253,14 +8268,19 @@ function inferNoteTitle(body) {
   return tt('note.untitled');
 }
 const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
-$('#new-note').addEventListener('click', () => {
+function newNote(direct = false) {
   if (S.editing?.saving || planBlocks('notes')) return;
-  const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
+  const sec = direct ? '' : !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
   if (roRefuse(spaceOfSection(sec))) return;
-  S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: editorTab(), confirmDel: false };
-  const dr = getDraft(null); if (dr && (dr.title || dr.body)) S.editing.draftOffer = dr;
+  S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: direct ? store.get('edTab', 'prev') : editorTab(), confirmDel: false };
+  const dr = getDraft(null);
+  if (dr && (dr.title || dr.body)) {
+    if (direct) Object.assign(S.editing.draft, { title: dr.title, body: dr.body, tags: dr.tags || [], ref: !!dr.ref, section: S.sections.has(dr.section) ? dr.section : '' });
+    else S.editing.draftOffer = dr;
+  }
   $('#lib').classList.add('reading'); renderReader(true);
-});
+}
+$('#new-note').addEventListener('click', () => newNote());
 function startEdit(id, anchor, restore, overlay) {
   if (S.editing?.saving) return;
   const n = S.notes.get(id);
@@ -8509,6 +8529,11 @@ function renderEditor(box) {
     vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
   }
   const tb = box.querySelector('.md-toolbar');
+  const headingsButton = tb.querySelector('[data-md="headings"]');
+  for (const button of tb.querySelectorAll('[data-md="headings"], [data-md="links"]')) {
+    button.setAttribute('aria-haspopup', 'menu');
+    button.setAttribute('aria-expanded', 'false');
+  }
   const tableButton = tb.querySelector('[data-md="table"]');
   tableButton.setAttribute('aria-haspopup', 'dialog');
   let tableCell = null;
@@ -8539,6 +8564,14 @@ function renderEditor(box) {
   tb.addEventListener('click', e => {
     if (E.saving) return;
     const b = e.target.closest('[data-md]'); if (!b) return;
+    if (b.dataset.md === 'headings' || b.dataset.md === 'links') {
+      const active = E.pane === 'vis' && vis ? visFormatState(vis) : ta ? mdFormatState(ta) : new Set();
+      openEditorMenu(b, active, e.detail === 0, act => {
+        if (E.pane === 'vis' && vis) visActionKeep(act, vis); else if (ta) mdAction(act, ta);
+        requestAnimationFrame(refreshTb);
+      });
+      return;
+    }
     if (b.dataset.md === 'pdf') { if (S.plan?.pro) pdfInput?.click(); else showPlanDialog('pdf'); return; }
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
     if (b.dataset.md === 'table') {
@@ -8570,7 +8603,12 @@ function renderEditor(box) {
     listLevels.querySelector('[data-md="list-outdent"]').disabled = !li || !li.parentElement.parentElement.closest('li');
     if (!tb.isConnected) return;
     const st = E.pane === 'vis' && vis && document.activeElement === vis ? visFormatState(vis) : ta && document.activeElement === ta ? mdFormatState(ta) : null;
-    if (st) setTbState(tb, st);
+    if (st) {
+      setTbState(tb, st);
+      const level = ['h1', 'h2', 'h3'].find(act => st.has(act));
+      headingsButton.classList.toggle('on', !!level);
+      headingsButton.querySelector('small').textContent = level ? level.slice(1) : '';
+    }
     const cb = tb.querySelector('[data-md="color"]');
     if (cb) { const c = E.pane === 'vis' && vis && document.activeElement === vis ? visColorAt(vis) : ta && document.activeElement === ta ? mdColorAt(ta) : null; cb.style.setProperty('--cur-tc', c ? `var(--tc-${c})` : ''); }
   };
@@ -8782,7 +8820,7 @@ const ICO = {
   link: '<svg viewBox="0 0 16 16"><path d="M6.8 9.2a3 3 0 004.2 0l2.2-2.2a3 3 0 00-4.2-4.2L8 3.8M9.2 6.8a3 3 0 00-4.2 0L2.8 9a3 3 0 004.2 4.2L8 12.2"/></svg>',
   tableEdit: '<svg viewBox="0 0 16 16"><path d="M8 13.5H3a1.5 1.5 0 0 1-1.5-1.5V4A1.5 1.5 0 0 1 3 2.5h10A1.5 1.5 0 0 1 14.5 4v1M1.5 6.5h8M1.5 10h5M6 2.5v11M9 13l.5-2.5 4-4 2 2-4 4L9 13z"/></svg>',
   table: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11"/></svg>',
-  note: '<svg viewBox="0 0 16 16"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3"/><path d="M6 10.5l4-4M7.5 6.5H10V9"/></svg>',
+  attach: '<svg viewBox="0 0 16 16"><path d="M6 10.5l4.6-4.6a1.5 1.5 0 0 1 2.1 2.1l-5.7 5.7a3 3 0 0 1-4.2-4.2L9 3.3a4 4 0 0 1 5.7 5.7l-5.1 5.1"/></svg>',
   img: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>',
   hr: '<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>',
   undo: '<svg viewBox="0 0 16 16"><path d="M5 3L2 6l3 3"/><path d="M2.5 6H10a4 4 0 010 8H7"/></svg>',
@@ -8790,13 +8828,17 @@ const ICO = {
   indent: '<svg viewBox="0 0 16 16"><path d="M3 5l3 3-3 3M8 4h5M8 8h5M8 12h5"/></svg>',
   redo: '<svg viewBox="0 0 16 16"><path d="M11 3l3 3-3 3"/><path d="M13.5 6H6a4 4 0 000 8h3"/></svg>',
 };
+const toolbarLabel = label => (isPhone() || matchMedia('(hover:none) and (pointer:coarse)').matches) ? label.replace(/ \((?:(?:Ctrl|⌘)\+|\[\[)[^()]*\)$/, '') : label;
+const TOOLBAR_CHEVRON = '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>';
 function toolbarHtml() {
-  const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${title}" aria-label="${title}">${label}</button>`;
+  const b = (act, label, title, cls = '') => `<button type="button" class="tb ${cls}" data-md="${act}" title="${toolbarLabel(title)}" aria-label="${toolbarLabel(title)}">${label}</button>`;
   return `<div class="md-toolbar" role="toolbar" aria-label="${tt('tb.label')}">
-    <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}${pdfPickerOn() ? b('pdf', 'PDF', tt('pdf.attach'), S.plan?.pro ? '' : 'pro-lock') : ''}</div>
-    <div class="tb-group">${b('h1', '<span class="tb-h">H<small>1</small></span>', tt('tb.h1', { mod: MOD }))}${b('h2', '<span class="tb-h">H<small>2</small></span>', tt('tb.h2', { mod: MOD }))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
+    <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('underline', '<u>U</u>', tt('tb.underline', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}</div>
+    <div class="tb-group">${b('headings', '<span class="tb-h">H<small></small></span>' + TOOLBAR_CHEVRON, tt('tb.headings'))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
     <div class="tb-group tb-list-level" hidden>${b('list-outdent', ICO.outdent, tt('tb.list.outdent'))}${b('list-indent', ICO.indent, tt('tb.list.indent'))}</div>
-    <div class="tb-group">${b('block', ICO.block, tt('tb.block', { mod: MOD }))}${b('link', ICO.link, tt('tb.link', { mod: MOD }))}${b('note', ICO.note, tt('tb.note'))}${b('img', ICO.img, tt('tb.img'))}${b('table', ICO.table, tt('tb.table'))}${b('hr', ICO.hr, tt('tb.hr'))}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', tt('tb.cloze') + (plusOn() ? '' : tt('tb.pro')), plusOn() ? '' : 'pro-lock') : ''}</div>
+    <div class="tb-group">${b('block', ICO.block, tt('tb.block', { mod: MOD }))}${b('links', ICO.link + TOOLBAR_CHEVRON, tt('tb.links'))}</div>
+    <div class="tb-group">${b('img', ICO.img, tt('tb.img'))}${pdfPickerOn() ? b('pdf', ICO.attach, tt('pdf.attach'), S.plan?.pro ? '' : 'pro-lock') : ''}</div>
+    <div class="tb-group">${b('table', ICO.table, tt('tb.table'))}${b('hr', ICO.hr, tt('tb.hr'))}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', tt('tb.cloze') + (plusOn() ? '' : tt('tb.pro')), plusOn() ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, tt('tb.undo', { mod: MOD }))}${b('redo', ICO.redo, tt('tb.redo', { mod: MOD }))}</div>
   </div>`;
 }
@@ -8808,32 +8850,34 @@ function replaceRange(ta, start, end, text, selStart, selEnd) {
   if (!ok || ta.value.slice(start, start + text.length) !== text) { ta.setRangeText(text, start, end, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); }
   ta.setSelectionRange(selStart ?? start + text.length, selEnd ?? selStart ?? start + text.length);
 }
-function wrapInline(ta, mark, placeholder) {
+function wrapInline(ta, mark, placeholder, endMark = mark) {
   let s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
   while (s < e && /\s/.test(v[s])) s++;
   while (e > s && /\s/.test(v[e - 1])) e--;
-  const sel = v.slice(s, e), L = mark.length;
-  if (v.slice(s - L, s) === mark && v.slice(e, e + L) === mark && !(mark === '*' && (v[s - L - 1] === '*' || v[e + L] === '*'))) {
-    replaceRange(ta, s - L, e + L, sel, s - L, e - L); return;
+  const sel = v.slice(s, e), L = mark.length, R = endMark.length;
+  if (v.slice(s - L, s) === mark && v.slice(e, e + R) === endMark && !(mark === '*' && (v[s - L - 1] === '*' || v[e + L] === '*'))) {
+    replaceRange(ta, s - L, e + R, sel, s - L, e - L); return;
   }
-  if (sel.length > 2 * L && sel.startsWith(mark) && sel.endsWith(mark)) {
-    const inner = sel.slice(L, -L); replaceRange(ta, s, e, inner, s, s + inner.length); return;
+  if (sel.length > L + R && sel.startsWith(mark) && sel.endsWith(endMark)) {
+    const inner = sel.slice(L, -R); replaceRange(ta, s, e, inner, s, s + inner.length); return;
   }
   if (!sel) {
     // курсор внутри `кода` / **жирного** / ~~зачёркнутого~~ (кнопка горит) — снять, а не вставлять второй кусок рядом
     const ls = v.lastIndexOf('\n', s - 1) + 1; let le = v.indexOf('\n', s); if (le < 0) le = v.length;
-    const esc = mark.replace(/[*~`]/g, c => '\\' + c), re = new RegExp(`${esc}(?!${esc})([^\\n]*?[^\\s])${esc}(?!${esc})`, 'g');
+    const escapeMark = m => m.replace(/[*~`]/g, c => '\\' + c);
+    const open = escapeMark(mark), end = escapeMark(endMark);
+    const re = new RegExp(`${open}(?!${open})([^\\n]*?[^\\s])${end}(?!${end})`, 'g');
     if (mark !== '*') for (const m of v.slice(ls, le).matchAll(re)) {
       const a = ls + m.index, z = a + m[0].length;
       if (s > a && s < z) { const inner = m[1]; replaceRange(ta, a, z, inner, Math.min(Math.max(s - L, a), a + inner.length), Math.min(Math.max(s - L, a), a + inner.length)); return; }
     }
-    const t = mark + placeholder + mark; replaceRange(ta, s, e, t, s + L, s + L + placeholder.length); return;
+    const t = mark + placeholder + endMark; replaceRange(ta, s, e, t, s + L, s + L + placeholder.length); return;
   }
   if (sel.includes('\n') && mark !== '`') {
-    const t = sel.split('\n').map(x => x.trim() ? x.replace(/^(\s*(?:[-*+] |\d+\. |> )?)(.*?)(\s*)$/, `$1${mark}$2${mark}$3`) : x).join('\n');
+    const t = sel.split('\n').map(x => x.trim() ? x.replace(/^(\s*(?:[-*+] |\d+\. |> )?)(.*?)(\s*)$/, `$1${mark}$2${endMark}$3`) : x).join('\n');
     replaceRange(ta, s, e, t, s, s + t.length); return;
   }
-  replaceRange(ta, s, e, mark + sel + mark, s + L, e + L);
+  replaceRange(ta, s, e, mark + sel + endMark, s + L, e + L);
 }
 function lineBounds(ta) {
   const v = ta.value; let s = ta.selectionStart, e = ta.selectionEnd;
@@ -8844,7 +8888,7 @@ function lineBounds(ta) {
 const PREFIX_RE = /^(\s*)(#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+\. |> ?)?/;
 function toggleLines(ta, kind) {
   const [ls, le] = lineBounds(ta); const lines = ta.value.slice(ls, le).split('\n');
-  const has = l => kind === 'h1' ? /^\s*#{1,2} /.test(l) : kind === 'h2' ? /^\s*#{3,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*>/.test(l);
+  const has = l => kind === 'h1' ? /^\s*#{1,2} /.test(l) : kind === 'h2' ? /^\s*### /.test(l) : kind === 'h3' ? /^\s*#{4,6} /.test(l) : kind === 'ul' ? /^\s*[-*+] (?!\[[ xX]\] )/.test(l) : kind === 'ol' ? /^\s*\d+\. /.test(l) : kind === 'task' ? /^\s*[-*+] \[[ xX]\] /.test(l) : /^\s*>/.test(l);
   const nonEmpty = lines.filter(l => l.trim());
   const all = nonEmpty.length && nonEmpty.every(has);
   let n = 0;
@@ -8853,7 +8897,7 @@ function toggleLines(ta, kind) {
     const m = l.match(PREFIX_RE); const ind = m[1] || ''; const rest = l.slice(m[0].length);
     if (all) return ind + rest;
     n++;
-    const p = kind === 'h1' ? '## ' : kind === 'h2' ? '### ' : kind === 'ul' ? '- ' : kind === 'ol' ? `${n}. ` : kind === 'task' ? '- [ ] ' : '> ';
+    const p = kind === 'h1' ? '## ' : kind === 'h2' ? '### ' : kind === 'h3' ? '#### ' : kind === 'ul' ? '- ' : kind === 'ol' ? `${n}. ` : kind === 'task' ? '- [ ] ' : '> ';
     return ind + p + rest;
   });
   const t = out.join('\n');
@@ -8875,12 +8919,13 @@ function mdAction(act, ta) {
   switch (act) {
     case 'bold': return wrapInline(ta, '**', tt('ed.ins.bold'));
     case 'italic': return wrapInline(ta, '*', tt('ed.ins.italic'));
+    case 'underline': return wrapInline(ta, '<u>', tt('ed.ins.underline'), '</u>');
     case 'strike': return wrapInline(ta, '~~', tt('ed.ins.strike'));
     case 'code':
       if (sel.includes('\n')) return mdAction('block', ta);
       return wrapInline(ta, '`', 'code');
     case 'heading': return toggleLines(ta, 'h2');
-    case 'h1': case 'h2': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
+    case 'h1': case 'h2': case 'h3': case 'ul': case 'ol': case 'task': case 'quote': return toggleLines(ta, act);
     case 'block': {
       // курсор внутри блока кода (кнопка горит) — снять ограждение ```, текст остаётся
       { const ln = v.split('\n'); let pos = 0, open = null;
@@ -8934,10 +8979,10 @@ function mdAction(act, ta) {
 }
 function mdKeydown(e, ta) {
   const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); mdAction(e.code === 'Digit1' ? 'h1' : 'h2', ta); return; }
+  if (mod && e.altKey && /^Digit[123]$/.test(e.code)) { e.preventDefault(); mdAction('h' + e.code.slice(-1), ta); return; }
   if (mod && !e.altKey) {
     const k = e.key.toLowerCase(), code = e.code;
-    const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
+    const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyU: 'underline', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
     const act = map[code];
     if (act) { e.preventDefault(); mdAction(act, ta); return; }
     if (k === 'enter') return; // save handled by the form
@@ -9038,10 +9083,10 @@ function mdText(v) {
 function mdHref(h) {
   try { const d = decodeURI(h); return /[\s<>()]/.test(d) ? h : d; } catch { return h; }
 }
-function mdWrap(mark, inner) {
+function mdWrap(mark, inner, end = mark) {
   if (!inner.trim()) return inner;
   const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0];
-  return lead + mark + inner.trim() + mark + trail;
+  return lead + mark + inner.trim() + end + trail;
 }
 function mdInline(nodes) {
   let s = '';
@@ -9051,6 +9096,7 @@ function mdInline(nodes) {
     const t = n.tagName, kids = () => mdInline([...n.childNodes]);
     if (t === 'STRONG' || t === 'B') s += mdWrap('**', kids());
     else if (t === 'EM' || t === 'I') s += mdWrap('*', kids());
+    else if (t === 'U') s += mdWrap('<u>', kids(), '</u>');
     else if (t === 'DEL' || t === 'S' || t === 'STRIKE') s += mdWrap('~~', kids());
     else if (t === 'SPAN' && n.classList.contains('cloze')) { const inner = kids(); s += inner.trim() ? `{{${inner.trim()}}}` : inner; }
     else if (t === 'SPAN' && tcOf(n)) { const inner = kids(); const lead = inner.match(/^\s*/)[0], trail = inner.match(/\s*$/)[0]; s += inner.trim() ? `${lead}<span class="tc-${tcOf(n)}">${inner.trim()}</span>${trail}` : inner; }
@@ -9085,7 +9131,7 @@ function visPasteRich(vis, cd, plain) {
   const html = cd?.getData('text/html') || '';
   if (!html || !window.DOMPurify || html.length > 3e6) return false;
   const box = document.createElement('div');
-  box.innerHTML = DOMPurify.sanitize(html, { ALLOWED_TAGS: ['p', 'div', 'br', 'b', 'strong', 'i', 'em', 's', 'strike', 'del', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  box.innerHTML = DOMPurify.sanitize(html, { ALLOWED_TAGS: ['p', 'div', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     'blockquote', 'pre', 'code', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'hr'], ALLOWED_ATTR: ['href', 'style', 'align', 'start'] });
   if (!box.textContent.trim()) return false;
   const st = el => (el.getAttribute('style') || '').toLowerCase();
@@ -9101,6 +9147,7 @@ function visPasteRich(vis, cd, plain) {
     const v = st(sp);
     if (/font-weight\s*:\s*(bold|[6-9]00)\b/.test(v)) wrap(sp, 'strong');
     if (/font-style\s*:\s*italic/.test(v)) wrap(sp, 'em');
+    if (/text-decoration[^;]*underline/.test(v)) wrap(sp, 'u');
     if (/text-decoration[^;]*line-through/.test(v)) wrap(sp, 's');
   });
   box.querySelectorAll('span').forEach(unwrap);
@@ -9370,6 +9417,7 @@ function visAction(act, vis) {
     case 'bold': return exec('bold');
     case 'italic': return exec('italic');
     case 'strike': return exec('strikeThrough');
+    case 'underline': return exec('underline');
     case 'code': {
       const c = closestIn(vis, 'code');
       if (c && !c.closest('pre')) {   // снять код: вместо <code> — обычный текст, выделенный (insertText оставлял его внутри <code>)
@@ -9381,8 +9429,9 @@ function visAction(act, vis) {
       visSelectNew(vis);   // вставленное остаётся выделенным: второе нажатие снимает код, а набор текста заменяет «code»
       return ok;
     }
-    case 'h1': case 'heading': case 'h2': {
-      const lvl = act === 'h1' ? 'h1,h2' : 'h3,h4,h5,h6', tag = act === 'h1' ? 'h2' : 'h3';
+    case 'h1': case 'heading': case 'h2': case 'h3': {
+      const tag = act === 'h1' ? 'h2' : act === 'h3' ? 'h4' : 'h3';
+      const lvl = act === 'h1' ? 'h1,h2' : act === 'h3' ? 'h4,h5,h6' : 'h3';
       { const bs = visSelBlocks(vis); if (bs.length > 1 && bs.every(b => /^(P|DIV|H[1-6])$/.test(b.tagName))) return visRetag(vis, bs, bs.every(b => b.matches(lvl)) ? 'p' : tag); }
       if (closestIn(vis, lvl)) return exec('formatBlock', 'p');
       if (closestIn(vis, 'li')) visPlain(vis);   // из списка — в заголовок, а не заголовок со списком внутри
@@ -9583,15 +9632,25 @@ const TEXT_COLORS = [['red', tt('color.red')], ['orange', tt('color.orange')], [
 const TC_NAMES = new Set(TEXT_COLORS.map(c => c[0]));
 function tcOf(el) { for (const c of el.classList || []) if (c.startsWith('tc-') && TC_NAMES.has(c.slice(3))) return c.slice(3); return null; }
 let colorPop = null;
-function closeColorPop() { colorPop?.remove(); colorPop = null; }
-function tablePop(btn, role) {
+function closeColorPop() {
+  if (colorPop?.editorTrigger?.hasAttribute('aria-expanded')) colorPop.editorTrigger.setAttribute('aria-expanded', 'false');
+  colorPop?.remove(); colorPop = null;
+}
+function editorPop(btn, role) {
   closeColorPop();
   const pop = colorPop = document.createElement('div');
   pop.className = 'color-pop tbl-pop';
   pop.setAttribute('role', role);
   pop.tabIndex = -1;
-  pop.tableTrigger = btn;
+  pop.editorTrigger = btn;
   pop.onmousedown = e => e.preventDefault();
+  pop.onkeydown = e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const buttons = [...pop.querySelectorAll('button:not(:disabled)')];
+    const i = buttons.indexOf(document.activeElement);
+    buttons[(i + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+  };
   document.body.appendChild(pop);
   return pop;
 }
@@ -9611,6 +9670,24 @@ function placeColorPop(pop, btn) {
   pop.style.left = Math.max(x + 8, Math.min(right - w - 8, r.left + (r.width - w) / 2)) + 'px';
   pop.style.top = Math.max(y + 8, Math.min(bottom - h - 8, top)) + 'px';
 }
+function openEditorMenu(btn, active, keyboard, apply) {
+  if (colorPop?.editorTrigger === btn) { closeColorPop(); return; }
+  const pop = editorPop(btn, 'menu');
+  const headings = btn.dataset.md === 'headings';
+  pop.setAttribute('aria-label', tt(headings ? 'tb.headings' : 'tb.links'));
+  btn.setAttribute('aria-expanded', 'true');
+  const options = headings
+    ? [['h1', tt('tb.h1', { mod: MOD })], ['h2', tt('tb.h2', { mod: MOD })], ['h3', tt('tb.h3', { mod: MOD })]]
+    : [['link', tt('tb.link', { mod: MOD })], ['note', tt('tb.note')]];
+  pop.innerHTML = options.map(([act, label]) => `<button type="button" ${headings ? `role="menuitemradio" data-heading="${act}" aria-checked="${active.has(act)}"` : `role="menuitem" data-link-action="${act}"`}>${toolbarLabel(label)}</button>`).join('');
+  placeTablePop(pop, btn);
+  if (keyboard) (pop.querySelector('[aria-checked="true"]') || pop.firstElementChild).focus({preventScroll: true});
+  pop.onclick = e => {
+    const choice = e.target.closest('[data-heading], [data-link-action]');
+    if (!choice) return;
+    closeColorPop(); apply(choice.dataset.heading || choice.dataset.linkAction);
+  };
+}
 function openColorPop(btn, apply, cur) {
   if (colorPop) { closeColorPop(); return; }
   const pop = colorPop = document.createElement('div');
@@ -9622,11 +9699,11 @@ function openColorPop(btn, apply, cur) {
   pop.addEventListener('mousedown', e => e.preventDefault());   // keep the text selection
   pop.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; closeColorPop(); apply(b.dataset.c); });
 }
-document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"], [data-md="table"]')) closeColorPop(); }, true);
-document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const trigger = colorPop.tableTrigger; closeColorPop(); trigger?.focus({preventScroll: true}); } }, true);
+document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"], [data-md="table"], [data-md="headings"], [data-md="links"]')) closeColorPop(); }, true);
+document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const trigger = colorPop.editorTrigger; closeColorPop(); trigger?.focus({preventScroll: true}); } }, true);
 function updateEditorPopup(e) {
   if (!colorPop || (e.target instanceof Node && colorPop.contains(e.target))) return;
-  const btn = colorPop.tableTrigger;
+  const btn = colorPop.editorTrigger;
   if (btn?.isConnected) placeTablePop(colorPop, btn);
   else closeColorPop();
 }
@@ -9659,7 +9736,7 @@ function openTablePicker(btn, field, keyboard) {
   const selection = getSelection();
   const range = visual && selection.rangeCount && field.contains(selection.anchorNode) ? selection.getRangeAt(0).cloneRange() : null;
   const start = field.selectionStart, end = field.selectionEnd;
-  const pop = tablePop(btn, 'dialog');
+  const pop = editorPop(btn, 'dialog');
   pop.setAttribute('aria-label', tt('tbl.insert'));
   const cells = Array.from({length: 25}, (_, index) => {
     const rows = Math.floor(index / 5) + 1, cols = index % 5 + 1;
@@ -9730,7 +9807,7 @@ function tblAct(vis, cell, act) {
   vis.dispatchEvent(new Event('input', { bubbles: true }));
 }
 function openTblPop(btn, vis, cell, keyboard) {
-  const pop = tablePop(btn, 'menu');
+  const pop = editorPop(btn, 'menu');
   pop.setAttribute('aria-label', tt('tbl.actions'));
   const inHead = cell.parentElement.parentElement.tagName === 'THEAD';
   const lastColumn = cell.parentElement.cells.length <= 1;
@@ -9745,13 +9822,6 @@ function openTblPop(btn, vis, cell, keyboard) {
     if (keyboard) pop.querySelector('button:not(:disabled)').focus({preventScroll: true});
   };
   render(actions);
-  pop.onkeydown = e => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    e.preventDefault();
-    const buttons = [...pop.querySelectorAll('button:not(:disabled)')];
-    const i = buttons.indexOf(document.activeElement);
-    buttons[(i + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length]?.focus();
-  };
   pop.onclick = e => {
     const b = e.target.closest('[data-tbl]'); if (!b || b.disabled) return;
     const act = b.dataset.tbl;
@@ -10011,9 +10081,9 @@ function visKeydown(e, vis) {
   }
   if (mod && !e.altKey && (e.code === 'KeyZ' || e.code === 'KeyY')) { e.preventDefault(); histStep(vis, e.code === 'KeyY' || e.shiftKey ? 1 : -1); return; }
   if (e.key === 'Enter' || (e.key === ' ' && !mod)) histRecord(vis);   // word and line boundaries start a new undo step
-  if (mod && e.altKey && (e.code === 'Digit1' || e.code === 'Digit2')) { e.preventDefault(); visAction(e.code === 'Digit1' ? 'h1' : 'h2', vis); return; }
+  if (mod && e.altKey && /^Digit[123]$/.test(e.code)) { e.preventDefault(); visAction('h' + e.code.slice(-1), vis); return; }
   if (!mod || e.altKey) return;
-  const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
+  const map = !e.shiftKey ? { KeyB: 'bold', KeyI: 'italic', KeyU: 'underline', KeyE: 'code', KeyK: 'link' } : { KeyX: 'strike', KeyC: 'block', Digit8: 'ul', Digit7: 'ol' };
   const act = map[e.code];
   if (act) { e.preventDefault(); visAction(act, vis); }
 }
@@ -10198,21 +10268,27 @@ function guestSaved() {
   guestPersist();
   if (store.get('guestWarned', 0)) return;
   store.set('guestWarned', 1);
-  setTimeout(() => { showGuestDialog(); renderGuestBar(); }, 300);
+  if (!window.NOTES_GUEST_DIRECT_NOTE) setTimeout(() => { showGuestDialog(); renderGuestBar(); }, 300);
 }
 function renderGuestBar() {
-  const bar = $('#guest-bar'); if (!bar) return;
+  const bars = document.querySelectorAll('#guest-bar, #guest-reader-bar');
   let html = '';
   if (guestOn()) {
     const sn = store.get('guestBar', {});
     if (S.loaded.notes && store.get('guestWarned', 0) && !(sn.snooze && sn.snooze > today()))
-      html = `<p>${tt('guest.bar')}</p><div class="bar"><button class="btn primary" type="button" id="guest-bar-in">${tt('guest.in.short')}</button><button class="btn" type="button" id="guest-bar-later">${tt('btn.later')}</button></div>`;
+      html = `<p>${tt(window.NOTES_GUEST_DIRECT_NOTE ? 'guest.bar.direct' : 'guest.bar')}</p><div class="bar"><button class="btn primary" type="button" id="guest-bar-in">${tt('guest.in.short')}</button><button class="btn" type="button" id="guest-bar-later">${tt('btn.later')}</button></div>`;
   } else if (S.guestLeft) {
     html = `<p>${tt('guest.left', { n: S.guestLeft.d.notes.filter(n => !n.deleted).length })}</p><div class="bar"><button class="btn primary" type="button" id="guest-move">${tt('guest.left.move')}</button><button class="btn" type="button" id="guest-drop">${tt(S.guestLeft.ask ? 'guest.left.drop.sure' : 'guest.left.drop')}</button></div>`;
   }
-  bar.innerHTML = html; bar.hidden = !html;
-  $('#guest-bar-in') && ($('#guest-bar-in').onclick = guestLogin);
-  $('#guest-bar-later') && ($('#guest-bar-later').onclick = () => { store.set('guestBar', { snooze: addDays(today(), 3) }); renderGuestBar(); });
+  for (const bar of bars) {
+    const reader = bar.id === 'guest-reader-bar';
+    bar.innerHTML = reader ? html.replaceAll('id="guest-bar-', 'id="guest-reader-bar-') : html;
+    bar.hidden = !html;
+    const signIn = bar.querySelector(reader ? '#guest-reader-bar-in' : '#guest-bar-in');
+    const later = bar.querySelector(reader ? '#guest-reader-bar-later' : '#guest-bar-later');
+    if (signIn) signIn.onclick = guestLogin;
+    if (later) later.onclick = () => { store.set('guestBar', { snooze: addDays(today(), 3) }); renderGuestBar(); };
+  }
   $('#guest-move') && ($('#guest-move').onclick = () => {   // обычное окно загрузки копии: видно, что добавится, и что не влезает в лимит
     const d = S.guestLeft.d; S.dataPanel = { pending: d, diff: importDiff(d) }; S.dataOpen = true; setMode('prog');
     requestAnimationFrame(() => $('#data-panel')?.scrollIntoView({ block: 'start' }));
@@ -11395,7 +11471,7 @@ function refreshSession() {
   if (answeredElsewhere(id)) { renderSession($('#train')); return; }
   if (T.sig !== n.title + '\u0001' + n.body) renderSession($('#train'));
 }
-let rerenderT;
+let rerenderT, directNotePending = window.NOTES_GUEST_DIRECT_NOTE;
 function rerender() {
   clearTimeout(rerenderT);
   rerenderT = setTimeout(() => {
@@ -11403,6 +11479,13 @@ function rerender() {
     if (S.mode === 'lib') { renderRail(); renderList(); if (!S.editing) renderReader(); }
     else if (S.mode === 'train') { if (!S.train) renderTrain(); else refreshSession(); }
     else if (S.mode === 'prog') renderProg();
+    if (directNotePending && S.loaded.notes && S.loaded.sections && S.loaded.settings) {
+      directNotePending = false;
+      if (S.canWrite && !S.editing) {
+        if (S.mode !== 'lib') setMode('lib');
+        newNote(true);
+      }
+    }
   }, 40);
 }
 /* ---------- первый вход в ReteNote ---------- */
