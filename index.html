@@ -3249,10 +3249,11 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .lib:not(.reading) .reader{display:none}
   .list{border-right:0}
   .back{display:inline-block}
-  .mbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:4;margin:-28px calc(-1 * clamp(16px,4vw,40px)) 14px;padding:10px clamp(16px,4vw,40px);background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04)}
-  .mbar .back.home-up{margin:0;padding:0}
-  .mnav{margin-left:auto;display:flex;align-items:center;gap:4px}
-  .mnav button{width:38px;height:34px;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--raised);color:var(--ink);font-size:20px;line-height:1}
+  .mbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:4;margin:-28px calc(-1 * clamp(16px,4vw,40px)) 14px;padding:6px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .mbar .back.note-back{display:flex;align-items:center;gap:8px;margin:0;padding:0;border:0;background:none;color:var(--ink);font:700 14px/1.3 var(--f-body);white-space:nowrap}
+  .mnav{margin-left:auto;display:flex;align-items:center;gap:6px}
+  .list-head .home-up,.list-head .icon-btn,.mbar .home-up,.mbar .icon-btn{box-sizing:border-box;width:40px;height:40px;padding:0;justify-content:center}
+  .mnav .chev{width:18px;height:18px}
   .mnav button:disabled{opacity:.35}
   .mpos{font:12px var(--f-mono);color:var(--faint);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
   .today{grid-template-columns:auto 1fr}
@@ -3345,7 +3346,7 @@ body.home-view .chips-row,body.home-view #scopebar,body.home-view:not(.desk-tile
 .home-top[hidden]{display:none}
 body.home-view .list-head h2{display:flex;align-items:center;gap:8px;min-width:0}
 .ttl-up{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
-.list-head .home-up{width:34px;height:34px}
+@media (min-width:761px){.list-head .home-up{width:34px;height:34px}}
 .home{padding:12px 12px 12px;display:flex;flex-direction:column;gap:14px}
 button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--rad-2xl);background:var(--raised);border:1px solid var(--line);text-align:left;color:var(--ink);font:inherit;cursor:pointer}
 .home-train .pring{--rs:58px}
@@ -3619,7 +3620,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 /* ===== Modern: единая система кнопок-иконок, шапка и «Назад» (08.11) ===== */
 :root[data-skin="play"] .icon-btn svg,:root[data-skin="play"] .modes svg{stroke-width:2.2;stroke-linecap:round}
 :root[data-skin="play"] .icon-btn svg{width:18px;height:18px}
-:root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
+:root[data-skin="play"] .doc .actions .icon-btn,:root[data-skin="play"] .list-head .icon-btn,:root[data-skin="play"] .mbar .icon-btn{width:40px;height:40px;padding:0;justify-content:center;border-radius:var(--rad-xl);background:color-mix(in srgb,var(--sc,var(--accent)) 10%,var(--raised));border-color:color-mix(in srgb,var(--sc,var(--accent)) 28%,var(--line-strong))}
 :root[data-skin="play"] .list-head .icon-btn[aria-pressed="true"]{background:var(--sc,var(--accent));border-color:var(--sc,var(--accent));color:var(--on-accent)}
 :root[data-skin="play"] .list-head h2{color:color-mix(in srgb,var(--sc,var(--ink)) 62%,var(--ink))}
 :root[data-skin="play"] .list-head[data-sc] .ttl-up{color:color-mix(in srgb,var(--sc) 62%,var(--ink));font-weight:800}
@@ -3630,9 +3631,8 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] #m-prog,:root[data-skin="play"] #help-btn{color:var(--muted)}
 :root[data-skin="play"] #m-prog:hover,:root[data-skin="play"] #help-btn:hover{color:var(--ink)}
 :root[data-skin="play"] #m-prog[aria-pressed="true"],:root[data-skin="play"] #help-btn[aria-pressed="true"]{color:var(--accent-ink)}   /* выбранная шестерёнка — светлая на акцентной плашке (09.11) */
-:root[data-skin="play"] .back{background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));border-radius:var(--rad-xl);font-weight:800}
+:root[data-skin="play"] .back:not(.note-back){background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));border-radius:var(--rad-xl);font-weight:800}
 @media (max-width:1100px){
-  :root[data-skin="play"] .mnav button{width:42px;height:38px;border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 16%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));font-weight:800}
   :root[data-skin="play"] .mnav .mpos{font-weight:800}
 }
 </style>
@@ -7448,6 +7448,9 @@ function artCount(list, min) {
   while (i < list.length && k < ART_STEP && sz < ART_CHARS) { sz += (list[i].body || '').length; i++; k++; }
   return i;
 }
+function readerBackButton() {
+  return `<button class="back note-back" id="back" type="button"><span class="home-up" aria-hidden="true">${CH_L}</span><span>${tt('btn.back')}</span></button>`;
+}
 function renderArticle(box, scrollTop) {
   const { list: all, terms, title } = currentList();
   const prevScroll = $('#reader').scrollTop;
@@ -7462,7 +7465,7 @@ function renderArticle(box, scrollTop) {
   if (!scrollTop && box.dataset.artSig === sig) return; // nothing changed, keep the reader as it is
   box.dataset.artSig = sig;
   box.innerHTML = `
-    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
+    <div class="mbar"${scAttr(S.section)}>${readerBackButton()}<span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
     <div class="eyebrow"><span>${tt('list.readall.label')}</span><button class="sec-link" id="art-close">${tt('art.close')}</button></div>
     <h1>${esc(title)}</h1>
     ${all.length ? `<details class="art-toc" ${all.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: all.length })}</summary><ol>${all.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(noteTitle(n))}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
@@ -7548,7 +7551,7 @@ function setupHits(box) {
 }
 function renderTrashed(box, n) {
   box.innerHTML = `
-    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button></div>
+    <div class="mbar"${scAttr(S.section)}>${readerBackButton()}</div>
     <div class="eyebrow">${tt('trash.was', { section: esc(secPath(n.section) || tt('trash.sec.gone')) })}</div>
     <h1>${esc(noteTitle(n))}</h1>
     ${S.canWrite ? `<div class="trash-banner"><span>${tt('trash.banner', { n: daysLeft(n) })}${n.deletedBy && spaceOfNote(n) ? ' ' + tt('trash.banner.by', { name: esc(personName(n.deletedBy) || tt('trash.member')) }) : ''}</span>${canEditIn(spaceOfNote(n)) ? '<button class="btn primary" id="tr-restore">' + tt('trash.restore') + '</button>' : ''}${canPurge(n) ? '<button class="btn danger" id="tr-purge">' + tt('trash.purge') + '</button>' : ''}</div>` : ''}
@@ -7562,13 +7565,20 @@ function renderTrashed(box, n) {
    page to reach the caret and push the toolbar off-screen; pin the app to the visible area instead */
 if (window.visualViewport) {
   const vv = window.visualViewport, root = document.documentElement;
+  let expandedHeight = vv.height, previousWidth = vv.width, keyboardReduced = false;
   const fit = () => {
     const kb = vv.scale < 1.05 && window.innerHeight - vv.height > 80;
+    if (vv.width !== previousWidth) expandedHeight = vv.height;
+    else if (vv.scale < 1.05) expandedHeight = Math.max(expandedHeight, vv.height);
+    previousWidth = vv.width;
+    const reduced = vv.scale < 1.05 && (kb || expandedHeight - vv.height > 80);
+    const keyboardOpened = reduced && !keyboardReduced;
+    keyboardReduced = reduced;
     document.body.classList.toggle('kb', kb);
     if (kb) { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', (vv.pageTop || 0) + 'px'); }
     else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvt'); }
     menuAboveKb();
-    if (kb) requestAnimationFrame(keepEditorCaretVisible);
+    if (reduced) requestAnimationFrame(() => keepEditorCaretVisible(keyboardOpened));
   };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
@@ -7609,7 +7619,7 @@ function renderReader(scrollTop) {
   const srsLine = n.ref ? '' : multi ? (cs => cs.length ? `<span class="hint">${tt('reader.srs', { seen: cs.reduce((a, x) => a + (x.seen || 0), 0), lapses: cs.reduce((a, x) => a + (x.lapses || 0), 0), next: (d => d <= today() ? tt('ivl.today') : d.split('-').reverse().join('.'))(cs.map(x => x.due).sort()[0]) })}</span>` : '')(cards.map(c => S.srs.get(c)).filter(x => x && x.introduced && x.due))
     : s && s.introduced ? `<span class="hint">${tt('reader.srs', { seen: s.seen || 0, lapses: s.lapses || 0, next: s.due <= today() ? tt('ivl.today') : s.due.split('-').reverse().join('.') })}</span>` : '';
   box.innerHTML = `
-    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
+    <div class="mbar"${scAttr(S.section)}>${readerBackButton()}<span class="mnav"><button class="btn icon-btn" type="button" id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button class="btn icon-btn" type="button" id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
     <div class="note-head"${scAttr(n.section)}>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))}</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
@@ -7863,14 +7873,15 @@ function caretY(ta, pos) { // pixel offset of a textarea position (mirror elemen
   m.textContent = ta.value.slice(0, pos); const mk = document.createElement('span'); mk.textContent = '​'; m.appendChild(mk);
   document.body.appendChild(m); const y = mk.offsetTop; m.remove(); return y;
 }
-function keepEditorCaretVisible() {
+function keepEditorCaretVisible(alignTop = false) {
   if (!isPhone() || !S.editing) return;
   const field = document.activeElement, box = field?.closest('#reader, #edit-overlay');
   if (!box || !field.matches('#ed-prev, #ed-body')) return;
   const vv = window.visualViewport, bounds = box.getBoundingClientRect();
   const toolbar = box.querySelector('.ed-tools')?.getBoundingClientRect();
   const actions = box.querySelector('#ed > .bar')?.getBoundingClientRect();
-  const top = Math.max(bounds.top, vv?.offsetTop || 0, toolbar?.bottom || 0) + 6;
+  const visibleTop = Math.max(bounds.top, vv?.offsetTop || 0);
+  const top = (alignTop === true ? visibleTop + (toolbar?.height || 0) : Math.max(visibleTop, toolbar?.bottom || 0)) + 6;
   const bottom = Math.min(bounds.bottom, vv ? vv.offsetTop + vv.height : innerHeight, actions?.top ?? Infinity) - 6;
   if (bottom <= top) return;
   let caret;
@@ -7888,7 +7899,7 @@ function keepEditorCaretVisible() {
       caret = {top: bounds.top + 14, bottom: bounds.top + 34};
     }
   }
-  if (caret.top < top) box.scrollTop += caret.top - top;
+  if (alignTop === true || caret.top < top) box.scrollTop += caret.top - top;
   else if (caret.bottom > bottom) box.scrollTop += caret.bottom - bottom;
 }
 function focusEditorField(field) {
@@ -7901,7 +7912,9 @@ function applyEditAnchor(E) {
   if (vis && (A.vis || !ta)) {
     const el = vis.children[Math.min(A.block, vis.children.length - 1)];
     if (!el) { vis.focus(); return; }
-    vis.focus({ preventScroll: true }); E.pane = 'vis'; placeCaretInText(el, A.text || 0); scrollToY(el, Math.max(A.viewY ?? 80, 110)); return;
+    vis.focus({ preventScroll: true }); E.pane = 'vis'; placeCaretInText(el, A.text || 0);
+    if (isPhone()) keepEditorCaretVisible(true); else scrollToY(el, Math.max(A.viewY ?? 80, 110));
+    return;
   }
   if (!ta) return;
   const offs = blockOffsets(ta.value); const b = offs[Math.min(A.block, offs.length - 1)];
@@ -7911,7 +7924,8 @@ function applyEditAnchor(E) {
     if (A.snip) for (let L = Math.min(16, A.snip.length); L >= 3; L--) { const k = b.raw.indexOf(A.snip.slice(-L)); if (k >= 0) { pos = b.start + k + L; break; } }
   }
   ta.focus({ preventScroll: true }); ta.setSelectionRange(pos, pos); E.pane = 'md';
-  const box = $('#reader'); box.scrollTop += ta.getBoundingClientRect().top + caretY(ta, pos) - box.getBoundingClientRect().top - Math.max(A.viewY ?? 80, 110);
+  if (isPhone()) keepEditorCaretVisible(true);
+  else { const box = $('#reader'); box.scrollTop += ta.getBoundingClientRect().top + caretY(ta, pos) - box.getBoundingClientRect().top - Math.max(A.viewY ?? 80, 110); }
 }
 // from the editor back to reading: remember which block the caret was in
 function editorAnchor(E) {
@@ -8309,8 +8323,9 @@ function renderEditor(box) {
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
   for (const field of [ta, vis]) if (field) {
-    for (const event of ['focus', 'input', 'click']) field.addEventListener(event, () => {
-      if (isPhone()) requestAnimationFrame(keepEditorCaretVisible);
+    for (const event of ['focus', 'input', 'click']) field.addEventListener(event, e => {
+      const fromOtherField = event === 'focus' && e.relatedTarget?.matches('input, select, textarea, [contenteditable="true"]');
+      if (isPhone()) requestAnimationFrame(() => keepEditorCaretVisible(!!fromOtherField));
     });
   }
   const titleField = $('#ed-title'), tagsField = $('#ed-tags');
