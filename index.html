@@ -564,6 +564,7 @@ window.STR = {
   'ed.draft.drop': 'Удалить черновик',
   'ed.title': 'Заголовок',
   'ed.question': 'Вопрос',
+  'ed.saving': 'Сохраняем…',
   'ed.question.need': 'Напиши вопрос для тренировки',
   'ed.text.need': 'Напиши текст заметки или укажи заголовок',
   'ed.title.need': 'Напиши заголовок — без него заметку не сохранить',
@@ -594,6 +595,8 @@ window.STR = {
   'tb.h1': 'Заголовок ({mod}+Alt+1)',
   'tb.h2': 'Подзаголовок ({mod}+Alt+2)',
   'tb.ul': 'Маркированный список ({mod}+Shift+8)',
+  'tb.list.outdent': 'Поднять пункт списка на уровень выше',
+  'tb.list.indent': 'Вложить пункт списка',
   'tb.ol': 'Нумерованный список ({mod}+Shift+7)',
   'tb.block': 'Блок кода Kotlin ({mod}+Shift+C)',
   'tb.link': 'Ссылка ({mod}+K)',
@@ -603,8 +606,12 @@ window.STR = {
   'tb.redo': 'Повторить ({mod}+Shift+Z)',
   'ed.ins.linktext': 'текст ссылки',
   'ed.ins.imgname': 'имя.png',
-  'ed.ins.col': 'Колонка {n}',
-  'ed.ins.value': 'значение',
+  'tbl.actions': 'Строки и столбцы',
+  'tbl.insert': 'Вставить таблицу',
+  'tbl.size': '{cols} {cols|столбец|столбца|столбцов} × {rows} {rows|строка|строки|строк}',
+  'tbl.row.above': 'Строка выше',
+  'tbl.col.left': 'Столбец слева',
+  'tbl.del.confirm': 'Да, удалить таблицу',
   'tbl.row': 'Строка ниже',
   'tbl.col': 'Столбец справа',
   'tbl.delrow': 'Удалить строку',
@@ -2828,6 +2835,14 @@ button.tag{border:0;background:none;padding:0}
 .field textarea{font:13.5px/1.55 var(--f-mono);min-height:360px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ed-meta-fields{display:grid;gap:10px}
+#ed .ed-save{display:inline-grid;place-items:center}
+.ed-save > span{grid-area:1/1}
+.ed-save [aria-hidden="true"]{visibility:hidden}
+.ed-save-busy{display:flex;align-items:center;gap:4px}
+.ed-save-busy::before{content:'';width:.72em;height:.72em;border:2px solid currentColor;border-inline-end-color:transparent;border-radius:50%;animation:ed-saving .8s linear infinite}
+@keyframes ed-saving{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ed-save-busy::before{animation:none}}
+@media (max-width:380px){#ed > .bar button.ed-save,#ed > .bar #ed-cancel{padding-inline:8px;font-size:14px}}
 #ed .ed-meta-toggle,#ed .ed-mode-toggle{display:none}
 .ed-meta-toggle .ed-meta-summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .editor-back{padding:6px 12px}
@@ -2838,9 +2853,12 @@ button.tag{border:0;background:none;padding:0}
 .tabs button{border:0;background:none;padding:4px 10px;border-radius:var(--rad-s);color:var(--muted);font-size:13px}
 .tabs button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
 .preview{border:1px solid var(--line);border-radius:var(--rad-m);padding:14px 16px;background:var(--raised);min-height:200px;min-width:0;overflow-wrap:anywhere}
-.md-toolbar{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:5px 6px;background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-l);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.ed-tools{position:sticky;top:0;z-index:3;min-width:0}
+.ed-table-actions{margin-bottom:4px}
+.md-toolbar{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:5px 6px;background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-l);box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .tb-group{display:flex;gap:2px;align-items:center}
 .tb-group+.tb-group{padding-left:10px;border-left:1px solid var(--line)}
+.tb-group.tb-row-start{border-left-color:transparent}
 @media (max-width:760px){
   #reader > .doc:has(> .editor-head){padding-top:16px}
   .editor-head{display:flex;align-items:center;gap:10px}
@@ -2861,6 +2879,10 @@ button.tag{border:0;background:none;padding:0}
   .ed-mode-menu:has(.ed-mode-toggle[aria-expanded="false"]) .tabs{display:none}
   .md-toolbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .md-toolbar::-webkit-scrollbar{display:none}
+  @media (any-pointer:fine){
+    .md-toolbar{scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+    .md-toolbar::-webkit-scrollbar{display:block;height:6px}
+  }
   .md-toolbar .tb-group{flex:none}
   .md-toolbar .tb-end{margin-left:0}
   #ed .tb i{font-family:inherit;font-size:inherit}
@@ -2887,6 +2909,13 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .tb .tc-ico i{display:block;width:14px;height:3px;border-radius:2px;margin-top:2px;background:var(--cur-tc,var(--ink))}
 .color-pop{position:fixed;z-index:60;display:flex;gap:6px;align-items:center;padding:8px;background:var(--raised);border:1px solid var(--line);border-radius:var(--rad-xl);box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .tbl-pop{flex-direction:column;align-items:stretch;gap:2px;padding:6px}
+.color-pop.tbl-pop .tbl-grid{display:grid;grid-template-columns:repeat(5,minmax(38px,44px));justify-content:center;gap:4px}
+.color-pop.tbl-pop .tbl-grid button{aspect-ratio:1;min-width:38px;padding:0;border:1px solid var(--line-strong);border-radius:var(--rad-s);background:var(--surface)}
+.color-pop.tbl-pop .tbl-grid button.tbl-selected{background:var(--accent-soft);border-color:var(--accent)}
+.tbl-size{margin:6px;text-align:center;font-size:14px;color:var(--muted)}
+.tbl-sheet{overflow:auto;max-height:var(--tbl-height);width:min(calc(100vw - 16px),380px)}
+.tbl-confirm{padding:8px 14px;color:var(--muted)}
+.color-pop.tbl-pop button:disabled{opacity:.4;cursor:default}
 .color-pop.tbl-pop button{width:auto;height:auto;border:0;box-shadow:none;background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left;white-space:nowrap;padding:9px 14px;border-radius:var(--rad-m);cursor:pointer}
 .color-pop.tbl-pop button:hover{background:var(--accent-soft)}
 .color-pop.tbl-pop button.danger{color:var(--again)}
@@ -2918,6 +2947,7 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .visual ul:has(> li.task),.visual ol:has(> li.task){padding-left:.3em}
 .visual li.task{list-style:none;position:relative;padding-left:1.55em}
 .visual li{min-height:1.55em}
+.visual td,.visual th{height:1lh;box-sizing:content-box}
 .visual li.task::before{content:'';position:absolute;left:0;top:.28em;width:.95em;height:.95em;border:1.5px solid var(--muted);border-radius:3px;background:var(--raised);box-sizing:border-box;cursor:pointer}
 .visual li.task[data-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
 .visual li.task[data-checked="true"]::after{content:'';position:absolute;left:.3em;top:.36em;width:.28em;height:.55em;border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg);pointer-events:none}
@@ -3220,7 +3250,7 @@ details.panel summary span{font:400 14px var(--f-body);color:var(--muted)}
   .list{border-right:0}
   .back{display:inline-block}
   .mbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:4;margin:-28px calc(-1 * clamp(16px,4vw,40px)) 14px;padding:10px clamp(16px,4vw,40px);background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.04)}
-  .mbar .back{margin:0;padding:6px 0;font-size:15px}
+  .mbar .back.home-up{margin:0;padding:0}
   .mnav{margin-left:auto;display:flex;align-items:center;gap:4px}
   .mnav button{width:38px;height:34px;border:1px solid var(--line);border-radius:var(--rad-m);background:var(--raised);color:var(--ink);font-size:20px;line-height:1}
   .mnav button:disabled{opacity:.35}
@@ -3386,7 +3416,7 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 .home-bar .btn{pointer-events:auto;box-shadow:var(--sh-pop)}
 /* планшет / узкое окно (761–1100, 12.11): плитки в колонке списка, заметка рядом — кнопки внизу только под колонкой списка, а не поверх заметки */
 @media (min-width:761px) and (max-width:1100px){.home-bar{position:sticky;left:auto;right:auto;margin:0 -12px}}
-.home-bar .btn{flex:1;padding-block:12px;font-size:16px}
+.home-bar .btn{flex:1;padding:12px 8px;font-size:16px;white-space:nowrap}
 /* компьютер с плитками (05.11): в колонке разделов и в колонке заметок плитки; колонка шире 300 px — по две квадратные, уже — по одной, высота по содержимому */
 .rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
 body.desk-tiles #items{container-type:inline-size}
@@ -3442,7 +3472,8 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
   #ed > .bar{position:fixed;left:0;right:0;bottom:0;z-index:11;margin:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:transparent;pointer-events:none;flex-wrap:nowrap}   /* без подложки, как нижние кнопки списка (09.11) */
   #ed > .bar .btn{padding:12px 16px;font-size:16px;white-space:nowrap;pointer-events:auto;box-shadow:var(--sh-pop)}
   #ed > .bar .spacer{pointer-events:none}
-  #ed{padding-bottom:84px}
+  #reader > .doc:has(> #ed){padding-bottom:0}
+  #ed{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   /* «Рядом» на телефоне: каждое окно ограничено по высоте и прокручивается само */
   .ed-panes.split #ed-body{max-height:38vh;overflow:auto!important}
   .ed-panes.split .preview{position:static;max-height:38vh;overflow:auto}
@@ -3601,7 +3632,6 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
 :root[data-skin="play"] #m-prog[aria-pressed="true"],:root[data-skin="play"] #help-btn[aria-pressed="true"]{color:var(--accent-ink)}   /* выбранная шестерёнка — светлая на акцентной плашке (09.11) */
 :root[data-skin="play"] .back{background:color-mix(in srgb,var(--sc,var(--accent)) 18%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));border-radius:var(--rad-xl);font-weight:800}
 @media (max-width:1100px){
-  :root[data-skin="play"] .mbar .back{padding:9px 16px;font-size:15px}
   :root[data-skin="play"] .mnav button{width:42px;height:38px;border:0;border-radius:var(--rad-l);background:color-mix(in srgb,var(--sc,var(--accent)) 16%,var(--raised));color:color-mix(in srgb,var(--sc,var(--accent)) 62%,var(--ink));font-weight:800}
   :root[data-skin="play"] .mnav .mpos{font-weight:800}
 }
@@ -7432,7 +7462,7 @@ function renderArticle(box, scrollTop) {
   if (!scrollTop && box.dataset.artSig === sig) return; // nothing changed, keep the reader as it is
   box.dataset.artSig = sig;
   box.innerHTML = `
-    <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
+    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button><span class="mnav"><span class="mpos">${tt('notes.n', { n: all.length })}</span></span></div>
     <div class="eyebrow"><span>${tt('list.readall.label')}</span><button class="sec-link" id="art-close">${tt('art.close')}</button></div>
     <h1>${esc(title)}</h1>
     ${all.length ? `<details class="art-toc" ${all.length <= 40 && !window.matchMedia('(max-width:760px)').matches ? 'open' : ''}><summary>${tt('art.toc', { n: all.length })}</summary><ol>${all.map(n => `<li><a href="#art-${esc(n.id)}" data-art-jump="${esc(n.id)}">${esc(noteTitle(n))}</a></li>`).join('')}</ol></details>` : `<div class="empty-state">${tt('art.empty')}</div>`}
@@ -7483,6 +7513,7 @@ function openNote(id, dir) {
   // правишь заметку и открываешь другую — сначала сохранить (как Esc и «назад»; 02.11, решение Александра). Раньше правки оставались
   // черновиком только на этом устройстве. Карточка без вопроса остаётся черновиком
   const E = S.editing, f = E && document.getElementById('ed');
+  if (E?.saving) return;
   if (E && f && (!E.leaving || E.live)) E.sync?.();
   if (E && f && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title.trim() || canInferTitle(E))))) {
     E.leaving = { id, dir }; f.requestSubmit(); return;
@@ -7517,7 +7548,7 @@ function setupHits(box) {
 }
 function renderTrashed(box, n) {
   box.innerHTML = `
-    <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button></div>
+    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button></div>
     <div class="eyebrow">${tt('trash.was', { section: esc(secPath(n.section) || tt('trash.sec.gone')) })}</div>
     <h1>${esc(noteTitle(n))}</h1>
     ${S.canWrite ? `<div class="trash-banner"><span>${tt('trash.banner', { n: daysLeft(n) })}${n.deletedBy && spaceOfNote(n) ? ' ' + tt('trash.banner.by', { name: esc(personName(n.deletedBy) || tt('trash.member')) }) : ''}</span>${canEditIn(spaceOfNote(n)) ? '<button class="btn primary" id="tr-restore">' + tt('trash.restore') + '</button>' : ''}${canPurge(n) ? '<button class="btn danger" id="tr-purge">' + tt('trash.purge') + '</button>' : ''}</div>` : ''}
@@ -7537,6 +7568,7 @@ if (window.visualViewport) {
     if (kb) { root.style.setProperty('--vvh', vv.height + 'px'); root.style.setProperty('--vvt', (vv.pageTop || 0) + 'px'); }
     else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvt'); }
     menuAboveKb();
+    if (kb) requestAnimationFrame(keepEditorCaretVisible);
   };
   vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); window.addEventListener('scroll', fit, { passive: true });
 }
@@ -7546,7 +7578,10 @@ function syncEditingClass() {
   const on = !!S.editing && !(isPhone() && !$('#lib').classList.contains('reading'));
   document.body.classList.toggle('editing', on);
 }
+let editorToolbarObserver;
 function renderReader(scrollTop) {
+  editorToolbarObserver?.disconnect();
+  if (colorPop?.tableTrigger) closeColorPop();
   const wasEditing = document.body.classList.contains('editing');
   syncEditingClass(); histSync();   // редактор новой заметки закрылся (сохранили) — теперь это обычная открытая заметка со своей записью истории
   // вышли из редактора с открытой клавиатурой: убрать фокус (клавиатура закрывается), иначе на телефоне видимая область остаётся сдвинутой и шапка уезжает за верх экрана
@@ -7574,7 +7609,7 @@ function renderReader(scrollTop) {
   const srsLine = n.ref ? '' : multi ? (cs => cs.length ? `<span class="hint">${tt('reader.srs', { seen: cs.reduce((a, x) => a + (x.seen || 0), 0), lapses: cs.reduce((a, x) => a + (x.lapses || 0), 0), next: (d => d <= today() ? tt('ivl.today') : d.split('-').reverse().join('.'))(cs.map(x => x.due).sort()[0]) })}</span>` : '')(cards.map(c => S.srs.get(c)).filter(x => x && x.introduced && x.due))
     : s && s.introduced ? `<span class="hint">${tt('reader.srs', { seen: s.seen || 0, lapses: s.lapses || 0, next: s.due <= today() ? tt('ivl.today') : s.due.split('-').reverse().join('.') })}</span>` : '';
   box.innerHTML = `
-    <div class="mbar"><button class="back" id="back">${tt('reader.back')}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
+    <div class="mbar"><button class="back home-up" id="back" type="button" aria-label="${tt('btn.back')}">${CH_L}</button><span class="mnav"><button id="prev-note" aria-label="${tt('reader.prev')}" ${nbr.prev ? '' : 'disabled'}>${CH_L}</button><span class="mpos">${nbr.pos}</span><button id="next-note" aria-label="${tt('reader.next')}" ${nbr.next ? '' : 'disabled'}>${CH_R}</button></span></div>
     <div class="note-head"${scAttr(n.section)}>
     <div class="eyebrow"><button class="sec-link" id="sec-link" title="${tt('list.goto.title')}">${esc(secPath(n.section))}</button>${S.linkBack && S.notes.has(S.linkBack) ? `<button class="link-back" id="link-back" title="${tt('reader.linkback')}">← ${esc(S.notes.get(S.linkBack).title.slice(0, 40))}</button>` : ''}</div>
     <h1>${esc(noteTitle(n))}${S.canWrite ? ` <button class="pin-btn" id="pin" aria-pressed="${!!n.pinned}" title="${tt(n.pinned ? 'note.unpin' : 'note.pin')}">${n.pinned ? '★' : '☆'}</button>` : ''}</h1>
@@ -7592,7 +7627,22 @@ function renderReader(scrollTop) {
   $('#link-back') && ($('#link-back').onclick = () => { const b = S.linkBack; S.linkBack = null; openNote(b); });
   { const bl = backlinks(n.id); if (bl.length) { const d = document.createElement('div'); d.className = 'backlinks'; d.innerHTML = `<h4>${tt('reader.backlinks', { n: bl.length })}</h4>` + bl.map(x => `<button type="button" data-bl="${esc(x.id)}">${esc(x.title)} <small>${esc(secPath(x.section))}</small></button>`).join(''); $('#md').after(d); d.onclick = e => { const b = e.target.closest('[data-bl]'); if (b) followNoteLink(b.dataset.bl, n.id); }; } }
   if (S.canWrite) $('#md').querySelectorAll('input[type=checkbox]').forEach((cb, i) => { cb.disabled = false; cb.title = tt('reader.check'); cb.onchange = () => toggleTask(n.id, i, cb.checked); });
-  if (S.readAnchor && S.readAnchor.id === n.id && !terms) { const A = S.readAnchor; S.readAnchor = null; const el = $('#md').children[Math.min(A.block, $('#md').children.length - 1)]; if (el) scrollToY(el, A.viewY ?? 80); }
+  if (S.readAnchor && S.readAnchor.id === n.id && !terms) { const A = S.readAnchor; S.readAnchor = null; const el = $('#md').children[Math.min(A.block, $('#md').children.length - 1)]; if (el) {
+    let target = el;
+    if (A.text > 0) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let left = A.text, node;
+      while ((node = walker.nextNode())) {
+        if (left <= node.length) {
+          const range = document.createRange(); range.setStart(node, left); range.collapse(true);
+          if (range.getBoundingClientRect().height) target = range;
+          break;
+        }
+        left -= node.length;
+      }
+    }
+    scrollToY(target, A.viewY ?? 80);
+  } }
   else if (first) scrollWithin($('#reader'), first); else if (scrollTop) $('#reader').scrollTop = 0;
   if (S.canWrite) {
     $('#md').ondblclick = e => {
@@ -7813,6 +7863,38 @@ function caretY(ta, pos) { // pixel offset of a textarea position (mirror elemen
   m.textContent = ta.value.slice(0, pos); const mk = document.createElement('span'); mk.textContent = '​'; m.appendChild(mk);
   document.body.appendChild(m); const y = mk.offsetTop; m.remove(); return y;
 }
+function keepEditorCaretVisible() {
+  if (!isPhone() || !S.editing) return;
+  const field = document.activeElement, box = field?.closest('#reader, #edit-overlay');
+  if (!box || !field.matches('#ed-prev, #ed-body')) return;
+  const vv = window.visualViewport, bounds = box.getBoundingClientRect();
+  const toolbar = box.querySelector('.ed-tools')?.getBoundingClientRect();
+  const actions = box.querySelector('#ed > .bar')?.getBoundingClientRect();
+  const top = Math.max(bounds.top, vv?.offsetTop || 0, toolbar?.bottom || 0) + 6;
+  const bottom = Math.min(bounds.bottom, vv ? vv.offsetTop + vv.height : innerHeight, actions?.top ?? Infinity) - 6;
+  if (bottom <= top) return;
+  let caret;
+  if (field.id === 'ed-body') {
+    const y = field.getBoundingClientRect().top + caretY(field, field.selectionEnd) - field.scrollTop;
+    caret = {top: y, bottom: y + (parseFloat(getComputedStyle(field).lineHeight) || 20)};
+  } else {
+    const sel = getSelection();
+    if (!sel?.rangeCount || !field.contains(sel.focusNode)) return;
+    const range = sel.getRangeAt(0).cloneRange();
+    range.setStart(sel.focusNode, sel.focusOffset); range.collapse(true);
+    caret = range.getClientRects()[0];
+    if (!caret?.height) {
+      const bounds = (sel.focusNode.parentElement?.closest('td, th, li, p') || field).getBoundingClientRect();
+      caret = {top: bounds.top + 14, bottom: bounds.top + 34};
+    }
+  }
+  if (caret.top < top) box.scrollTop += caret.top - top;
+  else if (caret.bottom > bottom) box.scrollTop += caret.bottom - bottom;
+}
+function focusEditorField(field) {
+  field?.focus({preventScroll: isPhone()});
+  if (isPhone()) requestAnimationFrame(keepEditorCaretVisible);
+}
 function applyEditAnchor(E) {
   const A = E.anchor; E.anchor = null; if (!A) return;
   const vis = $('#ed-prev'), ta = $('#ed-body');
@@ -7834,7 +7916,20 @@ function applyEditAnchor(E) {
 // from the editor back to reading: remember which block the caret was in
 function editorAnchor(E) {
   const vis = $('#ed-prev'), ta = $('#ed-body'), box = $('#reader');
-  if (E.pane === 'vis' && vis) { const s = getSelection(); const i = s.rangeCount ? blockIndexOf(vis, s.getRangeAt(0).startContainer) : -1; if (i >= 0) return { block: i, viewY: Math.max(0, vis.children[i].getBoundingClientRect().top - box.getBoundingClientRect().top) }; }
+  if (E.pane === 'vis' && vis) {
+    const sel = getSelection();
+    const range = sel.rangeCount && vis.contains(sel.anchorNode) ? sel.getRangeAt(0) : null;
+    const bounds = box.getBoundingClientRect(), top = bounds.top + (box.querySelector('.ed-tools')?.offsetHeight || 0);
+    const i = range ? blockIndexOf(vis, range.startContainer) : -1;
+    const block = i >= 0 ? i : [...vis.children].findIndex(el => el.getBoundingClientRect().bottom > top);
+    const el = vis.children[block];
+    if (el) {
+      const rect = range?.getClientRects()[0];
+      const caretVisible = i >= 0 && rect?.height && rect.top >= top && rect.bottom <= bounds.bottom;
+      if (caretVisible) return { block, text: textOffsetIn(el, range.startContainer, range.startOffset), viewY: rect.top - bounds.top };
+      return { block, viewY: Math.max(top, el.getBoundingClientRect().top) - bounds.top };
+    }
+  }
   if (ta) { const offs = blockOffsets(ta.value); const p = ta.selectionStart; let i = 0; offs.forEach((o, k) => { if (o.start <= p) i = k; }); return { block: i, viewY: Math.max(0, ta.getBoundingClientRect().top + caretY(ta, p) - box.getBoundingClientRect().top) }; }
   return null;
 }
@@ -8145,7 +8240,7 @@ function inferNoteTitle(body) {
 }
 const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
 $('#new-note').addEventListener('click', () => {
-  if (planBlocks('notes')) return;
+  if (S.editing?.saving || planBlocks('notes')) return;
   const sec = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
   if (roRefuse(spaceOfSection(sec))) return;
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: editorTab(), confirmDel: false };
@@ -8153,6 +8248,7 @@ $('#new-note').addEventListener('click', () => {
   $('#lib').classList.add('reading'); renderReader(true);
 });
 function startEdit(id, anchor, restore, overlay) {
+  if (S.editing?.saving) return;
   const n = S.notes.get(id);
   if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
   S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: editorTab(), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
@@ -8163,6 +8259,7 @@ function startEdit(id, anchor, restore, overlay) {
   renderReader(!anchor);
 }
 function renderEditor(box) {
+  editorToolbarObserver?.disconnect();
   const E = S.editing, d = E.draft;
   const tabs = editorTabs();
   box.dataset.artSig = '';
@@ -8190,7 +8287,10 @@ function renderEditor(box) {
             <div class="tabs" id="ed-mode-tabs">${tabs.map(([k, label]) => `<button type="button" data-tab="${k}" aria-pressed="${E.tab === k}">${label}</button>`).join('')}</div>
             <button class="btn ed-mode-toggle" id="ed-mode-toggle" type="button" aria-expanded="false" aria-controls="ed-mode-tabs">${tabs.find(([k]) => k === E.tab)?.[1] || tt('ed.tab.vis')} ${CH_R}</button>
           </div></div>
-        ${toolbarHtml()}
+        <div class="ed-tools">
+          <button type="button" class="btn ed-table-actions" id="ed-table-actions" aria-haspopup="menu" hidden>${tt('tbl.actions')}</button>
+          ${toolbarHtml()}
+        </div>
         ${pdfPickerOn() ? '<input type="file" id="ed-pdf" accept="application/pdf,.pdf" hidden>' : ''}
         <div class="link-bar" id="link-bar" hidden><label for="link-url" id="link-label">${tt('ed.link.url')}</label><input id="link-url" type="text" inputmode="url" placeholder="https://" autocomplete="off"><button class="btn primary" type="button" id="link-ok">${tt('ed.link.insert')}</button><button class="btn" type="button" id="link-cancel">${tt('btn.cancel')}</button><div class="link-tip" id="link-tip" hidden>${tt('ed.link.tip')}</div></div>
         <div class="ed-panes ${E.tab === 'split' ? 'split' : ''}">
@@ -8200,13 +8300,20 @@ function renderEditor(box) {
         <span class="hint kbd-hint">${tt('ed.hint.keys', { mod: MOD })} · ${tt(E.live ? 'ed.hint.live' : 'ed.hint.save', { mod: MOD })}</span>${E.live ? `<span class="hint touch-hint">${tt('ed.hint.live.touch')}</span>` : ''}
       </div>
       <div class="bar">
-        ${E.live ? `<button class="btn primary" type="submit">${tt('btn.done')}</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary" type="submit">${tt('btn.save')}</button>
+        ${E.live ? `<button class="btn primary" type="submit">${tt('btn.done')}</button><span class="live-st" id="live-st" aria-live="polite"></span>` : `<button class="btn primary ed-save" type="submit">
+          <span class="ed-save-ready">${tt('btn.save')}</span><span class="ed-save-busy" aria-hidden="true">${tt('ed.saving')}</span>
+        </button>
         <button class="btn" type="button" id="ed-cancel">${tt('btn.cancel')}</button>`}
         <span class="spacer"></span>
         ${E.id ? (E.confirmDel ? `<span class="confirm">${tt('ed.del.ask')} <button class="btn danger" type="button" id="ed-del-yes">${tt('bulk.del')}</button><button class="btn" type="button" id="ed-del-no">${tt('btn.no')}</button></span>` : `<button class="btn danger" type="button" id="ed-del" title="${tt('bulk.del')}" aria-label="${tt('bulk.del')}"><span class="ed-del-t">${tt('bulk.del')}</span><span class="ed-del-i" aria-hidden="true">${VICO.trash}</span></button>`) : ''}
       </div>
     </form>`;
   const ta = $('#ed-body'), vis = $('#ed-prev');
+  for (const field of [ta, vis]) if (field) {
+    for (const event of ['focus', 'input', 'click']) field.addEventListener(event, () => {
+      if (isPhone()) requestAnimationFrame(keepEditorCaretVisible);
+    });
+  }
   const titleField = $('#ed-title'), tagsField = $('#ed-tags');
   const sectionField = $('#ed-sec'), metaToggle = $('#ed-meta-toggle'), modeToggle = $('#ed-mode-toggle');
   const refreshMeta = () => {
@@ -8324,7 +8431,7 @@ function renderEditor(box) {
     });
     vis.addEventListener('focus', () => { E.pane = 'vis'; });
     vis.addEventListener('blur', e => {
-      if (e.relatedTarget && (e.relatedTarget.closest('#link-bar, .md-toolbar') || menuEl.contains(e.relatedTarget))) return;
+      if (e.relatedTarget && (e.relatedTarget.closest('#link-bar, .ed-tools, .tbl-pop') || menuEl.contains(e.relatedTarget))) return;
       if (S.menu?.kind === 'pick') return;
       if (visDirty) { visDirty = false; renderVis(); }
     });
@@ -8388,6 +8495,30 @@ function renderEditor(box) {
     vis.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); });
   }
   const tb = box.querySelector('.md-toolbar');
+  const tableActions = box.querySelector('#ed-table-actions');
+  let tableCell = null;
+  tableActions.addEventListener('mousedown', e => e.preventDefault());
+  tableActions.onclick = e => {
+    if (!E.saving && tableCell?.isConnected) openTblPop(tableActions, vis, tableCell, e.detail === 0);
+  };
+  const markToolbarRows = () => {
+    let previous;
+    for (const group of tb.children) {
+      if (group.hidden) continue;
+      group.classList.toggle('tb-row-start', !!previous && group.offsetTop >= previous.offsetTop + previous.offsetHeight);
+      previous = group;
+    }
+  };
+  editorToolbarObserver = new ResizeObserver(markToolbarRows);
+  editorToolbarObserver.observe(tb);
+  requestAnimationFrame(markToolbarRows);
+  tb.addEventListener('wheel', e => {
+    if (!e.deltaY || e.deltaX || e.ctrlKey || e.shiftKey || tb.scrollWidth <= tb.clientWidth) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? tb.clientWidth : 1;
+    const before = tb.scrollLeft;
+    tb.scrollLeft += e.deltaY * unit;
+    if (tb.scrollLeft !== before) e.preventDefault();
+  }, {passive: false});
   const pdfInput = box.querySelector('#ed-pdf');
   if (pdfInput) {
     setPdfBusy(E, !!E.pdfBusy);
@@ -8395,16 +8526,29 @@ function renderEditor(box) {
   }
   tb.addEventListener('mousedown', e => { if (e.target.closest('[data-md]')) e.preventDefault(); });
   tb.addEventListener('click', e => {
+    if (E.saving) return;
     const b = e.target.closest('[data-md]'); if (!b) return;
     if (b.dataset.md === 'pdf') { if (S.plan?.pro) pdfInput?.click(); else showPlanDialog('pdf'); return; }
     if (b.dataset.md === 'color') { openColorPop(b, c => { if (E.pane === 'vis' && vis) visColor(vis, c); else if (ta) mdColor(ta, c); requestAnimationFrame(refreshTb); }, E.pane === 'vis' && vis ? visColorAt(vis) : ta ? mdColorAt(ta) : null); return; }
-    if (b.dataset.md === 'table' && E.pane === 'vis' && vis && closestIn(vis, 'td, th')) { openTblPop(b, vis); return; }   // курсор в таблице — меню строк и столбцов
+    if (b.dataset.md === 'table') {
+      openTablePicker(b, E.pane === 'vis' ? vis : ta, e.detail === 0);
+      return;
+    }
     if (b.dataset.md === 'cloze' && !plusOn()) { showPlanDialog('plus'); return; }   // пропуски — «тренировка плюс» (Pro)
     if (E.pane === 'vis' && vis) visActionKeep(b.dataset.md, vis); else if (ta) mdAction(b.dataset.md, ta);
     requestAnimationFrame(refreshTb);
   });
   // pressed state of toolbar buttons follows the caret
+  const listLevels = tb.querySelector('.tb-list-level');
   const refreshTb = () => {
+    const cell = E.pane === 'vis' && vis ? closestIn(vis, 'td, th') : null;
+    if (cell || document.activeElement === vis || document.activeElement === ta) tableCell = cell;
+    tableActions.hidden = !tableCell?.isConnected;
+    tb.querySelector('[data-md="table"]').disabled = !tableActions.hidden;
+    const li = E.pane === 'vis' && vis && closestIn(vis, 'li');
+    listLevels.hidden = !isPhone() || !li;
+    listLevels.querySelector('[data-md="list-indent"]').disabled = !li || !li.previousElementSibling;
+    listLevels.querySelector('[data-md="list-outdent"]').disabled = !li || !li.parentElement.parentElement.closest('li');
     if (!tb.isConnected) return;
     const st = E.pane === 'vis' && vis && document.activeElement === vis ? visFormatState(vis) : ta && document.activeElement === ta ? mdFormatState(ta) : null;
     if (st) setTbState(tb, st);
@@ -8419,7 +8563,7 @@ function renderEditor(box) {
   $('#link-ok').onclick = linkOk;
   $('#link-cancel').onclick = () => { lb.hidden = true; vis?.focus(); restoreSel(); };
   $('#link-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); linkOk(); return; } if (e.key === 'Escape') { e.preventDefault(); lb.hidden = true; vis?.focus(); restoreSel(); } });
-  if (E.focusBody) { E.focusBody = false; (ta || vis)?.focus(); }
+  if (E.focusBody) { E.focusBody = false; focusEditorField(ta || vis); }
   const sync = () => {
     d.title = titleField.value; d.section = $('#ed-sec').value; d.tags = editorTags(tagsField.value);
     d.ref = $('#ed-ref').checked; if (ta) d.body = ta.value;
@@ -8427,7 +8571,7 @@ function renderEditor(box) {
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader();
   });
-  $('#back').onclick = () => { if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else { document.activeElement?.blur?.(); $('#lib').classList.remove('reading'); syncEditingClass(); } };
+  $('#back').onclick = () => { if (E.saving) return; if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else { document.activeElement?.blur?.(); $('#lib').classList.remove('reading'); syncEditingClass(); } };
   const closeEditor = () => { const A = E.id ? editorAnchor(E) : null; S.editing = null; if (!E.id && !S.article && isPhone()) $('#lib').classList.remove('reading');   // отменили новую заметку — обратно на список, откуда нажали «+ Заметка»
     if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else { if (A) S.readAnchor = Object.assign({ id: E.id }, A); renderReader(); } };
   $('#ed-cancel') && ($('#ed-cancel').onclick = () => { dropDraft(E.id); closeEditor(); });
@@ -8438,7 +8582,12 @@ function renderEditor(box) {
     S.editing = null; trashNotes([id]);
   });
   const form = $('#ed');
+  let saveAnchor;
+  form.addEventListener('pointerdown', e => {
+    if (E.id && e.target.closest('button[type="submit"]')) saveAnchor = editorAnchor(E);
+  });
   form.addEventListener('keydown', e => {
+    if (E.saving) { e.preventDefault(); return; }
     if (e.key === 'Escape' && modeToggle.getAttribute('aria-expanded') === 'true') {
       e.preventDefault(); modeToggle.setAttribute('aria-expanded', 'false'); modeToggle.focus(); return;
     }
@@ -8461,14 +8610,33 @@ function renderEditor(box) {
   $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
   if (E.anchor) requestAnimationFrame(() => applyEditAnchor(E));
   if (E.live) { liveStatus(E); requestAnimationFrame(() => livePeers(E)); }
+  const setSaving = E.setSaving = busy => {
+    E.saving = busy;
+    form.setAttribute('aria-busy', String(busy));
+    const submit = form.querySelector('button[type="submit"]');
+    submit.disabled = busy;
+    submit.querySelector('.ed-save-ready')?.setAttribute('aria-hidden', String(busy));
+    submit.querySelector('.ed-save-busy')?.setAttribute('aria-hidden', String(!busy));
+    for (const child of form.children) if (child !== submit.parentElement) child.inert = busy;
+    for (const button of submit.parentElement.querySelectorAll('button:not([type="submit"])')) button.disabled = busy;
+  };
+  if (E.saving) setSaving(true);
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    if (S.editing !== E || E.L?.finish) return;
+    if (S.editing !== E || E.saving || E.L?.finish) return;
+    const anchor = saveAnchor || (E.id ? editorAnchor(E) : null);
+    saveAnchor = null;
+    sync();
+    if (!E.live) setSaving(true);
+    try { await saveEditor(anchor); }
+    finally { if (!E.live) E.setSaving(false); }
+  });
+  async function saveEditor(anchor) {
     if (uploads.size) { toast(tt('ed.wait.img')); await Promise.allSettled([...uploads]); }
     if (S.editing !== E || E.L?.finish || !form.isConnected) return;
     sync();
     if (E.live) {   // совместная правка: всё уже у сервера — досылаем последнее и выходим
-      const A = editorAnchor(E), id = E.id;
+      const A = anchor, id = E.id;
       await liveFinish(E);
       if (S.editing !== E) return;
       const prev = S.notes.get(id); if (prev) S.notes.set(id, Object.assign({}, prev, { title: d.title || prev.title, body: d.body, tags: d.tags }));
@@ -8481,6 +8649,7 @@ function renderEditor(box) {
       const training = isTrainFolder(d.section);
       if (!canInferTitle(E)) {
         E.leaving = null; E.stay = false;
+        setSaving(false);
         toast(tt(training ? 'ed.question.need' : E.id ? 'ed.title.need' : 'ed.text.need'));
         (training || E.id ? titleField : ta || vis)?.focus();
         return;
@@ -8518,7 +8687,7 @@ function renderEditor(box) {
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: was?.created || now, updated: now };
     if (was?.pinned) doc.pinned = true;
     const stay = E.stay; E.stay = false;
-    const A = !stay && E.id ? editorAnchor(E) : null;
+    const A = !stay ? anchor : null;
     const wasNew = !E.id;
     const ok = await write(() => S.db.collection('notes').doc(id).set(doc), revived ? null : mergedMsg || tt(wasNew ? 'ed.added' : 'live.saved'));
     if (!ok) {
@@ -8538,8 +8707,8 @@ function renderEditor(box) {
     if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
     if (spaceTarget) moveToSpace(id, spaceTarget);
     else if (E.leaving) openNote(E.leaving.id, E.leaving.dir);   // сохранили по переходу на другую заметку — открыть её
-  });
-  if (!E.id) (isTrainFolder(sectionField.value) ? titleField : ta || vis)?.focus();
+  }
+  if (!E.id) { if (isTrainFolder(sectionField.value)) titleField.focus(); else focusEditorField(ta || vis); }
 }
 /* ---------- одна заметка правится на двух устройствах (02.11) ----------
    base — заметка, когда открыли редактор; mine — что получилось у нас; theirs — что сейчас на сервере (пришло с другого устройства).
@@ -8597,6 +8766,8 @@ const ICO = {
   img: '<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>',
   hr: '<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>',
   undo: '<svg viewBox="0 0 16 16"><path d="M5 3L2 6l3 3"/><path d="M2.5 6H10a4 4 0 010 8H7"/></svg>',
+  outdent: '<svg viewBox="0 0 16 16"><path d="M6 5L3 8l3 3M8 4h5M8 8h5M8 12h5"/></svg>',
+  indent: '<svg viewBox="0 0 16 16"><path d="M3 5l3 3-3 3M8 4h5M8 8h5M8 12h5"/></svg>',
   redo: '<svg viewBox="0 0 16 16"><path d="M11 3l3 3-3 3"/><path d="M13.5 6H6a4 4 0 000 8h3"/></svg>',
 };
 function toolbarHtml() {
@@ -8604,6 +8775,7 @@ function toolbarHtml() {
   return `<div class="md-toolbar" role="toolbar" aria-label="${tt('tb.label')}">
     <div class="tb-group">${b('bold', '<b>B</b>', tt('tb.bold', { mod: MOD }))}${b('italic', '<i>I</i>', tt('tb.italic', { mod: MOD }))}${b('strike', '<s>S</s>', tt('tb.strike', { mod: MOD }))}${b('code', ICO.code, tt('tb.code', { mod: MOD }))}${b('color', '<span class="tc-ico">A<i></i></span>', tt('tb.color'))}${pdfPickerOn() ? b('pdf', 'PDF', tt('pdf.attach'), S.plan?.pro ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group">${b('h1', '<span class="tb-h">H<small>1</small></span>', tt('tb.h1', { mod: MOD }))}${b('h2', '<span class="tb-h">H<small>2</small></span>', tt('tb.h2', { mod: MOD }))}${b('ul', ICO.ul, tt('tb.ul', { mod: MOD }))}${b('ol', ICO.ol, tt('tb.ol', { mod: MOD }))}${b('task', ICO.task, tt('tb.task'))}${b('quote', ICO.quote, tt('tb.quote'))}</div>
+    <div class="tb-group tb-list-level" hidden>${b('list-outdent', ICO.outdent, tt('tb.list.outdent'))}${b('list-indent', ICO.indent, tt('tb.list.indent'))}</div>
     <div class="tb-group">${b('block', ICO.block, tt('tb.block', { mod: MOD }))}${b('link', ICO.link, tt('tb.link', { mod: MOD }))}${b('note', ICO.note, tt('tb.note'))}${b('img', ICO.img, tt('tb.img'))}${b('table', ICO.table, tt('tb.table'))}${b('hr', ICO.hr, tt('tb.hr'))}${plusOn() || planOn() ? b('cloze', '<span class="cz-ico">[…]</span>', tt('tb.cloze') + (plusOn() ? '' : tt('tb.pro')), plusOn() ? '' : 'pro-lock') : ''}</div>
     <div class="tb-group tb-end">${b('undo', ICO.undo, tt('tb.undo', { mod: MOD }))}${b('redo', ICO.redo, tt('tb.redo', { mod: MOD }))}</div>
   </div>`;
@@ -8729,7 +8901,6 @@ function mdAction(act, ta) {
       return insertBlock(ta, `![](img/${name})`, 8, base.length);
     }
     case 'note': return pickForMd(ta, s, e);
-    case 'table': { const c1 = tt('ed.ins.col', { n: 1 }), v = tt('ed.ins.value'); return insertBlock(ta, `| ${c1} | ${tt('ed.ins.col', { n: 2 })} |\n| --- | --- |\n| ${v} | ${v} |`, 2, c1.length); }
     case 'hr': return insertBlock(ta, '---', 3);
     case 'cloze': {   // {{выделенное}}; снова на пропуске — снять
       if (v.slice(s - 2, s) === '{{' && v.slice(e, e + 2) === '}}') return replaceRange(ta, s - 2, e + 2, sel, s - 2, e - 2);
@@ -9115,7 +9286,7 @@ function visActionKeep(act, vis) {
     let r = sel.getRangeAt(0).getClientRects()[0];
     if (!r || (!r.height && !r.width)) { const n = sel.anchorNode; const el = n && (n.nodeType === 1 ? n : n.parentElement); r = el && el.getBoundingClientRect(); }   // пустой пункт списка — прямоугольника у курсора нет
     if (!r) return;
-    const bb = box.getBoundingClientRect(), tb = box.querySelector('.md-toolbar'), min = Math.max(bb.top, tb ? tb.getBoundingClientRect().bottom : bb.top), d = cur - top;
+    const bb = box.getBoundingClientRect(), tb = box.querySelector('.ed-tools'), min = Math.max(bb.top, tb ? tb.getBoundingClientRect().bottom : bb.top), d = cur - top;
     const lineEnd = r.top + Math.min(r.height, 28);   // у большого блока (пустой редактор) смотрим только первую строку
     if (r.top + d >= min && lineEnd + d <= bb.bottom) box.scrollTop = top;   // на старом месте курсор виден — не двигаем; не виден (его закрыла клавиатура) — пусть будет по-браузерному
   };
@@ -9170,6 +9341,12 @@ function visAction(act, vis) {
   if (act !== 'undo' && act !== 'redo') histRecord(vis);
   const sel = getSelection(); const text = sel.toString();
   switch (act) {
+    case 'list-indent': case 'list-outdent': {
+      const li = closestIn(vis, 'li');
+      if (li && (act === 'list-indent' ? visIndentLi(li) : visOutdentLi(li)))
+        vis.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
     case 'bold': return exec('bold');
     case 'italic': return exec('italic');
     case 'strike': return exec('strikeThrough');
@@ -9292,7 +9469,6 @@ function visAction(act, vis) {
       return;
     }
     case 'note': return pickForVis(vis, document.querySelector('.md-toolbar [data-md="note"]') || vis);
-    case 'table': return exec('insertHTML', `<table><thead><tr><th>${tt('ed.ins.col', { n: 1 })}</th><th>${tt('ed.ins.col', { n: 2 })}</th></tr></thead><tbody><tr><td>${tt('ed.ins.value')}</td><td>${tt('ed.ins.value')}</td></tr></tbody></table><p><br></p>`);
     case 'hr': {   // после линии — пустой абзац с курсором: иначе текст после неё оказывался «голым», вне абзаца
       const ok = exec('insertHTML', '<hr><p data-new><br></p>');
       const np = vis.querySelector('p[data-new]'); if (np) { np.removeAttribute('data-new'); const r = document.createRange(); r.setStart(np, 0); r.collapse(true); const sl2 = getSelection(); sl2.removeAllRanges(); sl2.addRange(r); vis.dispatchEvent(new Event('input', { bubbles: true })); }
@@ -9388,6 +9564,25 @@ const TC_NAMES = new Set(TEXT_COLORS.map(c => c[0]));
 function tcOf(el) { for (const c of el.classList || []) if (c.startsWith('tc-') && TC_NAMES.has(c.slice(3))) return c.slice(3); return null; }
 let colorPop = null;
 function closeColorPop() { colorPop?.remove(); colorPop = null; }
+function tablePop(btn, role) {
+  closeColorPop();
+  const pop = colorPop = document.createElement('div');
+  pop.className = 'color-pop tbl-pop';
+  pop.setAttribute('role', role);
+  pop.tabIndex = -1;
+  pop.tableTrigger = btn;
+  pop.onmousedown = e => e.preventDefault();
+  document.body.appendChild(pop);
+  return pop;
+}
+function placeTablePop(pop, btn) {
+  if (!isPhone()) { placeColorPop(pop, btn); return; }
+  const vv = window.visualViewport, height = vv?.height || innerHeight;
+  pop.classList.add('tbl-sheet');
+  pop.style.setProperty('--tbl-height', Math.max(0, height - 16) + 'px');
+  pop.style.left = ((vv?.offsetLeft || 0) + ((vv?.width || innerWidth) - pop.offsetWidth) / 2) + 'px';
+  pop.style.top = ((vv?.offsetTop || 0) + height - pop.offsetHeight - 8) + 'px';
+}
 function placeColorPop(pop, btn) {
   const vv = window.visualViewport, x = vv?.offsetLeft || 0, y = vv?.offsetTop || 0;
   const right = x + (vv?.width || innerWidth), bottom = y + (vv?.height || innerHeight);
@@ -9407,11 +9602,17 @@ function openColorPop(btn, apply, cur) {
   pop.addEventListener('mousedown', e => e.preventDefault());   // keep the text selection
   pop.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; closeColorPop(); apply(b.dataset.c); });
 }
-document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"]')) closeColorPop(); }, true);
-document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeColorPop(); } }, true);
-window.addEventListener('scroll', () => closeColorPop(), true);
-window.addEventListener('resize', closeColorPop);
-window.visualViewport?.addEventListener('resize', closeColorPop);
+document.addEventListener('pointerdown', e => { if (colorPop && !colorPop.contains(e.target) && !e.target.closest('[data-md="color"], [data-md="table"], #ed-table-actions')) closeColorPop(); }, true);
+document.addEventListener('keydown', e => { if (colorPop && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const trigger = colorPop.tableTrigger; closeColorPop(); trigger?.focus({preventScroll: true}); } }, true);
+function updateEditorPopup(e) {
+  if (!colorPop || (e.target instanceof Node && colorPop.contains(e.target))) return;
+  const btn = colorPop.tableTrigger;
+  if (btn?.isConnected) placeTablePop(colorPop, btn);
+  else closeColorPop();
+}
+window.addEventListener('scroll', updateEditorPopup, true);
+window.addEventListener('resize', updateEditorPopup);
+window.visualViewport?.addEventListener('resize', updateEditorPopup);
 
 /* ---------- таблица в «Визуально»: переход по ячейкам, строки и столбцы ---------- */
 // курсор в ячейку; select — выделить её текст (Tab по ячейкам, как в таблицах: набранное заменяет содержимое)
@@ -9432,34 +9633,112 @@ function tblMove(cell, dir) {
   else to = rows[ri + 1] ? (rows[ri + 1].cells[ci] || rows[ri + 1].cells[0]) : tblRowAfter(tr).cells[ci];
   if (to) cellFocus(to, dir !== 'down');
 }
-function tblAct(vis, act) {
-  const cell = closestIn(vis, 'td, th'); if (!cell) return;
-  vis.focus(); histRecord(vis);
+function openTablePicker(btn, field, keyboard) {
+  if (!field) return;
+  const visual = field.id === 'ed-prev';
+  const selection = getSelection();
+  const range = visual && selection.rangeCount && field.contains(selection.anchorNode) ? selection.getRangeAt(0).cloneRange() : null;
+  const start = field.selectionStart, end = field.selectionEnd;
+  const pop = tablePop(btn, 'dialog');
+  pop.setAttribute('aria-label', tt('tbl.insert'));
+  const cells = Array.from({length: 25}, (_, index) => {
+    const rows = Math.floor(index / 5) + 1, cols = index % 5 + 1;
+    return `<button type="button" tabindex="${index ? -1 : 0}" data-size="${index}" aria-label="${tt('tbl.size', { rows, cols })}"></button>`;
+  });
+  pop.innerHTML = `<div class="tbl-grid">${cells.join('')}</div><div class="tbl-size" role="status"></div>`;
+  const buttons = [...pop.querySelectorAll('[data-size]')];
+  const selectSize = index => {
+    const rows = Math.floor(index / 5) + 1, cols = index % 5 + 1;
+    buttons.forEach((button, i) => button.classList.toggle('tbl-selected', Math.floor(i / 5) < rows && i % 5 < cols));
+    pop.querySelector('.tbl-size').textContent = tt('tbl.size', { rows, cols });
+  };
+  selectSize(0);
+  placeTablePop(pop, btn);
+  if (keyboard) buttons[0].focus({preventScroll: true});
+  pop.addEventListener('pointerover', e => { if (e.target.dataset.size != null) selectSize(+e.target.dataset.size); });
+  pop.addEventListener('focusin', e => { if (e.target.dataset.size != null) selectSize(+e.target.dataset.size); });
+  pop.addEventListener('keydown', e => {
+    const step = {ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0]}[e.key];
+    if (!step || e.target.dataset.size == null) return;
+    e.preventDefault();
+    const index = +e.target.dataset.size;
+    const row = Math.max(0, Math.min(4, Math.floor(index / 5) + step[0]));
+    const col = Math.max(0, Math.min(4, index % 5 + step[1]));
+    const next = buttons[row * 5 + col];
+    if (next) { e.target.tabIndex = -1; next.tabIndex = 0; next.focus({preventScroll: true}); }
+  });
+  pop.onclick = e => {
+    if (e.target.dataset.size == null || !field.isConnected) return;
+    const index = +e.target.dataset.size, rows = Math.floor(index / 5) + 1, cols = index % 5 + 1;
+    closeColorPop();
+    field.focus({preventScroll: true});
+    if (visual) {
+      if (range && field.contains(range.startContainer)) { selection.removeAllRanges(); selection.addRange(range); }
+      histRecord(field);
+      const head = '<th><br></th>'.repeat(cols), row = '<tr>' + '<td><br></td>'.repeat(cols) + '</tr>';
+      exec('insertHTML', `<table data-table-new><thead><tr>${head}</tr></thead><tbody>${row.repeat(rows - 1)}</tbody></table><p><br></p>`);
+      const table = field.querySelector('[data-table-new]');
+      if (table) { table.removeAttribute('data-table-new'); cellFocus(table.rows[0].cells[0]); }
+    } else {
+      field.setSelectionRange(start, end);
+      const line = '| ' + ' | '.repeat(cols), separator = '| ' + '--- | '.repeat(cols).trimEnd();
+      insertBlock(field, [line, separator, ...Array(rows - 1).fill(line)].join('\n'), 2);
+    }
+  };
+}
+function tblAct(vis, cell, act) {
+  if (!vis.contains(cell)) return;
+  vis.focus({preventScroll: true}); histRecord(vis);
   const t = cell.closest('table'), tr = cell.parentElement, ci = cell.cellIndex;
-  const dropTable = () => { const p = document.createElement('p'); p.appendChild(document.createElement('br')); t.replaceWith(p); cellFocus(p); };
-  if (act === 'row') cellFocus(tblRowAfter(tr).cells[ci] || tr.cells[0]);
-  else if (act === 'col') { for (const r of t.rows) r.insertBefore(tblNewCell(r.parentElement.tagName === 'THEAD' ? 'th' : 'td'), r.cells[ci + 1] || null); cellFocus(tr.cells[ci + 1]); }
-  else if (act === 'delrow') {
-    if (tr.parentElement.tagName === 'THEAD' || t.rows.length < 2) dropTable();   // строка заголовка обязательна в Markdown — без неё таблицы нет
-    else { const next = tr.nextElementSibling || tr.previousElementSibling; tr.remove(); cellFocus(next.cells[Math.min(ci, next.cells.length - 1)]); }
+  if (act === 'row' || act === 'row-above') {
+    const row = tblRowAfter(tr);
+    if (act === 'row-above') tr.before(row);
+    cellFocus(row.cells[ci] || row.cells[0]);
+  } else if (act === 'col' || act === 'col-left') {
+    const pos = ci + (act === 'col' ? 1 : 0);
+    for (const row of t.rows) row.insertBefore(tblNewCell(row.parentElement.tagName === 'THEAD' ? 'th' : 'td'), row.cells[pos] || null);
+    cellFocus(tr.cells[pos]);
+  } else if (act === 'delrow') {
+    const next = tr.nextElementSibling || tr.previousElementSibling || t.tHead.rows[0];
+    tr.remove(); cellFocus(next.cells[Math.min(ci, next.cells.length - 1)]);
+  } else if (act === 'delcol') {
+    for (const row of t.rows) row.cells[ci]?.remove();
+    cellFocus(tr.cells[Math.min(ci, tr.cells.length - 1)]);
+  } else if (act === 'del') {
+    const p = document.createElement('p'); p.appendChild(document.createElement('br')); t.replaceWith(p); cellFocus(p);
   }
-  else if (act === 'delcol') {
-    if (tr.cells.length < 2) dropTable();
-    else { for (const r of t.rows) r.cells[ci]?.remove(); cellFocus(tr.cells[Math.min(ci, tr.cells.length - 1)]); }
-  }
-  else if (act === 'del') dropTable();
   vis.dispatchEvent(new Event('input', { bubbles: true }));
 }
-function openTblPop(btn, vis) {
-  if (colorPop) { closeColorPop(); return; }
-  const pop = colorPop = document.createElement('div');
-  pop.className = 'color-pop tbl-pop'; pop.setAttribute('role', 'menu');
-  pop.innerHTML = [['row', tt('tbl.row')], ['col', tt('tbl.col')], ['delrow', tt('tbl.delrow')], ['delcol', tt('tbl.delcol')], ['del', tt('tbl.del')]]
-    .map(([a, label]) => `<button type="button" role="menuitem" data-tbl="${a}"${a === 'del' ? ' class="danger"' : ''}>${label}</button>`).join('');
-  document.body.appendChild(pop);
-  placeColorPop(pop, btn);
-  pop.addEventListener('mousedown', e => e.preventDefault());
-  pop.addEventListener('click', e => { const b = e.target.closest('[data-tbl]'); if (!b) return; closeColorPop(); tblAct(vis, b.dataset.tbl); });
+function openTblPop(btn, vis, cell, keyboard) {
+  const pop = tablePop(btn, 'menu');
+  pop.setAttribute('aria-label', tt('tbl.actions'));
+  const inHead = cell.parentElement.parentElement.tagName === 'THEAD';
+  const lastColumn = cell.parentElement.cells.length <= 1;
+  const actions = [
+    ['row-above', tt('tbl.row.above'), inHead], ['row', tt('tbl.row')],
+    ['col-left', tt('tbl.col.left')], ['col', tt('tbl.col')],
+    ['delrow', tt('tbl.delrow'), inHead], ['delcol', tt('tbl.delcol'), lastColumn], ['confirm', tt('tbl.del')]
+  ];
+  const render = items => {
+    pop.innerHTML = items.map(([act, label, disabled]) => `<button type="button" role="menuitem" data-tbl="${act}"${disabled ? ' disabled' : ''}${act === 'del' || act === 'confirm' ? ' class="danger"' : ''}>${label}</button>`).join('');
+    placeTablePop(pop, btn);
+    if (keyboard) pop.querySelector('button:not(:disabled)').focus({preventScroll: true});
+  };
+  render(actions);
+  pop.onkeydown = e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const buttons = [...pop.querySelectorAll('button:not(:disabled)')];
+    const i = buttons.indexOf(document.activeElement);
+    buttons[(i + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+  };
+  pop.onclick = e => {
+    const b = e.target.closest('[data-tbl]'); if (!b || b.disabled) return;
+    const act = b.dataset.tbl;
+    if (act === 'confirm') { render([['del', tt('tbl.del.confirm')], ['back', tt('btn.cancel')]]); return; }
+    if (act === 'back') { render(actions); return; }
+    closeColorPop(); tblAct(vis, cell, act);
+  };
 }
 function visColorAt(vis) {
   const sl = getSelection(); let n = sl.anchorNode; if (!n) return null; if (n.nodeType === 3) n = n.parentElement;
