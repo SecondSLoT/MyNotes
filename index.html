@@ -548,6 +548,7 @@ window.STR = {
   'ed.live': 'Совместная правка',
   'ed.editing': 'Редактирование',
   'ed.new': 'Новая заметка',
+  'ed.new.card': 'Новая карточка',
   'ed.draft.this': 'Есть несохранённый черновик этой заметки от {time}',
   'ed.draft.new': 'Есть несохранённый черновик новой заметки от {time}',
   'ed.sec.none': 'Без раздела',
@@ -563,6 +564,8 @@ window.STR = {
   'ed.draft.drop': 'Удалить черновик',
   'ed.title': 'Заголовок',
   'ed.question': 'Вопрос',
+  'ed.question.need': 'Напиши вопрос для тренировки',
+  'ed.text.need': 'Напиши текст заметки или укажи заголовок',
   'ed.title.need': 'Напиши заголовок — без него заметку не сохранить',
   'ed.revived': 'Заметку «{title}» удалили на другом устройстве во время правки — она возвращена из корзины вместе с правкой',
   'ed.sec': 'Раздел',
@@ -7478,12 +7481,13 @@ function renderArticle(box, scrollTop) {
 
 function openNote(id, dir) {
   // правишь заметку и открываешь другую — сначала сохранить (как Esc и «назад»; 02.11, решение Александра). Раньше правки оставались
-  // черновиком только на этом устройстве. Новая заметка без заголовка не сохраняется — остаётся черновиком, как раньше
+  // черновиком только на этом устройстве. Карточка без вопроса остаётся черновиком
   const E = S.editing, f = E && document.getElementById('ed');
   if (E && f && (!E.leaving || E.live)) E.sync?.();
-  if (E && f && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title || '').trim()))) {
+  if (E && f && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title.trim() || canInferTitle(E))))) {
     E.leaving = { id, dir }; f.requestSubmit(); return;
   }
+  if (E && !E.id && id !== E.id && draftDiffers(E.id, E.draft)) saveDraft(E);
   if (S.article && !S.editing) {
     const sec = document.getElementById('art-' + id);
     if (sec) { $('#lib').classList.add('reading'); S.noteId = id; markListCurrent(id); scrollArticleTo(sec); return; }
@@ -8125,6 +8129,20 @@ async function keepOwnCopy(d) {
 
 /* ---------- editor ---------- */
 const editorTab = () => store.get('edTab', isPhone() ? 'prev' : 'edit');
+const canInferTitle = E => !E.id && !isTrainFolder(E.draft.section) && !!E.draft.body.trim();
+function inferNoteTitle(body) {
+  const template = document.createElement('template');
+  for (const line of body.split('\n')) {
+    if (!line.trim() || /^\s*(?:```|~~~)/.test(line)) continue;
+    template.innerHTML = renderMd(line);
+    template.content.querySelectorAll('a[href]').forEach(a => { if (pdfLink(a.getAttribute('href'))) a.remove(); });
+    const title = template.content.textContent.replace(/\u200b/g, '').replace(/\s+/g, ' ').trim();
+    if (!title) continue;
+    const chars = Array.from(title);
+    return chars.length > 80 ? chars.slice(0, 79).join('').trimEnd() + '…' : title;
+  }
+  return tt('note.untitled');
+}
 const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
 $('#new-note').addEventListener('click', () => {
   if (planBlocks('notes')) return;
@@ -8155,7 +8173,7 @@ function renderEditor(box) {
     </div>
     ${E.draftOffer ? `<div class="draft-note u-mt10" ><span>${tt(E.id ? 'ed.draft.this' : 'ed.draft.new', { time: hhmm(E.draftOffer.ts) })}${E.draftOffer.title && !E.id ? ` — «${esc(E.draftOffer.title.slice(0, 40))}»` : ''}</span><button class="btn primary" type="button" id="dr-restore">${tt('trash.restore')}</button><button class="btn" type="button" id="dr-drop">${tt('ed.draft.drop')}</button></div>` : ''}
     <form class="editor u-mt14" id="ed" >
-      <div class="field"><label for="ed-title">${tt('ed.title')}</label><input id="ed-title" required value="${esc(d.title)}"></div>
+      <div class="field"><label for="ed-title">${tt('ed.title')}</label><input id="ed-title"${E.live ? ' required' : ''} value="${esc(d.title)}"></div>
       <div class="ed-meta">
         <button class="btn ed-meta-toggle" id="ed-meta-toggle" type="button" aria-expanded="${!!E.metaOpen}" aria-controls="ed-meta-fields"><span class="ed-meta-summary" id="ed-meta-summary"></span>${CH_R}</button>
         <div class="ed-meta-fields" id="ed-meta-fields">
@@ -8193,6 +8211,8 @@ function renderEditor(box) {
   const sectionField = $('#ed-sec'), metaToggle = $('#ed-meta-toggle'), modeToggle = $('#ed-mode-toggle');
   const refreshMeta = () => {
     const training = isTrainFolder(sectionField.value);
+    titleField.setAttribute('aria-required', String(!!E.id || training));
+    if (!E.id) box.querySelector('.editor-head .eyebrow').textContent = tt(training ? 'ed.new.card' : 'ed.new');
     $('label[for="ed-title"]').textContent = tt(training ? 'ed.question' : 'ed.title');
     $('#ed-content-label').textContent = tt(training ? 'ed.answer' : 'ed.text');
     $('#ed-ref-wrap').hidden = !training || !!E.live;
@@ -8457,7 +8477,16 @@ function renderEditor(box) {
       if (E.leaving) openNote(E.leaving.id, E.leaving.dir);
       return;
     }
-    if (!d.title.trim()) { E.leaving = null; toast(tt('ed.title.need')); $('#ed-title')?.focus(); return; }
+    if (!d.title.trim()) {
+      const training = isTrainFolder(d.section);
+      if (!canInferTitle(E)) {
+        E.leaving = null; E.stay = false;
+        toast(tt(training ? 'ed.question.need' : E.id ? 'ed.title.need' : 'ed.text.need'));
+        (training || E.id ? titleField : ta || vis)?.focus();
+        return;
+      }
+      d.title = inferNoteTitle(d.body);
+    }
     const now = new Date().toISOString();
     const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const prev = S.notes.get(id);
@@ -8504,13 +8533,13 @@ function renderEditor(box) {
     S.notes.set(id, Object.assign({ id }, was || {}, doc));
     dropDraft(E.id); if (wasNew) dropDraft(null);
     S.noteId = id; store.set('note', id);
-    if (stay) { E.id = id; S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = tt('ed.editing'); renderList(); return; }
+    if (stay) { E.id = id; if (!titleField.value.trim()) titleField.value = doc.title; titleField.setAttribute('aria-required', 'true'); S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = tt('ed.editing'); renderList(); return; }
     S.editing = null; S.artJumpToCurrent = true; renderList();
     if (A && !S.article) { S.readAnchor = Object.assign({ id }, A); renderReader(); } else renderReader(true);
     if (spaceTarget) moveToSpace(id, spaceTarget);
     else if (E.leaving) openNote(E.leaving.id, E.leaving.dir);   // сохранили по переходу на другую заметку — открыть её
   });
-  if (!E.id) $('#ed-title').focus();
+  if (!E.id) (isTrainFolder(sectionField.value) ? titleField : ta || vis)?.focus();
 }
 /* ---------- одна заметка правится на двух устройствах (02.11) ----------
    base — заметка, когда открыли редактор; mine — что получилось у нас; theirs — что сейчас на сервере (пришло с другого устройства).
