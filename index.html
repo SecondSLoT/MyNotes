@@ -69,6 +69,10 @@ window.STR = {
   'err.unknown': 'неизвестная ошибка',
   'login.pro.pdf': 'В Pro можно прикреплять PDF и офисные документы к заметкам.',
   'login.tagline': 'Заметки, которые остаются с тобой',
+  'clip.login': 'Войди, чтобы сохранить ссылку в заметку',
+  'clip.source': 'Источник — <{url}>',
+  'clip.date': 'Дата захвата — {date}',
+  'clip.lost': 'Не удалось получить ссылку. Открой исходную страницу и нажми кнопку ReteNote ещё раз',
   'login.last': 'В прошлый раз ты входил через {name}',
   'login.last.password': 'В прошлый раз ты входил по почте и паролю',
   'consent.give': 'Даю {links}',
@@ -273,9 +277,6 @@ window.STR = {
 
   // ===== Общее: подсказки «?», интервалы, метки карточек, даты
   'help.q': 'Подсказка',
-  'ivl.today': 'сегодня',
-  'ivl.tomorrow': 'завтра',
-  'ivl.in': 'через {n} {n|день|дня|дней}',
   'pill.both': '⇄ обе стороны',
   'pill.both.title': 'Спрашивается в обе стороны: по вопросу и по ответу',
   'pill.cloze': '{n} {n|пропуск|пропуска|пропусков}',
@@ -586,6 +587,13 @@ window.STR = {
   'ed.answer': 'Ответ',
   'ed.text': 'Текст заметки',
   'ed.answer.ph': 'Напиши ответ',
+  'ed.exact': 'Точный ответ',
+  'ed.exact.auto': 'Автоматический ответ из текста карточки',
+  'ed.exact.noauto': 'Отключить автоматический ответ для этой карточки',
+  'ed.exact.values': 'Допустимые ответы',
+  'ed.exact.hint': 'По одному варианту на строку, до {n} вариантов по {length} символов. Текст карточки можно использовать как пояснение',
+  'ed.exact.strict': 'Строгое сравнение с учётом регистра и пробелов внутри ответа',
+  'ed.exact.conflict': 'Точный ответ уже изменили на другом устройстве. Открой карточку заново, чтобы увидеть изменения',
   'ed.text.ph': 'Начни писать',
   'ed.tags.add': 'Добавить теги',
   'ed.tab.split': 'Рядом',
@@ -732,8 +740,6 @@ window.STR = {
   'tr.limit': 'Сколько',
   'tr.free.start': 'Начать · {n} {n|карточка|карточки|карточек}',
   'tr.review': 'Повторение',
-  'tr.same.due': 'срок не меняется',
-  'tr.next': 'повтор {when}',
   'tr.end': 'Завершить',
   'tr.gone': 'Заметку удалили на другом устройстве — карточка пропущена',
   'tr.again': 'ещё раз',
@@ -743,12 +749,17 @@ window.STR = {
   'tr.edit': '✎ Править',
   'tr.show.q': 'Показать вопрос',
   'tr.show.a': 'Показать ответ',
+  'tr.exact.input': 'Ввести ответ',
+  'tr.exact.check': 'Проверить',
+  'tr.exact.retry': 'Попробовать снова',
+  'tr.exact.correct': 'Верно',
+  'tr.exact.expected': 'Точный ответ — {answer}',
   'tr.space': 'пробел',
   'tr.key': 'Клавиша {n}',
+  'ivl.today': 'сегодня',
   'tr.g1': 'Не знаю',
   'tr.g2': 'С трудом',
   'tr.g3': 'Знаю',
-  'tr.grade.hint': 'Под оценкой написано, когда карточка снова попадёт в повторение',
   'tr.grade.keys': 'Оценивать можно клавишами 1, 2, 3',
   'tr.cloze.title': 'Вспомни, что здесь',
   'tr.pill.rev': '⇄ обратная',
@@ -2911,7 +2922,7 @@ button.tag{border:0;background:none;padding:0}
 .editor{display:flex;flex-direction:column;gap:14px}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label,.lbl{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--faint)}
-.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--raised);border-radius:var(--rad-m);padding:8px 10px;width:100%;box-sizing:border-box}
+.field input,.field select,.field textarea,.field .exact-typed{border:1px solid var(--line);background:var(--raised);border-radius:var(--rad-m);padding:8px 10px;width:100%;box-sizing:border-box}
 .field textarea{font:13.5px/1.55 var(--f-mono);min-height:360px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ed-meta-fields{display:grid;gap:10px}
@@ -3022,6 +3033,10 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 .ed-panes.split{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));align-items:start}
 .ed-panes.split .preview{position:sticky;top:48px;max-height:calc(100vh - 140px);overflow:auto}
 .field textarea#ed-body{overflow:hidden}
+#ed-exact{margin:8px 0}
+#ed-exact summary{cursor:pointer;font-weight:600}
+#ed-exact .field{margin:8px 0}
+#ed-exact textarea{min-height:0;font:inherit}
 .md ul:has(> li > input[type=checkbox]),.md ul:has(> li > p:first-child > input[type=checkbox]){list-style:none;padding-left:.3em}   /* пункт с картинкой или абзацами — «рыхлый»: чекбокс внутри <p>, маркер • дублировал его (08.11) */
 .md li > input[type=checkbox],.md li > p:first-child > input[type=checkbox]{margin:0 .5em 0 0;accent-color:var(--accent);vertical-align:-1px}
 .visual ul:has(> li.task),.visual ol:has(> li.task){padding-left:.3em}
@@ -3136,9 +3151,19 @@ button,.tb,[role=button]{-webkit-tap-highlight-color:transparent}   /* сист�
 @media (max-width:760px){body:not(.mode-lib) .search{display:none}}
 .card .ans{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line-strong)}
 .reveal{width:100%;margin-top:24px}
+.exact-question,.exact-result{margin-top:18px}
+.exact-question .reveal{margin-top:14px}
+.exact-result p{margin:6px 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.exact-result .exact-typed{overflow-wrap:anywhere;white-space:break-spaces}
+.exact-result .exact-expected{margin:8px 11px 0}
+.exact-result .exact-typed u{font-weight:inherit}
+.exact-question [role="status"]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.exact-question .field .exact-correct{color:var(--good);border-color:var(--good);font-weight:700}
+.exact-diff-typed{color:var(--again)}
+.exact-diff-expected{color:var(--good)}
+.exact-result u{font-weight:700;text-decoration-thickness:2px;text-underline-offset:3px}
 .grades{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .grade{border:1px solid transparent;border-radius:var(--rad-xl);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
-.grade small{font:12px var(--f-mono);font-weight:400;opacity:.85}
 .grade{position:relative}
 .grade kbd{position:absolute;top:6px;left:8px;font:10px/1 var(--f-mono);border:1px solid currentColor;border-radius:var(--rad-xs);padding:2px 4px;opacity:.45}
 .grade-hint{text-align:center;margin:0}
@@ -3908,7 +3933,103 @@ const today = () => dstr(new Date());
 const addDays = (s, n) => { const [y, m, d] = s.split('-').map(Number); return dstr(new Date(y, m - 1, d + n)); };
 const daysBetween = (a, b) => { const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number); return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 864e5); };
 
-const trainable = n => n && !n.ref && (n.body || '').trim().length > 0 && isTrainFolder(n.section);
+const EXACT_MAX_ANSWERS = 10, EXACT_MAX_LENGTH = 240;
+function exactAnswerConfig(value) {
+  const answers = Array.isArray(value?.answers) ? [...new Set(value.answers.slice(0, EXACT_MAX_ANSWERS)
+    .filter(text => typeof text === 'string').map(text => text.trim().slice(0, EXACT_MAX_LENGTH)).filter(Boolean))] : [];
+  if (!answers.length && value?.auto !== false) return null;
+  return { answers, strict: !!answers.length && value.strict === true, ...(value.auto === false ? { auto: false } : {}) };
+}
+function automaticExactAnswer(body) {
+  const source = (body || '').trim();
+  if (!source || source.length > 4096) return '';
+  const template = document.createElement('template');
+  template.innerHTML = renderMd(source);
+  if (template.content.querySelector('img, a, .cloze, table, pre, input')) return '';
+  template.content.querySelectorAll('br').forEach(br => br.replaceWith(' '));
+  const text = template.content.textContent.replace(/\s+/g, ' ').trim();
+  if (text.length > EXACT_MAX_LENGTH) return '';
+  const words = text.match(/[\p{L}\p{N}][\p{L}\p{N}\p{M}]*(?:[-’'][\p{L}\p{N}][\p{L}\p{N}\p{M}]*)*/gu);
+  return words && words.length <= 5 ? text : '';
+}
+function trainingExactAnswer(note) {
+  const config = exactAnswerConfig(note.exactAnswer);
+  if (config?.answers.length) return config;
+  if (config?.auto === false || !isTrainFolder(note.section)) return null;
+  const answer = automaticExactAnswer(note.body);
+  return answer ? { answers: [answer], strict: false } : null;
+}
+const exactKey = value => JSON.stringify(exactAnswerConfig(value));
+function normalizeExactAnswer(text, strict) {
+  const value = text.trim();
+  return strict ? value : value.normalize('NFC').replace(/\s+/g, ' ').toLowerCase();
+}
+// Align graphemes for display only. Grading still compares normalized full answers.
+function exactAnswerDiff(input, { answers, strict }) {
+  const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter() : null;
+  const tokens = text => {
+    const parts = (text.match(/\s+|\S+/gu) || []).flatMap(part => {
+      if (!strict && /^\s/u.test(part)) return [part];
+      return segmenter ? Array.from(segmenter.segment(part), entry => entry.segment) : Array.from(part);
+    });
+    return parts.map(raw => ({ raw, key: strict ? raw : /^\s/u.test(raw) ? ' ' : normalizeExactAnswer(raw, false) }));
+  };
+  const typed = tokens(input.trim());
+  let closest;
+  for (const answer of answers) {
+    const target = tokens(answer);
+    const rows = typed.length, cols = target.length;
+    const cost = Array.from({ length: rows + 1 }, (_, i) => {
+      const row = new Uint16Array(cols + 1);
+      row[0] = i;
+      return row;
+    });
+    for (let j = 1; j <= cols; j++) cost[0][j] = j;
+    for (let i = 1; i <= rows; i++) {
+      for (let j = 1; j <= cols; j++) {
+        const change = Number(typed[i - 1].key !== target[j - 1].key);
+        cost[i][j] = Math.min(cost[i - 1][j - 1] + change, cost[i - 1][j] + 1, cost[i][j - 1] + 1);
+      }
+    }
+    if (!closest || cost[rows][cols] < closest.distance) closest = { cost, target, distance: cost[rows][cols] };
+  }
+  const { cost, target } = closest;
+  const left = [], right = [];
+  let i = typed.length, j = target.length;
+  while (i || j) {
+    if (i && j) {
+      const changed = typed[i - 1].key !== target[j - 1].key;
+      if (cost[i][j] === cost[i - 1][j - 1] + Number(changed)) {
+        left.push({ raw: typed[--i].raw, changed });
+        right.push({ raw: target[--j].raw, changed });
+        continue;
+      }
+    }
+    if (i && cost[i][j] === cost[i - 1][j] + 1) left.push({ raw: typed[--i].raw, changed: true });
+    else right.push({ raw: target[--j].raw, changed: true });
+  }
+  const html = (parts, cls) => {
+    const runs = [];
+    for (const part of parts.reverse()) {
+      const last = runs.at(-1);
+      if (last && last.changed === part.changed) last.raw += part.raw;
+      else runs.push(part);
+    }
+    return runs.map(({ raw, changed }) => changed ? `<u class="${cls}">${esc(raw)}</u>` : esc(raw)).join('');
+  };
+  const leading = input.length - input.trimStart().length;
+  const end = input.trimEnd().length;
+  return {
+    typed: esc(input.slice(0, leading)) + html(left, 'exact-diff-typed') + esc(input.slice(end)),
+    expected: html(right, 'exact-diff-expected'),
+  };
+}
+function exactAnswerHtml(value) {
+  const exact = exactAnswerConfig(value);
+  return exact?.answers.length ? `<div class="exact-result"><p>${tt('tr.exact.expected', { answer: esc(exact.answers.join('\n')) })}</p></div>` : '';
+}
+const hasTrainingAnswer = n => !!((n.body || '').trim() || exactAnswerConfig(n.exactAnswer)?.answers.length);
+const trainable = n => n && !n.ref && hasTrainingAnswer(n) && isTrainFolder(n.section);
 const isDue = id => { const s = S.srs.get(id); return s && s.due && s.due <= today(); };
 /* Карточки. Обычно заметка = одна карточка (id заметки): вопрос — заголовок, ответ — текст.
    Пропуски (Pro, «тренировка плюс»; в MyNotes — всегда): метки {{…}} в тексте; у такой заметки карточки — сами пропуски,
@@ -3934,7 +4055,7 @@ function cardsOf(n) {
   if (!plusOn()) return [n.id];
   const cs = clozeTexts(n.body);
   if (cs.length) return cs.map(t => n.id + '~c' + clozeHash(t));
-  return isBothFolder(n.section) ? [n.id, n.id + '~r'] : [n.id];
+  return isBothFolder(n.section) && (n.body || '').trim() ? [n.id, n.id + '~r'] : [n.id];
 }
 const isReverse = cid => String(cid).endsWith('~r');
 function clozeOfCard(cid) {   // текст пропуска карточки (или null — обычная карточка)
@@ -4003,7 +4124,6 @@ function schedule(prev, g, free) {
   n.due = addDays(t, n.ivl);
   return n;
 }
-const ivlText = ivl => ivl <= 0 ? tt('ivl.today') : ivl === 1 ? tt('ivl.tomorrow') : tt('ivl.in', { n: ivl });
 function plural(n, a, b, c) { n = Math.abs(n) % 100; const n1 = n % 10; if (n > 10 && n < 20) return c; if (n1 > 1 && n1 < 5) return b; if (n1 === 1) return a; return c; }
 function cardStage(id) {
   const n = noteOfCard(id); const s = S.srs.get(id);
@@ -4041,7 +4161,7 @@ function srsPill(id) {
   }
   if (n && !isTrainFolder(n.section)) return '';
   if (n && n.ref) return `<span class="pill ref" title="${tt('pill.ref.title')}">${tt('pill.ref')}</span>`;
-  if (n && !(n.body || '').trim()) return `<span class="pill empty">${tt('pill.empty')}</span>`;
+  if (n && !hasTrainingAnswer(n)) return `<span class="pill empty">${tt('pill.empty')}</span>`;
   const s = S.srs.get(id); const st = stage(id);
   if (st === 'new') return `<span class="pill new">${tt('pill.new')}</span>`;
   if (isDue(id)) return `<span class="pill due">${tt('pill.due')}</span>`;
@@ -4923,7 +5043,10 @@ function visImgDrop(vis, img) {
 const HL_LANGS = ['kotlin', 'java', 'xml', 'json', 'bash', 'groovy', 'sql'];
 let mdReady = false;
 function renderMd(src) {
-  if (!window.marked) return '<pre>' + esc(src) + '</pre>';
+  const purifier = window.DOMPurify;
+  if (!window.marked || typeof purifier?.sanitize !== 'function' || purifier.isSupported === false) {
+    return '<pre>' + esc(src) + '</pre>';
+  }
   if (!mdReady) {
     mdReady = true;
     // raw HTML in notes is shown as text, so <activity> or List<String> never disappear; only the formatting tags explicitly allowed below pass
@@ -4943,7 +5066,7 @@ function renderMd(src) {
   let fence = false;
   src = (src || '').split('\n').map(l => { if (/^\s*(```|~~~)/.test(l)) fence = !fence; return !fence && /^\s*(?:[-*+]|\d+[.)]) \[[ xX]\]\s*$/.test(l) ? l.replace(/\s*$/, ' \u200b') : l; }).join('\n');
   const html = marked.parse(src, { gfm: true, breaks: true });   // перенос строки — перенос (27.10: тексты песен, стихи, вставленный текст)
-  return window.DOMPurify ? DOMPurify.sanitize(html, { ADD_ATTR: ['target'] }) : html;
+  return purifier.sanitize(html, { ADD_ATTR: ['target'] });
 }
 function decorateAttachment(a, editable = false) {
   const ext = attachmentExt(a.getAttribute('href'));
@@ -6168,6 +6291,8 @@ function sanitizeBackup(d) {
     if (!isObj(n) || !okId(n.id) || seen.has(n.id)) { dropped++; continue; }
     seen.add(n.id);
     const c = Object.assign({}, n, { title: str(n.title, 500), body: str(n.body, 500000), tags: [...new Set((Array.isArray(n.tags) ? n.tags : typeof n.tags === 'string' ? n.tags.split(',') : []).map(t => normTagText(str(t, 200))).filter(Boolean))] });
+    const exact = exactAnswerConfig(n.exactAnswer);
+    if (exact) c.exactAnswer = exact; else delete c.exactAnswer;
     if (typeof c.order !== 'number' || !isFinite(c.order)) c.order = 0;
     for (const k of ['created', 'updated']) if (!isoOk(c[k])) delete c[k];
     if (c.section !== '' && !(typeof c.section === 'string' && ids.has(c.section))) { c.section = RESTORED; lost = true; }
@@ -6182,7 +6307,7 @@ function sanitizeBackup(d) {
 }
 function importDiff(d) {
   const sameNote = (a, b) => a.title === b.title && bodyKey(a.body) === bodyKey(b.body) && a.section === b.section
-    && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001');
+    && !!a.ref === !!b.ref && (a.tags || []).join('\u0001') === (b.tags || []).join('\u0001') && exactKey(a.exactAnswer) === exactKey(b.exactAnswer);
   const notes = [], same = [];
   let fresh = 0;
   for (const n of d.notes) {
@@ -6229,6 +6354,7 @@ function importConfirmBody(d, X, head, conflicts) {
     const what = [];
     if (c.site.title !== c.file.title) what.push(tt('imp.diff.title'));
     if (bodyKey(c.site.body) !== bodyKey(c.file.body)) what.push(tt('imp.diff.body'));
+    if (exactKey(c.site.exactAnswer) !== exactKey(c.file.exactAnswer)) what.push(tt('ed.exact'));
     if (c.site.section !== c.file.section) what.push(tt('imp.diff.section'));
     if ((c.site.tags || []).join() !== (c.file.tags || []).join()) what.push(tt('imp.diff.tags'));
     if (!!c.site.ref !== !!c.file.ref) what.push(tt('imp.diff.train'));
@@ -7358,7 +7484,7 @@ function renderMenu() {
        <button data-act="tags" role="menuitem">${menuIcon(VICO.tag)}${tt('note.tags.menu')}${(n.tags || []).length ? ` <span class="mcount">${n.tags.length}</span>` : ''}</button>
        <button data-act="move" role="menuitem">${menuIcon(FOLDER_ICO)}${tt('note.move')}</button>
        ${trainable(n) && hasProgress(n.id) && S.uid ? `<button data-act="relearn" role="menuitem">${menuIcon(VICO.relearn)}${tt('bulk.relearn')}</button>` : ''}
-       ${(n.body || '').trim() && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem">${menuIcon(n.ref ? VICO.relearn : VICO.exclude)}${tt(n.ref ? 'bulk.ref.off' : 'bulk.ref.on')}</button>` : ''}
+       ${hasTrainingAnswer(n) && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem">${menuIcon(n.ref ? VICO.relearn : VICO.exclude)}${tt(n.ref ? 'bulk.ref.off' : 'bulk.ref.on')}</button>` : ''}
        ${window.NOTES_SHARE ? `<button data-act="share" role="menuitem">${menuIcon(VICO.link)}${tt('share.menu')}</button>` : ''}
        ${window.NOTES_VERSIONS && planOn() ? `<button data-act="history" role="menuitem">${menuIcon(VICO.recent)}${tt('note.history')}</button>` : ''}
        <div class="sep" role="separator"></div>
@@ -7670,7 +7796,7 @@ function openNote(id, dir) {
   const E = S.editing, f = E && document.getElementById('ed');
   if (E?.saving) return;
   if (E && f && (!E.leaving || E.live)) E.sync?.();
-  if (E && f && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title.trim() || canInferTitle(E))))) {
+  if (E && f && !E.clipId && !E.leaving && !E.L?.finish && id !== E.id && (E.live || (draftDiffers(E.id, E.draft) && (E.draft.title.trim() || canInferTitle(E))))) {
     E.leaving = { id, dir }; f.requestSubmit(); return;
   }
   if (E && !E.id && id !== E.id && draftDiffers(E.id, E.draft)) saveDraft(E);
@@ -7826,7 +7952,7 @@ function renderReader(scrollTop) {
     ${trainable(n) || S.canWrite ? `<div class="r-cta">${trainable(n) ? `<button class="btn primary" id="drill">${tt('reader.drill')}</button>` : ''}${S.canWrite ? `<button class="btn" id="edit" title="${tt('note.edit')}" aria-label="${tt('note.edit')}"><span class="edit-t">${tt('note.edit')}</span><span class="edit-i" aria-hidden="true">${VICO.pencil}</span></button>` : ''}</div>` : ''}
     ${S.canWrite && getDraft(n.id) && draftDiffers(n.id, getDraft(n.id)) ? `<div class="draft-note"><span>${tt('draft.has', { time: hhmm(getDraft(n.id).ts) })}</span><button class="btn primary" id="dr-cont">${tt('draft.continue')}</button></div>` : ''}
     ${pushTestControls(n)}
-    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : `<p class="hint">${tt('reader.noanswer')}</p>`}</div>`;
+    <div class="md" id="md">${(n.body || '').trim() ? renderMd(n.body) : exactAnswerHtml(n.exactAnswer) || `<p class="hint">${tt('reader.noanswer')}</p>`}</div>`;
   if ($('#push-test-start')) {
     $('#push-test-start').onclick = () => runPushTest(n.id);
     $('#push-test-cancel').onclick = () => runPushTest();
@@ -8027,17 +8153,24 @@ function getDraft(id) {
 function dropDraft(id) { try { localStorage.removeItem('aw.' + draftKey(id)); } catch {} }
 function draftDiffers(id, d) {
   const n = id ? S.notes.get(id) : null;
-  if (!n) return !!(d.title || d.body);
-  return d.title !== n.title || d.body !== (n.body || '') || d.section !== n.section || (d.tags || []).join(' ') !== (n.tags || []).join(' ') || !!d.ref !== !!n.ref;
+  if (!n) return !!(d.title || d.body || d.exactAnswer);
+  return d.title !== n.title || d.body !== (n.body || '') || d.section !== n.section || (d.tags || []).join(' ') !== (n.tags || []).join(' ') || !!d.ref !== !!n.ref || (Object.hasOwn(d, 'exactAnswer') && exactKey(d.exactAnswer) !== exactKey(n.exactAnswer));
 }
+const draftExact = (draft, note) => exactAnswerConfig(Object.hasOwn(draft, 'exactAnswer') ? draft.exactAnswer : note?.exactAnswer);
 function saveDraft(E) {
   const d = E.draft;
+  if (E.clipId) { window.NOTES_CLIPPER.save(E.clipId, S.uid, d); return; }
   if (!draftDiffers(E.id, d)) { dropDraft(E.id); return; }
-  store.set(draftKey(E.id), { title: d.title, section: d.section, tags: d.tags, ref: d.ref, body: d.body, ts: Date.now(), uid: S.uid || '' });
+  store.set(draftKey(E.id), { title: d.title, section: d.section, tags: d.tags, ref: d.ref, body: d.body, exactAnswer: d.exactAnswer, ts: Date.now(), uid: S.uid || '' });
+}
+function dropEditorDraft(E) {
+  if (E.clipId) { window.NOTES_CLIPPER.clear(); E.clipId = null; }
+  else dropDraft(E.id);
 }
 // выход и удаление аккаунта (зовут shim'ы): на устройстве не остаётся текста заметок и следов аккаунта — черновики, открытая заметка,
 // недавние, выбранный раздел; вид (тема) и прочее про устройство — остаются
 window.NOTES_LOCAL_CLEAR = function () {
+  window.NOTES_CLIPPER?.clear();
   try { for (const k of Object.keys(localStorage)) if (/^aw\.(draft\.|pro\.|note$|recent$|section$|lastFolder$|guestWarned$|guestBar$|guestPersist$|imgqBar$)/.test(k)) localStorage.removeItem(k); } catch {}
 };
 const hhmm = ts => { const d = new Date(ts), z = n => String(n).padStart(2, '0'); const today0 = new Date(); return (d.toDateString() === today0.toDateString() ? '' : `${z(d.getDate())}.${z(d.getMonth() + 1)} `) + `${z(d.getHours())}:${z(d.getMinutes())}`; };
@@ -8261,6 +8394,7 @@ function liveSetBody(E, from, to, at) {
   if (at == null && from !== to) for (const st of [L.undo, L.redo]) for (const e of st) { e.before = RNCollab.merge(from, to, e.before); e.after = RNCollab.merge(from, to, e.after); }
   d.body = to; L.last = to;
   if (S.editing !== E) return;
+  E.ui?.refreshExactPreview();
   const ta = $('#ed-body'), vis = $('#ed-prev');
   if (ta) {
     const a = ta.selectionStart, b = ta.selectionEnd, direction = ta.selectionDirection, focused = document.activeElement === ta;
@@ -8409,7 +8543,9 @@ function liveOff(E) {
 // «Готово» (или ушли из редактора): досылаем своё и выходим из заметки; без связи — обычная запись (уйдёт с очередью правок)
 // закрыли вкладку посреди правки — последнее отправляем «в фоне» (fetch keepalive)
 window.addEventListener('pagehide', () => {
-  const E = S.editing; if (!E?.live || !E.L || E.L.done || !window.NOTES_COLLAB?.beacon) return;
+  const E = S.editing;
+  if (E?.clipId && !E.saving) { E.sync?.(); saveDraft(E); }
+  if (!E?.live || !E.L || E.L.done || !window.NOTES_COLLAB?.beacon) return;
   const cur = liveCur(E); if (E.L.c.dirty(cur)) window.NOTES_COLLAB.beacon(E.id, Object.assign({}, E.L.c.request(cur, null), { done: true }));
 });
 function liveFinish(E) {
@@ -8458,6 +8594,7 @@ async function keepOwnCopy(d) {
   const now = new Date().toISOString(), id = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const doc = { section: sec.id, title: tt('sync.edit.copy', { title: (d.title || '').trim() || tt('note.untitled') }), body: d.body || '', tags: d.tags || [], ref: false,
     order: Math.max(0, ...[...S.notes.values()].filter(n => n.section === sec.id).map(n => n.order ?? 0)) + 1, created: now, updated: now };
+  if (d.exactAnswer) doc.exactAnswer = d.exactAnswer;
   if (!await write(() => S.db.collection('notes').doc(id).set(doc), null)) return false;
   S.notes.set(id, Object.assign({ id }, doc));
   toast(tt('sp.lost.copy', { sec: sec.title }), { label: tt('sp.lost.open'), fn() { openNote(id); } });
@@ -8481,14 +8618,18 @@ function inferNoteTitle(body) {
   return tt('note.untitled');
 }
 const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
-function newNote(direct = false) {
+function newNote(direct = false, clip = null) {
   if (S.editing?.saving || planBlocks('notes')) return;
   const sec = direct ? '' : !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
   if (roRefuse(spaceOfSection(sec))) return;
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: direct ? store.get('edTab', 'prev') : editorTab(), confirmDel: false };
-  const dr = getDraft(null);
+  if (clip) {
+    Object.assign(S.editing.draft, clip.draft, { section: S.sections.has(clip.draft.section) ? clip.draft.section : '' });
+    S.editing.clipId = clip.ticket;
+  }
+  const dr = clip ? null : getDraft(null);
   if (dr && (dr.title || dr.body)) {
-    if (direct) Object.assign(S.editing.draft, { title: dr.title, body: dr.body, tags: dr.tags || [], ref: !!dr.ref, section: S.sections.has(dr.section) ? dr.section : '' });
+    if (direct) Object.assign(S.editing.draft, { title: dr.title, body: dr.body, tags: dr.tags || [], ref: !!dr.ref, section: S.sections.has(dr.section) ? dr.section : '', exactAnswer: exactAnswerConfig(dr.exactAnswer) });
     else S.editing.draftOffer = dr;
   }
   $('#lib').classList.add('reading'); renderReader(true);
@@ -8498,11 +8639,11 @@ function startEdit(id, anchor, restore, overlay) {
   if (S.editing?.saving) return;
   const n = S.notes.get(id);
   if (roRefuse(spaceOfNote(n))) return;   // общий раздел: читатель не правит
-  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '' }, tab: editorTab(), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
+  S.editing = { id, draft: { title: n.title, section: n.section, tags: [...(n.tags || [])], ref: !!n.ref, body: n.body || '', exactAnswer: exactAnswerConfig(n.exactAnswer) }, tab: editorTab(), confirmDel: false, anchor: anchor || null, overlay: !!overlay, focusBody: !!overlay,
     base: editBase(n) };   // какой заметка была, когда открыли редактор: пока правишь, её могут изменить на другом устройстве (mergeEdit)
   if (liveFor(n)) { liveStart(S.editing, n); renderReader(!anchor); return; }   // общая заметка: живая правка, без черновиков
   const dr = getDraft(id);
-  if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); else S.editing.draftOffer = dr; }
+  if (dr && draftDiffers(id, dr)) { if (restore) Object.assign(S.editing.draft, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : n.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body, exactAnswer: draftExact(dr, n) }); else S.editing.draftOffer = dr; }
   renderReader(!anchor);
 }
 function selectVisFile(vis, link) {
@@ -8581,6 +8722,7 @@ function renderEditor(box) {
   editorToolbarObserver?.disconnect();
   const E = S.editing, d = E.draft;
   const tabs = editorTabs();
+  E.exactOpen ??= !!d.exactAnswer;
   box.dataset.artSig = '';
   box.innerHTML = `
     <div class="editor-head">
@@ -8601,6 +8743,18 @@ function renderEditor(box) {
           <label class="check" id="ed-ref-wrap" hidden><input type="checkbox" id="ed-ref" ${d.ref ? 'checked' : ''}><span>${tt('ed.ref')}</span></label>
         </div>
       </div>
+      <details id="ed-exact" hidden ${E.exactOpen ? 'open' : ''}>
+        <summary>${tt('ed.exact')}</summary>
+        <div class="field" id="ed-exact-auto-preview" hidden>
+          <label for="ed-exact-auto-value">${tt('ed.exact.auto')}</label>
+          <input id="ed-exact-auto-value" readonly>
+        </div>
+        <label class="check"><input type="checkbox" id="ed-exact-no-auto" ${d.exactAnswer?.auto === false ? 'checked' : ''}><span>${tt('ed.exact.noauto')}</span></label>
+        <div class="field"><label for="ed-exact-values">${tt('ed.exact.values')}</label>
+          <textarea id="ed-exact-values" rows="2" maxlength="${EXACT_MAX_ANSWERS * (EXACT_MAX_LENGTH + 1)}" spellcheck="false" aria-describedby="ed-exact-hint">${esc(d.exactAnswer?.answers.join('\n') || '')}</textarea>
+          <span class="hint" id="ed-exact-hint">${tt('ed.exact.hint', { n: EXACT_MAX_ANSWERS, length: EXACT_MAX_LENGTH })}</span></div>
+        <label class="check"><input type="checkbox" id="ed-exact-strict" ${d.exactAnswer?.strict ? 'checked' : ''}><span>${tt('ed.exact.strict')}</span></label>
+      </details>
       <div class="field">
         <div class="bar"><span class="lbl" id="ed-content-label">${tt('ed.text')}</span><span class="spacer"></span>
           <div class="ed-mode-menu">
@@ -8637,8 +8791,37 @@ function renderEditor(box) {
   }
   const titleField = $('#ed-title'), tagsField = $('#ed-tags');
   const sectionField = $('#ed-sec'), metaToggle = $('#ed-meta-toggle'), modeToggle = $('#ed-mode-toggle');
+  const exactPanel = $('#ed-exact'), exactField = $('#ed-exact-values'), exactStrict = $('#ed-exact-strict');
+  const exactNoAuto = $('#ed-exact-no-auto'), autoPreview = $('#ed-exact-auto-preview');
+  const refreshExactPreview = () => {
+    if (!exactPanel.open || exactPanel.hidden) return;
+    const text = exactNoAuto.checked || exactLines().length ? '' : automaticExactAnswer(d.body);
+    autoPreview.hidden = !text;
+    $('#ed-exact-auto-value').value = text;
+  };
+  const exactLines = () => exactField.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const validateExact = () => {
+    const lines = exactLines();
+    exactField.setCustomValidity(lines.length > EXACT_MAX_ANSWERS || lines.some(s => s.length > EXACT_MAX_LENGTH)
+      ? tt('ed.exact.hint', { n: EXACT_MAX_ANSWERS, length: EXACT_MAX_LENGTH }) : '');
+  };
+  const syncExact = () => {
+    if (!exactField.disabled && exactField.validity.valid) {
+      d.exactAnswer = exactAnswerConfig({ answers: exactLines(), strict: exactStrict.checked, auto: !exactNoAuto.checked });
+    }
+    refreshExactPreview();
+  };
+  exactPanel.ontoggle = () => { E.exactOpen = exactPanel.open; refreshExactPreview(); };
+  exactField.addEventListener('input', () => { validateExact(); syncExact(); });
+  exactStrict.addEventListener('change', syncExact);
+  exactNoAuto.addEventListener('change', syncExact);
+  exactField.addEventListener('invalid', () => { exactPanel.open = true; });
   const refreshMeta = () => {
     const training = isTrainFolder(sectionField.value);
+    exactPanel.hidden = !training;
+    exactField.disabled = exactStrict.disabled = exactNoAuto.disabled = !training;
+    refreshExactPreview();
+    if (training) validateExact();
     titleField.setAttribute('aria-required', String(!!E.id || training));
     if (!E.id) box.querySelector('.editor-head .eyebrow').textContent = tt(training ? 'ed.new.card' : 'ed.new');
     $('label[for="ed-title"]').textContent = tt(training ? 'ed.question' : 'ed.title');
@@ -8664,10 +8847,10 @@ function renderEditor(box) {
   const grow = () => { if (!ta) return; keepScroll(() => { ta.style.height = 'auto'; ta.style.height = Math.max(360, ta.scrollHeight + 4) + 'px'; }); };
   let pT, visDirty = false;
   const renderVis = () => { clearTimeout(pT); if (vis) { visDirty = false; vis.innerHTML = renderMd(d.body); enhance(vis); } };
-  E.ui = { grow, renderVis };
+  E.ui = { grow, renderVis, refreshExactPreview };
   if (ta) {
     ta.addEventListener('input', () => {
-      d.body = ta.value; grow();
+      d.body = ta.value; grow(); refreshExactPreview();
       if (E.live) { liveOwn(E); livePeers(E); }
       if (vis) { clearTimeout(pT); pT = setTimeout(renderVis, 160); }
     });
@@ -8696,7 +8879,7 @@ function renderEditor(box) {
   }
   if (vis) {
     try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch {}
-    const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); if (ta) { ta.value = d.body; grow(); } if (E.live) liveOwn(E); };
+    const fromVis = () => { visDirty = true; d.body = htmlToMd(vis); refreshExactPreview(); if (ta) { ta.value = d.body; grow(); } if (E.live) liveOwn(E); };
     vis.addEventListener('input', e => {
       if (e.inputType !== 'insertParagraph') return;
       const li = closestIn(vis, 'li'); const prevLi = li?.previousElementSibling;
@@ -8948,6 +9131,7 @@ function renderEditor(box) {
   const sync = () => {
     d.title = titleField.value; d.section = $('#ed-sec').value; d.tags = editorTags(tagsField.value);
     d.ref = $('#ed-ref').checked; if (ta) d.body = ta.value;
+    syncExact();
   };
   box.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     sync(); E.tab = b.dataset.tab; E.focusBody = E.tab !== 'prev'; store.set('edTab', E.tab); renderReader();
@@ -8955,7 +9139,7 @@ function renderEditor(box) {
   $('#back').onclick = () => { if (E.saving) return; if ($('#lib').classList.contains('wide-edit')) { sync(); E.tab = 'edit'; renderReader(); } else { document.activeElement?.blur?.(); $('#lib').classList.remove('reading'); syncEditingClass(); } };
   const closeEditor = () => { const A = E.id ? editorAnchor(E) : null; S.editing = null; if (!E.id && !S.article && isPhone()) $('#lib').classList.remove('reading');   // отменили новую заметку — обратно на список, откуда нажали «+ Заметка»
     if (S.article) { S.artJumpToCurrent = true; renderReader(true); } else { if (A) S.readAnchor = Object.assign({ id: E.id }, A); renderReader(); } };
-  $('#ed-cancel') && ($('#ed-cancel').onclick = () => { dropDraft(E.id); closeEditor(); });
+  $('#ed-cancel') && ($('#ed-cancel').onclick = () => { dropEditorDraft(E); closeEditor(); });
   $('#ed-del') && ($('#ed-del').onclick = () => { sync(); E.confirmDel = true; renderEditor(box); $('#ed-del-no')?.focus({ preventScroll: true }); });
   $('#ed-del-no') && ($('#ed-del-no').onclick = () => { E.confirmDel = false; renderEditor(box); $('#ed-del')?.focus({ preventScroll: true }); });
   $('#ed-del-yes') && ($('#ed-del-yes').onclick = async () => {
@@ -8975,7 +9159,12 @@ function renderEditor(box) {
     }
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); }
     else if ((e.key === 's' || e.key === 'ы' || e.code === 'KeyS') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); E.stay = true; form.requestSubmit(); }   // не текст интерфейса
-    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) { e.preventDefault(); sync(); if (E.live || draftDiffers(E.id, d)) form.requestSubmit(); else closeEditor(); }
+    else if (e.key === 'Escape' && !e.defaultPrevented && !S.menu && !e.target.closest('#link-bar')) {
+      e.preventDefault(); sync();
+      if (E.clipId) { saveDraft(E); closeEditor(); }
+      else if (E.live || draftDiffers(E.id, d)) form.requestSubmit();
+      else closeEditor();
+    }
   });
   E.sync = sync;   // openNote: свежий текст из полей (черновик пишется с задержкой 0,5 с)
   let drT;
@@ -8988,7 +9177,7 @@ function renderEditor(box) {
       saveDraft(E);
     }, 500);
   });
-  $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body }); renderReader(); });
+  $('#dr-restore') && ($('#dr-restore').onclick = () => { const dr = E.draftOffer; E.draftOffer = null; Object.assign(d, { title: dr.title, section: S.sections.has(dr.section) ? dr.section : d.section, tags: dr.tags || [], ref: !!dr.ref, body: dr.body, exactAnswer: draftExact(dr, S.notes.get(E.id)) }); renderReader(); });
   $('#dr-drop') && ($('#dr-drop').onclick = () => { E.draftOffer = null; dropDraft(E.id); renderReader(); });
   if (E.anchor) requestAnimationFrame(() => applyEditAnchor(E));
   if (E.live) { liveStatus(E); requestAnimationFrame(() => livePeers(E)); }
@@ -9019,6 +9208,17 @@ function renderEditor(box) {
     sync();
     if (E.live) {   // совместная правка: всё уже у сервера — досылаем последнее и выходим
       const A = anchor, id = E.id;
+      if (exactKey(d.exactAnswer) !== exactKey(E.base.exactAnswer)) {
+        const current = exactKey(S.notes.get(id)?.exactAnswer);
+        if (current !== exactKey(E.base.exactAnswer) && current !== exactKey(d.exactAnswer)) {
+          toast(tt('ed.exact.conflict')); return;
+        }
+        setSaving(true);
+        try {
+          if (!await write(() => S.db.collection('notes').doc(id).update({ exactAnswer: d.exactAnswer, updated: new Date().toISOString() }), null)) return;
+        } finally { setSaving(false); }
+        const note = S.notes.get(id); if (note) note.exactAnswer = d.exactAnswer;
+      }
       await liveFinish(E);
       if (S.editing !== E) return;
       const prev = S.notes.get(id); if (prev) S.notes.set(id, Object.assign({}, prev, { title: d.title || prev.title, body: d.body, tags: d.tags }));
@@ -9039,7 +9239,7 @@ function renderEditor(box) {
       d.title = inferNoteTitle(d.body);
     }
     const now = new Date().toISOString();
-    const id = E.id || ('n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+    const id = E.id || (E.clipId ? clipNoteId(E.clipId) : 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
     const prev = S.notes.get(id);
     // своя заметка → в чужой общий раздел: сначала сохраняем на месте, потом спрашиваем про перенос (она перейдёт владельцу раздела)
     let spaceTarget = null;
@@ -9049,10 +9249,11 @@ function renderEditor(box) {
     if (prev && E.base) {
       const m = mergeEdit(E.base, d, prev);
       if (m && m.conflict) copyOf = { title: tt('sync.edit.copy', { title: d.title.trim() || tt('note.untitled') }), body: d.body, tags: d.tags };
-      else if (m) { Object.assign(d, { title: m.title, body: m.body, tags: m.tags, section: m.section }); mergedMsg = tt('sync.edit.merged', { title: m.title }); }
+      else if (m) { Object.assign(d, { title: m.title, body: m.body, tags: m.tags, section: m.section, exactAnswer: m.exactAnswer }); mergedMsg = tt('sync.edit.merged', { title: m.title }); }
     }
     if (copyOf) {   // заметку не трогаем (там версия с другого устройства), наша — новой заметкой рядом
       const cid = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), cdoc = { section: prev.section, title: copyOf.title, body: copyOf.body, tags: copyOf.tags, ref: !!prev.ref, order: (prev.order ?? 0) + 0.5, created: now, updated: now };
+      if (d.exactAnswer) cdoc.exactAnswer = d.exactAnswer;
       if (!await write(() => S.db.collection('notes').doc(cid).set(cdoc), null)) return;
       S.notes.set(cid, Object.assign({ id: cid }, cdoc)); dropDraft(E.id);
       toast(tt('sync.edit.conflict', { title: prev.title || tt('note.untitled') }), { label: tt('btn.ok'), fn() {} });
@@ -9067,6 +9268,7 @@ function renderEditor(box) {
     if (revived) { was = Object.assign({}, revived); delete was.deleted; delete was.deletedBy; }
     const order = was ? was.order : Math.max(0, ...[...S.notes.values()].filter(n => n.section === d.section).map(n => n.order ?? 0)) + 1;
     const doc = { section: d.section, title: d.title.trim(), body: d.body, tags: d.tags, ref: d.ref, order, created: was?.created || now, updated: now };
+    if (d.exactAnswer) doc.exactAnswer = d.exactAnswer;
     if (was?.pinned) doc.pinned = true;
     const stay = E.stay; E.stay = false;
     const A = !stay ? anchor : null;
@@ -9075,14 +9277,14 @@ function renderEditor(box) {
     if (!ok) {
       E.leaving = null;   // не сохранилось — остаёмся в редакторе (переход на другую заметку отменён)
       // общий раздел: пока правил, стал читателем / у владельца кончился Pro / раздел перестал быть общим — текст не пропадает, копией себе
-      if (write.err?.status === 403 && spaceOfSection(doc.section)) { if (await keepOwnCopy(doc)) { dropDraft(E.id); S.editing = null; renderList(); renderReader(true); } }
+      if (write.err?.status === 403 && spaceOfSection(doc.section)) { if (await keepOwnCopy(doc)) { dropEditorDraft(E); S.editing = null; renderList(); renderReader(true); } }
       return;
     }
     guestSaved();
     E.base = editBase(doc);   // «Сохранить и остаться» (Ctrl+S): дальше сравниваем с только что сохранённым
     if (revived) { S.trash.delete(id); toast(tt('ed.revived', { title: doc.title }), { label: tt('btn.ok'), fn() {} }); updateBadge(); renderRail(); }
     S.notes.set(id, Object.assign({ id }, was || {}, doc));
-    dropDraft(E.id); if (wasNew) dropDraft(null);
+    dropEditorDraft(E);
     S.noteId = id; store.set('note', id);
     if (stay) { E.id = id; if (!titleField.value.trim()) titleField.value = doc.title; titleField.setAttribute('aria-required', 'true'); S.notes.set(id, Object.assign({ id }, doc)); const eb = box.querySelector('.eyebrow'); if (eb) eb.textContent = tt('ed.editing'); renderList(); return; }
     S.editing = null; S.artJumpToCurrent = true; renderList();
@@ -9098,13 +9300,16 @@ function renderEditor(box) {
    которую трогала и другая, — конфликт (наша версия — копией рядом). Без RNCollab (MyNotes) любое расхождение текста — конфликт.
    Заголовок: менял один — берём его; оба по-разному — конфликт. Теги — изменения обеих сторон; раздел — наш, если мы его меняли.
    null — с другого устройства ничего не менялось */
-function editBase(n) { return { title: n.title || '', body: n.body || '', tags: [...(n.tags || [])], section: n.section }; }
+function editBase(n) { return { title: n.title || '', body: n.body || '', tags: [...(n.tags || [])], section: n.section, exactAnswer: exactAnswerConfig(n.exactAnswer) }; }
 function mergeEdit(base, mine, theirs) {
-  const T = editBase(theirs), key = x => JSON.stringify([x.title, x.body, [...x.tags].sort(), x.section]);
+  const T = editBase(theirs), key = x => JSON.stringify([x.title, x.body, [...x.tags].sort(), x.section, exactKey(x.exactAnswer)]);
   if (key(T) === key(base)) return null;
   const pick = (b, m, t) => m === b ? t : (t === b || t === m ? m : undefined);
   const out = { conflict: false };
   out.title = pick(base.title, mine.title, T.title); if (out.title === undefined) { out.conflict = true; out.title = mine.title; }
+  const exact = pick(exactKey(base.exactAnswer), exactKey(mine.exactAnswer), exactKey(T.exactAnswer));
+  if (exact === undefined) { out.conflict = true; out.exactAnswer = mine.exactAnswer; }
+  else out.exactAnswer = JSON.parse(exact);
   out.section = mine.section !== base.section ? mine.section : T.section;
   const B = new Set(base.tags), M = new Set(mine.tags), Th = new Set(T.tags);
   out.tags = [...new Set([...mine.tags, ...T.tags])].filter(t => !(B.has(t) && (!M.has(t) || !Th.has(t))));
@@ -11113,15 +11318,21 @@ async function pickVersion(id) {
 function renderVersion() {
   const H = S.history, ov = $('#ver-ov'), v = H?.data; if (!v || !ov) return;
   const n = S.notes.get(H.id) || S.trash.get(H.id) || {}, d = v.data || {};
-  const same = (d.title || '') === (n.title || '') && (d.body || '') === (n.body || '');
+  const sameExact = exactKey(d.exactAnswer) === exactKey(n.exactAnswer);
+  const exactText = value => {
+    const exact = exactAnswerConfig(value);
+    return exact ? [...exact.answers, ...(exact.strict ? [tt('ed.exact.strict')] : []), ...(exact.auto === false ? [tt('ed.exact.noauto')] : [])].join('\n') : '';
+  };
+  const same = (d.title || '') === (n.title || '') && (d.body || '') === (n.body || '') && sameExact;
   const view = ov.querySelector('.ver-view');
   view.innerHTML = `<div class="bar"><button class="btn ver-back" type="button" id="ver-back">${tt('ver.back')}</button>
       <span class="ver-tabs" role="group" aria-label="${tt('ver.tabs')}"><button type="button" data-tab="diff" aria-pressed="${H.tab === 'diff'}">${tt('ver.diff')}</button><button type="button" data-tab="view" aria-pressed="${H.tab === 'view'}">${tt('ver.view')}</button></span></div>
     <p class="hint u-m0" >${esc(verDay(v.created))}, ${verTime(v.created)}${v.reason === 'restore' ? ' · ' + tt('ver.saved.restore') : ''}${H.tab === 'diff' ? ' — ' + tt('ver.diff.hint') : ''}</p>
     ${H.tab === 'diff'
       ? `${(d.title || '') !== (n.title || '') ? `<p class="ver-title">${tt('ver.title.changed', { was: esc(d.title || tt('note.untitled')), now: esc(n.title || tt('note.untitled')) })}</p>` : ''}
+         ${sameExact ? '' : `<p class="ver-title">${tt('ed.exact')}</p><div class="ver-diff">${diffHtml(exactText(d.exactAnswer), exactText(n.exactAnswer))}</div>`}
          ${same ? `<p class="hint">${tt('ver.same')}</p>` : (d.body || '') === (n.body || '') ? `<p class="hint">${tt('ver.nochange')}</p>` : `<div class="ver-diff">${diffHtml(d.body || '', n.body || '')}</div>`}`
-      : `<h1 class="ver-h1 u-h22" >${esc(d.title || tt('note.untitled'))}</h1><div class="md ver-md">${renderMd(d.body || '')}</div>`}
+      : `<h1 class="ver-h1 u-h22" >${esc(d.title || tt('note.untitled'))}</h1>${exactAnswerHtml(d.exactAnswer)}<div class="md ver-md">${renderMd(d.body || '')}</div>`}
     <div class="bar"><button class="btn primary" type="button" id="ver-restore" ${same ? 'disabled' : ''}>${tt('ver.restore')}</button><button class="btn" type="button" id="ver-copy">${tt('ver.copy')}</button></div>`;
   if (H.tab === 'view') { const md = view.querySelector('.ver-md'); try { enhance(md, null); } catch {} try { fixImgs(md); } catch {} }
   view.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { H.tab = b.dataset.tab; renderVersion(); });
@@ -11392,7 +11603,7 @@ function renderTrain() {
 }
 function startSession(ids, kind, label) {
   if (!ids.length) return;
-  S.train = { queue: ids.slice(), i: 0, kind, label, shown: false, results: new Map(), done: false, total: ids.length };
+  S.train = { queue: ids.slice(), i: 0, kind, label, shown: false, results: new Map(), exactMisses: new Set(), done: false, total: ids.length };
   setMode('train');
 }
 // карточку «на сегодня» уже оценили на другом устройстве, пока шла эта сессия (срок ушёл за сегодня, а мы её ещё не отвечали) — повторно не спрашиваем
@@ -11425,35 +11636,57 @@ function sessionAside() {
     ${rc != null ? `<div class="s-box s-recall"><b>${rc}%</b><span>${tt('tr.side.recall')}</span></div>` : ''}
   </aside>`;
 }
+const sessionSignature = n => n.title + '\u0001' + n.body + '\u0001' + exactKey(n.exactAnswer);
 function renderSession(root) {
   const T = S.train;
+  clearTimeout(T.exactAdvance);
   if (T.done || T.i >= T.queue.length) { T.done = true; sessionClass(); renderSummary(root); return; }
   sessionClass();
   const id = T.queue[T.i]; const n = noteOfCard(id), cz = clozeOfCard(id);
   const rev = isReverse(id);
   if (!n || answeredElsewhere(id) || (String(id).includes('~c') && !cz) || (rev && !cardsOf(n).includes(id))) { if (!T.results.has(id)) T.total = Math.max(T.results.size, T.total - 1); T.i++; T.shown = false; renderSession(root); return; }   // заметку удалили, пропуск исправили, «в обе стороны» выключили — дальше
-  const answered = new Set([...T.results.keys()]).size;
-  if (T.qId !== id) { T.qId = id; T.qAt = Date.now(); }   // время ответа — от показа карточки
-  T.sig = n.title + '\u0001' + n.body;   // чтобы заметить правку этой заметки на другом устройстве (refreshSession)
-  const prev = S.srs.get(id); const free = T.kind === 'free';
-  const pv = g => { const r = schedule(prev, g, free); return free && g === 3 && prev?.due > today() ? tt('tr.same.due') : tt('tr.next', { when: ivlText(r.ivl) }); };
+  const missedExact = T.exactMisses.has(id);
+  const showingSuccess = T.qId === id && T.qIndex === T.i && T.exactResult?.match;
+  const answered = T.results.size - Number(missedExact ? T.queue.indexOf(id) === T.i : !!showingSuccess);
+  const sig = sessionSignature(n), attempt = T.i;
+  if (T.qId !== id || T.qIndex !== attempt) {
+    T.qId = id; T.qIndex = attempt; T.qAt = Date.now();
+    T.exactInput = ''; T.exactResult = null;
+  } else if (T.exactResult?.diff && T.sig !== sig) {
+    T.shown = false; T.exactResult = null;
+  }
+  T.sig = sig;
+  const exact = !cz && !rev ? trainingExactAnswer(n) : null;
+  const result = T.exactResult;
   const stk = streakNow();
   root.innerHTML = `<div class="session with-aside">
     <div class="sbar"><button class="btn" id="s-end">${tt('tr.end')}</button><div class="track"><i style="--w:${Math.round(100 * answered / T.total)}%"></i></div><span class="count">${Math.min(answered + 1, T.total)} / ${T.total}</span>${stk ? `<span class="streak" title="${tt('streak.title', { n: stk })}">${FLAME_ICO}<b>${stk}</b></span>` : ''}</div>
     ${sessionAside()}
     <div class="card"${scAttr(n.section)}>
-      <div class="eyebrow" >${esc(S.sections.get(n.section)?.title || '')} ${cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 ? `<span class="pill u-again" >${tt('tr.again')}</span>` : ''}${S.canWrite ? `<button class="drop-card" id="drop-card" title="${tt('tr.drop.title')}">${tt('bulk.ref.on')}</button>` : ''}</div>
+      <div class="eyebrow" >${esc(S.sections.get(n.section)?.title || '')} ${missedExact ? '' : cz || rev ? cardPill(id) : srsPill(id)}${T.results.get(id) === 1 && !missedExact ? `<span class="pill u-again" >${tt('tr.again')}</span>` : ''}${S.canWrite ? `<button class="drop-card" id="drop-card" title="${tt('tr.drop.title')}">${tt('bulk.ref.on')}</button>` : ''}</div>
       ${rev ? `<p class="hint rev-hint">${tt('tr.rev.hint')}</p><div class="ans md rev-q" id="ans">${renderMd(n.body)}</div>${T.shown ? `<div class="q rev-a">${softBreaks(n.title)}</div>` : ''}`
         : `<div class="q">${softBreaks(n.title)}${S.canWrite ? ` <button class="t-edit-btn" id="t-edit-btn" title="${tt('tr.edit.title')}">${tt('tr.edit')}</button>` : ''}</div>`}
       ${S.canWrite ? tagRowHtml(n.id, 'train') : ''}
       ${cz ? `<div class="ans md cloze-card${T.shown ? ' shown' : ''}" id="ans">${renderMd(n.body)}</div>` : ''}
-      ${T.shown ? (cz || rev ? '' : `<div class="ans md" id="ans">${renderMd(n.body)}</div>`) : `<button class="btn primary big reveal" id="reveal">${tt(rev ? 'tr.show.q' : 'tr.show.a')} <span class="hint key-hint u-dim" >· ${tt('tr.space')}</span></button>`}
+      ${result?.diff ? `<div class="exact-question exact-result" aria-live="polite">
+        <div class="field">
+          <span class="lbl">${tt('tr.exact.input')}</span>
+          <div class="exact-typed">${result.diff.typed}</div>
+        </div>
+        <p class="exact-expected">${result.diff.expected}</p>
+        <button class="btn primary big reveal" id="exact-retry" type="button">${tt('tr.exact.retry')}</button>
+      </div>` : (result?.match || exact && !T.shown) ? `
+      <form class="exact-question" id="exact-question">
+        <div class="field"><label for="exact-input">${tt('tr.exact.input')}</label><input id="exact-input" maxlength="${EXACT_MAX_LENGTH}" value="${esc(T.exactInput)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" ${result?.match ? 'class="exact-correct" readonly aria-describedby="exact-status"' : ''}></div>
+        ${result?.match ? `<span id="exact-status" role="status">${tt('tr.exact.correct')}</span>` : `<button class="btn primary big reveal" id="reveal" type="submit" ${missedExact && !T.exactInput.trim() ? 'disabled' : ''}>${tt(missedExact || T.exactInput.trim() ? 'tr.exact.check' : 'tr.show.a')}</button>`}
+      </form>` : T.shown ? `${exact ? exactAnswerHtml(n.exactAnswer) : ''}${cz || rev || (exact && !(n.body || '').trim()) ? '' : `<div class="ans md" id="ans">${renderMd(n.body)}</div>`}`
+        : `<button class="btn primary big reveal" id="reveal">${tt(rev ? 'tr.show.q' : 'tr.show.a')} <span class="hint key-hint u-dim" >· ${tt('tr.space')}</span></button>`}
     </div>
-    ${T.shown ? `<div class="grades">
-      <button class="grade g1" data-g="1" title="${tt('tr.key', { n: 1 })}"><kbd>1</kbd>${tt('tr.g1')}<small>${pv(1)}</small></button>
-      <button class="grade g2" data-g="2" title="${tt('tr.key', { n: 2 })}"><kbd>2</kbd>${tt('tr.g2')}<small>${pv(2)}</small></button>
-      <button class="grade g3" data-g="3" title="${tt('tr.key', { n: 3 })}"><kbd>3</kbd>${tt('tr.g3')}<small>${pv(3)}</small></button></div>
-    <p class="hint grade-hint">${tt('tr.grade.hint')}<span class="keys">. ${tt('tr.grade.keys')}</span></p>` : ''}
+    ${T.shown && !result ? `<div class="grades">
+      <button class="grade g1" data-g="1" title="${tt('tr.key', { n: 1 })}"><kbd>1</kbd>${tt('tr.g1')}</button>
+      <button class="grade g2" data-g="2" title="${tt('tr.key', { n: 2 })}"><kbd>2</kbd>${tt('tr.g2')}</button>
+      <button class="grade g3" data-g="3" title="${tt('tr.key', { n: 3 })}"><kbd>3</kbd>${tt('tr.g3')}</button></div>
+    <p class="hint grade-hint"><span class="keys">${tt('tr.grade.keys')}</span></p>` : ''}
   </div>`;
   if ((T.shown || cz || rev) && $('#ans')) enhance($('#ans'));
   // пропуск: до ответа — «[…]» на месте нужного куска (остальные пропуски видны), после — он подсвечен
@@ -11463,14 +11696,55 @@ function renderSession(root) {
   }
   $('#s-end').onclick = () => { T.done = true; renderSession(root); };
   wireTrainEdit(root, n);
-  $('#reveal') && ($('#reveal').onclick = () => { T.shown = true; renderSession(root); });
+  const isCurrent = () => S.mode === 'train' && S.train === T && !T.done && T.i === attempt && T.queue[attempt] === id;
+  const reveal = () => {
+    if (!isCurrent() || T.shown) return;
+    if (exact && T.exactInput.trim()) {
+      const typed = normalizeExactAnswer(T.exactInput, exact.strict);
+      const match = exact.answers.some(answer => normalizeExactAnswer(answer, exact.strict) === typed);
+      T.exactResult = { match, diff: match ? null : exactAnswerDiff(T.exactInput, exact), advanceAt: Date.now() + 750 };
+      if (!missedExact) {
+        if (!match) T.exactMisses.add(id);
+        recordSessionGrade(T, id, match ? 3 : 1);
+      }
+    } else if (exact && missedExact) return;
+    T.shown = true; renderSession(root);
+    $('#exact-retry')?.focus({ preventScroll: true });
+  };
+  const exactForm = $('#exact-question');
+  const input = $('#exact-input');
+  if (result?.match) {
+    exactForm.onsubmit = e => e.preventDefault();
+    T.exactAdvance = setTimeout(() => {
+      if (!isCurrent() || T.exactResult !== result) return;
+      advanceTrainingCard(T);
+    }, Math.max(0, result.advanceAt - Date.now()));
+  } else if (exactForm) {
+    input.oninput = () => {
+      T.exactInput = input.value;
+      const filled = !!input.value.trim();
+      $('#reveal').textContent = tt(missedExact || filled ? 'tr.exact.check' : 'tr.show.a');
+      $('#reveal').disabled = missedExact && !filled;
+    };
+    input.onkeydown = e => {
+      if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229 || e.repeat)) e.preventDefault();
+    };
+    exactForm.onsubmit = e => { e.preventDefault(); reveal(); };
+  } else if ($('#reveal')) $('#reveal').onclick = reveal;
+  const retry = $('#exact-retry');
+  if (retry) retry.onclick = () => {
+    if (!isCurrent() || T.exactResult !== result) return;
+    T.shown = false; T.exactResult = null; T.exactInput = ''; T.qAt = Date.now();
+    renderSession(root);
+    $('#exact-input')?.focus({ preventScroll: true });
+  };
   root.querySelectorAll('[data-g]').forEach(b => b.onclick = () => gradeCurrent(+b.dataset.g));
   $('#drop-card') && ($('#drop-card').onclick = () => dropCurrent());
   restoreTagEdit();
   root.scrollTop = 0;
 }
 function startTrainEdit() {
-  const T = S.train; if (!T || T.done || !S.canWrite || S.editing) return;
+  const T = S.train; if (!T || T.done || T.exactResult?.match || !S.canWrite || S.editing) return;
   const n = noteOfCard(T.queue[T.i]); if (!n) return;
   if ($('#reader #ed')) $('#reader .doc').innerHTML = ''; // the editor lives in the overlay now; no duplicate ids
   startEdit(n.id, null, false, true);
@@ -11540,15 +11814,23 @@ function logAnswer(g, wasNew, sec) {
   S.srsLogRaw.set(id, next); rebuildLog();
   logCol().doc(id).set(next).catch(() => {});
 }
-async function gradeCurrent(g) {
-  const T = S.train; const id = T.queue[T.i];
+function gradeCurrent(g) {
+  const T = S.train;
+  if (!T || T.done || !T.shown) return;
+  const id = T.queue[T.i]; if (!id) return;
+  if (!T.exactMisses.has(id)) recordSessionGrade(T, id, g);
+  advanceTrainingCard(T);
+}
+function advanceTrainingCard(T) {
+  T.i++; T.shown = false;
+  renderSession($('#train'));
+}
+async function recordSessionGrade(T, id, g) {
   T.results.set(id, T.results.has(id) ? Math.min(T.results.get(id), g) : g);
   if (g === 1) T.queue.push(id);
   logAnswer(g, !S.srs.get(id)?.introduced, T.qId === id && T.qAt ? (Date.now() - T.qAt) / 1000 : 0);
   const next = schedule(S.srs.get(id), g, T.kind === 'free');
   S.srs.set(id, next);
-  T.i++; T.shown = false;
-  renderSession($('#train'));
   updateBadge();
   if (S.db && S.uid) {
     try { await srsCol().doc(id).set(next); } catch (e) { toast(tt('tr.save.failed')); }
@@ -11591,9 +11873,9 @@ document.addEventListener('keydown', e => {
   }
   if (S.mode === 'lib' && !typing && S.hitNav && !S.editing && (e.key === ']' || e.key === '[' || e.key === 'F3')) { e.preventDefault(); S.hitNav(e.key === '[' || (e.key === 'F3' && e.shiftKey) ? -1 : 1); }
   if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing && (e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && !e.ctrlKey && !e.metaKey && !e.altKey && S.canWrite) { e.preventDefault(); startTrainEdit(); return; }   // не текст интерфейса
-  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing) {
-    if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown) { e.preventDefault(); S.train.shown = true; renderSession($('#train')); }
-    else if (S.train.shown && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
+  if (S.mode === 'train' && S.train && !S.train.done && !typing && !S.editing && !e.isComposing && !e.repeat) {
+    if ((e.key === ' ' || e.key === 'Enter') && !S.train.shown && !e.target.closest?.('button, summary, a')) { e.preventDefault(); $('#reveal')?.click(); }
+    else if (S.train.shown && !S.train.exactResult && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); gradeCurrent(+e.key); }
   }
 });
 
@@ -11680,7 +11962,7 @@ function progressHtml() {
       <div class="legend u-mb10" ><span><i class="s-solid"></i>${tt('pr.l.solid')}</span><span><i class="s-know"></i>${tt('pr.l.know')}</span><span><i class="s-learn"></i>${tt('pr.l.learn')}</span><span><i class="s-new"></i>${tt('pr.l.new')}</span></div>
       ${rows || `<div class="empty-state">${tt('pr.none')}</div>`}
     </section>
-    ${(() => { const ex = sortedNotes().filter(n => n.ref && (n.body || '').trim()), H = help(tt('pr.ex.help')); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
+    ${(() => { const ex = sortedNotes().filter(n => n.ref && hasTrainingAnswer(n)), H = help(tt('pr.ex.help')); return `<details class="panel" id="ex-panel" ${S.exOpen ? 'open' : ''}>
       <summary>${tt('pr.ex')}${H[0]} <span>· ${tt('cards.n', { n: ex.length })}</span></summary>
       ${H[1]}
       ${ex.length ? `<ul class="excluded">${ex.map(n => `<li><span class="nm">${esc(n.title)}<small>${esc(secPath(n.section))}</small></span>${S.canWrite ? `<button class="btn" data-unref="${esc(n.id)}">${tt('btn.undo')}</button>` : ''}</li>`).join('')}</ul>` : `<div class="empty-state">${tt('pr.ex.none')}</div>`}
@@ -11892,9 +12174,21 @@ function refreshSession() {
   const n = noteOfCard(id);
   if (!n) { toast(tt('tr.gone')); renderSession($('#train')); return; }
   if (answeredElsewhere(id)) { renderSession($('#train')); return; }
-  if (T.sig !== n.title + '\u0001' + n.body) renderSession($('#train'));
+  if (T.sig !== sessionSignature(n)) renderSession($('#train'));
 }
 let rerenderT, directNotePending = window.NOTES_GUEST_DIRECT_NOTE;
+let clipperPending = window.NOTES_CLIPPER?.pending();
+const clipNoteId = ticket => 'n' + ticket.replaceAll('-', '');
+async function openClip() {
+  const uid = S.uid;
+  const clip = await window.NOTES_CLIPPER.take(uid).catch(() => null);
+  if (!clip) { toast(tt('clip.lost')); return; }
+  if (S.uid !== uid || S.editing) return;
+  const id = clipNoteId(clip.ticket);
+  if (S.notes.has(id) || S.trash.has(id)) { window.NOTES_CLIPPER.clear(); return; }
+  if (S.mode !== 'lib') setMode('lib');
+  newNote(true, clip);
+}
 function openPushTestNote() {
   if (window.NOTES_FLAVOR !== 'public' || guestOn() || S.editing || !S.loaded.notes || !S.loaded.sections) return;
   const id = location.hash.match(/^#push-note=([A-Za-z0-9_-]{1,128})$/)?.[1];
@@ -11914,6 +12208,10 @@ function rerender() {
     else if (S.mode === 'train') { if (!S.train) renderTrain(); else refreshSession(); }
     else if (S.mode === 'prog') renderProg();
     openPushTestNote();
+    if (clipperPending && S.uid && !guestOn() && !S.guestBusy && S.loaded.notes && S.loaded.sections && S.loaded.settings && S.canWrite && !S.editing) {
+      clipperPending = false;
+      void openClip();
+    }
     if (directNotePending && S.loaded.notes && S.loaded.sections && S.loaded.settings) {
       directNotePending = false;
       if (S.canWrite && !S.editing) {
@@ -12229,7 +12527,7 @@ document.addEventListener('keydown', e => {
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
 if (window.NOTES_TEST) window.T = { NAV, renderRail, pinAutoColors, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
-  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup, showGuestDialog, importRun, importDiff, imgqRun };
+  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup, showGuestDialog, importRun, importDiff, imgqRun, startSession };
 boot();
 })();
 </script>
