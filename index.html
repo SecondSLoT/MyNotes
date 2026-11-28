@@ -408,6 +408,19 @@ window.STR = {
   'note.pin': 'В избранное',
   'note.tags.menu': 'Теги…',
   'note.history': 'История версий',
+  'tpl.from': 'Создать из шаблона',
+  'tpl.menu': 'Сохранить как шаблон',
+  'tpl.title': 'Шаблоны заметок',
+  'tpl.name': 'Название шаблона',
+  'tpl.saved': 'Шаблон сохранён',
+  'tpl.empty': 'Шаблонов пока нет. Сохрани первую личную заметку как шаблон через её меню',
+  'tpl.what': 'Скопируем заголовок, текст и теги сохранённой заметки. Отметки в чек-листах новой заметки сбросятся',
+  'tpl.finish.draft': 'Сначала сохрани или отмени текущий черновик',
+  'tpl.pro': 'Свои шаблоны заметок — в Pro',
+  'tpl.pro.use': 'Создать заметку из шаблона в Pro',
+  'tpl.delete': 'Удалить шаблон',
+  'tpl.delete.ask': 'Удалить шаблон «{name}»?',
+  'tpl.deleted': 'Шаблон удалён',
   'sec.sub.added': 'Подраздел добавлен',
   'tag.removed.n': ' у {n}',
   'note.goto': 'Показать в разделе',
@@ -2623,6 +2636,18 @@ body.resizing-rail{cursor:col-resize;user-select:none}
 .list-head #read-all{margin-left:auto}
 .list-head .btn{white-space:nowrap;flex:none}
 .list-heading,.list-tools,.list-actions{display:contents}
+.template-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
+.help-sheet.tpl-sheet{max-width:420px;padding:18px;gap:12px}
+@media(min-width:761px){.help-sheet.tpl-sheet{margin-top:min(8vh,80px)}}
+.tpl-sheet h2,.tpl-sheet p{margin:0}
+.tpl-sheet [role=status]:empty{display:none}
+.tpl-sheet form,.tpl-list{display:grid;gap:8px;min-height:0}
+.tpl-list{overflow:auto}
+.tpl-row{display:flex;gap:8px;align-items:center}
+.tpl-row [data-tpl-open]{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left;white-space:nowrap}
+.tpl-row [data-tpl-delete]{flex:none}
+.tpl-sheet .bar{display:flex;flex-wrap:wrap;gap:8px}
+.tpl-sheet textarea{min-height:8em;resize:vertical}
 .icon-btn{display:inline-flex;align-items:center;gap:6px}
 .icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
 .icon-btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
@@ -3439,7 +3464,7 @@ html[data-boot] #lib{display:none}html[data-boot] #search-box{visibility:hidden}
 :root[data-skin="play"] .grade.g1,:root[data-skin="play"] .grade.g2{border-color:currentColor}
 .sdot{display:none}
 /* главная с плитками (телефон, settings.home = 'tiles') */
-body.home-view .chips-row,body.home-view #scopebar,body.home-view:not(.desk-tiles) #new-note{display:none!important}
+body.home-view .chips-row,body.home-view #scopebar,body.home-view:not(.desk-tiles) :is(#new-note,#template-new){display:none!important}
 .home-top{padding:12px 12px 0;display:flex;flex-direction:column;gap:12px}
 .home-top.in-items{padding:0 0 12px}
 .home-train-wrap,.sec-hero.in-home{position:relative}
@@ -3526,6 +3551,8 @@ button.home-train{display:flex;align-items:center;gap:14px;padding:16px;border-r
 /* планшет / узкое окно (761–1100, 12.11): плитки в колонке списка, заметка рядом — кнопки внизу только под колонкой списка, а не поверх заметки */
 @media (min-width:761px) and (max-width:1100px){.home-bar{position:sticky;left:auto;right:auto;margin:0 -12px}}
 .home-bar .btn{flex:1;padding:12px 8px;font-size:16px;white-space:nowrap}
+.home-bar #home-template{flex:0 0 42px;justify-content:center}
+@media(max-width:380px){.home-bar:has(#home-template:not([hidden])){gap:6px}.home-bar:has(#home-template:not([hidden])) .btn{padding-inline:6px;font-size:14px}}
 /* компьютер с плитками (05.11): в колонке разделов и в колонке заметок плитки; колонка шире 300 px — по две квадратные, уже — по одной, высота по содержимому */
 .rail-tiles{display:flex;flex-direction:column;gap:12px;container-type:inline-size;padding-inline:2px}
 body.desk-tiles #items{container-type:inline-size}
@@ -3539,6 +3566,10 @@ body.desk-tiles .list-actions:not(:has(.btn:not([hidden]))){display:none}
 body.desk-tiles .list-actions{display:flex;grid-column:1/-1;gap:8px}
 body.desk-tiles .list-actions .btn{min-height:40px}
 body.desk-tiles .list-actions #new-note{flex:1}
+#template-new svg{display:none}
+body.desk-tiles #template-new{width:40px;justify-content:center;padding:0}
+body.desk-tiles #template-new span{display:none}
+body.desk-tiles #template-new svg{display:block;margin-inline:auto}
 body.desk-tiles .list-head .icon-btn{width:34px;height:34px;padding:0;justify-content:center}
 /* Modern: кнопки шапки списка — одной группой справа, как на телефоне */
 :root[data-skin="play"] .list-head #sort-btn{margin-left:auto}:root[data-skin="play"] .list-head #read-all{margin-left:0}
@@ -3719,6 +3750,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
   .list-head #read-all{margin-left:0}
   #new-note{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:12;padding:12px 20px;border-radius:var(--rad-pill);background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;box-shadow:var(--sh-pop)}
   #new-note:hover{border-color:var(--accent);filter:brightness(1.05)}
+  #template-new{position:fixed;left:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:12;min-height:44px;background:var(--raised);box-shadow:var(--sh-pop)}
   #items{padding-bottom:84px}
 }
 :root[data-skin="play"] .row-item{border-bottom:0}
@@ -3786,7 +3818,7 @@ body.desk-tiles .home-links{grid-template-columns:minmax(0,1fr)}
       <div class="list-head">
         <div class="list-heading"><h2 id="list-title">Все заметки</h2><span class="count" id="list-count"></span></div>
         <div class="list-tools"><button class="btn icon-btn" id="sort-btn" title="Сортировка" aria-label="Сортировка" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M4.5 2.5v11M2 11l2.5 2.5L7 11M11.5 13.5v-11M9 5l2.5-2.5L14 5"/></svg></button><button class="btn icon-btn" id="tags-btn" hidden aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M6.2 2.5L5 13.5M11 2.5l-1.2 11M2.5 6h11M2.2 10h11"/></svg></button><button class="btn icon-btn" id="read-all" title="Читать все заметки списка подряд, одной статьёй" aria-label="Читать подряд"><svg viewBox="0 0 16 16"><path d="M8 3.5C6.5 2.5 4 2.2 1.5 2.5v10c2.5-.3 5 0 6.5 1 1.5-1 4-1.3 6.5-1v-10C12 2.2 9.5 2.5 8 3.5zM8 3.5v10"/></svg><span>Подряд</span></button><button class="btn icon-btn" id="select-btn" title="Выбрать несколько заметок" aria-label="Выбрать" aria-pressed="false"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 8.2l2 2 4-4.4"/></svg><span>Выбрать</span></button></div>
-        <div class="list-actions"><button class="btn" type="button" id="desk-home-all" aria-controls="items" hidden>Все заметки</button><button class="btn primary" id="new-note" title="+ Заметка">+ Заметка</button></div>
+        <div class="list-actions"><button class="btn" type="button" id="desk-home-all" aria-controls="items" hidden>Все заметки</button><button class="btn template-btn" type="button" id="template-new" title="Создать из шаблона" aria-label="Создать из шаблона" hidden><span>Создать из шаблона</span></button><button class="btn primary" id="new-note" title="+ Заметка">+ Заметка</button></div>
       </div>
       <div class="ann-bar" id="ann-bar" role="status" hidden></div>
       <div class="backup-bar" id="guest-bar" role="status" hidden></div>
@@ -5762,8 +5794,11 @@ function renderRailTiles() {
 }
 const firstNoteAction = () => window.NOTES_FLAVOR === 'public' && S.canWrite && S.loaded.settings &&
   S.loaded.sections && !S.guestBusy && S.section === 'all' && !S.tag && !S.notes.size && !S.sections.size && !S.trash.size;
-const firstNoteHtml = () => `<div class="empty-state"><button class="btn primary" type="button" data-first-note>${tt('onb.first')}</button></div>`;
-$('#items').addEventListener('click', e => { if (e.target.closest('[data-first-note]')) $('#new-note').click(); });
+const firstNoteHtml = () => `<div class="empty-state"><button class="btn primary" type="button" data-first-note>${tt('onb.first')}</button>${window.NOTES_TEMPLATES ? ` <button class="btn" type="button" data-first-template ${templatesShown() && S.plan?.pro ? '' : 'hidden'}>${tt('tpl.from')}</button>` : ''}</div>`;
+$('#items').addEventListener('click', e => {
+  if (e.target.closest('[data-first-note]')) $('#new-note').click();
+  const template = e.target.closest('[data-first-template]'); if (template) openTemplates(template);
+});
 function renderHome(cl) {
   const rq = reviewQueue(), total = rq.due.length + rq.fresh.length, a = answeredToday();
   const virt = isVirtual(S.section) && S.section !== 'all', atHome = S.section === 'all', sid = virt ? null : atHome ? homeRoot() : S.section, sec = sid ? S.sections.get(sid) : null;
@@ -5817,7 +5852,7 @@ function renderHome(cl) {
     ${addSub ? `<div class="tiles tiles-add">${addSub}</div>` : ''}
     ${flatHtml}
     ${!first && !flat && !subs.length && !notes.length ? `<p class="hint home-empty">${tt('home.empty')}</p>` : ''}
-    ${sel || desk || first ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : flatLabel}</button>`}${S.canWrite && !trash ? `<button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
+    ${sel || desk || first ? '' : `<div class="home-bar">${virt || S.tag ? '' : `<button class="btn" id="home-all" aria-pressed="${flat}">${flat ? FOLDER_ICO + tt('home.folders') : flatLabel}</button>`}${S.canWrite && !trash ? `<button class="btn icon-btn template-btn" id="home-template" type="button" title="${tt('tpl.from')}" aria-label="${tt('tpl.from')}" ${templatesShown() ? '' : 'hidden'}>${COPY_ICO}</button><button class="btn primary" id="home-new">${tt('list.new')}</button>` : ''}</div>`}
   </div>`;
   renderBulkBar(sel ? all : []);
   $('#trash-empty') && ($('#trash-empty').onclick = () => { S.emptyAsk = true; renderList(); });
@@ -5841,6 +5876,7 @@ function renderHome(cl) {
   const sn = $('#tl-sentinel');
   if (sn && 'IntersectionObserver' in window) { tileIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { tileIO.disconnect(); S.tileLimit = (S.tileLimit || LIST_STEP) + LIST_STEP; renderList(); } }, { rootMargin: '800px 0px' }); tileIO.observe(sn); }
   $('#home-new') && ($('#home-new').onclick = () => $('#new-note').click());
+  $('#home-template')?.addEventListener('click', e => openTemplates(e.currentTarget));
   // ⋮ на плитке, долгое нажатие и правая кнопка — то же меню, что в списке (заметка) и в дереве (раздел); в режиме выбора — отметить
   const tileMenu = b => { if (!S.canWrite || sel || trash) return false; if (b.dataset.sec) openSecMenu(b.dataset.sec, b.querySelector('.tl-more') || b); else openMenu(b.dataset.note, b.querySelector('.tl-more') || b); return true; };
   $('#items').querySelectorAll('.tile[data-sec], .tile[data-note]').forEach(b => {
@@ -5861,6 +5897,7 @@ function renderList() {
   renderAnnBar(); annLoad(); renderGuestBar(); renderImgqBar(); renderBackupBar(); renderInstallBar();
   const hv = homeShown(); document.body.classList.toggle('home-view', hv);
   $('#new-note').hidden = !S.canWrite || (hv && deskTiles() && (S.section === 'trash' || !!S.select || firstNoteAction()));
+  updateTemplateButtons();
   if (!hv) { $('#home-top').hidden = true; $('#desk-home-all').hidden = true; $('.list-head').removeAttribute('data-sc'); }
   const cl = currentList(); const { list, terms, title } = cl;
   renderScopeBar(cl);
@@ -7487,6 +7524,7 @@ function renderMenu() {
        ${hasTrainingAnswer(n) && isTrainFolder(n.section) ? `<button data-act="ref" role="menuitem">${menuIcon(n.ref ? VICO.relearn : VICO.exclude)}${tt(n.ref ? 'bulk.ref.off' : 'bulk.ref.on')}</button>` : ''}
        ${window.NOTES_SHARE ? `<button data-act="share" role="menuitem">${menuIcon(VICO.link)}${tt('share.menu')}</button>` : ''}
        ${window.NOTES_VERSIONS && planOn() ? `<button data-act="history" role="menuitem">${menuIcon(VICO.recent)}${tt('note.history')}</button>` : ''}
+       ${templatesShown() && !spaceOfNote(n) ? `<button data-act="template" role="menuitem">${menuIcon(COPY_ICO)}${tt('tpl.menu')}</button>` : ''}
        <div class="sep" role="separator"></div>
        <button class="danger" data-act="delete" role="menuitem">${menuIcon(VICO.trash)}${tt('bulk.del')}</button>`;
   menuEl.hidden = false;
@@ -7566,6 +7604,7 @@ menuEl.addEventListener('click', async e => {
   }
   if (act === 'relearn') { closeMenu(); relearn([id]); return; }
   if (act === 'history') { closeMenu(); openHistory(id); return; }
+  if (act === 'template') { const anchor = S.menu.anchor; closeMenu(); saveNoteTemplate(id, anchor); return; }
   if (act === 'share') { closeMenu(); openShare('note', id); return; }
   if (act === 'tags') { S.menu.tags = true; renderMenu(); return; }
   if (act === 'tags-back') { S.menu.tags = false; renderMenu(); return; }
@@ -8171,6 +8210,7 @@ function dropEditorDraft(E) {
 // недавние, выбранный раздел; вид (тема) и прочее про устройство — остаются
 window.NOTES_LOCAL_CLEAR = function () {
   window.NOTES_CLIPPER?.clear();
+  $('#tpl-overlay')?.remove();
   try { for (const k of Object.keys(localStorage)) if (/^aw\.(draft\.|pro\.|note$|recent$|section$|lastFolder$|guestWarned$|guestBar$|guestPersist$|imgqBar$)/.test(k)) localStorage.removeItem(k); } catch {}
 };
 const hhmm = ts => { const d = new Date(ts), z = n => String(n).padStart(2, '0'); const today0 = new Date(); return (d.toDateString() === today0.toDateString() ? '' : `${z(d.getDate())}.${z(d.getMonth() + 1)} `) + `${z(d.getHours())}:${z(d.getMinutes())}`; };
@@ -8618,16 +8658,162 @@ function inferNoteTitle(body) {
   return tt('note.untitled');
 }
 const editorTabs = () => [['edit', 'Markdown'], ['split', tt('ed.tab.split')], ['prev', tt('ed.tab.vis')]];
-function newNote(direct = false, clip = null) {
+function templatesShown() { return !!window.NOTES_TEMPLATES && planOn() && S.canWrite && S.section !== 'trash' && !S.select; }
+function updateTemplateButtons() {
+  const hidden = !templatesShown() || firstNoteAction();
+  $('#template-new').hidden = hidden;
+  const mobile = $('#home-template'); if (mobile) mobile.hidden = hidden;
+  const first = $('[data-first-template]'); if (first) first.hidden = !templatesShown() || !S.plan?.pro;
+}
+function unfinishedTemplateDraft() {
+  const draft = getDraft(null);
+  if (!S.editing && !(draft && draftDiffers(null, draft))) return false;
+  toast(tt('tpl.finish.draft')); return true;
+}
+function resetTemplateChecks(body) {
+  // Marked нормализует табуляции и отступы. Номера в пробной копии
+  // связывают распознанные задачи с исходными строками, включая одинаковые строки в коде.
+  const parts = body.split(/(\r\n|\n|\r)/), offsets = new Map();
+  let nonce = 0;
+  while (body.includes(`\ue000${nonce}:`)) nonce++;
+  const prefix = `\ue000${nonce}:`;
+  const tagged = parts.map((line, i) => {
+    if (i % 2) return line;
+    const candidate = line.match(/^((?:[ \t]*>[ \t]?)*[ \t]*(?:[-+*]|\d{1,9}[.)])[ \t]+)\[[xX]\](?=[ \t]|$)/);
+    if (!candidate) return line;
+    offsets.set(i, candidate[1].length + 1);
+    // Marked requires whitespace after a checkbox, even on a line with no label.
+    const separator = candidate[0].length === line.length ? ' ' : '';
+    return line + separator + prefix + i + '\ue001';
+  }).join('');
+  if (!offsets.size) return body;
+  const tag = new RegExp(prefix + '(\\d+)\ue001$');
+  try {
+    marked.walkTokens(marked.lexer(tagged), token => {
+      if (token.type !== 'list_item' || !token.task || !token.checked) return;
+      const m = token.raw.split('\n', 1)[0].match(tag);
+      if (!m) return;
+      const i = Number(m[1]), at = offsets.get(i);
+      if (at !== undefined) parts[i] = parts[i].slice(0, at) + ' ' + parts[i].slice(at + 1);
+    });
+  } catch (_) { return body; }
+  return parts.join('');
+}
+function templateSheet(title, anchor) {
+  $('#tpl-overlay')?.remove();
+  const root = document.createElement('div');
+  root.id = 'tpl-overlay'; root.className = 'help-overlay';
+  root.innerHTML = `<div class="help-sheet tpl-sheet" role="dialog" aria-modal="true" aria-labelledby="tpl-heading">
+    <h2 id="tpl-heading">${esc(title)}</h2><div class="tpl-list"></div><p class="hint" role="status"></p>
+    <div class="bar"><button class="btn" type="button" id="tpl-close">${tt('help.close')}</button></div>
+  </div>`;
+  const close = (focus = true) => { root.remove(); if (focus && anchor?.isConnected) anchor.focus({ preventScroll: true }); };
+  const closeBtn = root.querySelector('#tpl-close');
+  closeBtn.onclick = () => close();
+  root.onclick = e => { if (e.target === root) close(); };
+  root.onkeydown = e => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+    if (e.key !== 'Tab') return;
+    const items = [...root.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea')];
+    const edge = e.shiftKey ? items[0] : items.at(-1);
+    if (document.activeElement === edge) { e.preventDefault(); (e.shiftKey ? items.at(-1) : items[0])?.focus(); }
+  };
+  document.body.append(root);
+  closeBtn.focus();
+  return { root, close, list: root.querySelector('.tpl-list'), status: root.querySelector('[role=status]') };
+}
+function saveNoteTemplate(id, anchor) {
+  const note = S.notes.get(id);
+  if (!note || !templatesShown() || spaceOfNote(note)) return;
+  if (!S.plan?.pro) { showPlanDialog('templates'); return; }
+  const D = templateSheet(tt('tpl.menu'), anchor);
+  D.list.innerHTML = `<form><p class="hint">${tt('tpl.what')}</p><label for="tpl-name">${tt('tpl.name')}</label>
+    <input id="tpl-name" maxlength="100" required value="${esc((note.title || '').slice(0, 100))}">
+    <div class="bar"><button class="btn primary" type="submit">${tt('btn.save')}</button></div></form>`;
+  const form = D.list.querySelector('form'), name = form.querySelector('input'), submit = form.querySelector('button');
+  const requests = new Map(), uid = S.uid;
+  name.focus(); name.select();
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const title = name.value.trim();
+    if (submit.disabled || !title || uid !== S.uid) return;
+    if (!requests.has(title)) requests.set(title, crypto.randomUUID());
+    D.status.textContent = ''; submit.disabled = name.readOnly = true;
+    try {
+      await window.NOTES_TEMPLATES.create(id, title, requests.get(title));
+      if (D.root.isConnected && uid === S.uid) { D.close(); toast(tt('tpl.saved')); }
+    } catch (err) {
+      if (D.root.isConnected && uid === S.uid) D.status.textContent = err.message;
+    } finally { submit.disabled = name.readOnly = false; }
+  };
+}
+async function openTemplates(anchor) {
+  if (!templatesShown() || unfinishedTemplateDraft()) return;
+  const D = templateSheet(tt('tpl.title'), anchor), uid = S.uid;
+  let templates, opening;
+  function showList(refocus = false) {
+    D.list.innerHTML = templates.length ? templates.map(t => `<div class="tpl-row">
+      <button class="btn" type="button" data-tpl-open="${esc(t.id)}">${esc(t.name)}</button>
+      <button class="btn icon-btn template-btn" type="button" data-tpl-delete="${esc(t.id)}" aria-label="${tt('tpl.delete')}" title="${tt('tpl.delete')}">${VICO.trash}</button>
+    </div>`).join('') : S.plan?.pro ? `<p class="hint">${tt('tpl.empty')}</p>`
+      : `<div class="bar"><button class="btn primary" type="button" data-tpl-pro>${tt('tpl.pro')}</button></div>`;
+    if (refocus) (D.list.querySelector('button') || D.root.querySelector('#tpl-close')).focus();
+  }
+  try {
+    templates = await window.NOTES_TEMPLATES.list();
+    if (!D.root.isConnected || uid !== S.uid) return;
+    showList();
+  } catch (err) { D.status.textContent = err.message; return; }
+  D.list.onclick = async e => {
+    const open = e.target.closest('[data-tpl-open]'), del = e.target.closest('[data-tpl-delete]');
+    if (del) {
+      const id = del.dataset.tplDelete;
+      D.list.innerHTML = `<p>${tt('tpl.delete.ask', { name: esc(templates.find(t => t.id === id).name) })}</p>
+        <div class="bar"><button class="btn" type="button" data-tpl-back>${tt('btn.back')}</button><button class="btn danger" type="button" data-tpl-confirm="${esc(id)}">${tt('btn.delete')}</button></div>`;
+      D.list.querySelector('[data-tpl-back]').focus();
+    } else if (e.target.closest('[data-tpl-back]')) showList(true);
+    else if (e.target.closest('[data-tpl-confirm]')) {
+      const b = e.target.closest('[data-tpl-confirm]'), id = b.dataset.tplConfirm;
+      if (b.disabled) return; b.disabled = true; D.status.textContent = '';
+      try {
+        await window.NOTES_TEMPLATES.remove(id);
+        templates = templates.filter(t => t.id !== id); showList(true); toast(tt('tpl.deleted'));
+      } catch (err) { D.status.textContent = err.message; b.disabled = false; }
+    } else if (e.target.closest('[data-tpl-pro]')) { D.close(false); showPlanDialog('templates'); }
+    else if (open && !open.disabled) {
+      opening = open; open.disabled = true; D.status.textContent = '';
+      const stillOpening = () => opening === open && open.isConnected && uid === S.uid;
+      try {
+        const template = await window.NOTES_TEMPLATES.get(open.dataset.tplOpen);
+        if (!stillOpening()) return;
+        if (template.canUse) { if (!unfinishedTemplateDraft()) { D.close(false); newNote(false, null, template); } }
+        else {
+          D.list.innerHTML = `<h3>${esc(template.title || template.name)}</h3><textarea aria-label="${tt('tpl.title')}" readonly></textarea>
+            <div class="bar"><button class="btn" type="button" data-tpl-back>${tt('btn.back')}</button><button class="btn primary" type="button" data-tpl-pro>${tt('tpl.pro.use')}</button></div>`;
+          const preview = D.list.querySelector('textarea'); preview.value = template.body; preview.focus();
+        }
+      } catch (err) { if (stillOpening()) D.status.textContent = err.message; }
+      finally { if (opening === open) opening = null; open.disabled = false; }
+    }
+  };
+}
+function newNote(direct = false, clip = null, template = null) {
   if (S.editing?.saving || planBlocks('notes')) return;
-  const sec = direct ? '' : !isVirtual(S.section) && S.sections.has(S.section) ? S.section : (homeLevel()[0]?.id || lastFolder());   // вне раздела — первый раздел верхнего уровня, а не тот, из которого вышли (08.11)
+  if (template && unfinishedTemplateDraft()) return;
+  const current = !isVirtual(S.section) && S.sections.has(S.section) ? S.section : '';
+  // Личный текст шаблона не отправляем в общий раздел без явного выбора в редакторе.
+  const sec = direct ? '' : template ? (spaceOfSection(current) ? '' : current)
+    : current || homeLevel()[0]?.id || lastFolder();
   if (roRefuse(spaceOfSection(sec))) return;
   S.editing = { id: null, draft: { title: '', section: sec, tags: [], ref: false, body: '' }, tab: direct ? store.get('edTab', 'prev') : editorTab(), confirmDel: false };
   if (clip) {
     Object.assign(S.editing.draft, clip.draft, { section: S.sections.has(clip.draft.section) ? clip.draft.section : '' });
     S.editing.clipId = clip.ticket;
   }
-  const dr = clip ? null : getDraft(null);
+  if (template) Object.assign(S.editing.draft, {
+    title: template.title, body: resetTemplateChecks(template.body), tags: template.tags,
+  });
+  const dr = clip || template ? null : getDraft(null);
   if (dr && (dr.title || dr.body)) {
     if (direct) Object.assign(S.editing.draft, { title: dr.title, body: dr.body, tags: dr.tags || [], ref: !!dr.ref, section: S.sections.has(dr.section) ? dr.section : '', exactAnswer: exactAnswerConfig(dr.exactAnswer) });
     else S.editing.draftOffer = dr;
@@ -8635,6 +8821,8 @@ function newNote(direct = false, clip = null) {
   $('#lib').classList.add('reading'); renderReader(true);
 }
 $('#new-note').addEventListener('click', () => newNote());
+$('#template-new').insertAdjacentHTML('afterbegin', COPY_ICO);
+$('#template-new').addEventListener('click', e => openTemplates(e.currentTarget));
 function startEdit(id, anchor, restore, overlay) {
   if (S.editing?.saving) return;
   const n = S.notes.get(id);
@@ -10696,6 +10884,7 @@ async function loadPlan() {
   S.planAt = Date.now();
   const wasPushTest = S.plan?.pushTestKey;
   try { S.plan = await window.NOTES_PLAN(); } catch { return; }
+  updateTemplateButtons();
   if (wasPushTest !== S.plan.pushTestKey && S.mode === 'lib' && !S.editing) renderReader();
   if (S.plan.pushTestKey && !pushTestRegistration && navigator.serviceWorker)
     navigator.serviceWorker.ready.then(reg => { pushTestRegistration = reg; });
@@ -10733,7 +10922,7 @@ function showPlanDialog(kind, msg) {
   if (!pro && !renew && window.NOTES_PLAN && Date.now() - (S.planAt || 0) > 3000) loadPlan().then(() => {
     const o = $('#plan-ov'); if (S.plan?.pro && o && !o.hidden) { o.hidden = true; o.innerHTML = ''; toast(tt('plan.now.pro')); }
   });
-  const head = kind === 'pdf' ? tt('pdf.pro') : kind === 'original' ? tt('img.original.pro') : kind === 'spaces' ? tt('plan.h.spaces') : kind === 'plus' ? tt('plan.h.plus') : kind === 'themes' ? tt('plan.h.themes') : kind === 'stage' ? tt('plan.h.stage') : renew ? tt(P.source === 'paid' ? 'plan.h.extend' : 'plan.h.get') : pro ? tt('plan.h.nospace') : (PLAN_LIMIT_HEAD[kind] || (() => tt('plan.h.get')))(P.limits?.[kind] ?? P.free?.[kind] ?? 0);
+  const head = kind === 'templates' ? tt('tpl.pro') : kind === 'pdf' ? tt('pdf.pro') : kind === 'original' ? tt('img.original.pro') : kind === 'spaces' ? tt('plan.h.spaces') : kind === 'plus' ? tt('plan.h.plus') : kind === 'themes' ? tt('plan.h.themes') : kind === 'stage' ? tt('plan.h.stage') : renew ? tt(P.source === 'paid' ? 'plan.h.extend' : 'plan.h.get') : pro ? tt('plan.h.nospace') : (PLAN_LIMIT_HEAD[kind] || (() => tt('plan.h.get')))(P.limits?.[kind] ?? P.free?.[kind] ?? 0);
   ov.hidden = false;
   ov.innerHTML = `<div class="help-sheet plan-sheet" role="dialog" aria-modal="true" aria-labelledby="plan-title">
     <h2 id="plan-title">${esc(head)}</h2>
@@ -12461,7 +12650,7 @@ function closeTopLayer() {
   if (closeSecSheet()) return true;
   // окна «Тариф», «Поделиться», «Перенести…», приглашение, история, обратная связь — по своей кнопке закрытия
   const dlgs = document.querySelectorAll('.help-overlay:not([hidden])'), dlg = dlgs[dlgs.length - 1];
-  if (dlg) { const c = dlg.querySelector('#help-close, #plan-terms-back, #plan-no, #guest-no, #share-done, #move-no, #join-no, #ver-close, #fb-cancel'); if (c) c.click(); else dlg.hidden = true; return true; }
+  if (dlg) { const c = dlg.querySelector('#help-close, #plan-terms-back, #plan-no, #guest-no, #share-done, #move-no, #join-no, #ver-close, #fb-cancel, #tpl-close'); if (c) c.click(); else dlg.hidden = true; return true; }
   if (S.editing) { const f = $('#edit-overlay #ed') || $('#ed'); if (f) { f.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })); return true; } }
   if (S.select) { setSelectMode(false); return true; }
   return false;
@@ -12527,7 +12716,7 @@ document.addEventListener('keydown', e => {
 })();
 // для тестов: внутренности страницы снаружи видны только при window.NOTES_TEST (ставит tests/common.py: setup / test_hooks)
 if (window.NOTES_TEST) window.T = { NAV, renderRail, pinAutoColors, closeMenu, secColor, updateBadge, homePref, goHome, homeShown, homeLevel, openSecSheet, closeSecSheet, secStats, noteLearn, learnBar, sessionAside, etaMin, avgAnswerSec, todayBySection, ringHtml, rebuildLog, pruneLogAgain: () => { logPruned = false; return pruneLog(); }, logOwnId, searchNotes, parseQuery, plainText, autoPurgeAgain: () => { purgedOnce = false; return autoPurge(); }, compressImage, currentList, listRow, imgFail, enhance, S, store, toast, applyLook, effLook, renderTrain, schedule, fsrsNext, fsrsR, dueAhead, today, addDays, cardsOf, clozeTexts, clozeOfCard, reviewQueue, renderMd, plusOn, srsPill, setMode, selectSection, openNote, renderProg, renderList, shortDate, saveBackup, zipBlob, unzip, md5hex, htmlToMd,
-  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup, showGuestDialog, importRun, importDiff, imgqRun, startSession };
+  enmlToMd: (enml, media) => enmlToMd(enml, media || {}), enexToBackup, showGuestDialog, importRun, importDiff, imgqRun, startSession, resetTemplateChecks };
 boot();
 })();
 </script>
